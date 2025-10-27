@@ -18,6 +18,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     
+    <!-- JSZip for ZIP download -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    
     <!-- Google API Client Library -->
     <!-- Google API (광고차단기로 인해 주석 처리) -->
     <!-- <script src="https://apis.google.com/js/api.js"></script> -->
@@ -899,26 +902,43 @@
         <!-- 데이터 관리 섹션 -->
         <div id="data" class="section">
             <!-- Google Drive 연동 카드 -->
-            <div class="card" style="background: linear-gradient(135deg, #4285f4 0%, #34a853 100%); color: white; margin-bottom: 20px;">
+            <!-- Google Drive 연동 (기본 숨김) -->
+            <div class="card" id="googleDriveCard" style="background: linear-gradient(135deg, #4285f4 0%, #34a853 100%); color: white; margin-bottom: 20px; display: none;">
                 <h2 style="color: white; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; justify-content: space-between;">
                     <div style="display: flex; align-items: center; gap: 10px;">
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
                             <path d="M6.5 12L1 21h11l5.5-9H6.5zM19 12l-5.5-9L8 12h11zM7.5 3l-6 9h11l-5-9z"/>
                         </svg>
-                        Google Drive 연동
+                        Google Drive 연동 (선택 기능)
                     </div>
-                    <div id="onlineStatus" style="font-size: 14px; padding: 4px 12px; background: rgba(255,255,255,0.2); border-radius: 12px; display: flex; align-items: center; gap: 6px;">
-                        🟢 온라인
-                    </div>
+                    <button onclick="toggleGoogleDrive()" style="background: rgba(255,255,255,0.3); border: none; color: white; padding: 4px 12px; border-radius: 12px; cursor: pointer; font-size: 14px;">
+                        ✕ 닫기
+                    </button>
                 </h2>
+                
+                <div style="margin-bottom: 15px; padding: 10px; background: rgba(255,255,255,0.2); border-radius: 8px; font-size: 13px;">
+                    💡 <strong>팀 공유 기능:</strong> Google Client ID를 설정하면 팀원들과 데이터를 실시간으로 공유할 수 있습니다. 혼자 사용하신다면 이 기능은 필요 없습니다.
+                </div>
                 
                 <div id="googleDriveStatus" style="margin-bottom: 15px; padding: 10px; background: rgba(255,255,255,0.2); border-radius: 8px; font-size: 14px;">
                     <div id="notSignedIn" style="display: block;">
-                        ⚠️ 로그인이 필요합니다. 구글 계정으로 로그인하면 팀원들과 데이터를 실시간으로 공유할 수 있습니다.
+                        ⚠️ 로그인이 필요합니다.
                     </div>
                     <div id="signedIn" style="display: none;">
                         ✅ <span id="userEmail"></span>님 로그인됨
                     </div>
+                </div>
+                
+                <!-- Google Client ID 설정 -->
+                <div id="clientIdSetup" style="margin-bottom: 15px; padding: 10px; background: rgba(251, 191, 36, 0.2); border: 1px solid rgba(251, 191, 36, 0.5); border-radius: 8px; display: none;">
+                    <div style="font-size: 13px; color: #fbbf24; margin-bottom: 8px;">
+                        🔑 Google Client ID를 입력하세요
+                    </div>
+                    <input type="text" id="clientIdInput" placeholder="123456789-abcdef.apps.googleusercontent.com" 
+                           style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ddd; margin-bottom: 8px; font-size: 12px;">
+                    <button onclick="saveClientId()" class="btn" style="width: 100%; background: #fbbf24; color: #1a202c; font-weight: bold;">
+                        💾 저장
+                    </button>
                 </div>
                 
                 <div style="display: flex; gap: 10px;">
@@ -927,6 +947,9 @@
                     </button>
                     <button id="signOutBtn" class="btn" onclick="handleGoogleSignOut()" style="flex: 1; background: rgba(255,255,255,0.2); color: white; display: none;">
                         🚪 로그아웃
+                    </button>
+                    <button onclick="toggleClientIdSetup()" class="btn" style="background: rgba(251, 191, 36, 0.2); color: #fbbf24; padding: 0 15px;">
+                        ⚙️
                     </button>
                 </div>
                 
@@ -955,21 +978,44 @@
             </div>
 
             <div class="card">
-                <h2 style="color: var(--primary); margin-bottom: 20px;">💾 로컬 데이터 관리</h2>
+                <h2 style="color: var(--primary); margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center;">
+                    <span>💾 다운로드 & 관리</span>
+                    <button onclick="toggleGoogleDrive()" class="btn" style="background: rgba(66, 133, 244, 0.1); color: #4285f4; padding: 8px 16px; font-size: 13px;">
+                        ☁️ 팀 공유 기능
+                    </button>
+                </h2>
                 
                 <button class="btn btn-primary" onclick="generatePDF()">📄 PDF 보고서 생성</button>
                 
+                <div style="height: 10px;"></div>
+                
+                <button class="btn" onclick="downloadAllPhotos()" style="background: #3b82f6; color: white; font-weight: bold;">
+                    📷 모든 사진 다운로드 (ZIP)
+                </button>
+                
                 <div style="height: 20px;"></div>
                 
-                <button class="btn btn-secondary" onclick="saveCurrentData()">💾 로컬 저장</button>
-                
-                <div style="height: 20px;"></div>
-                
-                <button class="btn btn-danger" onclick="clearAllData()">🗑️ 모든 데이터 삭제</button>
+                <details style="margin-bottom: 20px;">
+                    <summary style="cursor: pointer; padding: 10px; background: rgba(239, 68, 68, 0.1); border-radius: 8px; color: #ef4444; font-weight: bold;">
+                        ⚠️ 고급 기능 (일반 사용자는 필요 없음)
+                    </summary>
+                    <div style="padding: 15px; background: rgba(0,0,0,0.05); border-radius: 8px; margin-top: 10px;">
+                        <p style="font-size: 13px; color: #666; margin-bottom: 10px;">
+                            💡 <strong>자동 저장:</strong> 데이터는 입력과 동시에 자동으로 저장됩니다.<br>
+                            💡 <strong>데이터 삭제:</strong> 브라우저 데이터를 완전히 지우고 싶을 때만 사용하세요.
+                        </p>
+                        <button class="btn btn-secondary" onclick="saveCurrentData()" style="width: 100%; margin-bottom: 10px;">
+                            💾 수동 저장 (자동 저장되므로 불필요)
+                        </button>
+                        <button class="btn btn-danger" onclick="clearAllData()" style="width: 100%;">
+                            🗑️ 모든 데이터 삭제 (복구 불가)
+                        </button>
+                    </div>
+                </details>
             </div>
 
             <div class="card">
-                <h3 style="color: var(--primary); margin-bottom: 15px;">📦 로컬 저장 프로젝트</h3>
+                <h3 style="color: var(--primary); margin-bottom: 15px;">📦 저장된 프로젝트 목록</h3>
                 <div id="savedList" class="saved-list"></div>
             </div>
         </div>
@@ -1157,14 +1203,64 @@
             updateOnlineStatus();
         });
         
-        // ==================== Google OAuth2 직접 구현 (광고차단기 우회) ====================
-        const GOOGLE_CLIENT_ID = '41297273395-akfc0j40utujca3ofvbdmmqdlh449do2.apps.googleusercontent.com';
-        const GOOGLE_API_KEY = 'AIzaSyBNAkir6I-_MudQIpQHooyaxafA7HrkcGQ';
+        // ==================== Google 로그인 비활성화 (보안) ====================
+        // ⚠️ API 키가 GitHub에 노출되어 비활성화되었습니다
+        // 다시 사용하려면 새로운 Client ID를 발급받아 설정하세요
+        
+        let GOOGLE_CLIENT_ID = localStorage.getItem('google_client_id') || '';
         const REDIRECT_URI = window.location.origin + window.location.pathname;
         const SCOPES = 'https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/spreadsheets';
         
         let accessToken = null;
         let currentUser = null;
+        
+        const GOOGLE_DRIVE_DISABLED = true; // Google Drive 기능 비활성화
+        
+        // 설정 저장
+        function saveGoogleClientId(clientId) {
+            GOOGLE_CLIENT_ID = clientId;
+            localStorage.setItem('google_client_id', clientId);
+            showToast('✅ Client ID 저장 완료');
+        }
+        
+        // Client ID 설정 토글
+        function toggleClientIdSetup() {
+            const setup = document.getElementById('clientIdSetup');
+            if (setup.style.display === 'none') {
+                setup.style.display = 'block';
+                document.getElementById('clientIdInput').value = GOOGLE_CLIENT_ID;
+            } else {
+                setup.style.display = 'none';
+            }
+        }
+        
+        // Client ID 저장
+        function saveClientId() {
+            const clientId = document.getElementById('clientIdInput').value.trim();
+            if (!clientId) {
+                showToast('❌ Client ID를 입력하세요');
+                return;
+            }
+            
+            if (!clientId.includes('.apps.googleusercontent.com')) {
+                showToast('❌ 올바른 Client ID 형식이 아닙니다');
+                return;
+            }
+            
+            saveGoogleClientId(clientId);
+            toggleClientIdSetup();
+        }
+        
+        // Google Drive 카드 토글
+        function toggleGoogleDrive() {
+            const card = document.getElementById('googleDriveCard');
+            if (card.style.display === 'none') {
+                card.style.display = 'block';
+                showToast('💡 팀 공유가 필요하면 Client ID를 설정하세요');
+            } else {
+                card.style.display = 'none';
+            }
+        }
 
         // ==================== 프로젝트 목록 관리 ====================
         let projects = []; // 모든 프로젝트 목록
@@ -1215,6 +1311,13 @@
 
         // ==================== OAuth2 팝업 로그인 ====================
         async function handleGoogleSignIn() {
+            // Client ID 확인
+            if (!GOOGLE_CLIENT_ID) {
+                showToast('❌ Client ID를 먼저 설정하세요 (⚙️ 버튼)');
+                toggleClientIdSetup();
+                return;
+            }
+            
             console.log('🔵 OAuth2 팝업 로그인 시작...');
             
             const authUrl = 'https://accounts.google.com/o/oauth2/v2/auth?' + new URLSearchParams({
@@ -3367,6 +3470,105 @@
                 saveToLocalStorage();
                 updateProgress();
                 showToast('하자가 삭제되었습니다');
+            }
+        }
+
+        // ==================== 사진 ZIP 다운로드 ====================
+        async function downloadAllPhotos() {
+            if (!projectData.apartmentName || !projectData.dong || !projectData.ho) {
+                alert('프로젝트 정보를 먼저 입력해주세요');
+                return;
+            }
+            
+            showToast('📷 사진 수집 중...');
+            
+            try {
+                const zip = new JSZip();
+                const projectName = `${projectData.apartmentName}_${projectData.dong}_${projectData.ho}`;
+                let photoCount = 0;
+                
+                // 1. 평면도
+                if (projectData.floorplan) {
+                    const floorplanData = projectData.floorplan.split(',')[1];
+                    zip.file('평면도.jpg', floorplanData, { base64: true });
+                    photoCount++;
+                }
+                
+                // 2. 하자 사진 (순번대로, 폴더 없이)
+                if (projectData.defects && projectData.defects.length > 0) {
+                    const defectFolder = zip.folder('하자사진');
+                    
+                    projectData.defects.forEach((defect, index) => {
+                        if (defect.photos && defect.photos.length > 0) {
+                            const defectNum = String(index + 1).padStart(2, '0'); // 01, 02, 03...
+                            const spaceName = defect.space || '미지정';
+                            const locationName = defect.location || '미지정';
+                            
+                            defect.photos.forEach((photo, photoIndex) => {
+                                const photoData = photo.split(',')[1];
+                                const photoType = photoIndex === 0 ? '원경' : '근접';
+                                const fileName = `${defectNum}_${spaceName}_${locationName}_${photoType}.jpg`.replace(/\//g, '-');
+                                defectFolder.file(fileName, photoData, { base64: true });
+                                photoCount++;
+                            });
+                        }
+                    });
+                }
+                
+                // 3. 장비 사진
+                if (projectData.equipment && projectData.equipment.length > 0) {
+                    const equipFolder = zip.folder('장비사진');
+                    
+                    projectData.equipment.forEach((equip, index) => {
+                        const equipNum = String(index + 1).padStart(2, '0');
+                        const spaceName = equip.space || '미지정';
+                        const equipName = equip.equipment || '미지정';
+                        
+                        if (equip.photos) {
+                            // 위치별 사진
+                            Object.entries(equip.photos).forEach(([location, photo]) => {
+                                if (photo) {
+                                    const photoData = photo.split(',')[1];
+                                    const fileName = `${equipNum}_${spaceName}_${equipName}_${location}.jpg`.replace(/\//g, '-');
+                                    equipFolder.file(fileName, photoData, { base64: true });
+                                    photoCount++;
+                                }
+                            });
+                        } else if (equip.photo) {
+                            // 구 버전 단일 사진
+                            const photoData = equip.photo.split(',')[1];
+                            const fileName = `${equipNum}_${spaceName}_${equipName}.jpg`.replace(/\//g, '-');
+                            equipFolder.file(fileName, photoData, { base64: true });
+                            photoCount++;
+                        }
+                    });
+                }
+                
+                if (photoCount === 0) {
+                    showToast('❌ 다운로드할 사진이 없습니다');
+                    return;
+                }
+                
+                showToast(`📦 ZIP 파일 생성 중... (${photoCount}장)`);
+                
+                // ZIP 파일 생성
+                const content = await zip.generateAsync({ type: 'blob' });
+                
+                // 다운로드
+                const url = URL.createObjectURL(content);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `${projectName}_사진모음_${projectData.inspectionDate || new Date().toISOString().split('T')[0]}.zip`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+                
+                showToast(`✅ 사진 ${photoCount}장 다운로드 완료!`);
+                
+            } catch (error) {
+                console.error('사진 다운로드 오류:', error);
+                alert('사진 다운로드 실패: ' + error.message);
             }
         }
 
