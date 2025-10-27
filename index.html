@@ -2606,6 +2606,25 @@
         }
 
         function addDefect() {
+            // ✅ 기존 하자 중 사진이 2장 미만인 것이 있는지 확인
+            if (projectData.defects.length > 0) {
+                const lastDefect = projectData.defects[projectData.defects.length - 1];
+                
+                // 사진 검증 (필수 2장)
+                if (!lastDefect.photos || lastDefect.photos.length < 2) {
+                    alert('⚠️ 바로 이전 하자의 사진을 2장 모두 촬영해주세요!\n\n📷 필수: 원경(멀리서) + 근접(가까이서) 사진');
+                    // 해당 하자로 스크롤
+                    setTimeout(() => {
+                        const defectsList = document.getElementById('defectsList');
+                        if (defectsList.lastElementChild) {
+                            defectsList.lastElementChild.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }
+                    }, 100);
+                    return;
+                }
+            }
+            
+            // ✅ 모든 검증 통과 → 새 하자 추가
             const newDefect = {
                 id: defectIdCounter++,
                 spaces: [],      // 배열로 변경
@@ -2620,7 +2639,7 @@
             renderDefects();
             saveToLocalStorage();
             updateProgress();
-            showToast('새 하자가 추가되었습니다');
+            showToast('✅ 새 하자가 추가되었습니다');
             
             // 새로 추가된 하자로 스크롤
             setTimeout(() => {
@@ -3255,6 +3274,46 @@
         function updateAirQualityValue(id, field, value) {
             const room = projectData.airQuality.find(r => r.id === id);
             if (room) {
+                // ✅ 입력값 검증
+                const numValue = parseFloat(value);
+                
+                // 빈값은 허용
+                if (value === '' || value === null) {
+                    room[field] = value;
+                    saveToLocalStorage();
+                    updateProgress();
+                    return;
+                }
+                
+                // 음수 체크
+                if (numValue < 0) {
+                    alert('⚠️ 음수는 입력할 수 없습니다');
+                    renderAirQuality(); // 원래 값으로 복원
+                    return;
+                }
+                
+                // 비현실적 값 체크
+                let maxValue = 1000;
+                let fieldName = '';
+                
+                if (field === 'radon') {
+                    maxValue = 500; // 라돈 권고기준의 약 3배
+                    fieldName = '라돈';
+                } else if (field === 'formaldehyde') {
+                    maxValue = 2; // 포름알데히드 권고기준의 약 10배
+                    fieldName = '포름알데히드';
+                } else if (field === 'vocs') {
+                    maxValue = 5; // VOCs 권고기준의 약 10배
+                    fieldName = '총휘발성유기화합물';
+                }
+                
+                if (numValue > maxValue) {
+                    if (!confirm(`⚠️ ${fieldName} 측정값이 매우 높습니다 (${numValue}).\n\n정확히 입력하셨나요?\n\n계속하려면 "확인"을 누르세요.`)) {
+                        renderAirQuality(); // 원래 값으로 복원
+                        return;
+                    }
+                }
+                
                 room[field] = value;
                 saveToLocalStorage();
                 updateProgress();
@@ -3826,14 +3885,38 @@
         // ==================== 엑셀 다운로드 (시공사 제출용) ====================
         // ==================== 모든 자료 다운로드 (PDF + 엑셀 + 사진 ZIP) ====================
         async function downloadAllData() {
+            // ✅ 1. 프로젝트 정보 검증
             if (!projectData.apartmentName || !projectData.dong || !projectData.ho) {
                 alert('프로젝트 정보를 먼저 입력해주세요');
                 return;
             }
             
+            // ✅ 점검일자 필수 확인
+            if (!projectData.inspectionDate) {
+                alert('⚠️ 점검일자를 입력해주세요');
+                return;
+            }
+            
+            // ✅ 2. 하자 내역 확인
             if (!projectData.defects || projectData.defects.length === 0) {
                 alert('다운로드할 하자 내역이 없습니다');
                 return;
+            }
+            
+            // ✅ 3. 사진 누락 확인 (2장 미만)
+            const defectsWithIncompletePhotos = projectData.defects.filter(d => 
+                !d.photos || d.photos.length < 2
+            );
+            if (defectsWithIncompletePhotos.length > 0) {
+                const photoDetails = defectsWithIncompletePhotos.map((d, idx) => {
+                    const defectIndex = projectData.defects.indexOf(d) + 1;
+                    const photoCount = d.photos ? d.photos.length : 0;
+                    return `하자 ${defectIndex}번: 사진 ${photoCount}장`;
+                }).join('\n');
+                
+                if (!confirm(`⚠️ 사진이 2장 미만인 하자가 ${defectsWithIncompletePhotos.length}건 있습니다.\n\n${photoDetails}\n\n📷 권장: 원경 + 근접 사진 2장\n\n시공사 제출 시 증거 자료가 부족할 수 있습니다.\n계속 진행하시겠습니까?`)) {
+                    return;
+                }
             }
             
             showLoading();
@@ -4343,8 +4426,9 @@
                     projectData.defects.forEach((defect, index) => {
                         if (defect.photos && defect.photos.length > 0) {
                             const defectNum = String(index + 1).padStart(2, '0');
-                            const spaceName = defect.space || '미지정';
-                            const locationName = defect.location || '미지정';
+                            // ✅ 배열에서 첫 번째 값 가져오기
+                            const spaceName = (defect.spaces && defect.spaces.length > 0) ? defect.spaces[0] : '미지정';
+                            const locationName = (defect.locations && defect.locations.length > 0) ? defect.locations[0] : '미지정';
                             
                             defect.photos.forEach((photo, photoIndex) => {
                                 const photoData = photo.split(',')[1];
@@ -4414,8 +4498,15 @@
 
         // ==================== 엑셀 다운로드 (텍스트만) ====================
         async function downloadExcel() {
+            // ✅ 1. 프로젝트 정보 검증
             if (!projectData.apartmentName || !projectData.dong || !projectData.ho) {
                 alert('프로젝트 정보를 먼저 입력해주세요');
+                return;
+            }
+            
+            // ✅ 점검일자 필수 확인
+            if (!projectData.inspectionDate) {
+                alert('⚠️ 점검일자를 입력해주세요');
                 return;
             }
             
@@ -4631,10 +4722,11 @@
                         right: { style: 'thin', color: { argb: 'FFD1D5DB' } }
                     };
                     
+                    // 공간 (배열에서 가져오기) ✅ 수정됨
                     const cell2 = row.getCell(2);
-                    cell2.value = defect.space || '';
+                    cell2.value = (defect.spaces && defect.spaces.length > 0) ? defect.spaces.join(', ') : '';
                     cell2.font = { name: '맑은 고딕', size: 11 };
-                    cell2.alignment = { vertical: 'middle', horizontal: 'center' };
+                    cell2.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
                     cell2.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: index % 2 === 0 ? 'FFFFFFFF' : 'FFF9FAFB' } };
                     cell2.border = {
                         top: { style: 'thin', color: { argb: 'FFD1D5DB' } },
@@ -4643,10 +4735,11 @@
                         right: { style: 'thin', color: { argb: 'FFD1D5DB' } }
                     };
                     
+                    // 위치 (배열에서 가져오기) ✅ 수정됨
                     const cell3 = row.getCell(3);
-                    cell3.value = defect.location || '';
+                    cell3.value = (defect.locations && defect.locations.length > 0) ? defect.locations.join(', ') : '';
                     cell3.font = { name: '맑은 고딕', size: 11 };
-                    cell3.alignment = { vertical: 'middle', horizontal: 'center' };
+                    cell3.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
                     cell3.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: index % 2 === 0 ? 'FFFFFFFF' : 'FFF9FAFB' } };
                     cell3.border = {
                         top: { style: 'thin', color: { argb: 'FFD1D5DB' } },
@@ -4655,8 +4748,9 @@
                         right: { style: 'thin', color: { argb: 'FFD1D5DB' } }
                     };
                     
+                    // 하자내용 (배열에서 가져오기) ✅ 수정됨
                     const cell4 = row.getCell(4);
-                    cell4.value = defect.type || '';
+                    cell4.value = (defect.types && defect.types.length > 0) ? defect.types.join(', ') : '';
                     cell4.font = { name: '맑은 고딕', size: 11 };
                     cell4.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
                     cell4.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: index % 2 === 0 ? 'FFFFFFFF' : 'FFF9FAFB' } };
@@ -4734,8 +4828,9 @@
                     projectData.defects.forEach((defect, index) => {
                         if (defect.photos && defect.photos.length > 0) {
                             const defectNum = String(index + 1).padStart(2, '0'); // 01, 02, 03...
-                            const spaceName = defect.space || '미지정';
-                            const locationName = defect.location || '미지정';
+                            // ✅ 배열에서 첫 번째 값 가져오기
+                            const spaceName = (defect.spaces && defect.spaces.length > 0) ? defect.spaces[0] : '미지정';
+                            const locationName = (defect.locations && defect.locations.length > 0) ? defect.locations[0] : '미지정';
                             
                             defect.photos.forEach((photo, photoIndex) => {
                                 const photoData = photo.split(',')[1];
@@ -4807,9 +4902,34 @@
 
         // ==================== PDF 생성 ====================
         async function generatePDF() {
+            // ✅ 1. 프로젝트 정보 검증
             if (!projectData.apartmentName || !projectData.dong || !projectData.ho) {
                 alert('프로젝트 정보를 먼저 입력해주세요');
                 return;
+            }
+            
+            // ✅ 점검일자 필수 확인
+            if (!projectData.inspectionDate) {
+                alert('⚠️ 점검일자를 입력해주세요');
+                return;
+            }
+            
+            // ✅ 2. 사진 누락 확인 (2장 미만)
+            if (projectData.defects && projectData.defects.length > 0) {
+                const defectsWithIncompletePhotos = projectData.defects.filter(d => 
+                    !d.photos || d.photos.length < 2
+                );
+                if (defectsWithIncompletePhotos.length > 0) {
+                    const photoDetails = defectsWithIncompletePhotos.map((d, idx) => {
+                        const defectIndex = projectData.defects.indexOf(d) + 1;
+                        const photoCount = d.photos ? d.photos.length : 0;
+                        return `하자 ${defectIndex}번: 사진 ${photoCount}장`;
+                    }).join('\n');
+                    
+                    if (!confirm(`⚠️ 사진이 2장 미만인 하자가 ${defectsWithIncompletePhotos.length}건 있습니다.\n\n${photoDetails}\n\n📷 권장: 원경 + 근접 사진 2장\n\n고객 보고서 품질이 저하될 수 있습니다.\n계속 진행하시겠습니까?`)) {
+                        return;
+                    }
+                }
             }
 
             showLoading();
