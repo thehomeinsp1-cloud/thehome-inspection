@@ -11,6 +11,9 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="더홈점검">
     
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="./manifest.json">
+    
     <!-- jsPDF + html2canvas Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -896,11 +899,16 @@
         <div id="data" class="section">
             <!-- Google Drive 연동 카드 -->
             <div class="card" style="background: linear-gradient(135deg, #4285f4 0%, #34a853 100%); color: white; margin-bottom: 20px;">
-                <h2 style="color: white; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
-                        <path d="M6.5 12L1 21h11l5.5-9H6.5zM19 12l-5.5-9L8 12h11zM7.5 3l-6 9h11l-5-9z"/>
-                    </svg>
-                    Google Drive 연동
+                <h2 style="color: white; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; justify-content: space-between;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
+                            <path d="M6.5 12L1 21h11l5.5-9H6.5zM19 12l-5.5-9L8 12h11zM7.5 3l-6 9h11l-5-9z"/>
+                        </svg>
+                        Google Drive 연동
+                    </div>
+                    <div id="onlineStatus" style="font-size: 14px; padding: 4px 12px; background: rgba(255,255,255,0.2); border-radius: 12px; display: flex; align-items: center; gap: 6px;">
+                        🟢 온라인
+                    </div>
                 </h2>
                 
                 <div id="googleDriveStatus" style="margin-bottom: 15px; padding: 10px; background: rgba(255,255,255,0.2); border-radius: 8px; font-size: 14px;">
@@ -920,6 +928,12 @@
                         🚪 로그아웃
                     </button>
                 </div>
+                
+                <!-- 동기화 버튼 (오프라인 작업 시 표시) -->
+                <button id="syncBtn" class="btn" onclick="syncPendingProjects()" style="display: none; margin-top: 10px; background: #fbbf24; color: #1a202c; font-weight: bold; position: relative;">
+                    <span id="syncBadge" style="position: absolute; top: -8px; right: -8px; background: #ef4444; color: white; border-radius: 50%; width: 24px; height: 24px; display: none; align-items: center; justify-content: center; font-size: 12px; font-weight: bold;">0</span>
+                    📤 대기 프로젝트 동기화
+                </button>
             </div>
 
             <!-- 클라우드 저장/불러오기 -->
@@ -997,6 +1011,151 @@
     </div>
 
     <script>
+        // ==================== 온라인/오프라인 상태 관리 ====================
+        let isOnline = navigator.onLine;
+        let pendingSyncProjects = []; // 동기화 대기 프로젝트
+        
+        // Service Worker는 환경 제약으로 제거
+        // localStorage를 사용한 데이터 저장으로 대체
+        
+        // 온라인/오프라인 상태 감지
+        window.addEventListener('online', () => {
+            isOnline = true;
+            updateOnlineStatus();
+            showToast('✅ 온라인 연결됨', 'success');
+            
+            // 동기화 대기 중인 프로젝트 확인
+            loadPendingSyncProjects();
+            if (pendingSyncProjects.length > 0) {
+                setTimeout(() => {
+                    if (confirm(`동기화 대기 중인 프로젝트가 ${pendingSyncProjects.length}건 있습니다.\n지금 드라이브에 업로드하시겠습니까?`)) {
+                        syncPendingProjects();
+                    }
+                }, 1000);
+            }
+        });
+        
+        window.addEventListener('offline', () => {
+            isOnline = false;
+            updateOnlineStatus();
+            showToast('📶 오프라인 모드 - 작업 내용은 로컬에 저장됩니다', 'warning');
+        });
+        
+        // 온라인 상태 표시 업데이트
+        function updateOnlineStatus() {
+            const statusIndicator = document.getElementById('onlineStatus');
+            if (statusIndicator) {
+                if (isOnline) {
+                    statusIndicator.innerHTML = '🟢 온라인';
+                    statusIndicator.style.color = '#10b981';
+                } else {
+                    statusIndicator.innerHTML = '🔴 오프라인';
+                    statusIndicator.style.color = '#ef4444';
+                }
+            }
+        }
+        
+        // localStorage 기반 동기화 대기 관리
+        function loadPendingSyncProjects() {
+            try {
+                const saved = localStorage.getItem('pendingSyncProjects');
+                if (saved) {
+                    pendingSyncProjects = JSON.parse(saved);
+                    updateSyncBadge();
+                }
+            } catch (error) {
+                console.error('동기화 목록 로드 실패:', error);
+                pendingSyncProjects = [];
+            }
+        }
+        
+        function savePendingSyncProjects() {
+            try {
+                localStorage.setItem('pendingSyncProjects', JSON.stringify(pendingSyncProjects));
+                updateSyncBadge();
+            } catch (error) {
+                console.error('동기화 목록 저장 실패:', error);
+            }
+        }
+        
+        function addToPendingSync(projectData) {
+            projectData.syncTimestamp = Date.now();
+            pendingSyncProjects.push(projectData);
+            savePendingSyncProjects();
+            
+            // 동기화 버튼 표시
+            const syncBtn = document.getElementById('syncBtn');
+            if (syncBtn) syncBtn.style.display = 'block';
+        }
+        
+        function removePendingSyncProject(index) {
+            pendingSyncProjects.splice(index, 1);
+            savePendingSyncProjects();
+        }
+        
+        // 동기화 뱃지 업데이트
+        function updateSyncBadge() {
+            const badge = document.getElementById('syncBadge');
+            if (badge) {
+                if (pendingSyncProjects.length > 0) {
+                    badge.textContent = pendingSyncProjects.length;
+                    badge.style.display = 'flex';
+                } else {
+                    badge.style.display = 'none';
+                }
+            }
+        }
+        
+        // 대기 중인 프로젝트 동기화
+        async function syncPendingProjects() {
+            if (!isOnline) {
+                showToast('❌ 인터넷 연결이 필요합니다', 'error');
+                return;
+            }
+            
+            if (pendingSyncProjects.length === 0) {
+                showToast('✅ 동기화할 프로젝트가 없습니다', 'success');
+                return;
+            }
+            
+            showLoading('동기화 중...');
+            
+            let successCount = 0;
+            let failCount = 0;
+            
+            for (let i = pendingSyncProjects.length - 1; i >= 0; i--) {
+                try {
+                    const project = pendingSyncProjects[i];
+                    await uploadProjectToDrive(project);
+                    removePendingSyncProject(i);
+                    successCount++;
+                } catch (error) {
+                    console.error('동기화 실패:', error);
+                    failCount++;
+                }
+            }
+            
+            hideLoading();
+            
+            if (failCount === 0) {
+                showToast(`✅ 모든 프로젝트(${successCount}건)가 동기화되었습니다`, 'success');
+            } else {
+                showToast(`⚠️ ${successCount}건 성공, ${failCount}건 실패`, 'warning');
+            }
+            
+            // 동기화 버튼 숨기기
+            if (pendingSyncProjects.length === 0) {
+                const syncBtn = document.getElementById('syncBtn');
+                if (syncBtn) syncBtn.style.display = 'none';
+            }
+        }
+        
+        // 페이지 로드 시 초기화
+        window.addEventListener('load', () => {
+            loadPendingSyncProjects();
+            updateOnlineStatus();
+        });
+        
         // ==================== Google Drive API 설정 ====================
         // Google Cloud Console에서 발급받은 실제 값
         const GOOGLE_CLIENT_ID = '41297273395-akfc0j40utujca3ofvbdmmqdlh449do2.apps.googleusercontent.com';
@@ -1312,13 +1471,21 @@
                 });
 
                 // 데이터 입력 준비
-                const headers = [['No', '공간', '위치', '하자종류']];
-                const rows = defects.map((defect, index) => [
-                    index + 1,
-                    defect.spaces.join(', '),
-                    defect.locations.join(', '),
-                    defect.types.join(', ')
-                ]);
+                const headers = [['No', '공간', '위치', '하자종류', '상세설명']];
+                const rows = defects.map((defect, index) => {
+                    // 상세위치와 상세설명을 합침
+                    const detailLocation = defect.detailLocation || '';
+                    const description = defect.description || '';
+                    const combinedDetail = [detailLocation, description].filter(x => x).join(' ');
+                    
+                    return [
+                        index + 1,
+                        defect.spaces.join(', '),
+                        defect.locations.join(', '),
+                        defect.types.join(', '),
+                        combinedDetail || '-'
+                    ];
+                });
 
                 const allData = [...headers, ...rows];
 
@@ -1336,33 +1503,107 @@
                 await gapi.client.sheets.spreadsheets.batchUpdate({
                     spreadsheetId: spreadsheetId,
                     resource: {
-                        requests: [{
-                            repeatCell: {
-                                range: {
-                                    sheetId: 0,
-                                    startRowIndex: 0,
-                                    endRowIndex: 1
-                                },
-                                cell: {
-                                    userEnteredFormat: {
-                                        backgroundColor: {
-                                            red: 0.06,
-                                            green: 0.73,
-                                            blue: 0.51
-                                        },
-                                        textFormat: {
-                                            foregroundColor: {
-                                                red: 1,
-                                                green: 1,
-                                                blue: 1
+                        requests: [
+                            // 헤더 배경색 및 글자색
+                            {
+                                repeatCell: {
+                                    range: {
+                                        sheetId: 0,
+                                        startRowIndex: 0,
+                                        endRowIndex: 1
+                                    },
+                                    cell: {
+                                        userEnteredFormat: {
+                                            backgroundColor: {
+                                                red: 0.06,
+                                                green: 0.73,
+                                                blue: 0.51
                                             },
-                                            bold: true
+                                            textFormat: {
+                                                foregroundColor: {
+                                                    red: 1,
+                                                    green: 1,
+                                                    blue: 1
+                                                },
+                                                bold: true
+                                            }
                                         }
-                                    }
-                                },
-                                fields: 'userEnteredFormat(backgroundColor,textFormat)'
+                                    },
+                                    fields: 'userEnteredFormat(backgroundColor,textFormat)'
+                                }
+                            },
+                            // 컬럼 너비 조정
+                            {
+                                updateDimensionProperties: {
+                                    range: {
+                                        sheetId: 0,
+                                        dimension: 'COLUMNS',
+                                        startIndex: 0,
+                                        endIndex: 1
+                                    },
+                                    properties: {
+                                        pixelSize: 50
+                                    },
+                                    fields: 'pixelSize'
+                                }
+                            },
+                            {
+                                updateDimensionProperties: {
+                                    range: {
+                                        sheetId: 0,
+                                        dimension: 'COLUMNS',
+                                        startIndex: 1,
+                                        endIndex: 2
+                                    },
+                                    properties: {
+                                        pixelSize: 100
+                                    },
+                                    fields: 'pixelSize'
+                                }
+                            },
+                            {
+                                updateDimensionProperties: {
+                                    range: {
+                                        sheetId: 0,
+                                        dimension: 'COLUMNS',
+                                        startIndex: 2,
+                                        endIndex: 3
+                                    },
+                                    properties: {
+                                        pixelSize: 150
+                                    },
+                                    fields: 'pixelSize'
+                                }
+                            },
+                            {
+                                updateDimensionProperties: {
+                                    range: {
+                                        sheetId: 0,
+                                        dimension: 'COLUMNS',
+                                        startIndex: 3,
+                                        endIndex: 4
+                                    },
+                                    properties: {
+                                        pixelSize: 150
+                                    },
+                                    fields: 'pixelSize'
+                                }
+                            },
+                            {
+                                updateDimensionProperties: {
+                                    range: {
+                                        sheetId: 0,
+                                        dimension: 'COLUMNS',
+                                        startIndex: 4,
+                                        endIndex: 5
+                                    },
+                                    properties: {
+                                        pixelSize: 300
+                                    },
+                                    fields: 'pixelSize'
+                                }
                             }
-                        }]
+                        ]
                     }
                 });
 
@@ -1419,13 +1660,27 @@
 
         // 메인 업로드 함수
 
-        async function uploadProjectToDrive() {
+        async function uploadProjectToDrive(projectToUpload = null) {
+            // projectToUpload가 있으면 그것 사용 (동기화용), 없으면 현재 프로젝트
+            const project = projectToUpload || getCurrentProject();
+            
+            // 오프라인 체크
+            if (!isOnline) {
+                // 오프라인일 때 로컬 저장
+                try {
+                    addToPendingSync(project);
+                    showToast('📶 오프라인 - 프로젝트가 저장되었습니다. 온라인 연결 시 동기화하세요.', 'warning');
+                    return;
+                } catch (error) {
+                    alert('로컬 저장 실패: ' + error.message);
+                    return;
+                }
+            }
+            
             if (!accessToken) {
                 alert('먼저 Google 로그인을 해주세요');
                 return;
             }
-
-            const project = getCurrentProject();
 
             // 필수 정보 확인
             if (!project.apartmentName || !project.dong || !project.ho) {
@@ -1438,7 +1693,8 @@
                 return;
             }
 
-            if (!confirm(`"${project.apartmentName} ${project.dong} ${project.ho}"를 Google Drive에 업로드하시겠습니까?`)) {
+            // projectToUpload가 있으면 동기화 중이므로 confirm 스킵
+            if (!projectToUpload && !confirm(`"${project.apartmentName} ${project.dong} ${project.ho}"를 Google Drive에 업로드하시겠습니까?`)) {
                 return;
             }
 
@@ -1485,7 +1741,11 @@
                 
                 hideLoading();
                 showToast(`✅ 업로드 완료! (사진 ${totalPhotos}장)`);
-                alert(`✅ 업로드 완료!\n\n프로젝트: ${projectName}\n사진: ${totalPhotos}장\n하자: ${project.defects.length}개\n\nGoogle Drive에서 확인하세요!`);
+                
+                // 동기화 중이 아닐 때만 alert 표시
+                if (!projectToUpload) {
+                    alert(`✅ 업로드 완료!\n\n프로젝트: ${projectName}\n사진: ${totalPhotos}장\n하자: ${project.defects.length}개\n\nGoogle Drive에서 확인하세요!`);
+                }
                 
             } catch (error) {
                 console.error('업로드 오류:', error);
@@ -3058,14 +3318,14 @@
                 const summaryHTML = createSummaryPage();
                 await addHTMLPageToPDF(doc, summaryHTML, pageWidth, pageHeight);
 
-                // 2페이지~: 하자 상세 사진 (2개씩, 사진 2장씩)
+                // 2페이지~: 하자 상세 사진 (3개씩, 사진 2장씩)
                 if (projectData.defects.length > 0) {
                     const defectsWithPhotos = projectData.defects.filter(d => d.photos && d.photos.length > 0);
                     
                     if (defectsWithPhotos.length > 0) {
-                        for (let i = 0; i < defectsWithPhotos.length; i += 2) {
+                        for (let i = 0; i < defectsWithPhotos.length; i += 3) {
                             doc.addPage();
-                            const batch = defectsWithPhotos.slice(i, i + 2);
+                            const batch = defectsWithPhotos.slice(i, i + 3);
                             const detailHTML = createDefectDetailPage(batch, i);
                             await addHTMLPageToPDF(doc, detailHTML, pageWidth, pageHeight);
                         }
@@ -3301,37 +3561,47 @@
                 const combinedDetail = [detailLocation, description].filter(x => x).join(' ');
                 
                 contentHTML += `
-                    <div style="border: 1px solid #ddd; border-radius: 8px; padding: 15px; background: white; margin-bottom: 20px;">
-                        <div style="background: #2c3e50; color: white; padding: 12px; border-radius: 6px; margin-bottom: 15px;">
-                            <div style="font-size: 18px; font-weight: bold; margin-bottom: 8px;">하자 ${globalIndex}</div>
-                            <div style="font-size: 13px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-                                <div><strong>공간:</strong> ${spaces}</div>
-                                <div><strong>위치:</strong> ${locations}</div>
-                                <div style="grid-column: 1 / -1;"><strong>하자내용:</strong> ${types}</div>
-                                ${combinedDetail ? `<div style="grid-column: 1 / -1; font-size: 12px; opacity: 0.9;"><strong>상세설명:</strong> ${combinedDetail}</div>` : ''}
-                            </div>
-                        </div>
+                    <div style="border: 1px solid #ddd; border-radius: 4px; padding: 12px; margin-bottom: 15px; background: #fafafa;">
+                        <table style="width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 12px;">
+                            <tr style="border-bottom: 2px solid #3498db;">
+                                <td colspan="4" style="padding: 8px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); font-weight: bold; color: white;">하자 ${globalIndex}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px; width: 15%; background: #e3f2fd; font-weight: bold; color: #1976d2; border-right: 1px solid #ddd;">공간</td>
+                                <td style="padding: 8px; width: 35%; color: #000; border-right: 1px solid #ddd;">${spaces}</td>
+                                <td style="padding: 8px; width: 15%; background: #e3f2fd; font-weight: bold; color: #1976d2; border-right: 1px solid #ddd;">위치</td>
+                                <td style="padding: 8px; width: 35%; color: #000;">${locations}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px; background: #fff3e0; font-weight: bold; color: #e65100; border-right: 1px solid #ddd;">하자내용</td>
+                                <td colspan="3" style="padding: 8px; color: #000;">${types}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px; background: #f3e5f5; font-weight: bold; color: #6a1b9a; border-right: 1px solid #ddd;">상세설명</td>
+                                <td colspan="3" style="padding: 8px; color: #000; font-size: 13px;">${combinedDetail || '-'}</td>
+                            </tr>
+                        </table>
 
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                            <div>
-                                <div style="background: #10b981; color: white; padding: 6px; text-align: center; font-weight: bold; font-size: 12px; border-radius: 4px 4px 0 0;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                            <div style="border: 2px solid #10b981; border-radius: 4px; overflow: hidden;">
+                                <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 6px; text-align: center; font-weight: bold; font-size: 11px;">
                                     📷 원경 (멀리서)
                                 </div>
                                 ${farPhoto ? `
-                                    <img src="${farPhoto}" style="width: 100%; height: 220px; object-fit: cover; border: 1px solid #ddd; border-top: none;" />
+                                    <img src="${farPhoto}" style="width: 100%; height: 160px; object-fit: cover; display: block;" />
                                 ` : `
-                                    <div style="width: 100%; height: 220px; background: #f8f9fa; border: 1px solid #ddd; border-top: none; display: flex; align-items: center; justify-content: center; color: #999; font-size: 12px;">사진 없음</div>
+                                    <div style="width: 100%; height: 160px; background: #f0fdf4; border-top: 1px solid #10b981; display: flex; align-items: center; justify-content: center; color: #059669; font-size: 11px;">사진 없음</div>
                                 `}
                             </div>
 
-                            <div>
-                                <div style="background: #f59e0b; color: white; padding: 6px; text-align: center; font-weight: bold; font-size: 12px; border-radius: 4px 4px 0 0;">
+                            <div style="border: 2px solid #f59e0b; border-radius: 4px; overflow: hidden;">
+                                <div style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; padding: 6px; text-align: center; font-weight: bold; font-size: 11px;">
                                     📷 근경 (가까이서)
                                 </div>
                                 ${closePhoto ? `
-                                    <img src="${closePhoto}" style="width: 100%; height: 220px; object-fit: cover; border: 1px solid #ddd; border-top: none;" />
+                                    <img src="${closePhoto}" style="width: 100%; height: 160px; object-fit: cover; display: block;" />
                                 ` : `
-                                    <div style="width: 100%; height: 220px; background: #f8f9fa; border: 1px solid #ddd; border-top: none; display: flex; align-items: center; justify-content: center; color: #999; font-size: 12px;">사진 없음</div>
+                                    <div style="width: 100%; height: 160px; background: #fffbeb; border-top: 1px solid #f59e0b; display: flex; align-items: center; justify-content: center; color: #d97706; font-size: 11px;">사진 없음</div>
                                 `}
                             </div>
                         </div>
@@ -3341,18 +3611,15 @@
 
             return `
                 <div style="width: 794px; min-height: 1123px; background: white; font-family: 'Malgun Gothic', sans-serif; padding: 30px;">
-                    <div style="background: #2c3e50; color: white; padding: 15px 20px; margin-bottom: 25px; border-radius: 8px;">
-                        <h2 style="margin: 0; font-size: 20px;">하자 상세 사진 (원경+근경)</h2>
-                        <p style="margin: 5px 0 0 0; font-size: 13px; opacity: 0.9;">${projectData.apartmentName} ${projectData.dong} ${projectData.ho}</p>
+                    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px 20px; margin-bottom: 25px; border-radius: 8px; box-shadow: 0 4px 6px rgba(102, 126, 234, 0.4);">
+                        <h2 style="margin: 0; font-size: 18px;">하자 상세 사진 (원경+근경)</h2>
+                        <p style="margin: 5px 0 0 0; font-size: 12px; opacity: 0.95;">${projectData.apartmentName} ${projectData.dong} ${projectData.ho}</p>
                     </div>
 
                     ${contentHTML}
 
-                    <div style="position: absolute; bottom: 20px; left: 30px; right: 30px; padding-top: 15px; border-top: 1px solid #ddd; font-size: 11px; color: #000000;">
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <div>페이지 ${Math.floor(startIndex / 2) + 2}</div>
-                            <div>더홈점검 | 070-8019-1456</div>
-                        </div>
+                    <div style="margin-top: 20px; padding-top: 15px; border-top: 2px solid #667eea; font-size: 11px; color: #000; text-align: center;">
+                        <div>더홈점검 | 전화: 070-8019-1456 / 010-9985-0128 | 사전점검 전문업체</div>
                     </div>
                 </div>
             `;
