@@ -1076,6 +1076,69 @@
     </div>
 
     <script>
+        // ==================== 전역 에러 핸들러 (크로스 플랫폼 안정성) ====================
+        window.addEventListener('error', (event) => {
+            console.error('전역 오류:', event.error);
+            
+            // 사용자에게 친절한 메시지 표시
+            if (event.error && event.error.message) {
+                const errorMsg = event.error.message.toLowerCase();
+                
+                // 메모리 오류 (iOS에서 흔함)
+                if (errorMsg.includes('memory') || errorMsg.includes('quota')) {
+                    showToast('⚠️ 메모리 부족. 사진을 압축하여 재시도합니다.', 'warning');
+                }
+                // 네트워크 오류
+                else if (errorMsg.includes('network') || errorMsg.includes('fetch')) {
+                    showToast('📶 네트워크 오류. 연결 상태를 확인해주세요.', 'error');
+                }
+            }
+            
+            // 에러 로그 (개발용)
+            if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                console.log('에러 상세:', {
+                    message: event.error?.message,
+                    stack: event.error?.stack,
+                    filename: event.filename,
+                    lineno: event.lineno
+                });
+            }
+        });
+        
+        // Promise rejection 핸들러
+        window.addEventListener('unhandledrejection', (event) => {
+            console.error('처리되지 않은 Promise 거부:', event.reason);
+            
+            // 네트워크 관련 에러는 조용히 처리
+            if (event.reason && event.reason.message && 
+                event.reason.message.includes('NetworkError')) {
+                event.preventDefault();
+                showToast('📶 일시적인 네트워크 오류입니다.', 'warning');
+            }
+        });
+        
+        // ==================== 디바이스 및 브라우저 감지 ====================
+        const deviceInfo = {
+            isIOS: /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream,
+            isAndroid: /Android/.test(navigator.userAgent),
+            isSafari: /^((?!chrome|android).)*safari/i.test(navigator.userAgent),
+            isChrome: /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor),
+            isMobile: /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent),
+            version: navigator.userAgent.match(/OS (\d+)_(\d+)_?(\d+)?/) || []
+        };
+        
+        // iOS 버전 확인
+        deviceInfo.iOSVersion = deviceInfo.isIOS && deviceInfo.version.length > 1 
+            ? parseInt(deviceInfo.version[1]) 
+            : 0;
+        
+        console.log('디바이스 정보:', deviceInfo);
+        
+        // 디바이스별 경고 표시
+        if (deviceInfo.isIOS && deviceInfo.iOSVersion < 13) {
+            alert('⚠️ iOS 13 이상 권장\n일부 기능이 제한될 수 있습니다.');
+        }
+        
         // ==================== 온라인/오프라인 상태 관리 ====================
         let isOnline = navigator.onLine;
         let pendingSyncProjects = []; // 동기화 대기 프로젝트
@@ -3207,53 +3270,190 @@
         // ==================== 카메라 기능 ====================
         async function openCamera() {
             try {
-                // Google Lens 등 다른 앱 자동 실행 방지
-                const constraints = { 
-                    video: { 
-                        facingMode: 'environment',
-                        width: { ideal: 1920 },
-                        height: { ideal: 1080 }
-                    } 
+                // 카메라 API 지원 확인
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    throw new Error('이 브라우저는 카메라를 지원하지 않습니다. Chrome이나 Safari를 사용해주세요.');
+                }
+                
+                // 디바이스별 최적 카메라 설정
+                let constraints = {
+                    video: {
+                        facingMode: 'environment'
+                    },
+                    audio: false
                 };
+                
+                // 안드로이드: 고해상도
+                if (deviceInfo.isAndroid) {
+                    constraints.video.width = { ideal: 1920 };
+                    constraints.video.height = { ideal: 1080 };
+                }
+                // iOS: 중간 해상도 (배터리/성능 최적화)
+                else if (deviceInfo.isIOS) {
+                    constraints.video.width = { ideal: 1280 };
+                    constraints.video.height = { ideal: 720 };
+                }
+                // 기타 데스크톱
+                else {
+                    constraints.video.width = { ideal: 1920 };
+                    constraints.video.height = { ideal: 1080 };
+                }
                 
                 cameraStream = await navigator.mediaDevices.getUserMedia(constraints);
                 
                 const video = document.getElementById('cameraPreview');
                 video.srcObject = cameraStream;
                 
-                // 비디오 재생 중 컨텍스트 메뉴 비활성화 (길게 누르기 방지)
-                video.addEventListener('contextmenu', (e) => {
-                    e.preventDefault();
-                    return false;
+                // iOS Safari 필수 속성
+                video.setAttribute('playsinline', 'true');
+                video.setAttribute('webkit-playsinline', 'true');
+                video.setAttribute('autoplay', 'true');
+                video.muted = true;
+                
+                // 비디오 로드 및 재생 대기 (iOS 필수)
+                await new Promise((resolve) => {
+                    video.onloadedmetadata = () => {
+                        video.play()
+                            .then(() => {
+                                console.log('카메라 스트림 재생 성공');
+                                resolve();
+                            })
+                            .catch(err => {
+                                console.warn('비디오 자동 재생 실패:', err);
+                                resolve(); // 실패해도 계속 진행
+                            });
+                    };
+                    
+                    // 타임아웃 (3초)
+                    setTimeout(resolve, 3000);
                 });
                 
-                // 터치 이벤트 가로채기 (Google Lens 실행 방지)
+                // === 모든 플랫폼 공통: 컨텍스트 메뉴 차단 ===
+                video.addEventListener('contextmenu', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }, { passive: false });
+                
+                // === 터치 이벤트 최적화 (Android/iOS 모두) ===
+                let touchStartTime = 0;
+                let touchStartX = 0;
+                let touchStartY = 0;
+                
                 video.addEventListener('touchstart', (e) => {
-                    // 단일 터치만 허용 (카메라 포커스용)
+                    touchStartTime = Date.now();
+                    touchStartX = e.touches[0].clientX;
+                    touchStartY = e.touches[0].clientY;
+                    
+                    // 멀티 터치 차단 (줌 방지)
                     if (e.touches.length > 1) {
                         e.preventDefault();
+                        e.stopPropagation();
+                    }
+                }, { passive: false });
+                
+                video.addEventListener('touchmove', (e) => {
+                    // 드래그/스크롤 차단
+                    const moveX = Math.abs(e.touches[0].clientX - touchStartX);
+                    const moveY = Math.abs(e.touches[0].clientY - touchStartY);
+                    
+                    if (moveX > 10 || moveY > 10) {
+                        e.preventDefault();
+                        e.stopPropagation();
                     }
                 }, { passive: false });
                 
                 video.addEventListener('touchend', (e) => {
-                    e.preventDefault();
+                    const touchDuration = Date.now() - touchStartTime;
+                    
+                    // 길게 누르기 차단 (Google Lens 실행 방지)
+                    if (touchDuration > 500) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                    }
                 }, { passive: false });
                 
-                // 길게 누르기 방지
-                let touchTimer;
-                video.addEventListener('touchstart', (e) => {
-                    touchTimer = setTimeout(() => {
-                        // 길게 누르기 감지 - 아무 동작도 하지 않음
-                    }, 500);
+                // 더블 탭 줌 방지
+                let lastTap = 0;
+                video.addEventListener('touchend', (e) => {
+                    const currentTime = new Date().getTime();
+                    const tapLength = currentTime - lastTap;
+                    
+                    if (tapLength < 500 && tapLength > 0) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                    }
+                    lastTap = currentTime;
+                }, { passive: false });
+                
+                // 드래그 방지
+                video.addEventListener('dragstart', (e) => {
+                    e.preventDefault();
+                    return false;
                 });
                 
-                video.addEventListener('touchend', () => {
-                    clearTimeout(touchTimer);
-                });
+                // iOS 특별 처리
+                if (deviceInfo.isIOS) {
+                    video.style.webkitUserSelect = 'none';
+                    video.style.webkitTouchCallout = 'none';
+                }
                 
+                // 모달 표시
                 document.getElementById('cameraModal').classList.add('active');
+                
+                // 성공 메시지
+                showToast('📸 카메라 준비 완료!');
+                
             } catch (error) {
-                alert('카메라를 사용할 수 없습니다: ' + error.message);
+                console.error('카메라 오류:', error);
+                
+                // 디바이스별 상세 에러 메시지
+                let errorMessage = '카메라를 사용할 수 없습니다.\n\n';
+                
+                if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+                    errorMessage += '📱 카메라 권한이 필요합니다.\n\n';
+                    
+                    if (deviceInfo.isIOS) {
+                        errorMessage += '[iOS 설정 방법]\n';
+                        errorMessage += '1. 설정 > Safari > 카메라\n';
+                        errorMessage += '2. "허용" 선택\n';
+                        errorMessage += '3. Safari 재시작\n\n';
+                        errorMessage += '또는 "📎 갤러리"로 사진 업로드';
+                    } else if (deviceInfo.isAndroid) {
+                        errorMessage += '[Android 설정 방법]\n';
+                        errorMessage += '1. 브라우저 주소창 왼쪽 🔒 클릭\n';
+                        errorMessage += '2. "카메라" 권한 허용\n';
+                        errorMessage += '3. 페이지 새로고침\n\n';
+                        errorMessage += '또는 "📎 갤러리"로 사진 업로드';
+                    } else {
+                        errorMessage += '브라우저 주소창의 🔒를 클릭하여\n';
+                        errorMessage += '카메라 권한을 허용해주세요.';
+                    }
+                    
+                } else if (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError') {
+                    errorMessage += '카메라를 찾을 수 없습니다.\n\n';
+                    errorMessage += '"📎 갤러리" 버튼으로\n';
+                    errorMessage += '사진을 업로드해주세요.';
+                    
+                } else if (error.name === 'NotReadableError' || error.name === 'TrackStartError') {
+                    errorMessage += '카메라가 다른 앱에서 사용 중입니다.\n\n';
+                    errorMessage += '[해결 방법]\n';
+                    errorMessage += '1. 다른 카메라 앱 종료\n';
+                    errorMessage += '2. 페이지 새로고침 (당겨서 새로고침)\n';
+                    errorMessage += '3. "📎 갤러리" 버튼 사용';
+                    
+                } else if (error.name === 'OverconstrainedError') {
+                    errorMessage += '이 기기는 요청한 카메라 설정을\n';
+                    errorMessage += '지원하지 않습니다.\n\n';
+                    errorMessage += '"📎 갤러리"를 사용해주세요.';
+                    
+                } else {
+                    errorMessage += '오류: ' + error.message + '\n\n';
+                    errorMessage += '"📎 갤러리" 버튼으로\n';
+                    errorMessage += '사진을 업로드해주세요.';
+                }
+                
+                alert(errorMessage);
             }
         }
 
@@ -3267,59 +3467,159 @@
         }
 
         // ==================== 이미지 압축 함수 (통합) ====================
+        // ==================== 이미지 압축 (크로스 플랫폼 최적화) ====================
         async function compressImage(input, maxWidth = 1920, quality = 0.85) {
-            return new Promise((resolve) => {
-                // input이 File 객체인 경우
-                if (input instanceof File) {
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                        const img = new Image();
-                        img.onload = () => {
-                            const canvas = document.createElement('canvas');
-                            let width = img.width;
-                            let height = img.height;
-                            
-                            // 최대 너비 제한
-                            if (width > maxWidth) {
-                                height = (height * maxWidth) / width;
-                                width = maxWidth;
-                            }
-                            
-                            canvas.width = width;
-                            canvas.height = height;
-                            
-                            const ctx = canvas.getContext('2d');
-                            ctx.drawImage(img, 0, 0, width, height);
-                            
-                            resolve(canvas.toDataURL('image/jpeg', quality));
-                        };
-                        img.src = e.target.result;
-                    };
-                    reader.readAsDataURL(input);
-                }
-                // input이 dataURL인 경우
-                else if (typeof input === 'string') {
-                    const img = new Image();
-                    img.onload = () => {
-                        const canvas = document.createElement('canvas');
-                        let width = img.width;
-                        let height = img.height;
-                        
-                        // 최대 너비 제한
-                        if (width > maxWidth) {
-                            height = (height * maxWidth) / width;
-                            width = maxWidth;
+            return new Promise((resolve, reject) => {
+                try {
+                    // 디바이스별 최적 설정
+                    if (deviceInfo.isIOS) {
+                        maxWidth = Math.min(maxWidth, 1280); // iOS 메모리 최적화
+                        quality = Math.min(quality, 0.8); // 용량 절약
+                    }
+                    
+                    // File 객체 처리
+                    if (input instanceof File) {
+                        // iOS HEIC 이미지 처리
+                        if (input.type === 'image/heic' || input.type === 'image/heif') {
+                            console.warn('HEIC 형식 감지 - JPEG로 변환 시도');
                         }
                         
-                        canvas.width = width;
-                        canvas.height = height;
+                        const reader = new FileReader();
                         
-                        const ctx = canvas.getContext('2d');
-                        ctx.drawImage(img, 0, 0, width, height);
+                        reader.onerror = () => {
+                            console.error('파일 읽기 실패');
+                            reject(new Error('이미지 파일을 읽을 수 없습니다.'));
+                        };
                         
-                        resolve(canvas.toDataURL('image/jpeg', quality));
-                    };
-                    img.src = input;
+                        reader.onload = (e) => {
+                            const img = new Image();
+                            
+                            img.onerror = () => {
+                                console.error('이미지 로드 실패');
+                                reject(new Error('이미지를 로드할 수 없습니다.'));
+                            };
+                            
+                            img.onload = () => {
+                                try {
+                                    const canvas = document.createElement('canvas');
+                                    let width = img.width;
+                                    let height = img.height;
+                                    
+                                    // 최대 너비 제한
+                                    if (width > maxWidth) {
+                                        height = (height * maxWidth) / width;
+                                        width = maxWidth;
+                                    }
+                                    
+                                    // iOS: 최대 픽셀 제한 (메모리 오버플로우 방지)
+                                    const maxPixels = deviceInfo.isIOS ? 4096 * 4096 : 8192 * 8192;
+                                    if (width * height > maxPixels) {
+                                        const scale = Math.sqrt(maxPixels / (width * height));
+                                        width = Math.floor(width * scale);
+                                        height = Math.floor(height * scale);
+                                    }
+                                    
+                                    canvas.width = width;
+                                    canvas.height = height;
+                                    
+                                    const ctx = canvas.getContext('2d', {
+                                        alpha: false,
+                                        willReadFrequently: false
+                                    });
+                                    
+                                    // 배경을 흰색으로 (투명 PNG 처리)
+                                    ctx.fillStyle = '#FFFFFF';
+                                    ctx.fillRect(0, 0, width, height);
+                                    
+                                    // 이미지 그리기 (안티앨리어싱 최적화)
+                                    ctx.imageSmoothingEnabled = true;
+                                    ctx.imageSmoothingQuality = 'high';
+                                    ctx.drawImage(img, 0, 0, width, height);
+                                    
+                                    // JPEG 변환
+                                    const result = canvas.toDataURL('image/jpeg', quality);
+                                    
+                                    // 메모리 정리
+                                    canvas.width = 0;
+                                    canvas.height = 0;
+                                    
+                                    resolve(result);
+                                } catch (err) {
+                                    console.error('Canvas 처리 실패:', err);
+                                    reject(new Error('이미지 처리 중 오류가 발생했습니다.'));
+                                }
+                            };
+                            
+                            img.src = e.target.result;
+                        };
+                        
+                        reader.readAsDataURL(input);
+                    }
+                    // DataURL 문자열 처리
+                    else if (typeof input === 'string') {
+                        const img = new Image();
+                        
+                        img.onerror = () => {
+                            console.error('이미지 로드 실패');
+                            reject(new Error('이미지를 로드할 수 없습니다.'));
+                        };
+                        
+                        img.onload = () => {
+                            try {
+                                const canvas = document.createElement('canvas');
+                                let width = img.width;
+                                let height = img.height;
+                                
+                                // 최대 너비 제한
+                                if (width > maxWidth) {
+                                    height = (height * maxWidth) / width;
+                                    width = maxWidth;
+                                }
+                                
+                                // iOS 메모리 제한
+                                const maxPixels = deviceInfo.isIOS ? 4096 * 4096 : 8192 * 8192;
+                                if (width * height > maxPixels) {
+                                    const scale = Math.sqrt(maxPixels / (width * height));
+                                    width = Math.floor(width * scale);
+                                    height = Math.floor(height * scale);
+                                }
+                                
+                                canvas.width = width;
+                                canvas.height = height;
+                                
+                                const ctx = canvas.getContext('2d', {
+                                    alpha: false,
+                                    willReadFrequently: false
+                                });
+                                
+                                ctx.fillStyle = '#FFFFFF';
+                                ctx.fillRect(0, 0, width, height);
+                                ctx.imageSmoothingEnabled = true;
+                                ctx.imageSmoothingQuality = 'high';
+                                ctx.drawImage(img, 0, 0, width, height);
+                                
+                                const result = canvas.toDataURL('image/jpeg', quality);
+                                
+                                // 메모리 정리
+                                canvas.width = 0;
+                                canvas.height = 0;
+                                
+                                resolve(result);
+                            } catch (err) {
+                                console.error('Canvas 처리 실패:', err);
+                                reject(new Error('이미지 처리 중 오류가 발생했습니다.'));
+                            }
+                        };
+                        
+                        // CORS 이슈 방지
+                        img.crossOrigin = 'anonymous';
+                        img.src = input;
+                    } else {
+                        reject(new Error('지원하지 않는 이미지 형식입니다.'));
+                    }
+                } catch (err) {
+                    console.error('이미지 압축 오류:', err);
+                    reject(err);
                 }
             });
         }
