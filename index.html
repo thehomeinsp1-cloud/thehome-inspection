@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>더홈점검 - 하자관리 시스템</title>
     
+    <!-- Google Lens 자동 실행 방지 -->
+    <meta name="google" content="notranslate">
+    <meta name="google" content="nositelinkssearchbox">
+    
     <!-- PWA Meta Tags -->
     <meta name="theme-color" content="#10b981">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -572,6 +576,11 @@
             width: 100%;
             max-width: 600px;
             border-radius: 12px;
+            /* Google Lens 자동 실행 방지 */
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+            pointer-events: auto;
         }
 
         .camera-controls {
@@ -3198,12 +3207,50 @@
         // ==================== 카메라 기능 ====================
         async function openCamera() {
             try {
-                cameraStream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { facingMode: 'environment' } 
-                });
+                // Google Lens 등 다른 앱 자동 실행 방지
+                const constraints = { 
+                    video: { 
+                        facingMode: 'environment',
+                        width: { ideal: 1920 },
+                        height: { ideal: 1080 }
+                    } 
+                };
+                
+                cameraStream = await navigator.mediaDevices.getUserMedia(constraints);
                 
                 const video = document.getElementById('cameraPreview');
                 video.srcObject = cameraStream;
+                
+                // 비디오 재생 중 컨텍스트 메뉴 비활성화 (길게 누르기 방지)
+                video.addEventListener('contextmenu', (e) => {
+                    e.preventDefault();
+                    return false;
+                });
+                
+                // 터치 이벤트 가로채기 (Google Lens 실행 방지)
+                video.addEventListener('touchstart', (e) => {
+                    // 단일 터치만 허용 (카메라 포커스용)
+                    if (e.touches.length > 1) {
+                        e.preventDefault();
+                    }
+                }, { passive: false });
+                
+                video.addEventListener('touchend', (e) => {
+                    e.preventDefault();
+                }, { passive: false });
+                
+                // 길게 누르기 방지
+                let touchTimer;
+                video.addEventListener('touchstart', (e) => {
+                    touchTimer = setTimeout(() => {
+                        // 길게 누르기 감지 - 아무 동작도 하지 않음
+                    }, 500);
+                });
+                
+                video.addEventListener('touchend', () => {
+                    clearTimeout(touchTimer);
+                });
+                
                 document.getElementById('cameraModal').classList.add('active');
             } catch (error) {
                 alert('카메라를 사용할 수 없습니다: ' + error.message);
