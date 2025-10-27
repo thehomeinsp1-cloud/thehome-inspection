@@ -3560,41 +3560,45 @@
                 const description = defect.description || '';
                 const combinedDetail = [detailLocation, description].filter(x => x).join(' ');
                 
-                // 색상 순환 (6색)
+                // 색상 순환 (6색) - 연한 배경색
                 const colorSchemes = [
-                    { bg: '#3498db', text: '파란색' },      // 1, 7, 13...
-                    { bg: '#e74c3c', text: '빨간색' },      // 2, 8, 14...
-                    { bg: '#9b59b6', text: '보라색' },      // 3, 9, 15...
-                    { bg: '#f39c12', text: '주황색' },      // 4, 10, 16...
-                    { bg: '#16a085', text: '청록색' },      // 5, 11, 17...
-                    { bg: '#e67e22', text: '오렌지색' }     // 6, 12, 18...
+                    { border: '#3498db', bg: '#ebf5fb', text: '파란색' },      // 1, 7, 13...
+                    { border: '#e74c3c', bg: '#fadbd8', text: '빨간색' },      // 2, 8, 14...
+                    { border: '#9b59b6', bg: '#f4ecf7', text: '보라색' },      // 3, 9, 15...
+                    { border: '#f39c12', bg: '#fef5e7', text: '주황색' },      // 4, 10, 16...
+                    { border: '#16a085', bg: '#e8f8f5', text: '청록색' },      // 5, 11, 17...
+                    { border: '#e67e22', bg: '#fbeee6', text: '오렌지색' }     // 6, 12, 18...
                 ];
                 const colorIndex = (globalIndex - 1) % 6;
                 const colorScheme = colorSchemes[colorIndex];
                 
                 contentHTML += `
-                    <div style="border: 1px solid #ddd; border-radius: 4px; padding: 12px; margin-bottom: 15px; background: #fafafa;">
-                        <table style="width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 12px;">
-                            <tr style="border-bottom: 2px solid ${colorScheme.bg};">
-                                <td colspan="4" style="padding: 8px; background: ${colorScheme.bg}; font-weight: bold; color: white;">하자 ${globalIndex}</td>
+                    <div style="border: 2px solid ${colorScheme.border}; border-radius: 4px; padding: 0; margin-bottom: 20px; background: white; page-break-inside: avoid;">
+                        <!-- 하자 번호 헤더 -->
+                        <div style="background: ${colorScheme.bg}; padding: 8px 12px; border-bottom: 2px solid ${colorScheme.border};">
+                            <strong style="font-size: 14px; color: #000;">하자 ${globalIndex}</strong>
+                        </div>
+                        
+                        <!-- 정보 테이블 -->
+                        <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                            <tr>
+                                <td style="padding: 8px 12px; width: 15%; background: #f8f9fa; font-weight: bold; color: #000; border-bottom: 1px solid #ddd; border-right: 1px solid #ddd;">공간</td>
+                                <td style="padding: 8px 12px; width: 35%; color: #000; border-bottom: 1px solid #ddd; border-right: 1px solid #ddd;">${spaces}</td>
+                                <td style="padding: 8px 12px; width: 15%; background: #f8f9fa; font-weight: bold; color: #000; border-bottom: 1px solid #ddd; border-right: 1px solid #ddd;">위치</td>
+                                <td style="padding: 8px 12px; width: 35%; color: #000; border-bottom: 1px solid #ddd;">${locations}</td>
                             </tr>
                             <tr>
-                                <td style="padding: 8px; width: 15%; background: #f8f9fa; font-weight: bold; color: #2c3e50; border-right: 1px solid #ddd;">공간</td>
-                                <td style="padding: 8px; width: 35%; color: #000; border-right: 1px solid #ddd;">${spaces}</td>
-                                <td style="padding: 8px; width: 15%; background: #f8f9fa; font-weight: bold; color: #2c3e50; border-right: 1px solid #ddd;">위치</td>
-                                <td style="padding: 8px; width: 35%; color: #000;">${locations}</td>
+                                <td style="padding: 8px 12px; background: #f8f9fa; font-weight: bold; color: #000; border-bottom: 1px solid #ddd; border-right: 1px solid #ddd;">하자내용</td>
+                                <td colspan="3" style="padding: 8px 12px; color: #000; border-bottom: 1px solid #ddd;">${types}</td>
                             </tr>
                             <tr>
-                                <td style="padding: 8px; background: #f8f9fa; font-weight: bold; color: #2c3e50; border-right: 1px solid #ddd;">하자내용</td>
-                                <td colspan="3" style="padding: 8px; color: #000;">${types}</td>
-                            </tr>
-                            <tr>
-                                <td style="padding: 8px; background: #f8f9fa; font-weight: bold; color: #2c3e50; border-right: 1px solid #ddd;">상세설명</td>
-                                <td colspan="3" style="padding: 8px; color: #000; font-size: 13px;">${combinedDetail || '-'}</td>
+                                <td style="padding: 8px 12px; background: #f8f9fa; font-weight: bold; color: #000; border-right: 1px solid #ddd;">상세설명</td>
+                                <td colspan="3" style="padding: 8px 12px; color: #000; font-size: 13px; line-height: 1.6;">${combinedDetail || '-'}</td>
                             </tr>
                         </table>
 
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                        <!-- 사진 영역 -->
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 12px;">
                             <div style="border: 2px solid #10b981; border-radius: 4px; overflow: hidden;">
                                 <div style="background: #10b981; color: white; padding: 6px; text-align: center; font-weight: bold; font-size: 11px;">
                                     📷 원경 (멀리서)
@@ -3602,7 +3606,7 @@
                                 ${farPhoto ? `
                                     <img src="${farPhoto}" style="width: 100%; height: 160px; object-fit: cover; display: block;" />
                                 ` : `
-                                    <div style="width: 100%; height: 160px; background: #f0fdf4; border-top: 1px solid #10b981; display: flex; align-items: center; justify-content: center; color: #059669; font-size: 11px;">사진 없음</div>
+                                    <div style="width: 100%; height: 160px; background: #f0fdf4; border-top: 1px solid #10b981; display: flex; align-items: center; justify-content: center; color: #059669; font-size: 11px;">사진 없음<br>빈 칸을 클릭해<br>촬영해 주세요</div>
                                 `}
                             </div>
 
@@ -3613,7 +3617,7 @@
                                 ${closePhoto ? `
                                     <img src="${closePhoto}" style="width: 100%; height: 160px; object-fit: cover; display: block;" />
                                 ` : `
-                                    <div style="width: 100%; height: 160px; background: #fffbeb; border-top: 1px solid #f59e0b; display: flex; align-items: center; justify-content: center; color: #d97706; font-size: 11px;">사진 없음</div>
+                                    <div style="width: 100%; height: 160px; background: #fffbeb; border-top: 1px solid #f59e0b; display: flex; align-items: center; justify-content: center; color: #d97706; font-size: 11px;">사진 없음<br>빈 칸을 클릭해<br>촬영해 주세요</div>
                                 `}
                             </div>
                         </div>
@@ -3644,14 +3648,14 @@
             equipmentList.forEach((item, idx) => {
                 const globalIndex = startIndex + idx + 1;
                 
-                // 색상 순환 (6색)
+                // 색상 순환 (6색) - 연한 배경색
                 const colorSchemes = [
-                    { bg: '#3498db', text: '파란색' },      // 1, 7, 13...
-                    { bg: '#e74c3c', text: '빨간색' },      // 2, 8, 14...
-                    { bg: '#9b59b6', text: '보라색' },      // 3, 9, 15...
-                    { bg: '#f39c12', text: '주황색' },      // 4, 10, 16...
-                    { bg: '#16a085', text: '청록색' },      // 5, 11, 17...
-                    { bg: '#e67e22', text: '오렌지색' }     // 6, 12, 18...
+                    { border: '#3498db', bg: '#ebf5fb', text: '파란색' },      // 1, 7, 13...
+                    { border: '#e74c3c', bg: '#fadbd8', text: '빨간색' },      // 2, 8, 14...
+                    { border: '#9b59b6', bg: '#f4ecf7', text: '보라색' },      // 3, 9, 15...
+                    { border: '#f39c12', bg: '#fef5e7', text: '주황색' },      // 4, 10, 16...
+                    { border: '#16a085', bg: '#e8f8f5', text: '청록색' },      // 5, 11, 17...
+                    { border: '#e67e22', bg: '#fbeee6', text: '오렌지색' }     // 6, 12, 18...
                 ];
                 const colorIndex = (globalIndex - 1) % 6;
                 const colorScheme = colorSchemes[colorIndex];
@@ -3672,56 +3676,58 @@
                 const hasLocationPhotos = item.photos && typeof item.photos === 'object';
                 
                 contentHTML += `
-                    <div style="border: 1px solid #ddd; border-radius: 8px; padding: 15px; background: white; margin-bottom: 20px; page-break-inside: avoid;">
+                    <div style="border: 2px solid ${colorScheme.border}; border-radius: 8px; padding: 0; background: white; margin-bottom: 20px; page-break-inside: avoid;">
                         <!-- 헤더 -->
+                        <div style="background: ${colorScheme.bg}; padding: 10px 15px; border-bottom: 2px solid ${colorScheme.border};">
+                            <strong style="font-size: 16px; color: #000;">장비점검 ${globalIndex} - ${space}</strong>
+                        </div>
+                        
+                        <!-- 점검결과 -->
                         <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px;">
-                            <tr style="background: ${colorScheme.bg};">
-                                <td colspan="2" style="padding: 10px; text-align: center; color: white; font-weight: bold; font-size: 16px;">
-                                    장비점검 ${globalIndex} - ${space}
-                                </td>
-                            </tr>
                             <tr>
-                                <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold; text-align: center; background: #f8f9fa; color: #2c3e50; width: 25%;">점검결과</td>
-                                <td style="padding: 10px; border: 1px solid #ddd; color: #000000;">${item.inspection || '벽체수직 및 바닥수평 / 단열시공 양호'}</td>
+                                <td style="padding: 10px; border-bottom: 1px solid #ddd; font-weight: bold; text-align: center; background: #f8f9fa; color: #000; width: 25%;">점검결과</td>
+                                <td style="padding: 10px; border-bottom: 1px solid #ddd; color: #000;">${item.inspection || '벽체수직 및 바닥수평 / 단열시공 양호'}</td>
                             </tr>
                         </table>
 
                         ${hasLocationPhotos ? `
                             <!-- 좌측/우측 2개 사진 -->
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
-                                ${['좌측', '우측'].map((location, locIdx) => {
-                                    const colors = ['#3498db', '#e74c3c'];
-                                    const icons = ['⬅️', '➡️'];
-                                    const photo = item.photos[location];
-                                    
-                                    return `
-                                        <div style="border: 2px solid ${colors[locIdx]}; border-radius: 6px; overflow: hidden;">
-                                            <div style="background: ${colors[locIdx]}; color: white; padding: 6px; text-align: center; font-weight: bold; font-size: 12px;">
-                                                ${icons[locIdx]} ${location}
-                                            </div>
-                                            ${photo ? `
-                                                <img src="${photo}" style="width: 100%; height: 200px; object-fit: cover; display: block;" />
-                                            ` : `
-                                                <div style="width: 100%; height: 200px; background: #f8f9fa; display: flex; align-items: center; justify-content: center; color: #999; font-size: 11px;">
-                                                    사진 없음
+                            <div style="padding: 0 15px 15px 15px;">
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+                                    ${['좌측', '우측'].map((location, locIdx) => {
+                                        const colors = ['#3498db', '#e74c3c'];
+                                        const icons = ['⬅️', '➡️'];
+                                        const photo = item.photos[location];
+                                        
+                                        return `
+                                            <div style="border: 2px solid ${colors[locIdx]}; border-radius: 6px; overflow: hidden;">
+                                                <div style="background: ${colors[locIdx]}; color: white; padding: 6px; text-align: center; font-weight: bold; font-size: 12px;">
+                                                    ${icons[locIdx]} ${location}
                                                 </div>
-                                            `}
-                                        </div>
-                                    `;
-                                }).join('')}
-                            </div>
-                            <!-- 바닥 사진 (전체 너비) -->
-                            <div style="border: 2px solid #f39c12; border-radius: 6px; overflow: hidden;">
-                                <div style="background: #f39c12; color: white; padding: 6px; text-align: center; font-weight: bold; font-size: 12px;">
-                                    ⬇️ 바닥
+                                                ${photo ? `
+                                                    <img src="${photo}" style="width: 100%; height: 200px; object-fit: cover; display: block;" />
+                                                ` : `
+                                                    <div style="width: 100%; height: 200px; background: #f8f9fa; display: flex; align-items: center; justify-content: center; color: #999; font-size: 11px;">
+                                                        사진 없음
+                                                    </div>
+                                                `}
+                                            </div>
+                                        `;
+                                    }).join('')}
                                 </div>
-                                ${item.photos['바닥'] ? `
-                                    <img src="${item.photos['바닥']}" style="width: 100%; height: 220px; object-fit: cover; display: block;" />
-                                ` : `
-                                    <div style="width: 100%; height: 220px; background: #f8f9fa; display: flex; align-items: center; justify-content: center; color: #999; font-size: 11px;">
-                                        사진 없음
+                                <!-- 바닥 사진 (전체 너비) -->
+                                <div style="border: 2px solid #f39c12; border-radius: 6px; overflow: hidden;">
+                                    <div style="background: #f39c12; color: white; padding: 6px; text-align: center; font-weight: bold; font-size: 12px;">
+                                        ⬇️ 바닥
                                     </div>
-                                `}
+                                    ${item.photos['바닥'] ? `
+                                        <img src="${item.photos['바닥']}" style="width: 100%; height: 220px; object-fit: cover; display: block;" />
+                                    ` : `
+                                        <div style="width: 100%; height: 220px; background: #f8f9fa; display: flex; align-items: center; justify-content: center; color: #999; font-size: 11px;">
+                                            사진 없음
+                                        </div>
+                                    `}
+                                </div>
                             </div>
                         ` : `
                             <!-- 단일 사진 (구 버전 호환) -->
