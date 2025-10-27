@@ -1473,17 +1473,15 @@
                 // 데이터 입력 준비
                 const headers = [['No', '공간', '위치', '하자종류', '상세설명']];
                 const rows = defects.map((defect, index) => {
-                    // 상세위치와 상세설명을 합침
-                    const detailLocation = defect.detailLocation || '';
+                    // 상세설명만 사용 (이미 모든 정보 포함)
                     const description = defect.description || '';
-                    const combinedDetail = [detailLocation, description].filter(x => x).join(' ');
                     
                     return [
                         index + 1,
                         defect.spaces.join(', '),
                         defect.locations.join(', '),
                         defect.types.join(', '),
-                        combinedDetail || '-'
+                        description || '-'
                     ];
                 });
 
@@ -2174,7 +2172,15 @@
         }
 
         // 초기화
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', async function() {
+        
+        // IndexedDB 초기화
+        try {
+            await initDB();
+            console.log('IndexedDB 초기화 완료');
+        } catch (e) {
+            console.error('IndexedDB 초기화 실패:', e);
+        }
         
         // Google API 초기화 (페이지 로드 후)
         setTimeout(function() {
@@ -2192,7 +2198,7 @@
             renderDefects();
             renderEquipment();
             renderAirQuality();
-            renderSavedList();
+            await renderSavedList();
             updateProgress();
             
             document.getElementById('inspectionDate').valueAsDate = new Date();
@@ -3059,6 +3065,64 @@
             currentPhotoTarget = null;
         }
 
+        // ==================== 이미지 압축 함수 (통합) ====================
+        async function compressImage(input, maxWidth = 1920, quality = 0.85) {
+            return new Promise((resolve) => {
+                // input이 File 객체인 경우
+                if (input instanceof File) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const img = new Image();
+                        img.onload = () => {
+                            const canvas = document.createElement('canvas');
+                            let width = img.width;
+                            let height = img.height;
+                            
+                            // 최대 너비 제한
+                            if (width > maxWidth) {
+                                height = (height * maxWidth) / width;
+                                width = maxWidth;
+                            }
+                            
+                            canvas.width = width;
+                            canvas.height = height;
+                            
+                            const ctx = canvas.getContext('2d');
+                            ctx.drawImage(img, 0, 0, width, height);
+                            
+                            resolve(canvas.toDataURL('image/jpeg', quality));
+                        };
+                        img.src = e.target.result;
+                    };
+                    reader.readAsDataURL(input);
+                }
+                // input이 dataURL인 경우
+                else if (typeof input === 'string') {
+                    const img = new Image();
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        let width = img.width;
+                        let height = img.height;
+                        
+                        // 최대 너비 제한
+                        if (width > maxWidth) {
+                            height = (height * maxWidth) / width;
+                            width = maxWidth;
+                        }
+                        
+                        canvas.width = width;
+                        canvas.height = height;
+                        
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+                        
+                        resolve(canvas.toDataURL('image/jpeg', quality));
+                    };
+                    img.src = input;
+                }
+            });
+        }
+
         async function capturePhoto() {
             // 이벤트 전파 방지
             if (event) {
@@ -3074,7 +3138,11 @@
             const ctx = canvas.getContext('2d');
             ctx.drawImage(video, 0, 0);
             
-            const imageData = canvas.toDataURL('image/jpeg', 0.8);
+            // 원본 이미지
+            const originalImage = canvas.toDataURL('image/jpeg', 0.95);
+            
+            // 이미지 압축 (1920px, 품질 85%)
+            const imageData = await compressImage(originalImage, 1920, 0.85);
             
             if (currentPhotoTarget === 'floorplan') {
                 projectData.floorplan = imageData;
@@ -3260,40 +3328,6 @@
             }
         }
 
-        // ==================== 이미지 압축 ====================
-        async function compressImage(file) {
-            return new Promise((resolve) => {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    const img = new Image();
-                    img.onload = () => {
-                        const canvas = document.createElement('canvas');
-                        let width = img.width;
-                        let height = img.height;
-                        
-                        const maxSize = 1200;
-                        if (width > height && width > maxSize) {
-                            height = (height * maxSize) / width;
-                            width = maxSize;
-                        } else if (height > maxSize) {
-                            width = (width * maxSize) / height;
-                            height = maxSize;
-                        }
-                        
-                        canvas.width = width;
-                        canvas.height = height;
-                        
-                        const ctx = canvas.getContext('2d');
-                        ctx.drawImage(img, 0, 0, width, height);
-                        
-                        resolve(canvas.toDataURL('image/jpeg', 0.8));
-                    };
-                    img.src = e.target.result;
-                };
-                reader.readAsDataURL(file);
-            });
-        }
-
         // ==================== PDF 생성 ====================
         async function generatePDF() {
             if (!projectData.apartmentName || !projectData.dong || !projectData.ho) {
@@ -3345,10 +3379,10 @@
                     });
                     
                     if (equipmentWithPhotos.length > 0) {
-                        // 1개씩 페이지에 표시
-                        for (let i = 0; i < equipmentWithPhotos.length; i++) {
+                        // 3개씩 페이지에 표시 (하자와 동일)
+                        for (let i = 0; i < equipmentWithPhotos.length; i += 3) {
                             doc.addPage();
-                            const batch = [equipmentWithPhotos[i]];
+                            const batch = equipmentWithPhotos.slice(i, i + 3);
                             const equipmentHTML = createEquipmentPage(batch, i);
                             await addHTMLPageToPDF(doc, equipmentHTML, pageWidth, pageHeight);
                         }
@@ -3455,10 +3489,8 @@
                 const locations = defect.locations ? defect.locations.join(', ') : (defect.location || '-');
                 const types = defect.types ? defect.types.join(', ') : (defect.type || '-');
                 
-                // 상세위치와 상세설명을 합침
-                const detailLocation = defect.detailLocation || '';
+                // 상세설명만 사용 (이미 모든 정보 포함)
                 const description = defect.description || '';
-                const combinedDetail = [detailLocation, description].filter(x => x).join(' ');
                 
                 defectRows += `
                     <tr style="border-bottom: 1px solid #ddd;">
@@ -3466,7 +3498,7 @@
                         <td style="padding: 8px; text-align: center; color: #000000;">${spaces}</td>
                         <td style="padding: 8px; text-align: center; color: #000000;">${locations}</td>
                         <td style="padding: 8px; color: #000000;">${types}</td>
-                        <td style="padding: 8px; color: #000000; font-size: 11px;">${combinedDetail || '-'}</td>
+                        <td style="padding: 8px; color: #000000; font-size: 11px; word-break: break-word; white-space: normal; line-height: 1.4;">${description || '-'}</td>
                         <td style="padding: 8px; text-align: center; font-size: 11px; color: #000000;">${defect.status === 'completed' ? '✓' : '○'}</td>
                     </tr>
                 `;
@@ -3555,27 +3587,13 @@
                 const locations = defect.locations ? defect.locations.join(', ') : (defect.location || '-');
                 const types = defect.types ? defect.types.join(', ') : (defect.type || '-');
                 
-                // 상세위치와 상세설명을 합침
-                const detailLocation = defect.detailLocation || '';
+                // 상세설명만 사용 (이미 모든 정보 포함)
                 const description = defect.description || '';
-                const combinedDetail = [detailLocation, description].filter(x => x).join(' ');
-                
-                // 색상 순환 (6색) - 연한 배경색
-                const colorSchemes = [
-                    { border: '#3498db', bg: '#ebf5fb', text: '파란색' },      // 1, 7, 13...
-                    { border: '#e74c3c', bg: '#fadbd8', text: '빨간색' },      // 2, 8, 14...
-                    { border: '#9b59b6', bg: '#f4ecf7', text: '보라색' },      // 3, 9, 15...
-                    { border: '#f39c12', bg: '#fef5e7', text: '주황색' },      // 4, 10, 16...
-                    { border: '#16a085', bg: '#e8f8f5', text: '청록색' },      // 5, 11, 17...
-                    { border: '#e67e22', bg: '#fbeee6', text: '오렌지색' }     // 6, 12, 18...
-                ];
-                const colorIndex = (globalIndex - 1) % 6;
-                const colorScheme = colorSchemes[colorIndex];
                 
                 contentHTML += `
-                    <div style="border: 2px solid ${colorScheme.border}; border-radius: 4px; padding: 0; margin-bottom: 20px; background: white; page-break-inside: avoid;">
+                    <div style="border: 1px solid #ddd; border-radius: 4px; padding: 0; margin-bottom: 20px; background: white; page-break-inside: avoid;">
                         <!-- 하자 번호 헤더 -->
-                        <div style="background: ${colorScheme.bg}; padding: 8px 12px; border-bottom: 2px solid ${colorScheme.border};">
+                        <div style="background: #f8f9fa; padding: 8px 12px; border-bottom: 1px solid #ddd;">
                             <strong style="font-size: 14px; color: #000;">하자 ${globalIndex}</strong>
                         </div>
                         
@@ -3593,31 +3611,31 @@
                             </tr>
                             <tr>
                                 <td style="padding: 8px 12px; background: #f8f9fa; font-weight: bold; color: #000; border-right: 1px solid #ddd;">상세설명</td>
-                                <td colspan="3" style="padding: 8px 12px; color: #000; font-size: 13px; line-height: 1.6;">${combinedDetail || '-'}</td>
+                                <td colspan="3" style="padding: 8px 12px; color: #000; font-size: 13px; line-height: 1.6;">${description || '-'}</td>
                             </tr>
                         </table>
 
                         <!-- 사진 영역 -->
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 12px;">
-                            <div style="border: 2px solid #10b981; border-radius: 4px; overflow: hidden;">
-                                <div style="background: #10b981; color: white; padding: 6px; text-align: center; font-weight: bold; font-size: 11px;">
+                            <div style="border: 1px solid #ddd; border-radius: 4px; overflow: hidden;">
+                                <div style="padding: 8px; text-align: center; font-weight: bold; font-size: 12px; color: #333; border-bottom: 3px solid #10b981;">
                                     📷 원경 (멀리서)
                                 </div>
                                 ${farPhoto ? `
-                                    <img src="${farPhoto}" style="width: 100%; height: 160px; object-fit: cover; display: block;" />
+                                    <img src="${farPhoto}" style="width: 100%; height: 220px; object-fit: cover; display: block;" />
                                 ` : `
-                                    <div style="width: 100%; height: 160px; background: #f0fdf4; border-top: 1px solid #10b981; display: flex; align-items: center; justify-content: center; color: #059669; font-size: 11px;">사진 없음<br>빈 칸을 클릭해<br>촬영해 주세요</div>
+                                    <div style="width: 100%; height: 220px; background: #f9f9f9; display: flex; align-items: center; justify-content: center; color: #999; font-size: 11px; text-align: center; padding: 10px;">사진 없음</div>
                                 `}
                             </div>
 
-                            <div style="border: 2px solid #f59e0b; border-radius: 4px; overflow: hidden;">
-                                <div style="background: #f59e0b; color: white; padding: 6px; text-align: center; font-weight: bold; font-size: 11px;">
+                            <div style="border: 1px solid #ddd; border-radius: 4px; overflow: hidden;">
+                                <div style="padding: 8px; text-align: center; font-weight: bold; font-size: 12px; color: #333; border-bottom: 3px solid #f59e0b;">
                                     📷 근경 (가까이서)
                                 </div>
                                 ${closePhoto ? `
-                                    <img src="${closePhoto}" style="width: 100%; height: 160px; object-fit: cover; display: block;" />
+                                    <img src="${closePhoto}" style="width: 100%; height: 220px; object-fit: cover; display: block;" />
                                 ` : `
-                                    <div style="width: 100%; height: 160px; background: #fffbeb; border-top: 1px solid #f59e0b; display: flex; align-items: center; justify-content: center; color: #d97706; font-size: 11px;">사진 없음<br>빈 칸을 클릭해<br>촬영해 주세요</div>
+                                    <div style="width: 100%; height: 220px; background: #f9f9f9; display: flex; align-items: center; justify-content: center; color: #999; font-size: 11px; text-align: center; padding: 10px;">사진 없음</div>
                                 `}
                             </div>
                         </div>
@@ -3627,14 +3645,14 @@
 
             return `
                 <div style="width: 794px; min-height: 1123px; background: white; font-family: 'Malgun Gothic', sans-serif; padding: 30px;">
-                    <div style="background: #f8f9fa; color: #2c3e50; padding: 15px 20px; margin-bottom: 25px; border-radius: 8px; border: 2px solid #2c3e50;">
+                    <div style="background: white; color: #000; padding: 15px 20px; margin-bottom: 25px; border-radius: 8px; border: 1px solid #ddd;">
                         <h2 style="margin: 0; font-size: 18px; font-weight: bold;">하자 상세 사진 (원경+근경)</h2>
-                        <p style="margin: 5px 0 0 0; font-size: 12px;">${projectData.apartmentName} ${projectData.dong} ${projectData.ho}</p>
+                        <p style="margin: 5px 0 0 0; font-size: 12px; color: #666;">${projectData.apartmentName} ${projectData.dong} ${projectData.ho}</p>
                     </div>
 
                     ${contentHTML}
 
-                    <div style="margin-top: 20px; padding-top: 15px; border-top: 2px solid #3498db; font-size: 11px; color: #000; text-align: center;">
+                    <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #ddd; font-size: 11px; color: #666; text-align: center;">
                         <div>더홈점검 | 전화: 070-8019-1456 / 010-9985-0128 | 사전점검 전문업체</div>
                     </div>
                 </div>
@@ -3647,18 +3665,6 @@
             
             equipmentList.forEach((item, idx) => {
                 const globalIndex = startIndex + idx + 1;
-                
-                // 색상 순환 (6색) - 연한 배경색
-                const colorSchemes = [
-                    { border: '#3498db', bg: '#ebf5fb', text: '파란색' },      // 1, 7, 13...
-                    { border: '#e74c3c', bg: '#fadbd8', text: '빨간색' },      // 2, 8, 14...
-                    { border: '#9b59b6', bg: '#f4ecf7', text: '보라색' },      // 3, 9, 15...
-                    { border: '#f39c12', bg: '#fef5e7', text: '주황색' },      // 4, 10, 16...
-                    { border: '#16a085', bg: '#e8f8f5', text: '청록색' },      // 5, 11, 17...
-                    { border: '#e67e22', bg: '#fbeee6', text: '오렌지색' }     // 6, 12, 18...
-                ];
-                const colorIndex = (globalIndex - 1) % 6;
-                const colorScheme = colorSchemes[colorIndex];
                 
                 // 하위 호환성
                 const space = item.space || (item.spaces ? item.spaces.join(', ') : '-');
@@ -3676,9 +3682,9 @@
                 const hasLocationPhotos = item.photos && typeof item.photos === 'object';
                 
                 contentHTML += `
-                    <div style="border: 2px solid ${colorScheme.border}; border-radius: 8px; padding: 0; background: white; margin-bottom: 20px; page-break-inside: avoid;">
+                    <div style="border: 1px solid #ddd; border-radius: 8px; padding: 0; background: white; margin-bottom: 20px; page-break-inside: avoid;">
                         <!-- 헤더 -->
-                        <div style="background: ${colorScheme.bg}; padding: 10px 15px; border-bottom: 2px solid ${colorScheme.border};">
+                        <div style="background: #f8f9fa; padding: 10px 15px; border-bottom: 1px solid #ddd;">
                             <strong style="font-size: 16px; color: #000;">장비점검 ${globalIndex} - ${space}</strong>
                         </div>
                         
@@ -3691,54 +3697,77 @@
                         </table>
 
                         ${hasLocationPhotos ? `
-                            <!-- 좌측/우측 2개 사진 -->
+                            <!-- 사진 영역 -->
                             <div style="padding: 0 15px 15px 15px;">
-                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
-                                    ${['좌측', '우측'].map((location, locIdx) => {
-                                        const colors = ['#3498db', '#e74c3c'];
-                                        const icons = ['⬅️', '➡️'];
-                                        const photo = item.photos[location];
+                                ${(() => {
+                                    // 사진이 있는 위치만 필터링
+                                    const leftPhoto = item.photos['좌측'];
+                                    const rightPhoto = item.photos['우측'];
+                                    const floorPhoto = item.photos['바닥'];
+                                    
+                                    const hasTopPhotos = leftPhoto || rightPhoto;
+                                    const hasFloorPhoto = floorPhoto;
+                                    
+                                    let html = '';
+                                    
+                                    // 좌측/우측 사진이 하나라도 있으면 표시
+                                    if (hasTopPhotos) {
+                                        const locations = [];
+                                        if (leftPhoto) locations.push({ name: '좌측', photo: leftPhoto, color: '#3498db', icon: '⬅️' });
+                                        if (rightPhoto) locations.push({ name: '우측', photo: rightPhoto, color: '#e74c3c', icon: '➡️' });
                                         
-                                        return `
-                                            <div style="border: 2px solid ${colors[locIdx]}; border-radius: 6px; overflow: hidden;">
-                                                <div style="background: ${colors[locIdx]}; color: white; padding: 6px; text-align: center; font-weight: bold; font-size: 12px;">
-                                                    ${icons[locIdx]} ${location}
-                                                </div>
-                                                ${photo ? `
-                                                    <img src="${photo}" style="width: 100%; height: 200px; object-fit: cover; display: block;" />
-                                                ` : `
-                                                    <div style="width: 100%; height: 200px; background: #f8f9fa; display: flex; align-items: center; justify-content: center; color: #999; font-size: 11px;">
-                                                        사진 없음
+                                        // 1개면 full width, 2개면 grid
+                                        const gridStyle = locations.length === 2 ? 'display: grid; grid-template-columns: 1fr 1fr; gap: 10px;' : '';
+                                        
+                                        html += `
+                                            <div style="${gridStyle} margin-bottom: ${hasFloorPhoto ? '10px' : '0'};">
+                                                ${locations.map(loc => `
+                                                    <div style="border: 1px solid #ddd; border-radius: 4px; overflow: hidden;">
+                                                        <div style="padding: 8px; text-align: center; font-weight: bold; font-size: 12px; color: #333; border-bottom: 3px solid ${loc.color};">
+                                                            ${loc.icon} ${loc.name}
+                                                        </div>
+                                                        <img src="${loc.photo}" style="width: 100%; height: 240px; object-fit: cover; display: block;" />
                                                     </div>
-                                                `}
+                                                `).join('')}
                                             </div>
                                         `;
-                                    }).join('')}
-                                </div>
-                                <!-- 바닥 사진 (전체 너비) -->
-                                <div style="border: 2px solid #f39c12; border-radius: 6px; overflow: hidden;">
-                                    <div style="background: #f39c12; color: white; padding: 6px; text-align: center; font-weight: bold; font-size: 12px;">
-                                        ⬇️ 바닥
-                                    </div>
-                                    ${item.photos['바닥'] ? `
-                                        <img src="${item.photos['바닥']}" style="width: 100%; height: 220px; object-fit: cover; display: block;" />
-                                    ` : `
-                                        <div style="width: 100%; height: 220px; background: #f8f9fa; display: flex; align-items: center; justify-content: center; color: #999; font-size: 11px;">
-                                            사진 없음
-                                        </div>
-                                    `}
-                                </div>
+                                    }
+                                    
+                                    // 바닥 사진이 있으면 표시
+                                    if (hasFloorPhoto) {
+                                        html += `
+                                            <div style="border: 1px solid #ddd; border-radius: 4px; overflow: hidden;">
+                                                <div style="padding: 8px; text-align: center; font-weight: bold; font-size: 12px; color: #333; border-bottom: 3px solid #f39c12;">
+                                                    ⬇️ 바닥
+                                                </div>
+                                                <img src="${floorPhoto}" style="width: 100%; height: 260px; object-fit: cover; display: block;" />
+                                            </div>
+                                        `;
+                                    }
+                                    
+                                    // 사진이 하나도 없으면 안내 메시지
+                                    if (!hasTopPhotos && !hasFloorPhoto) {
+                                        html = `
+                                            <div style="padding: 40px; text-align: center; color: #999; background: #f8f9fa; border-radius: 6px;">
+                                                <div style="font-size: 14px; margin-bottom: 8px;">📷 촬영된 사진이 없습니다</div>
+                                                <div style="font-size: 11px;">장비점검 시 사진을 첨부해주세요</div>
+                                            </div>
+                                        `;
+                                    }
+                                    
+                                    return html;
+                                })()}
                             </div>
                         ` : `
                             <!-- 단일 사진 (구 버전 호환) -->
                             <div style="text-align: center;">
-                                <div style="background: #2c3e50; color: white; padding: 8px; text-align: center; font-weight: bold; font-size: 12px; border-radius: 4px 4px 0 0;">
+                                <div style="padding: 8px; text-align: center; font-weight: bold; font-size: 12px; color: #333; border: 1px solid #ddd; border-bottom: 3px solid #2c3e50; border-radius: 4px 4px 0 0;">
                                     촬영 사진
                                 </div>
                                 ${item.photo ? `
                                     <img src="${item.photo}" style="width: 100%; max-height: 350px; object-fit: contain; border: 1px solid #ddd; border-top: none;" />
                                 ` : `
-                                    <div style="width: 100%; height: 250px; background: #f8f9fa; border: 1px solid #ddd; border-top: none; display: flex; align-items: center; justify-content: center; color: #999; font-size: 12px;">사진 없음</div>
+                                    <div style="width: 100%; height: 250px; background: #f9f9f9; border: 1px solid #ddd; border-top: none; display: flex; align-items: center; justify-content: center; color: #999; font-size: 12px;">사진 없음</div>
                                 `}
                             </div>
                         `}
@@ -3748,14 +3777,14 @@
 
             return `
                 <div style="width: 794px; min-height: 1123px; background: white; font-family: 'Malgun Gothic', sans-serif; padding: 30px;">
-                    <div style="background: #f8f9fa; color: #2c3e50; padding: 15px 20px; margin-bottom: 20px; border-radius: 8px; border: 2px solid #2c3e50;">
+                    <div style="background: white; color: #000; padding: 15px 20px; margin-bottom: 20px; border-radius: 8px; border: 1px solid #ddd;">
                         <h2 style="margin: 0; font-size: 20px; font-weight: bold;">장비 측정 보고서</h2>
-                        <p style="margin: 5px 0 0 0; font-size: 13px;">${projectData.apartmentName} ${projectData.dong} ${projectData.ho} | ${projectData.inspectionDate || ''}</p>
+                        <p style="margin: 5px 0 0 0; font-size: 13px; color: #666;">${projectData.apartmentName} ${projectData.dong} ${projectData.ho} | ${projectData.inspectionDate || ''}</p>
                     </div>
 
                     ${contentHTML}
 
-                    <div style="position: absolute; bottom: 20px; left: 30px; right: 30px; padding-top: 15px; border-top: 2px solid #3498db; font-size: 11px; color: #000000;">
+                    <div style="position: absolute; bottom: 20px; left: 30px; right: 30px; padding-top: 15px; border-top: 1px solid #ddd; font-size: 11px; color: #666;">
                         <div style="display: flex; justify-content: space-between; align-items: center;">
                             <div>더홈점검 | 070-8019-1456</div>
                         </div>
@@ -4422,20 +4451,125 @@
             `;
         }
 
-        // ==================== 데이터 저장/불러오기 ====================
-        function saveToLocalStorage() {
+        // ==================== IndexedDB 설정 ====================
+        let db;
+        const DB_NAME = 'TheHomeInspectionDB';
+        const DB_VERSION = 1;
+        const STORE_NAME = 'projects';
+
+        // IndexedDB 초기화
+        function initDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, DB_VERSION);
+                
+                request.onerror = () => reject(request.error);
+                request.onsuccess = () => {
+                    db = request.result;
+                    resolve(db);
+                };
+                
+                request.onupgradeneeded = (event) => {
+                    const db = event.target.result;
+                    if (!db.objectStoreNames.contains(STORE_NAME)) {
+                        const objectStore = db.createObjectStore(STORE_NAME, { keyPath: 'id' });
+                        objectStore.createIndex('savedAt', 'savedAt', { unique: false });
+                        objectStore.createIndex('apartmentName', 'apartmentName', { unique: false });
+                    }
+                };
+            });
+        }
+
+        // IndexedDB에 데이터 저장
+        async function saveToIndexedDB(key, data) {
             try {
-                localStorage.setItem('thehomein_current', JSON.stringify(projectData));
+                if (!db) await initDB();
+                
+                return new Promise((resolve, reject) => {
+                    const transaction = db.transaction([STORE_NAME], 'readwrite');
+                    const objectStore = transaction.objectStore(STORE_NAME);
+                    const request = objectStore.put({ id: key, ...data });
+                    
+                    request.onsuccess = () => resolve();
+                    request.onerror = () => reject(request.error);
+                });
             } catch (e) {
-                console.error('저장 오류:', e);
+                console.error('IndexedDB 저장 오류:', e);
+                throw e;
             }
         }
 
-        function loadFromLocalStorage() {
+        // IndexedDB에서 데이터 불러오기
+        async function loadFromIndexedDB(key) {
             try {
-                const saved = localStorage.getItem('thehomein_current');
+                if (!db) await initDB();
+                
+                return new Promise((resolve, reject) => {
+                    const transaction = db.transaction([STORE_NAME], 'readonly');
+                    const objectStore = transaction.objectStore(STORE_NAME);
+                    const request = objectStore.get(key);
+                    
+                    request.onsuccess = () => resolve(request.result);
+                    request.onerror = () => reject(request.error);
+                });
+            } catch (e) {
+                console.error('IndexedDB 불러오기 오류:', e);
+                return null;
+            }
+        }
+
+        // IndexedDB에서 모든 프로젝트 가져오기
+        async function getAllFromIndexedDB() {
+            try {
+                if (!db) await initDB();
+                
+                return new Promise((resolve, reject) => {
+                    const transaction = db.transaction([STORE_NAME], 'readonly');
+                    const objectStore = transaction.objectStore(STORE_NAME);
+                    const request = objectStore.getAll();
+                    
+                    request.onsuccess = () => resolve(request.result);
+                    request.onerror = () => reject(request.error);
+                });
+            } catch (e) {
+                console.error('IndexedDB 목록 조회 오류:', e);
+                return [];
+            }
+        }
+
+        // IndexedDB에서 데이터 삭제
+        async function deleteFromIndexedDB(key) {
+            try {
+                if (!db) await initDB();
+                
+                return new Promise((resolve, reject) => {
+                    const transaction = db.transaction([STORE_NAME], 'readwrite');
+                    const objectStore = transaction.objectStore(STORE_NAME);
+                    const request = objectStore.delete(key);
+                    
+                    request.onsuccess = () => resolve();
+                    request.onerror = () => reject(request.error);
+                });
+            } catch (e) {
+                console.error('IndexedDB 삭제 오류:', e);
+                throw e;
+            }
+        }
+
+        // ==================== 데이터 저장/불러오기 ====================
+        async function saveToLocalStorage() {
+            try {
+                await saveToIndexedDB('thehomein_current', projectData);
+            } catch (e) {
+                console.error('저장 오류:', e);
+                alert('저장 실패: ' + e.message);
+            }
+        }
+
+        async function loadFromLocalStorage() {
+            try {
+                const saved = await loadFromIndexedDB('thehomein_current');
                 if (saved) {
-                    projectData = JSON.parse(saved);
+                    projectData = saved;
                     
                     document.getElementById('apartmentName').value = projectData.apartmentName || '';
                     document.getElementById('dong').value = projectData.dong || '';
@@ -4464,61 +4598,64 @@
             }
         }
 
-        function saveCurrentData() {
+        async function saveCurrentData() {
             const timestamp = new Date().toISOString();
             const key = `thehomein_${timestamp}`;
             
             try {
-                localStorage.setItem(key, JSON.stringify({
+                await saveToIndexedDB(key, {
                     ...projectData,
                     savedAt: timestamp
-                }));
-                renderSavedList();
+                });
+                await renderSavedList();
                 showToast('데이터가 저장되었습니다');
             } catch (e) {
-                alert('저장 실패: 저장 공간이 부족합니다');
+                alert('저장 실패: ' + e.message);
             }
         }
 
-        function renderSavedList() {
+        async function renderSavedList() {
             const container = document.getElementById('savedList');
-            const saved = [];
             
-            for (let i = 0; i < localStorage.length; i++) {
-                const key = localStorage.key(i);
-                if (key.startsWith('thehomein_') && key !== 'thehomein_current') {
-                    try {
-                        const data = JSON.parse(localStorage.getItem(key));
-                        saved.push({ key, data });
-                    } catch (e) {
-                        console.error('파싱 오류:', e);
-                    }
+            try {
+                const saved = await getAllFromIndexedDB();
+                const filtered = saved.filter(item => item.id !== 'thehomein_current');
+                
+                if (filtered.length === 0) {
+                    container.innerHTML = '<p style="color: var(--text-secondary); text-align: center;">저장된 프로젝트가 없습니다</p>';
+                    return;
                 }
-            }
-            
-            if (saved.length === 0) {
-                container.innerHTML = '<p style="color: var(--text-secondary); text-align: center;">저장된 프로젝트가 없습니다</p>';
-                return;
-            }
-            
-            container.innerHTML = saved.map(item => `
-                <div class="saved-item">
-                    <div class="saved-info">
-                        <h3>${item.data.apartmentName || '제목 없음'} ${item.data.dong} ${item.data.ho}</h3>
-                        <p>${new Date(item.data.savedAt).toLocaleString('ko-KR')}</p>
+                
+                // 최신순 정렬
+                filtered.sort((a, b) => new Date(b.savedAt) - new Date(a.savedAt));
+                
+                container.innerHTML = filtered.map(item => `
+                    <div class="saved-item">
+                        <div class="saved-info">
+                            <h3>${item.apartmentName || '제목 없음'} ${item.dong} ${item.ho}</h3>
+                            <p>${new Date(item.savedAt).toLocaleString('ko-KR')}</p>
+                        </div>
+                        <div class="saved-actions">
+                            <button class="icon-btn load" onclick="loadSavedData('${item.id}')">📂</button>
+                            <button class="icon-btn delete" onclick="deleteSavedData('${item.id}')">🗑️</button>
+                        </div>
                     </div>
-                    <div class="saved-actions">
-                        <button class="icon-btn load" onclick="loadSavedData('${item.key}')">📂</button>
-                        <button class="icon-btn delete" onclick="deleteSavedData('${item.key}')">🗑️</button>
-                    </div>
-                </div>
-            `).join('');
+                `).join('');
+            } catch (e) {
+                console.error('목록 렌더링 오류:', e);
+                container.innerHTML = '<p style="color: red; text-align: center;">목록을 불러오는 중 오류가 발생했습니다</p>';
+            }
         }
 
-        function loadSavedData(key) {
+        async function loadSavedData(key) {
             if (confirm('현재 작업 중인 데이터를 불러온 데이터로 덮어쓰시겠습니까?')) {
                 try {
-                    const data = JSON.parse(localStorage.getItem(key));
+                    const data = await loadFromIndexedDB(key);
+                    if (!data) {
+                        alert('데이터를 찾을 수 없습니다');
+                        return;
+                    }
+                    
                     projectData = data;
                     
                     // equipment 데이터가 없으면 초기화
@@ -4537,69 +4674,74 @@
                     renderDefects();
                     renderEquipment();
                     renderAirQuality();
-                    saveToLocalStorage();
+                    await saveToLocalStorage();
                     updateProgress();
                     
                     showToast('데이터를 불러왔습니다');
                     switchTab('project');
                 } catch (e) {
-                    alert('불러오기 실패');
+                    alert('불러오기 실패: ' + e.message);
                 }
             }
         }
 
-        function deleteSavedData(key) {
+        async function deleteSavedData(key) {
             if (confirm('이 프로젝트를 삭제하시겠습니까?')) {
-                localStorage.removeItem(key);
-                renderSavedList();
-                showToast('프로젝트가 삭제되었습니다');
+                try {
+                    await deleteFromIndexedDB(key);
+                    await renderSavedList();
+                    showToast('프로젝트가 삭제되었습니다');
+                } catch (e) {
+                    alert('삭제 실패: ' + e.message);
+                }
             }
         }
 
-        function clearAllData() {
+        async function clearAllData() {
             if (confirm('정말로 모든 데이터를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) {
                 if (confirm('다시 한번 확인합니다. 모든 데이터가 삭제됩니다.')) {
-                    const keysToDelete = [];
-                    for (let i = 0; i < localStorage.length; i++) {
-                        const key = localStorage.key(i);
-                        if (key.startsWith('thehomein_')) {
-                            keysToDelete.push(key);
+                    try {
+                        const allData = await getAllFromIndexedDB();
+                        
+                        for (const item of allData) {
+                            await deleteFromIndexedDB(item.id);
                         }
+                        
+                        projectData = {
+                            apartmentName: '',
+                            dong: '',
+                            ho: '',
+                            inspectionDate: '',
+                            customerName: '',
+                            customerPhone: '',
+                            floorplan: null,
+                            defects: [],
+                            equipment: [],
+                            airQuality: []
+                        };
+                        
+                        defectIdCounter = 1;
+                        equipmentIdCounter = 1;
+                        airQualityIdCounter = 1;
+                        
+                        document.getElementById('apartmentName').value = '';
+                        document.getElementById('dong').value = '';
+                        document.getElementById('ho').value = '';
+                        document.getElementById('inspectionDate').valueAsDate = new Date();
+                        document.getElementById('customerName').value = '';
+                        document.getElementById('customerPhone').value = '';
+                        
+                        displayFloorplan();
+                        renderDefects();
+                        renderEquipment();
+                        renderAirQuality();
+                        await renderSavedList();
+                        updateProgress();
+                        
+                        showToast('모든 데이터가 삭제되었습니다');
+                    } catch (e) {
+                        alert('삭제 실패: ' + e.message);
                     }
-                    keysToDelete.forEach(key => localStorage.removeItem(key));
-                    
-                    projectData = {
-                        apartmentName: '',
-                        dong: '',
-                        ho: '',
-                        inspectionDate: '',
-                        customerName: '',
-                        customerPhone: '',
-                        floorplan: null,
-                        defects: [],
-                        equipment: [],
-                        airQuality: []
-                    };
-                    
-                    defectIdCounter = 1;
-                    equipmentIdCounter = 1;
-                    airQualityIdCounter = 1;
-                    
-                    document.getElementById('apartmentName').value = '';
-                    document.getElementById('dong').value = '';
-                    document.getElementById('ho').value = '';
-                    document.getElementById('inspectionDate').valueAsDate = new Date();
-                    document.getElementById('customerName').value = '';
-                    document.getElementById('customerPhone').value = '';
-                    
-                    displayFloorplan();
-                    renderDefects();
-                    renderEquipment();
-                    renderAirQuality();
-                    renderSavedList();
-                    updateProgress();
-                    
-                    showToast('모든 데이터가 삭제되었습니다');
                 }
             }
         }
