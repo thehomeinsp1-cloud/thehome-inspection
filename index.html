@@ -1276,10 +1276,15 @@
                         path: 'https://www.googleapis.com/oauth2/v1/userinfo',
                     });
                     currentUser = userInfo.result;
+                    
+                    // UI 즉시 업데이트 (currentUser 설정 후)
                     updateSignInStatus(true);
-                    showToast('로그인 성공!');
+                    showToast('✅ ' + currentUser.email + ' 로그인 성공!');
+                    
+                    console.log('✅ 로그인 완료:', currentUser.email);
                 } catch (error) {
                     console.error('사용자 정보 가져오기 실패:', error);
+                    showToast('로그인 오류 발생');
                 }
             };
 
@@ -1303,19 +1308,37 @@
         }
 
         function updateSignInStatus(isSignedIn) {
-            if (isSignedIn) {
-                document.getElementById('notSignedIn').style.display = 'none';
-                document.getElementById('signedIn').style.display = 'block';
-                document.getElementById('userEmail').textContent = currentUser?.email || '사용자';
-                document.getElementById('signInBtn').style.display = 'none';
-                document.getElementById('signOutBtn').style.display = 'block';
-                document.getElementById('cloudActionsCard').style.display = 'block';
-            } else {
-                document.getElementById('notSignedIn').style.display = 'block';
-                document.getElementById('signedIn').style.display = 'none';
-                document.getElementById('signInBtn').style.display = 'block';
-                document.getElementById('signOutBtn').style.display = 'none';
-                document.getElementById('cloudActionsCard').style.display = 'none';
+            try {
+                if (isSignedIn) {
+                    const notSignedIn = document.getElementById('notSignedIn');
+                    const signedIn = document.getElementById('signedIn');
+                    const userEmail = document.getElementById('userEmail');
+                    const signInBtn = document.getElementById('signInBtn');
+                    const signOutBtn = document.getElementById('signOutBtn');
+                    const cloudActionsCard = document.getElementById('cloudActionsCard');
+                    
+                    if (notSignedIn) notSignedIn.style.display = 'none';
+                    if (signedIn) signedIn.style.display = 'block';
+                    if (userEmail) userEmail.textContent = currentUser?.email || '사용자';
+                    if (signInBtn) signInBtn.style.display = 'none';
+                    if (signOutBtn) signOutBtn.style.display = 'block';
+                    if (cloudActionsCard) cloudActionsCard.style.display = 'block';
+                } else {
+                    const notSignedIn = document.getElementById('notSignedIn');
+                    const signedIn = document.getElementById('signedIn');
+                    const signInBtn = document.getElementById('signInBtn');
+                    const signOutBtn = document.getElementById('signOutBtn');
+                    const cloudActionsCard = document.getElementById('cloudActionsCard');
+                    
+                    if (notSignedIn) notSignedIn.style.display = 'block';
+                    if (signedIn) signedIn.style.display = 'none';
+                    if (signInBtn) signInBtn.style.display = 'block';
+                    if (signOutBtn) signOutBtn.style.display = 'none';
+                    if (cloudActionsCard) cloudActionsCard.style.display = 'none';
+                }
+                console.log('✅ UI 업데이트 완료:', isSignedIn ? '로그인' : '로그아웃');
+            } catch (e) {
+                console.error('UI 업데이트 오류:', e);
             }
         }
 
@@ -2117,42 +2140,38 @@
         }
 
         // 프로젝트 목록을 로컬 스토리지에 저장
-        function saveProjectsToLocalStorage() {
+        async function saveProjectsToLocalStorage() {
             try {
-                localStorage.setItem('projects', JSON.stringify(projects));
-                localStorage.setItem('currentProjectId', currentProjectId);
+                await saveToIndexedDB('projects_list', { projects, currentProjectId });
+                console.log('✅ 프로젝트 목록 저장 완료');
             } catch (e) {
-                console.error('로컬 스토리지 저장 실패:', e);
+                console.error('프로젝트 목록 저장 실패:', e);
             }
         }
 
-        // 프로젝트 목록을 로컬 스토리지에서 불러오기
-        function loadProjectsFromLocalStorage() {
+        // 프로젝트 목록을 IndexedDB에서 불러오기
+        async function loadProjectsFromLocalStorage() {
             try {
-                const savedProjects = localStorage.getItem('projects');
-                const savedProjectId = localStorage.getItem('currentProjectId');
+                const saved = await loadFromIndexedDB('projects_list');
                 
-                if (savedProjects) {
-                    projects = JSON.parse(savedProjects);
-                    
-                    if (savedProjectId) {
-                        currentProjectId = parseInt(savedProjectId);
-                    } else if (projects.length > 0) {
-                        currentProjectId = projects[0].id;
-                    }
+                if (saved && saved.projects) {
+                    projects = saved.projects;
+                    currentProjectId = saved.currentProjectId;
                     
                     projectData = getCurrentProject();
+                    console.log('✅ 프로젝트 목록 불러오기 완료:', projects.length + '개');
                 } else {
                     // 첫 실행 시 빈 프로젝트 생성
                     const newProject = createNewProject();
                     projects.push(newProject);
                     currentProjectId = newProject.id;
                     projectData = getCurrentProject();
+                    console.log('✅ 새 프로젝트 생성 완료');
                 }
                 
                 renderProjectList();
             } catch (e) {
-                console.error('로컬 스토리지 불러오기 실패:', e);
+                console.error('프로젝트 목록 불러오기 실패:', e);
                 // 실패 시 새 프로젝트 생성
                 const newProject = createNewProject();
                 projects.push(newProject);
@@ -2193,6 +2212,9 @@
                 gisLoaded();
             }
         }, 1000);
+            
+            // 프로젝트 목록 불러오기
+            await loadProjectsFromLocalStorage();
             
             // IndexedDB에서 현재 작업 불러오기 (render 포함)
             await loadFromLocalStorage();
