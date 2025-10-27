@@ -21,8 +21,8 @@
     <!-- JSZip for ZIP download -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     
-    <!-- ExcelJS for Excel with images -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
+    <!-- ExcelJS for Excel with images (안정적인 버전) -->
+    <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
     
     <!-- Google API Client Library -->
     <!-- Google API (광고차단기로 인해 주석 처리) -->
@@ -3483,6 +3483,7 @@
         }
 
         // ==================== 엑셀 다운로드 (시공사 제출용) ====================
+        // ==================== 엑셀 다운로드 (텍스트만) ====================
         async function downloadExcel() {
             if (!projectData.apartmentName || !projectData.dong || !projectData.ho) {
                 alert('프로젝트 정보를 먼저 입력해주세요');
@@ -3494,29 +3495,17 @@
                 return;
             }
             
-            showToast('📊 시공사 제출용 엑셀 생성 중...');
+            showToast('📊 엑셀 파일 생성 중...');
             
             try {
                 const workbook = new ExcelJS.Workbook();
+                workbook.creator = '더홈점검';
+                workbook.created = new Date();
                 
                 // ==================== 시트1: 표지 ====================
-                const coverSheet = workbook.addWorksheet('표지', {
-                    pageSetup: {
-                        paperSize: 9, // A4
-                        orientation: 'portrait',
-                        fitToPage: true,
-                        fitToWidth: 1,
-                        fitToHeight: 0
-                    }
-                });
+                const coverSheet = workbook.addWorksheet('표지');
+                coverSheet.columns = [{ width: 20 }, { width: 30 }];
                 
-                // 열 너비 설정
-                coverSheet.columns = [
-                    { width: 20 },
-                    { width: 30 }
-                ];
-                
-                // 표지 내용
                 coverSheet.mergeCells('A1:B1');
                 coverSheet.getCell('A1').value = '하자점검 보고서';
                 coverSheet.getCell('A1').font = { size: 24, bold: true };
@@ -3526,8 +3515,6 @@
                 coverSheet.addRow([]);
                 coverSheet.addRow([]);
                 
-                // 프로젝트 정보
-                const infoStartRow = 4;
                 const projectInfo = [
                     ['아파트명', projectData.apartmentName || ''],
                     ['동/호수', `${projectData.dong || ''} ${projectData.ho || ''}`],
@@ -3539,11 +3526,10 @@
                 ];
                 
                 projectInfo.forEach((row, index) => {
-                    const rowNum = infoStartRow + index;
+                    const rowNum = 4 + index;
                     coverSheet.getRow(rowNum).values = row;
                     coverSheet.getRow(rowNum).height = 25;
                     
-                    // 스타일
                     coverSheet.getCell(`A${rowNum}`).font = { bold: true, size: 12 };
                     coverSheet.getCell(`A${rowNum}`).fill = {
                         type: 'pattern',
@@ -3566,53 +3552,37 @@
                     };
                 });
                 
-                // 하단 서명란
-                const signRow = infoStartRow + projectInfo.length + 3;
+                const signRow = 4 + projectInfo.length + 3;
                 coverSheet.mergeCells(`A${signRow}:B${signRow}`);
                 coverSheet.getCell(`A${signRow}`).value = '작성자: _______________     (인)';
                 coverSheet.getCell(`A${signRow}`).alignment = { horizontal: 'right' };
                 coverSheet.getRow(signRow).height = 30;
                 
-                // ==================== 시트2: 하자 상세 목록 (10건씩) ====================
-                const detailSheet = workbook.addWorksheet('하자상세목록', {
-                    pageSetup: {
-                        paperSize: 9, // A4
-                        orientation: 'portrait',
-                        fitToPage: true,
-                        fitToWidth: 1,
-                        fitToHeight: 0,
-                        margins: {
-                            left: 0.3,
-                            right: 0.3,
-                            top: 0.4,
-                            bottom: 0.4
-                        }
-                    }
-                });
+                // ==================== 시트2: 하자목록 ====================
+                const detailSheet = workbook.addWorksheet('하자목록');
                 
-                // A4 세로 기준 최적 레이아웃 (10건)
                 detailSheet.columns = [
-                    { width: 5 },   // 번호
-                    { width: 30 },  // 상세내용
-                    { width: 12 },  // 원경사진
-                    { width: 12 }   // 근접사진
+                    { width: 8 },   // 번호
+                    { width: 15 },  // 공간
+                    { width: 18 },  // 위치
+                    { width: 18 },  // 하자내용
+                    { width: 45 }   // 상세설명
                 ];
                 
-                // 헤더 행
+                // 헤더
                 const headerRow = detailSheet.getRow(1);
-                headerRow.values = ['번호', '상세내용', '원경', '근접'];
-                headerRow.font = { bold: true, size: 10 };
-                headerRow.alignment = { vertical: 'middle', horizontal: 'center' };
+                headerRow.values = ['번호', '공간', '위치', '하자내용', '상세설명'];
+                headerRow.font = { bold: true, size: 11 };
+                headerRow.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
                 headerRow.fill = {
                     type: 'pattern',
                     pattern: 'solid',
                     fgColor: { argb: 'FF1F2937' }
                 };
                 headerRow.font.color = { argb: 'FFFFFFFF' };
-                headerRow.height = 20;
+                headerRow.height = 25;
                 
-                // 헤더 테두리
-                [1, 2, 3, 4].forEach(col => {
+                [1, 2, 3, 4, 5].forEach(col => {
                     headerRow.getCell(col).border = {
                         top: { style: 'medium' },
                         left: { style: 'medium' },
@@ -3621,49 +3591,27 @@
                     };
                 });
                 
-                let currentRow = 2;
-                const itemsPerPage = 10; // A4 세로에 10건씩
-                
-                for (let i = 0; i < projectData.defects.length; i++) {
-                    const defect = projectData.defects[i];
-                    
-                    // 페이지 구분 (10건마다 페이지 나누기)
-                    if (i > 0 && i % itemsPerPage === 0) {
-                        detailSheet.getRow(currentRow - 1).addPageBreak();
-                    }
-                    
-                    const row = detailSheet.getRow(currentRow);
-                    
-                    // 번호
-                    row.getCell(1).value = i + 1;
-                    row.getCell(1).font = { size: 10, bold: true };
-                    row.getCell(1).alignment = { vertical: 'middle', horizontal: 'center' };
-                    
-                    // 상세내용 (간결하게)
-                    const description = [
-                        `[${defect.space || ''}]`,
+                // 하자 데이터
+                projectData.defects.forEach((defect, index) => {
+                    const row = detailSheet.addRow([
+                        index + 1,
+                        defect.space || '',
                         defect.location || '',
                         defect.type || '',
                         defect.description || ''
-                    ].filter(item => item).join(' ');
+                    ]);
                     
-                    row.getCell(2).value = description;
-                    row.getCell(2).font = { size: 9 };
-                    row.getCell(2).alignment = { 
-                        vertical: 'middle', 
-                        horizontal: 'left',
-                        wrapText: true 
-                    };
+                    row.height = 35;
                     
-                    // 사진 라벨
-                    row.getCell(3).value = '';
-                    row.getCell(4).value = '';
+                    row.getCell(1).alignment = { vertical: 'middle', horizontal: 'center' };
+                    row.getCell(2).alignment = { vertical: 'middle', horizontal: 'center' };
+                    row.getCell(3).alignment = { vertical: 'middle', horizontal: 'center' };
+                    row.getCell(4).alignment = { vertical: 'middle', horizontal: 'center' };
+                    row.getCell(5).alignment = { vertical: 'middle', horizontal: 'left', wrapText: true };
                     
-                    // 행 높이 (사진 크기에 맞춤)
-                    row.height = 70;
+                    row.font = { size: 10 };
                     
-                    // 테두리
-                    [1, 2, 3, 4].forEach(col => {
+                    [1, 2, 3, 4, 5].forEach(col => {
                         row.getCell(col).border = {
                             top: { style: 'thin' },
                             left: { style: 'medium' },
@@ -3671,50 +3619,7 @@
                             right: { style: 'medium' }
                         };
                     });
-                    
-                    // 사진 삽입 (셀에 꽉 차게)
-                    if (defect.photos && defect.photos.length > 0) {
-                        // 원경 사진
-                        if (defect.photos[0]) {
-                            try {
-                                const base64Data = defect.photos[0].split(',')[1];
-                                const imageId = workbook.addImage({
-                                    base64: base64Data,
-                                    extension: 'jpeg',
-                                });
-                                
-                                // 셀에 꽉 차게 (col: 2 = C열)
-                                detailSheet.addImage(imageId, {
-                                    tl: { col: 2.05, row: currentRow - 1.02 },
-                                    br: { col: 2.95, row: currentRow - 0.02 }
-                                });
-                            } catch (err) {
-                                console.error('원경 사진 실패:', err);
-                            }
-                        }
-                        
-                        // 근접 사진
-                        if (defect.photos[1]) {
-                            try {
-                                const base64Data = defect.photos[1].split(',')[1];
-                                const imageId = workbook.addImage({
-                                    base64: base64Data,
-                                    extension: 'jpeg',
-                                });
-                                
-                                // 셀에 꽉 차게 (col: 3 = D열)
-                                detailSheet.addImage(imageId, {
-                                    tl: { col: 3.05, row: currentRow - 1.02 },
-                                    br: { col: 3.95, row: currentRow - 0.02 }
-                                });
-                            } catch (err) {
-                                console.error('근접 사진 실패:', err);
-                            }
-                        }
-                    }
-                    
-                    currentRow++;
-                }
+                });
                 
                 // 파일 생성 및 다운로드
                 const buffer = await workbook.xlsx.writeBuffer();
@@ -3734,7 +3639,7 @@
                 document.body.removeChild(link);
                 URL.revokeObjectURL(url);
                 
-                showToast(`✅ 시공사 제출용 엑셀 완성! (하자 ${projectData.defects.length}건)`);
+                showToast(`✅ 엑셀 다운로드 완료! (하자 ${projectData.defects.length}건)`);
                 
             } catch (error) {
                 console.error('엑셀 다운로드 오류:', error);
