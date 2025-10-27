@@ -21,8 +21,8 @@
     <!-- JSZip for ZIP download -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     
-    <!-- SheetJS for Excel download -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- ExcelJS for Excel with images -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
     
     <!-- Google API Client Library -->
     <!-- Google API (광고차단기로 인해 주석 처리) -->
@@ -3482,8 +3482,8 @@
             }
         }
 
-        // ==================== 엑셀 다운로드 ====================
-        function downloadExcel() {
+        // ==================== 엑셀 다운로드 (사진 포함) ====================
+        async function downloadExcel() {
             if (!projectData.apartmentName || !projectData.dong || !projectData.ho) {
                 alert('프로젝트 정보를 먼저 입력해주세요');
                 return;
@@ -3494,137 +3494,116 @@
                 return;
             }
             
-            showToast('📊 엑셀 파일 생성 중...');
+            showToast('📊 엑셀 파일 생성 중... (사진 포함)');
             
             try {
-                // 워크북 생성
-                const wb = XLSX.utils.book_new();
+                // ExcelJS 워크북 생성
+                const workbook = new ExcelJS.Workbook();
+                const worksheet = workbook.addWorksheet('하자목록');
                 
-                // ==================== 1. 프로젝트 정보 시트 ====================
-                const projectInfo = [
-                    ['🏠 더홈점검 - 하자관리 시스템'],
-                    [],
-                    ['프로젝트 정보'],
-                    ['아파트명', projectData.apartmentName || ''],
-                    ['동', projectData.dong || ''],
-                    ['호', projectData.ho || ''],
-                    ['점검일자', projectData.inspectionDate || ''],
-                    ['점검자', projectData.inspector || ''],
-                    ['연락처', projectData.phone || ''],
-                    [],
-                    ['총 하자 건수', projectData.defects.length + '건']
+                // 열 정의
+                worksheet.columns = [
+                    { header: '번호', key: 'no', width: 8 },
+                    { header: '상세설명', key: 'description', width: 60 },
+                    { header: '원경사진', key: 'photo1', width: 25 },
+                    { header: '근접사진', key: 'photo2', width: 25 }
                 ];
                 
-                const ws_info = XLSX.utils.aoa_to_sheet(projectInfo);
+                // 헤더 스타일
+                worksheet.getRow(1).font = { bold: true, size: 12 };
+                worksheet.getRow(1).alignment = { vertical: 'middle', horizontal: 'center' };
+                worksheet.getRow(1).fill = {
+                    type: 'pattern',
+                    pattern: 'solid',
+                    fgColor: { argb: 'FF10b981' }
+                };
+                worksheet.getRow(1).font.color = { argb: 'FFFFFFFF' };
                 
-                // 열 너비 설정
-                ws_info['!cols'] = [
-                    { wch: 15 },
-                    { wch: 30 }
-                ];
-                
-                XLSX.utils.book_append_sheet(wb, ws_info, '프로젝트 정보');
-                
-                // ==================== 2. 하자 목록 시트 ====================
-                const defectData = [
-                    ['번호', '공간', '위치', '하자유형', '상세설명', '긴급도', '사진매수', '등록일시']
-                ];
-                
-                projectData.defects.forEach((defect, index) => {
-                    defectData.push([
-                        index + 1,
+                // 하자 데이터 추가
+                for (let i = 0; i < projectData.defects.length; i++) {
+                    const defect = projectData.defects[i];
+                    const rowIndex = i + 2; // 헤더 다음부터
+                    
+                    // 상세설명 조합
+                    const description = [
                         defect.space || '',
                         defect.location || '',
                         defect.type || '',
-                        defect.description || '',
-                        defect.severity || '보통',
-                        (defect.photos ? defect.photos.length : 0) + '장',
-                        defect.timestamp || ''
-                    ]);
-                });
-                
-                const ws_defects = XLSX.utils.aoa_to_sheet(defectData);
-                
-                // 열 너비 설정
-                ws_defects['!cols'] = [
-                    { wch: 6 },   // 번호
-                    { wch: 12 },  // 공간
-                    { wch: 15 },  // 위치
-                    { wch: 15 },  // 하자유형
-                    { wch: 40 },  // 상세설명
-                    { wch: 10 },  // 긴급도
-                    { wch: 10 },  // 사진매수
-                    { wch: 20 }   // 등록일시
-                ];
-                
-                XLSX.utils.book_append_sheet(wb, ws_defects, '하자목록');
-                
-                // ==================== 3. 공간별 통계 시트 ====================
-                const spaceStats = {};
-                projectData.defects.forEach(defect => {
-                    const space = defect.space || '미지정';
-                    spaceStats[space] = (spaceStats[space] || 0) + 1;
-                });
-                
-                const statsData = [
-                    ['공간별 하자 통계'],
-                    [],
-                    ['공간', '하자 건수']
-                ];
-                
-                Object.entries(spaceStats)
-                    .sort((a, b) => b[1] - a[1]) // 건수 많은 순
-                    .forEach(([space, count]) => {
-                        statsData.push([space, count + '건']);
-                    });
-                
-                const ws_stats = XLSX.utils.aoa_to_sheet(statsData);
-                
-                ws_stats['!cols'] = [
-                    { wch: 20 },
-                    { wch: 15 }
-                ];
-                
-                XLSX.utils.book_append_sheet(wb, ws_stats, '공간별통계');
-                
-                // ==================== 4. 장비 측정 시트 (있는 경우) ====================
-                if (projectData.equipment && projectData.equipment.length > 0) {
-                    const equipData = [
-                        ['번호', '공간', '장비명', '측정위치', '측정값', '비고']
-                    ];
+                        defect.description || ''
+                    ].filter(item => item).join(' - ');
                     
-                    projectData.equipment.forEach((equip, index) => {
-                        equipData.push([
-                            index + 1,
-                            equip.space || '',
-                            equip.equipment || '',
-                            equip.location || '',
-                            equip.value || '',
-                            equip.note || ''
-                        ]);
+                    // 행 추가
+                    const row = worksheet.addRow({
+                        no: i + 1,
+                        description: description,
+                        photo1: '',
+                        photo2: ''
                     });
                     
-                    const ws_equip = XLSX.utils.aoa_to_sheet(equipData);
+                    // 행 높이 설정 (사진 공간)
+                    row.height = 150;
                     
-                    ws_equip['!cols'] = [
-                        { wch: 6 },
-                        { wch: 12 },
-                        { wch: 15 },
-                        { wch: 15 },
-                        { wch: 20 },
-                        { wch: 30 }
-                    ];
+                    // 텍스트 셀 스타일
+                    row.getCell(1).alignment = { vertical: 'middle', horizontal: 'center' };
+                    row.getCell(2).alignment = { vertical: 'middle', horizontal: 'left', wrapText: true };
                     
-                    XLSX.utils.book_append_sheet(wb, ws_equip, '장비측정');
+                    // 사진 추가
+                    if (defect.photos && defect.photos.length > 0) {
+                        // 원경 사진
+                        if (defect.photos[0]) {
+                            try {
+                                const base64Data = defect.photos[0].split(',')[1];
+                                const imageId = workbook.addImage({
+                                    base64: base64Data,
+                                    extension: 'jpeg',
+                                });
+                                
+                                worksheet.addImage(imageId, {
+                                    tl: { col: 2, row: rowIndex - 1 },
+                                    ext: { width: 180, height: 135 }
+                                });
+                            } catch (err) {
+                                console.error('원경 사진 추가 실패:', err);
+                            }
+                        }
+                        
+                        // 근접 사진
+                        if (defect.photos[1]) {
+                            try {
+                                const base64Data = defect.photos[1].split(',')[1];
+                                const imageId = workbook.addImage({
+                                    base64: base64Data,
+                                    extension: 'jpeg',
+                                });
+                                
+                                worksheet.addImage(imageId, {
+                                    tl: { col: 3, row: rowIndex - 1 },
+                                    ext: { width: 180, height: 135 }
+                                });
+                            } catch (err) {
+                                console.error('근접 사진 추가 실패:', err);
+                            }
+                        }
+                    }
                 }
                 
-                // 파일 다운로드
+                // 파일 생성 및 다운로드
+                const buffer = await workbook.xlsx.writeBuffer();
+                const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+                
                 const projectName = `${projectData.apartmentName}_${projectData.dong}_${projectData.ho}`;
                 const fileName = `${projectName}_하자목록_${projectData.inspectionDate || new Date().toISOString().split('T')[0]}.xlsx`;
                 
-                XLSX.writeFile(wb, fileName);
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = fileName;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
                 
-                showToast(`✅ 엑셀 다운로드 완료! (하자 ${projectData.defects.length}건)`);
+                showToast(`✅ 사진 포함 엑셀 다운로드 완료! (하자 ${projectData.defects.length}건)`);
                 
             } catch (error) {
                 console.error('엑셀 다운로드 오류:', error);
