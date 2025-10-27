@@ -751,11 +751,11 @@
     <div class="container">
         <!-- 탭 메뉴 -->
         <div class="tabs">
-            <button class="tab active" onclick="switchTab('project')">📝 프로젝트</button>
-            <button class="tab" onclick="switchTab('defects')">🔍 하자점검</button>
-            <button class="tab" onclick="switchTab('equipment')">📸 장비점검</button>
-            <button class="tab" onclick="switchTab('airquality')">🌬️ 공기질</button>
-            <button class="tab" onclick="switchTab('data')">💾 데이터</button>
+            <button class="tab active" onclick="switchTab('project', event)">📝 프로젝트</button>
+            <button class="tab" onclick="switchTab('defects', event)">🔍 하자점검</button>
+            <button class="tab" onclick="switchTab('equipment', event)">📸 장비점검</button>
+            <button class="tab" onclick="switchTab('airquality', event)">🌬️ 공기질</button>
+            <button class="tab" onclick="switchTab('data', event)">💾 데이터</button>
         </div>
 
         <!-- 프로젝트 정보 섹션 -->
@@ -1939,11 +1939,13 @@
         });
 
         // 탭 전환
-        function switchTab(tabName) {
+        function switchTab(tabName, evt) {
             document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
             document.querySelectorAll('.section').forEach(section => section.classList.remove('active'));
             
-            event.target.classList.add('active');
+            if (evt && evt.target) {
+                evt.target.classList.add('active');
+            }
             document.getElementById(tabName).classList.add('active');
             
             // 하자점검 또는 장비점검 탭에서만 플로팅 버튼 표시
@@ -2030,9 +2032,11 @@
                     projectData.equipment = [];
                     projectData.airQuality = [
                         { id: airQualityIdCounter++, name: '거실', radon: '', formaldehyde: '', vocs: '' },
-                        { id: airQualityIdCounter++, name: '안방', radon: '', formaldehyde: '', vocs: '' },
-                        { id: airQualityIdCounter++, name: '작은방1', radon: '', formaldehyde: '', vocs: '' },
-                        { id: airQualityIdCounter++, name: '작은방2', radon: '', formaldehyde: '', vocs: '' }
+                        { id: airQualityIdCounter++, name: '침실1', radon: '', formaldehyde: '', vocs: '' },
+                        { id: airQualityIdCounter++, name: '침실2', radon: '', formaldehyde: '', vocs: '' },
+                        { id: airQualityIdCounter++, name: '침실3', radon: '', formaldehyde: '', vocs: '' },
+                        { id: airQualityIdCounter++, name: '공용욕실', radon: '', formaldehyde: '', vocs: '' },
+                        { id: airQualityIdCounter++, name: '부부욕실', radon: '', formaldehyde: '', vocs: '' }
                     ];
                     
                     renderDefects();
@@ -2257,6 +2261,16 @@
                     </div>
 
                     <div class="form-field">
+                        <label class="form-label">📝 상세위치 (선택사항)</label>
+                        <input type="text" class="form-input" value="${defect.detailLocation || ''}" 
+                               onchange="updateDefect(${defect.id}, 'detailLocation', this.value)" 
+                               placeholder="예: 거실 창문 우측 하단, 주방 싱크대 좌측 벽 등">
+                        <div style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;">
+                            💡 위치를 더 구체적으로 설명하고 싶을 때 입력하세요
+                        </div>
+                    </div>
+
+                    <div class="form-field">
                         <label class="form-label">하자내용 선택 (최대 4개)</label>
                         <div class="selected-count">${defect.types.length}/4 선택됨</div>
                         
@@ -2294,13 +2308,6 @@
                                 `).join('')}
                             </div>
                         </div>
-                    </div>
-
-                    <div class="form-field">
-                        <label class="form-label">상세위치</label>
-                        <input type="text" class="form-input" value="${defect.detailLocation || ''}" 
-                               onchange="updateDefect(${defect.id}, 'detailLocation', this.value)" 
-                               placeholder="예: 벽 / 문 / 틀">
                     </div>
 
                     <div class="form-field">
@@ -2376,12 +2383,11 @@
             const newEquipment = {
                 id: equipmentIdCounter++,
                 space: '',       // 단일 공간
-                inspection: '벽체수직 및 바닥수평 / 단열시공 양호',
+                inspection: '',  // 빈 값으로 시작
                 photos: {        // 위치별 사진 객체
-                    '좌측상단': null,
-                    '좌측하단': null,
-                    '우측상단': null,
-                    '우측하단': null
+                    '좌측': null,
+                    '우측': null,
+                    '바닥': null
                 }
             };
             projectData.equipment.push(newEquipment);
@@ -2412,22 +2418,25 @@
             }
 
             container.innerHTML = projectData.equipment.map((item, index) => {
-                // photos 객체가 없으면 초기화 (하위 호환성)
-                if (!item.photos) {
+                // 하위 호환성: 기존 4개 구조를 3개로 변환
+                if (!item.photos || item.photos['좌측상단']) {
                     item.photos = {
-                        '좌측상단': null,
-                        '좌측하단': null,
-                        '우측상단': null,
-                        '우측하단': null
+                        '좌측': item.photos?.['좌측상단'] || item.photos?.['좌측하단'] || null,
+                        '우측': item.photos?.['우측상단'] || item.photos?.['우측하단'] || null,
+                        '바닥': null
                     };
                 }
                 
-                const locations = ['좌측상단', '좌측하단', '우측상단', '우측하단'];
+                const locations = ['좌측', '우측', '바닥'];
                 const locationColors = {
-                    '좌측상단': '#3498db',
-                    '좌측하단': '#2ecc71',
-                    '우측상단': '#f39c12',
-                    '우측하단': '#e74c3c'
+                    '좌측': '#3498db',
+                    '우측': '#e74c3c',
+                    '바닥': '#f39c12'
+                };
+                const locationIcons = {
+                    '좌측': '⬅️',
+                    '우측': '➡️',
+                    '바닥': '⬇️'
                 };
                 
                 return `
@@ -2453,47 +2462,89 @@
 
                     <div class="form-field">
                         <label class="form-label">점검결과</label>
-                        <input type="text" class="form-input" value="${item.inspection}" 
-                               onchange="updateEquipment(${item.id}, 'inspection', this.value)" 
-                               placeholder="예: 벽체수직 및 바닥수평 / 단열시공 양호">
+                        <div class="touch-button-grid" style="margin-bottom: 10px;">
+                            ${['벽체 수직도 및 바닥 평활도 양호','배수경사(구배)상태 양호','벽체수직 및 바닥수평 / 단열시공 양호','바닥 난방 열화상 결과 온도 분포 양호'].map(result => {
+                                const escaped = result.replace(/'/g, '&apos;');
+                                return `
+                                <button type="button" class="touch-btn ${item.inspection === result ? 'selected' : ''}" 
+                                        onclick="updateEquipmentInspection(${item.id}, '${escaped}')">
+                                    ${result}
+                                </button>
+                            `}).join('')}
+                        </div>
+                        <input type="text" class="form-input" value="${item.inspection || ''}" 
+                               onchange="updateEquipmentInspection(${item.id}, this.value)" 
+                               placeholder="또는 직접 입력">
                     </div>
 
                     <div class="form-field">
-                        <label class="form-label">📷 위치별 사진 촬영/첨부 (${Object.values(item.photos).filter(p => p).length}/4)</label>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-                            ${locations.map(location => `
+                        <label class="form-label">📷 위치별 사진 촬영/첨부 (${Object.values(item.photos).filter(p => p).length}/3)</label>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                            ${locations.slice(0, 2).map(location => `
                                 <div style="border: 2px solid ${locationColors[location]}; border-radius: 8px; overflow: hidden;">
-                                    <div style="background: ${locationColors[location]}; color: white; padding: 8px; text-align: center; font-weight: bold; font-size: 13px;">
-                                        ${location}
+                                    <div style="background: ${locationColors[location]}; color: white; padding: 10px; text-align: center; font-weight: bold; font-size: 15px;">
+                                        ${locationIcons[location]} ${location}
                                     </div>
                                     ${item.photos[location] ? `
-                                        <img src="${item.photos[location]}" style="width: 100%; height: 180px; object-fit: cover;">
+                                        <img src="${item.photos[location]}" style="width: 100%; height: 220px; object-fit: cover;">
                                         <div style="display: flex; border-top: 1px solid #ddd;">
-                                            <button class="btn btn-secondary" onclick="openEquipmentLocationCamera(${item.id}, '${location}')" style="flex: 1; border-radius: 0; border: none; padding: 8px; font-size: 11px;">
+                                            <button class="btn btn-secondary" onclick="openEquipmentLocationCamera(${item.id}, '${location}')" style="flex: 1; border-radius: 0; border: none; padding: 12px; font-size: 13px;">
                                                 🔄
                                             </button>
-                                            <button class="btn btn-secondary" onclick="openEquipmentLocationGallery(${item.id}, '${location}')" style="flex: 1; border-radius: 0; border: none; border-left: 1px solid #ddd; padding: 8px; font-size: 11px;">
+                                            <button class="btn btn-secondary" onclick="openEquipmentLocationGallery(${item.id}, '${location}')" style="flex: 1; border-radius: 0; border: none; border-left: 1px solid #ddd; padding: 12px; font-size: 13px;">
                                                 🖼️
                                             </button>
-                                            <button class="btn btn-danger" onclick="deleteEquipmentLocationPhoto(${item.id}, '${location}')" style="flex: 1; border-radius: 0; border: none; border-left: 1px solid #ddd; padding: 8px; font-size: 11px;">
+                                            <button class="btn btn-danger" onclick="deleteEquipmentLocationPhoto(${item.id}, '${location}')" style="flex: 1; border-radius: 0; border: none; border-left: 1px solid #ddd; padding: 12px; font-size: 13px;">
                                                 🗑️
                                             </button>
                                         </div>
                                     ` : `
-                                        <div style="height: 180px; background: #f8f9fa; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;">
-                                            <div style="font-size: 24px; opacity: 0.3;">📷</div>
-                                            <div style="display: flex; gap: 8px; width: 100%; padding: 0 10px;">
-                                                <button class="btn btn-primary" onclick="openEquipmentLocationCamera(${item.id}, '${location}')" style="flex: 1; padding: 6px; font-size: 11px;">
-                                                    촬영
+                                        <div style="height: 220px; background: #f8f9fa; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px;">
+                                            <div style="font-size: 36px; opacity: 0.3;">📷</div>
+                                            <div style="display: flex; gap: 10px; width: 100%; padding: 0 12px;">
+                                                <button class="btn btn-primary" onclick="openEquipmentLocationCamera(${item.id}, '${location}')" style="flex: 1; padding: 14px 10px; font-size: 14px; font-weight: bold;">
+                                                    📸 촬영
                                                 </button>
-                                                <button class="btn btn-primary" onclick="openEquipmentLocationGallery(${item.id}, '${location}')" style="flex: 1; padding: 6px; font-size: 11px;">
-                                                    첨부
+                                                <button class="btn btn-primary" onclick="openEquipmentLocationGallery(${item.id}, '${location}')" style="flex: 1; padding: 14px 10px; font-size: 14px; font-weight: bold;">
+                                                    🖼️ 첨부
                                                 </button>
                                             </div>
                                         </div>
                                     `}
                                 </div>
                             `).join('')}
+                        </div>
+                        <!-- 바닥 사진 (전체 너비) -->
+                        <div style="border: 2px solid ${locationColors['바닥']}; border-radius: 8px; overflow: hidden;">
+                            <div style="background: ${locationColors['바닥']}; color: white; padding: 8px; text-align: center; font-weight: bold; font-size: 13px;">
+                                ${locationIcons['바닥']} 바닥
+                            </div>
+                            ${item.photos['바닥'] ? `
+                                <img src="${item.photos['바닥']}" style="width: 100%; height: 200px; object-fit: cover;">
+                                <div style="display: flex; border-top: 1px solid #ddd;">
+                                    <button class="btn btn-secondary" onclick="openEquipmentLocationCamera(${item.id}, '바닥')" style="flex: 1; border-radius: 0; border: none; padding: 10px; font-size: 12px;">
+                                        🔄 재촬영
+                                    </button>
+                                    <button class="btn btn-secondary" onclick="openEquipmentLocationGallery(${item.id}, '바닥')" style="flex: 1; border-radius: 0; border: none; border-left: 1px solid #ddd; padding: 10px; font-size: 12px;">
+                                        🖼️ 재첨부
+                                    </button>
+                                    <button class="btn btn-danger" onclick="deleteEquipmentLocationPhoto(${item.id}, '바닥')" style="flex: 1; border-radius: 0; border: none; border-left: 1px solid #ddd; padding: 10px; font-size: 12px;">
+                                        🗑️ 삭제
+                                    </button>
+                                </div>
+                            ` : `
+                                <div style="height: 200px; background: #f8f9fa; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;">
+                                    <div style="font-size: 32px; opacity: 0.3;">📷</div>
+                                    <div style="display: flex; gap: 10px; width: 100%; padding: 0 20px;">
+                                        <button class="btn btn-primary" onclick="openEquipmentLocationCamera(${item.id}, '바닥')" style="flex: 1; padding: 10px; font-size: 12px;">
+                                            📸 촬영
+                                        </button>
+                                        <button class="btn btn-primary" onclick="openEquipmentLocationGallery(${item.id}, '바닥')" style="flex: 1; padding: 10px; font-size: 12px;">
+                                            🖼️ 첨부
+                                        </button>
+                                    </div>
+                                </div>
+                            `}
                         </div>
                     </div>
                 </div>
@@ -2505,6 +2556,15 @@
             const item = projectData.equipment.find(e => e.id === id);
             if (item) {
                 item[field] = value;
+                saveToLocalStorage();
+            }
+        }
+
+        function updateEquipmentInspection(id, value) {
+            const item = projectData.equipment.find(e => e.id === id);
+            if (item) {
+                item.inspection = value;
+                renderEquipment();
                 saveToLocalStorage();
             }
         }
@@ -2619,9 +2679,11 @@
             if (projectData.airQuality.length === 0) {
                 projectData.airQuality = [
                     { id: airQualityIdCounter++, name: '거실', radon: '', formaldehyde: '', vocs: '' },
-                    { id: airQualityIdCounter++, name: '안방', radon: '', formaldehyde: '', vocs: '' },
-                    { id: airQualityIdCounter++, name: '작은방1', radon: '', formaldehyde: '', vocs: '' },
-                    { id: airQualityIdCounter++, name: '작은방2', radon: '', formaldehyde: '', vocs: '' }
+                    { id: airQualityIdCounter++, name: '침실1', radon: '', formaldehyde: '', vocs: '' },
+                    { id: airQualityIdCounter++, name: '침실2', radon: '', formaldehyde: '', vocs: '' },
+                    { id: airQualityIdCounter++, name: '침실3', radon: '', formaldehyde: '', vocs: '' },
+                    { id: airQualityIdCounter++, name: '공용욕실', radon: '', formaldehyde: '', vocs: '' },
+                    { id: airQualityIdCounter++, name: '부부욕실', radon: '', formaldehyde: '', vocs: '' }
                 ];
             }
 
@@ -2857,34 +2919,65 @@
             if (!defect.types) defect.types = [];
             
             // 선택된 항목이 있을 때만 자동 생성
-            if (defect.spaces.length > 0 || defect.locations.length > 0 || defect.types.length > 0) {
+            if (defect.spaces.length > 0 || defect.locations.length > 0 || defect.types.length > 0 || defect.detailLocation) {
                 let description = '';
                 
-                // 공간
+                // 1. 공간 (어디?)
                 if (defect.spaces.length > 0) {
                     description += defect.spaces.join(', ');
                 }
                 
-                // 위치
+                // 2. 위치 (무엇?) - 한글 문법에 맞게 정렬
                 if (defect.locations.length > 0) {
                     if (description) description += ' ';
-                    description += defect.locations.join(' / ');
+                    description += sortLocationsForKorean(defect.locations);
                 }
                 
-                // 하자내용
-                if (defect.types.length > 0) {
-                    if (description) description += ' ';
-                    description += defect.types.join(', ');
-                }
-                
-                // 상세위치가 있으면 추가
+                // 3. 상세위치 (구체적으로 어디?)
                 if (defect.detailLocation) {
                     if (description) description += ' ';
                     description += defect.detailLocation;
                 }
                 
+                // 4. 하자내용 (어떤 문제?)
+                if (defect.types.length > 0) {
+                    if (description) description += ' ';
+                    description += defect.types.join(', ');
+                }
+                
                 defect.description = description;
             }
+        }
+        
+        // 한글 문법에 맞게 위치를 정렬하는 함수
+        function sortLocationsForKorean(locations) {
+            // 우선순위 정의 (한글 문법에 자연스러운 순서)
+            const priority = {
+                '창': 1,
+                '문': 2,
+                '벽': 3,
+                '바닥': 4,
+                '천장': 5,
+                '도배': 6,
+                '가구': 7,
+                '짝': 8,
+                '틀': 9,
+                '마감판': 10,
+                '수전': 11,
+                '타일': 12,
+                '도장': 13,
+                '줄눈': 14,
+                '코킹': 15
+            };
+            
+            // 우선순위에 따라 정렬
+            const sorted = [...locations].sort((a, b) => {
+                const priorityA = priority[a] || 999;
+                const priorityB = priority[b] || 999;
+                return priorityA - priorityB;
+            });
+            
+            return sorted.join(' / ');
         }
 
         function updateDefectStatus(id, status) {
@@ -3012,6 +3105,27 @@
                     await addHTMLPageToPDF(doc, airQualityHTML, pageWidth, pageHeight);
                 }
 
+                // 참고자료 페이지 추가 (보고서 뒤쪽에)
+                doc.addPage();
+                const warrantyPage1 = createWarrantyGuidePage1();
+                await addHTMLPageToPDF(doc, warrantyPage1, pageWidth, pageHeight);
+
+                doc.addPage();
+                const warrantyPage2 = createWarrantyGuidePage2();
+                await addHTMLPageToPDF(doc, warrantyPage2, pageWidth, pageHeight);
+
+                doc.addPage();
+                const airQualityGuide = createAirQualityManagementGuidePage();
+                await addHTMLPageToPDF(doc, airQualityGuide, pageWidth, pageHeight);
+
+                doc.addPage();
+                const condensationGuide = createCondensationGuidePage();
+                await addHTMLPageToPDF(doc, condensationGuide, pageWidth, pageHeight);
+
+                doc.addPage();
+                const movingInGuide = createMovingInGuidePage();
+                await addHTMLPageToPDF(doc, movingInGuide, pageWidth, pageHeight);
+
                 // 모바일 호환 다운로드
                 const filename = `더홈점검_${projectData.apartmentName}_${projectData.dong}${projectData.ho}_${new Date().toISOString().split('T')[0]}.pdf`;
                 
@@ -3100,7 +3214,7 @@
 
             return `
                 <div style="width: 794px; min-height: 1123px; background: white; font-family: 'Malgun Gothic', sans-serif; padding: 30px;">
-                    <div style="background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%); color: white; padding: 20px; margin-bottom: 25px; border-radius: 8px;">
+                    <div style="background: #f8f9fa; color: #000; border: 2px solid #2c3e50; padding: 20px; margin-bottom: 25px; border-radius: 8px;">
                         <div style="display: flex; justify-content: space-between; align-items: center;">
                             <div>
                                 <h1 style="margin: 0 0 8px 0; font-size: 28px;">더홈점검 하자 보고서</h1>
@@ -3254,6 +3368,15 @@
                 // 하위 호환성
                 const space = item.space || (item.spaces ? item.spaces.join(', ') : '-');
                 
+                // 하위 호환성: 기존 4개 구조를 3개로 변환
+                if (item.photos && item.photos['좌측상단']) {
+                    item.photos = {
+                        '좌측': item.photos['좌측상단'] || item.photos['좌측하단'] || null,
+                        '우측': item.photos['우측상단'] || item.photos['우측하단'] || null,
+                        '바닥': null
+                    };
+                }
+                
                 // photos 객체가 있으면 위치별 사진, 없으면 단일 사진 (구 버전)
                 const hasLocationPhotos = item.photos && typeof item.photos === 'object';
                 
@@ -3273,16 +3396,17 @@
                         </table>
 
                         ${hasLocationPhotos ? `
-                            <!-- 위치별 4개 사진 -->
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                                ${['좌측상단', '좌측하단', '우측상단', '우측하단'].map((location, locIdx) => {
-                                    const colors = ['#3498db', '#2ecc71', '#f39c12', '#e74c3c'];
+                            <!-- 좌측/우측 2개 사진 -->
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+                                ${['좌측', '우측'].map((location, locIdx) => {
+                                    const colors = ['#3498db', '#e74c3c'];
+                                    const icons = ['⬅️', '➡️'];
                                     const photo = item.photos[location];
                                     
                                     return `
                                         <div style="border: 2px solid ${colors[locIdx]}; border-radius: 6px; overflow: hidden;">
                                             <div style="background: ${colors[locIdx]}; color: white; padding: 6px; text-align: center; font-weight: bold; font-size: 12px;">
-                                                ${location}
+                                                ${icons[locIdx]} ${location}
                                             </div>
                                             ${photo ? `
                                                 <img src="${photo}" style="width: 100%; height: 200px; object-fit: cover; display: block;" />
@@ -3294,6 +3418,19 @@
                                         </div>
                                     `;
                                 }).join('')}
+                            </div>
+                            <!-- 바닥 사진 (전체 너비) -->
+                            <div style="border: 2px solid #f39c12; border-radius: 6px; overflow: hidden;">
+                                <div style="background: #f39c12; color: white; padding: 6px; text-align: center; font-weight: bold; font-size: 12px;">
+                                    ⬇️ 바닥
+                                </div>
+                                ${item.photos['바닥'] ? `
+                                    <img src="${item.photos['바닥']}" style="width: 100%; height: 220px; object-fit: cover; display: block;" />
+                                ` : `
+                                    <div style="width: 100%; height: 220px; background: #f8f9fa; display: flex; align-items: center; justify-content: center; color: #999; font-size: 11px;">
+                                        사진 없음
+                                    </div>
+                                `}
                             </div>
                         ` : `
                             <!-- 단일 사진 (구 버전 호환) -->
@@ -3325,6 +3462,576 @@
                         <div style="display: flex; justify-content: space-between; align-items: center;">
                             <div>더홈점검 | 070-8019-1456</div>
                         </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 참고자료 페이지 생성 함수들
+        function createWarrantyGuidePage1() {
+            return `
+                <div style="width: 794px; min-height: 1123px; background: white; font-family: 'Malgun Gothic', sans-serif; padding: 30px; position: relative;">
+                    <h2 style="margin: 0 0 20px 0; font-size: 20px; color: #000; border-bottom: 3px solid #e74c3c; padding-bottom: 10px;">📝 하자보수 청구 가이드</h2>
+
+                    <div style="background: #ffebee; border-left: 4px solid #e74c3c; padding: 15px; margin-bottom: 20px; border-radius: 4px;">
+                        <p style="margin: 0; color: #000; font-size: 13px; line-height: 1.8;">
+                            하자를 발견하셨나요? 하자담보책임 기간 내에 적절한 절차로 보수 청구하시면 무상으로 수리받으실 수 있습니다.
+                        </p>
+                    </div>
+
+                    <div style="border: 2px solid #ddd; border-radius: 8px; padding: 15px; margin-bottom: 15px; background: white;">
+                        <div style="background: #e3f2fd; color: #000; border-bottom: 2px solid #3498db; padding: 10px 15px; margin: -15px -15px 15px -15px; border-radius: 6px 6px 0 0; font-size: 15px; font-weight: bold;">
+                            1단계: 하자 발견 즉시 사진 촬영 및 기록
+                        </div>
+                        <ul style="margin: 0; padding-left: 20px; font-size: 12px; color: #000; line-height: 1.8;">
+                            <li><strong>원경 사진:</strong> 하자가 어느 위치에 있는지 전체적인 공간 촬영</li>
+                            <li><strong>근접 사진:</strong> 하자 부위를 확대하여 상세하게 촬영</li>
+                            <li><strong>기록 사항:</strong> 발견 날짜, 위치(공간), 하자 내용을 메모</li>
+                            <li><strong>TIP:</strong> 자 또는 동전을 함께 찍으면 크기 비교가 용이합니다</li>
+                        </ul>
+                    </div>
+
+                    <div style="border: 2px solid #ddd; border-radius: 8px; padding: 15px; margin-bottom: 15px; background: white;">
+                        <div style="background: #e8f5e9; color: #000; border-bottom: 2px solid #2ecc71; padding: 10px 15px; margin: -15px -15px 15px -15px; border-radius: 6px 6px 0 0; font-size: 15px; font-weight: bold;">
+                            2단계: 하자보수 신청
+                        </div>
+                        <div style="background: #fff3e0; padding: 12px; border-radius: 4px; border: 1px solid #f39c12; margin-bottom: 12px;">
+                            <p style="margin: 0; color: #000; font-size: 12px; line-height: 1.8;">
+                                <strong>신청 방법 (2가지)</strong><br>
+                                ① <strong>관리사무소</strong>에 접수 (일반적인 방법)<br>
+                                ② <strong>시공사 A/S센터</strong>에 직접 접수 (관리사무소 경유 없이)
+                            </p>
+                        </div>
+                        
+                        <table style="width: 100%; border-collapse: collapse; font-size: 11px; margin-bottom: 12px;">
+                            <thead>
+                                <tr style="background: #f8f9fa; border: 1px solid #ddd;">
+                                    <th style="padding: 8px; color: #000; border: 1px solid #ddd; width: 25%;">구분</th>
+                                    <th style="padding: 8px; color: #000; border: 1px solid #ddd;">관리사무소 접수</th>
+                                    <th style="padding: 8px; color: #000; border: 1px solid #ddd;">시공사 A/S센터 직접 접수</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr style="border: 1px solid #ddd;">
+                                    <td style="padding: 8px; background: #f8f9fa; font-weight: bold; color: #000; border: 1px solid #ddd;">방법</td>
+                                    <td style="padding: 8px; color: #000; border: 1px solid #ddd;">관리사무소 방문/전화/온라인</td>
+                                    <td style="padding: 8px; color: #000; border: 1px solid #ddd;">시공사 A/S센터 전화/홈페이지</td>
+                                </tr>
+                                <tr style="border: 1px solid #ddd;">
+                                    <td style="padding: 8px; background: #f8f9fa; font-weight: bold; color: #000; border: 1px solid #ddd;">장점</td>
+                                    <td style="padding: 8px; color: #000; border: 1px solid #ddd;">가까움, 관리사무소 중재</td>
+                                    <td style="padding: 8px; color: #000; border: 1px solid #ddd;">빠른 처리, 직접 소통</td>
+                                </tr>
+                                <tr style="border: 1px solid #ddd;">
+                                    <td style="padding: 8px; background: #f8f9fa; font-weight: bold; color: #000; border: 1px solid #ddd;">권장</td>
+                                    <td style="padding: 8px; color: #000; border: 1px solid #ddd;">일반 하자</td>
+                                    <td style="padding: 8px; color: #000; border: 1px solid #ddd;">긴급 하자, 대응 미흡 시</td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <div style="background: #e3f2fd; padding: 10px; border-radius: 4px; border: 1px solid #3498db;">
+                            <p style="margin: 0 0 8px 0; color: #000; font-size: 12px; font-weight: bold;">📌 제출 서류</p>
+                            <ul style="margin: 0; padding-left: 20px; font-size: 11px; color: #000; line-height: 1.6;">
+                                <li>하자보수 신청서 (관리사무소 비치 또는 시공사 홈페이지 다운로드)</li>
+                                <li>하자 사진 (원경, 근접)</li>
+                                <li>입주자 정보 (동/호수, 연락처)</li>
+                                <li><strong>중요:</strong> 접수증 또는 접수번호 반드시 받기 (증빙자료)</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div style="border: 2px solid #ddd; border-radius: 8px; padding: 15px; background: white;">
+                        <div style="background: #fff3e0; color: #000; border-bottom: 2px solid #f39c12; padding: 10px 15px; margin: -15px -15px 15px -15px; border-radius: 6px 6px 0 0; font-size: 15px; font-weight: bold;">
+                            3단계: 시공사의 하자 확인 및 보수
+                        </div>
+                        <ul style="margin: 0; padding-left: 20px; font-size: 12px; color: #000; line-height: 1.8;">
+                            <li>시공사에서 하자 확인을 위해 방문 (일정 협의, 보통 1~2주 소요)</li>
+                            <li>하자 인정 시 보수 일정 협의 및 시행</li>
+                            <li>보수 완료 후 입주자 확인 및 서명</li>
+                            <li><strong>하자 미인정 시:</strong> 사유 확인 후 재신청 또는 분쟁조정 신청 가능</li>
+                            <li><strong>대응 지연 시:</strong> 시공사 본사 A/S센터, 한국소비자원(1372) 상담</li>
+                        </ul>
+                    </div>
+
+                    <div style="position: absolute; bottom: 20px; left: 30px; right: 30px; padding-top: 15px; border-top: 1px solid #ddd; font-size: 11px; color: #000; text-align: center;">
+                        <div>더홈점검 | 전화: 070-8019-1456 / 010-9985-0128</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function createWarrantyGuidePage2() {
+            return `
+                <div style="width: 794px; min-height: 1123px; background: white; font-family: 'Malgun Gothic', sans-serif; padding: 30px; position: relative;">
+                    <h2 style="margin: 0 0 20px 0; font-size: 20px; color: #000; border-bottom: 3px solid #e74c3c; padding-bottom: 10px;">⏰ 하자담보책임 기간 상세</h2>
+
+                    <div style="background: #ffebee; border-left: 4px solid #e74c3c; padding: 15px; margin-bottom: 20px; border-radius: 4px;">
+                        <p style="margin: 0; color: #000; font-size: 13px; line-height: 1.8;">
+                            <strong>공동주택관리법 시행령 제36조</strong>에 따라 사업주체는 하자담보책임 기간 동안 무상 보수 의무가 있습니다.
+                            기간 만료 전에 반드시 신청하셔야 합니다.
+                        </p>
+                    </div>
+
+                    <div style="border: 2px solid #f39c12; border-radius: 8px; padding: 15px; margin-bottom: 15px; background: #fff3e0;">
+                        <h3 style="margin: 0 0 10px 0; color: #f39c12; font-size: 15px;">📅 하자담보책임 기간 기산일</h3>
+                        <table style="width: 100%; border-collapse: collapse; font-size: 12px; background: white;">
+                            <tr style="border: 1px solid #ddd;">
+                                <td style="padding: 10px; background: #f8f9fa; font-weight: bold; color: #000; border: 1px solid #ddd; width: 40%;">기산일 기준</td>
+                                <td style="padding: 10px; color: #000; border: 1px solid #ddd;">입주일 또는 사용검사일 중 <strong>빠른 날</strong></td>
+                            </tr>
+                            <tr style="border: 1px solid #ddd;">
+                                <td style="padding: 10px; background: #f8f9fa; font-weight: bold; color: #000; border: 1px solid #ddd;">예시</td>
+                                <td style="padding: 10px; color: #000; border: 1px solid #ddd;">입주일: 2024.3.1 / 사용검사일: 2024.2.15 → <strong>2024.2.15부터 기산</strong></td>
+                            </tr>
+                        </table>
+                        <p style="margin: 10px 0 0 0; font-size: 11px; color: #000; line-height: 1.6;">
+                            ※ 입주자가 입주를 지연한 경우에도 사용검사일 기준 적용<br>
+                            ※ 입주자대표회의 또는 관리사무소에서 정확한 날짜 확인 가능
+                        </p>
+                    </div>
+
+                    <div style="border: 2px solid #e74c3c; border-radius: 8px; padding: 15px; margin-bottom: 12px; background: white;">
+                        <div style="background: #ffebee; color: #000; padding: 10px; margin: -15px -15px 15px -15px; border-radius: 6px 6px 0 0; font-size: 14px; font-weight: bold;">
+                            ① 내력구조부 - 10년
+                        </div>
+                        <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
+                            <tr style="border-bottom: 1px solid #ddd;">
+                                <td style="padding: 8px; width: 25%; background: #f8f9fa; font-weight: bold; color: #000;">대상</td>
+                                <td style="padding: 8px; color: #000;">건물의 주요구조부 (기둥, 보, 내력벽, 주계단, 지붕틀, 바닥)</td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid #ddd;">
+                                <td style="padding: 8px; background: #f8f9fa; font-weight: bold; color: #000;">하자 예시</td>
+                                <td style="padding: 8px; color: #000;">구조 균열, 부등침하, 기둥·보 파손</td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <div style="border: 2px solid #f39c12; border-radius: 8px; padding: 15px; margin-bottom: 12px; background: white;">
+                        <div style="background: #fff3e0; color: #000; padding: 10px; margin: -15px -15px 15px -15px; border-radius: 6px 6px 0 0; font-size: 14px; font-weight: bold;">
+                            ② 주요 설비 - 3년
+                        </div>
+                        <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
+                            <tr style="border-bottom: 1px solid #ddd;">
+                                <td style="padding: 8px; width: 25%; background: #f8f9fa; font-weight: bold; color: #000;">대상</td>
+                                <td style="padding: 8px; color: #000;">난방·급배수·전기·가스·소방·환기 설비</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px; background: #f8f9fa; font-weight: bold; color: #000;">하자 예시</td>
+                                <td style="padding: 8px; color: #000;">보일러 고장, 수전 누수, 배관 막힘, 누전, 가스밸브 불량</td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <div style="border: 2px solid #3498db; border-radius: 8px; padding: 15px; margin-bottom: 12px; background: white;">
+                        <div style="background: #e3f2fd; color: #000; padding: 10px; margin: -15px -15px 15px -15px; border-radius: 6px 6px 0 0; font-size: 14px; font-weight: bold;">
+                            ③ 마감재 - 2년
+                        </div>
+                        <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
+                            <tr style="border-bottom: 1px solid #ddd;">
+                                <td style="padding: 8px; width: 25%; background: #f8f9fa; font-weight: bold; color: #000;">대상</td>
+                                <td style="padding: 8px; color: #000;">도배, 장판, 타일, 도장, 수장, 미장, 창호</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px; background: #f8f9fa; font-weight: bold; color: #000;">하자 예시</td>
+                                <td style="padding: 8px; color: #000;">도배 들뜸, 장판 변색, 타일 균열, 창호 개폐 불량</td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <div style="border: 2px solid #2ecc71; border-radius: 8px; padding: 15px; background: white;">
+                        <div style="background: #e8f5e9; color: #000; padding: 10px; margin: -15px -15px 15px -15px; border-radius: 6px 6px 0 0; font-size: 14px; font-weight: bold;">
+                            ④ 기타 부위 - 5년
+                        </div>
+                        <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
+                            <tr style="border-bottom: 1px solid #ddd;">
+                                <td style="padding: 8px; width: 25%; background: #f8f9fa; font-weight: bold; color: #000;">대상</td>
+                                <td style="padding: 8px; color: #000;">조경, 지능형 홈네트워크, 방수, 단열 등</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px; background: #f8f9fa; font-weight: bold; color: #000;">하자 예시</td>
+                                <td style="padding: 8px; color: #000;">옥상·발코니 누수, 결로(시공하자), 월패드 고장</td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <div style="position: absolute; bottom: 20px; left: 30px; right: 30px; padding-top: 15px; border-top: 1px solid #ddd; font-size: 11px; color: #000; text-align: center;">
+                        <div>더홈점검 | 전화: 070-8019-1456 / 010-9985-0128</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function createAirQualityManagementGuidePage() {
+            return `
+                <div style="width: 794px; min-height: 1123px; background: white; font-family: 'Malgun Gothic', sans-serif; padding: 30px; position: relative;">
+                    <h2 style="margin: 0 0 20px 0; font-size: 20px; color: #000; border-bottom: 3px solid #2ecc71; padding-bottom: 10px;">🌿 실내 공기질 관리 가이드</h2>
+
+                    <div style="background: #e8f5e9; border-left: 4px solid #2ecc71; padding: 15px; margin-bottom: 20px; border-radius: 4px;">
+                        <p style="margin: 0; color: #000; font-size: 13px; line-height: 1.8;">
+                            새 아파트는 자재에서 나오는 유해물질로 인해 실내 공기질이 나쁠 수 있습니다. 
+                            입주 전후 적절한 환기와 관리로 쾌적한 실내 환경을 만드세요.
+                        </p>
+                    </div>
+
+                    <div style="border: 2px solid #ddd; border-radius: 8px; padding: 15px; margin-bottom: 15px; background: white;">
+                        <div style="background: #e3f2fd; color: #000; border-bottom: 2px solid #3498db; padding: 10px 15px; margin: -15px -15px 15px -15px; border-radius: 6px 6px 0 0; font-size: 15px; font-weight: bold;">
+                            1. 자주 환기하기 (가장 중요!)
+                        </div>
+                        <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+                            <tr style="border-bottom: 1px solid #ddd;">
+                                <td style="padding: 10px; width: 25%; background: #f8f9fa; font-weight: bold; color: #000;">환기 횟수</td>
+                                <td style="padding: 10px; color: #000;">하루 3회 이상 (아침, 점심, 저녁)</td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid #ddd;">
+                                <td style="padding: 10px; background: #f8f9fa; font-weight: bold; color: #000;">환기 시간</td>
+                                <td style="padding: 10px; color: #000;">회당 최소 30분 (맞바람 치도록 대각선 창문 개방)</td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid #ddd;">
+                                <td style="padding: 10px; background: #f8f9fa; font-weight: bold; color: #000;">환기 시기</td>
+                                <td style="padding: 10px; color: #000;">입주 최소 2주 전부터 매일 환기 (가능하면 1개월)</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 10px; background: #f8f9fa; font-weight: bold; color: #000;">TIP</td>
+                                <td style="padding: 10px; color: #000;">미세먼지 나쁨 날도 실내가 더 나쁘므로 짧게라도 환기 필수</td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <div style="border: 2px solid #ddd; border-radius: 8px; padding: 15px; margin-bottom: 15px; background: white;">
+                        <div style="background: #ffebee; color: #000; border-bottom: 2px solid #e74c3c; padding: 10px 15px; margin: -15px -15px 15px -15px; border-radius: 6px 6px 0 0; font-size: 15px; font-weight: bold;">
+                            2. 베이크아웃 (Bake-Out)
+                        </div>
+                        <div style="background: #fff3e0; padding: 12px; border-radius: 4px; border: 1px solid #f39c12; margin-bottom: 10px;">
+                            <p style="margin: 0; color: #000; font-size: 12px; line-height: 1.8;">
+                                <strong>베이크아웃이란?</strong><br>
+                                실내 온도를 높여서 건축 자재에 남아있는 유해물질을 빠르게 배출시키는 방법
+                            </p>
+                        </div>
+                        <ul style="margin: 0; padding-left: 20px; font-size: 12px; color: #000; line-height: 1.8;">
+                            <li><strong>방법:</strong> 모든 창문 닫고 난방을 켜서 실내 온도를 30~35도까지 올림</li>
+                            <li><strong>시간:</strong> 6~8시간 유지</li>
+                            <li><strong>환기:</strong> 그 후 모든 창문 열고 2시간 이상 환기</li>
+                            <li><strong>반복:</strong> 이 과정을 3~5회 반복하면 효과적</li>
+                            <li><strong>시기:</strong> 입주 1~2주 전에 실시 권장</li>
+                        </ul>
+                    </div>
+
+                    <div style="border: 2px solid #ddd; border-radius: 8px; padding: 15px; margin-bottom: 15px; background: white;">
+                        <div style="background: #e8f5e9; color: #000; border-bottom: 2px solid #2ecc71; padding: 10px 15px; margin: -15px -15px 15px -15px; border-radius: 6px 6px 0 0; font-size: 15px; font-weight: bold;">
+                            3. 공기정화 식물 배치
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                            <div style="background: #f8f9fa; padding: 10px; border-radius: 4px; border: 1px solid #ddd;">
+                                <div style="font-weight: bold; color: #2ecc71; margin-bottom: 5px;">✓ 산세베리아</div>
+                                <div style="font-size: 11px; color: #000;">밤에도 산소 배출, 음이온 발생</div>
+                            </div>
+                            <div style="background: #f8f9fa; padding: 10px; border-radius: 4px; border: 1px solid #ddd;">
+                                <div style="font-weight: bold; color: #2ecc71; margin-bottom: 5px;">✓ 스파티필름</div>
+                                <div style="font-size: 11px; color: #000;">암모니아, 벤젠 제거 탁월</div>
+                            </div>
+                            <div style="background: #f8f9fa; padding: 10px; border-radius: 4px; border: 1px solid #ddd;">
+                                <div style="font-weight: bold; color: #2ecc71; margin-bottom: 5px;">✓ 아레카야자</div>
+                                <div style="font-size: 11px; color: #000;">공기정화 1위, 가습 효과</div>
+                            </div>
+                            <div style="background: #f8f9fa; padding: 10px; border-radius: 4px; border: 1px solid #ddd;">
+                                <div style="font-weight: bold; color: #2ecc71; margin-bottom: 5px;">✓ 고무나무</div>
+                                <div style="font-size: 11px; color: #000;">포름알데히드 제거 효과</div>
+                            </div>
+                        </div>
+                        <p style="margin: 10px 0 0 0; font-size: 11px; color: #666; line-height: 1.6;">
+                            ※ 권장: 3.3㎡(1평)당 중형 화분 1개 또는 소형 2~3개
+                        </p>
+                    </div>
+
+                    <div style="border: 2px solid #3498db; border-radius: 8px; padding: 15px; background: #e3f2fd;">
+                        <h3 style="margin: 0 0 10px 0; color: #3498db; font-size: 16px;">📊 실내 공기질 권고기준</h3>
+                        <table style="width: 100%; border-collapse: collapse; font-size: 12px; background: white;">
+                            <thead>
+                                <tr style="background: #f8f9fa; border: 1px solid #ddd;">
+                                    <th style="padding: 10px; color: #000; border: 1px solid #ddd;">오염물질</th>
+                                    <th style="padding: 10px; color: #000; border: 1px solid #ddd;">권고기준</th>
+                                    <th style="padding: 10px; color: #000; border: 1px solid #ddd;">주요 배출원</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr style="border: 1px solid #ddd;">
+                                    <td style="padding: 8px; font-weight: bold; color: #000; border: 1px solid #ddd;">라돈</td>
+                                    <td style="padding: 8px; color: #000; text-align: center; border: 1px solid #ddd;">148 Bq/m³ 이하</td>
+                                    <td style="padding: 8px; color: #000; font-size: 11px; border: 1px solid #ddd;">토양, 콘크리트</td>
+                                </tr>
+                                <tr style="border: 1px solid #ddd;">
+                                    <td style="padding: 8px; font-weight: bold; color: #000; border: 1px solid #ddd;">포름알데히드</td>
+                                    <td style="padding: 8px; color: #000; text-align: center; border: 1px solid #ddd;">210 μg/m³ 이하</td>
+                                    <td style="padding: 8px; color: #000; font-size: 11px; border: 1px solid #ddd;">합판, 접착제, 벽지</td>
+                                </tr>
+                                <tr style="border: 1px solid #ddd;">
+                                    <td style="padding: 8px; font-weight: bold; color: #000; border: 1px solid #ddd;">총휘발성유기화합물</td>
+                                    <td style="padding: 8px; color: #000; text-align: center; border: 1px solid #ddd;">500 μg/m³ 이하</td>
+                                    <td style="padding: 8px; color: #000; font-size: 11px; border: 1px solid #ddd;">페인트, 접착제, 방향제</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <p style="margin: 10px 0 0 0; font-size: 11px; color: #000; line-height: 1.6;">
+                            ※ 「다중이용시설 등의 실내공기질관리법」 신축 공동주택 권고기준<br>
+                            ※ 기준 초과 시 환기 및 재측정 필요
+                        </p>
+                    </div>
+
+                    <div style="position: absolute; bottom: 20px; left: 30px; right: 30px; padding-top: 15px; border-top: 1px solid #ddd; font-size: 11px; color: #000; text-align: center;">
+                        <div>더홈점검 | 전화: 070-8019-1456 / 010-9985-0128</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function createCondensationGuidePage() {
+            return `
+                <div style="width: 794px; min-height: 1123px; background: white; font-family: 'Malgun Gothic', sans-serif; padding: 30px; position: relative;">
+                    <h2 style="margin: 0 0 20px 0; font-size: 20px; color: #000; border-bottom: 3px solid #3498db; padding-bottom: 10px;">💧 결로 예방 및 관리 가이드</h2>
+
+                    <div style="background: #e3f2fd; border-left: 4px solid #3498db; padding: 15px; margin-bottom: 20px; border-radius: 4px;">
+                        <p style="margin: 0; color: #000; font-size: 13px; line-height: 1.8;">
+                            결로는 실내외 온도차와 습도로 인해 발생하는 자연현상입니다. 
+                            적절한 환기와 실내 습도 관리로 결로 발생을 최소화할 수 있습니다.
+                        </p>
+                    </div>
+
+                    <div style="border: 2px solid #ddd; border-radius: 8px; padding: 15px; margin-bottom: 15px; background: white;">
+                        <div style="background: #e3f2fd; color: #000; border-bottom: 2px solid #3498db; padding: 10px 15px; margin: -15px -15px 15px -15px; border-radius: 6px 6px 0 0; font-size: 15px; font-weight: bold;">
+                            1. 결로란 무엇인가?
+                        </div>
+                        <p style="margin: 0 0 10px 0; color: #000; font-size: 12px; line-height: 1.8;">
+                            <strong>결로(結露):</strong> 공기 중 수증기가 찬 표면에 닿아 물방울로 맺히는 현상
+                        </p>
+                        <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+                            <tr style="border-bottom: 1px solid #ddd;">
+                                <td style="padding: 10px; width: 30%; background: #f8f9fa; font-weight: bold; color: #000;">발생 원인</td>
+                                <td style="padding: 10px; color: #000;">실내외 온도차 + 높은 실내 습도</td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid #ddd;">
+                                <td style="padding: 10px; background: #f8f9fa; font-weight: bold; color: #000;">주요 발생 시기</td>
+                                <td style="padding: 10px; color: #000;">겨울철 (11월~3월)</td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid #ddd;">
+                                <td style="padding: 10px; background: #f8f9fa; font-weight: bold; color: #000;">주요 발생 장소</td>
+                                <td style="padding: 10px; color: #000;">창문, 외벽, 코너, 욕실 주변</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 10px; background: #f8f9fa; font-weight: bold; color: #000;">문제점</td>
+                                <td style="padding: 10px; color: #000;">곰팡이 발생, 벽지 손상, 악취, 건강 피해</td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <div style="border: 2px solid #ddd; border-radius: 8px; padding: 15px; margin-bottom: 15px; background: white;">
+                        <div style="background: #e8f5e9; color: #000; border-bottom: 2px solid #2ecc71; padding: 10px 15px; margin: -15px -15px 15px -15px; border-radius: 6px 6px 0 0; font-size: 15px; font-weight: bold;">
+                            2. 결로 예방 방법
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
+                            <div style="background: #e8f5e9; padding: 12px; border-radius: 4px; border: 1px solid #2ecc71;">
+                                <div style="font-weight: bold; color: #2ecc71; margin-bottom: 5px; font-size: 13px;">✓ 환기하기</div>
+                                <div style="font-size: 11px; color: #000; line-height: 1.6;">
+                                    • 하루 3회, 10분 이상<br>
+                                    • 요리·샤워 후 즉시 환기<br>
+                                    • 맞바람 치도록 개방
+                                </div>
+                            </div>
+                            <div style="background: #e3f2fd; padding: 12px; border-radius: 4px; border: 1px solid #3498db;">
+                                <div style="font-weight: bold; color: #3498db; margin-bottom: 5px; font-size: 13px;">✓ 습도 조절</div>
+                                <div style="font-size: 11px; color: #000; line-height: 1.6;">
+                                    • 실내 습도 40~60% 유지<br>
+                                    • 가습기 사용 자제<br>
+                                    • 빨래 실내 건조 금지
+                                </div>
+                            </div>
+                            <div style="background: #fff3e0; padding: 12px; border-radius: 4px; border: 1px solid #f39c12;">
+                                <div style="font-weight: bold; color: #f39c12; margin-bottom: 5px; font-size: 13px;">✓ 실내 온도</div>
+                                <div style="font-size: 11px; color: #000; line-height: 1.6;">
+                                    • 18~22도 적정 유지<br>
+                                    • 난방 과도하게 높이지 않기<br>
+                                    • 외출 시에도 최소 난방
+                                </div>
+                            </div>
+                            <div style="background: #ffebee; padding: 12px; border-radius: 4px; border: 1px solid #e74c3c;">
+                                <div style="font-weight: bold; color: #e74c3c; margin-bottom: 5px; font-size: 13px;">✓ 가구 배치</div>
+                                <div style="font-size: 11px; color: #000; line-height: 1.6;">
+                                    • 외벽에서 5~10cm 띄우기<br>
+                                    • 통풍 공간 확보<br>
+                                    • 붙박이장 환기구 열어두기
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="border: 2px solid #ddd; border-radius: 8px; padding: 15px; margin-bottom: 15px; background: white;">
+                        <div style="background: #ffebee; color: #000; border-bottom: 2px solid #e74c3c; padding: 10px 15px; margin: -15px -15px 15px -15px; border-radius: 6px 6px 0 0; font-size: 15px; font-weight: bold;">
+                            3. 결로 발생 시 대처 방법
+                        </div>
+                        <ul style="margin: 0; padding-left: 20px; font-size: 12px; color: #000; line-height: 1.8;">
+                            <li><strong>물기 제거:</strong> 즉시 마른 걸레로 물기를 닦아냄</li>
+                            <li><strong>환기:</strong> 물기 제거 후 즉시 환기하여 습기 배출</li>
+                            <li><strong>제습:</strong> 제습기 또는 제습제 사용으로 습도 낮춤</li>
+                            <li><strong>곰팡이 제거:</strong> 락스 희석액(1:10)으로 소독 후 환기</li>
+                            <li><strong>예방:</strong> 재발 방지를 위해 지속적인 환기 및 습도 관리</li>
+                        </ul>
+                    </div>
+
+                    <div style="border: 2px solid #2ecc71; border-radius: 8px; padding: 15px; background: #e8f5e9;">
+                        <h3 style="margin: 0 0 10px 0; color: #2ecc71; font-size: 16px;">💡 더홈점검 TIP</h3>
+                        <div style="background: white; padding: 12px; border-radius: 4px; margin-bottom: 10px;">
+                            <p style="margin: 0; color: #000; font-size: 12px; line-height: 1.8;">
+                                <strong>결로 vs 누수 구분법:</strong><br>
+                                • <strong>결로:</strong> 창문, 벽면 전체에 고르게 물방울 발생, 추운 날 심해짐<br>
+                                • <strong>누수:</strong> 특정 부위에만 물이 스며들거나 고임, 날씨와 무관
+                            </p>
+                        </div>
+                        <div style="background: white; padding: 12px; border-radius: 4px;">
+                            <p style="margin: 0; color: #000; font-size: 12px; line-height: 1.8;">
+                                <strong>결로가 아닌 하자일 수 있는 경우:</strong><br>
+                                • 단열재 시공 불량 (특정 벽면에만 반복 발생)<br>
+                                • 창호 기밀 불량 (창틀 주변에서만 발생)<br>
+                                → 이 경우 하자보수 청구 가능
+                            </p>
+                        </div>
+                    </div>
+
+                    <div style="position: absolute; bottom: 20px; left: 30px; right: 30px; padding-top: 15px; border-top: 1px solid #ddd; font-size: 11px; color: #000; text-align: center;">
+                        <div>더홈점검 | 전화: 070-8019-1456 / 010-9985-0128</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function createMovingInGuidePage() {
+            return `
+                <div style="width: 794px; min-height: 1123px; background: white; font-family: 'Malgun Gothic', sans-serif; padding: 30px; position: relative;">
+                    <h2 style="margin: 0 0 20px 0; font-size: 20px; color: #000; border-bottom: 3px solid #9b59b6; padding-bottom: 10px;">🏡 입주 시 알아두면 유용한 정보</h2>
+
+                    <div style="background: #f3e5f5; border-left: 4px solid #9b59b6; padding: 15px; margin-bottom: 20px; border-radius: 4px;">
+                        <p style="margin: 0; color: #000; font-size: 13px; line-height: 1.8;">
+                            새 아파트 입주를 앞두고 계신가요? 입주 전후 알아두면 도움이 되는 실용 정보를 정리했습니다.
+                        </p>
+                    </div>
+
+                    <div style="border: 2px solid #ddd; border-radius: 8px; padding: 15px; margin-bottom: 15px; background: white;">
+                        <div style="background: #f3e5f5; color: #000; border-bottom: 2px solid #9b59b6; padding: 10px 15px; margin: -15px -15px 15px -15px; border-radius: 6px 6px 0 0; font-size: 15px; font-weight: bold;">
+                            1. 입주 전 필수 준비사항
+                        </div>
+                        <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+                            <tr style="border-bottom: 1px solid #ddd;">
+                                <td style="padding: 10px; width: 30%; background: #f8f9fa; font-weight: bold; color: #000;">전입신고</td>
+                                <td style="padding: 10px; color: #000;">입주일로부터 14일 이내 (주민센터 또는 정부24)</td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid #ddd;">
+                                <td style="padding: 10px; background: #f8f9fa; font-weight: bold; color: #000;">화재보험 가입</td>
+                                <td style="padding: 10px; color: #000;">의무가입 (관리사무소에서 일괄 가입 가능)</td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid #ddd;">
+                                <td style="padding: 10px; background: #f8f9fa; font-weight: bold; color: #000;">인터넷/TV 신청</td>
+                                <td style="padding: 10px; color: #000;">입주 2주 전 신청 (설치까지 1~2주 소요)</td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid #ddd;">
+                                <td style="padding: 10px; background: #f8f9fa; font-weight: bold; color: #000;">가스 개통</td>
+                                <td style="padding: 10px; color: #000;">도시가스 회사에 개통 신청 (방문 검사 필요)</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 10px; background: #f8f9fa; font-weight: bold; color: #000;">주차등록</td>
+                                <td style="padding: 10px; color: #000;">관리사무소에 차량번호 등록 (차량등록증 지참)</td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <div style="border: 2px solid #ddd; border-radius: 8px; padding: 15px; margin-bottom: 15px; background: white;">
+                        <div style="background: #e8f5e9; color: #000; border-bottom: 2px solid #2ecc71; padding: 10px 15px; margin: -15px -15px 15px -15px; border-radius: 6px 6px 0 0; font-size: 15px; font-weight: bold;">
+                            2. 관리비 절약 노하우
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                            <div style="background: #f8f9fa; padding: 10px; border-radius: 4px; border: 1px solid #ddd;">
+                                <div style="font-weight: bold; color: #2ecc71; margin-bottom: 5px; font-size: 12px;">난방비 절약</div>
+                                <ul style="margin: 5px 0 0 0; padding-left: 15px; font-size: 11px; color: #000; line-height: 1.6;">
+                                    <li>적정온도 유지 (20~22도)</li>
+                                    <li>외출 시 저온모드</li>
+                                    <li>보일러 정기점검</li>
+                                </ul>
+                            </div>
+                            <div style="background: #f8f9fa; padding: 10px; border-radius: 4px; border: 1px solid #ddd;">
+                                <div style="font-weight: bold; color: #3498db; margin-bottom: 5px; font-size: 12px;">전기세 절약</div>
+                                <ul style="margin: 5px 0 0 0; padding-left: 15px; font-size: 11px; color: #000; line-height: 1.6;">
+                                    <li>대기전력 차단</li>
+                                    <li>LED 조명 사용</li>
+                                    <li>냉장고 적정온도</li>
+                                </ul>
+                            </div>
+                            <div style="background: #f8f9fa; padding: 10px; border-radius: 4px; border: 1px solid #ddd;">
+                                <div style="font-weight: bold; color: #f39c12; margin-bottom: 5px; font-size: 12px;">수도세 절약</div>
+                                <ul style="margin: 5px 0 0 0; padding-left: 15px; font-size: 11px; color: #000; line-height: 1.6;">
+                                    <li>절수형 샤워기 설치</li>
+                                    <li>설거지 물 받아서</li>
+                                    <li>누수 즉시 수리</li>
+                                </ul>
+                            </div>
+                            <div style="background: #f8f9fa; padding: 10px; border-radius: 4px; border: 1px solid #ddd;">
+                                <div style="font-weight: bold; color: #e74c3c; margin-bottom: 5px; font-size: 12px;">쓰레기봉투</div>
+                                <ul style="margin: 5px 0 0 0; padding-left: 15px; font-size: 11px; color: #000; line-height: 1.6;">
+                                    <li>분리수거 철저히</li>
+                                    <li>음식물 물기 제거</li>
+                                    <li>종량제봉투 아껴쓰기</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="border: 2px solid #ddd; border-radius: 8px; padding: 15px; margin-bottom: 15px; background: white;">
+                        <div style="background: #e3f2fd; color: #000; border-bottom: 2px solid #3498db; padding: 10px 15px; margin: -15px -15px 15px -15px; border-radius: 6px 6px 0 0; font-size: 15px; font-weight: bold;">
+                            3. 비상 시 주요 연락처
+                        </div>
+                        <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+                            <tr style="border-bottom: 1px solid #ddd;">
+                                <td style="padding: 8px; width: 35%; background: #f8f9fa; font-weight: bold; color: #000;">관리사무소</td>
+                                <td style="padding: 8px; color: #000;">일반 문의, 하자보수, 주차 등</td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid #ddd;">
+                                <td style="padding: 8px; background: #f8f9fa; font-weight: bold; color: #000;">경비실</td>
+                                <td style="padding: 8px; color: #000;">야간/주말 긴급 상황</td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid #ddd;">
+                                <td style="padding: 8px; background: #f8f9fa; font-weight: bold; color: #000;">도시가스 (119)</td>
+                                <td style="padding: 8px; color: #000;">가스 누출 신고</td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid #ddd;">
+                                <td style="padding: 8px; background: #f8f9fa; font-weight: bold; color: #000;">한국전력 (123)</td>
+                                <td style="padding: 8px; color: #000;">정전, 전기 고장</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px; background: #f8f9fa; font-weight: bold; color: #000;">수도 (120)</td>
+                                <td style="padding: 8px; color: #000;">상수도 고장, 수질 문제</td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <div style="border: 2px solid #ddd; border-radius: 8px; padding: 15px; background: white;">
+                        <div style="background: #fff3e0; color: #000; border-bottom: 2px solid #f39c12; padding: 10px 15px; margin: -15px -15px 15px -15px; border-radius: 6px 6px 0 0; font-size: 15px; font-weight: bold;">
+                            4. 이웃 간 층간소음 예방 에티켓
+                        </div>
+                        <ul style="margin: 0; padding-left: 20px; font-size: 12px; color: #000; line-height: 1.8;">
+                            <li><strong>조용히 해야 할 시간:</strong> 오후 10시 ~ 오전 8시 (법정 시간)</li>
+                            <li><strong>어린이 뛰어다님:</strong> 실내화 착용, 매트 깔기, 조용한 놀이 유도</li>
+                            <li><strong>망치질/드릴 작업:</strong> 평일 낮 시간대만 (사전 양해 구하기)</li>
+                            <li><strong>세탁기/청소기:</strong> 오전 8시 이후, 오후 10시 이전 사용</li>
+                            <li><strong>반려동물:</strong> 짖음 방지 훈련, 배변 매너 준수</li>
+                            <li><strong>피아노/악기 연습:</strong> 방음 처리 또는 시간대 조절</li>
+                        </ul>
+                        <div style="background: #ffebee; padding: 10px; border-radius: 4px; border: 1px solid #e74c3c; margin-top: 10px;">
+                            <p style="margin: 0; color: #000; font-size: 11px; line-height: 1.6;">
+                                <strong>※ 층간소음 분쟁 시:</strong><br>
+                                1차: 관리사무소 중재 → 2차: 층간소음 이웃사이센터(1661-2642) 상담 → 3차: 환경분쟁조정위원회 조정 신청
+                            </p>
+                        </div>
+                    </div>
+
+                    <div style="position: absolute; bottom: 20px; left: 30px; right: 30px; padding-top: 15px; border-top: 1px solid #ddd; font-size: 11px; color: #000; text-align: center;">
+                        <div>더홈점검 | 전화: 070-8019-1456 / 010-9985-0128</div>
                     </div>
                 </div>
             `;
