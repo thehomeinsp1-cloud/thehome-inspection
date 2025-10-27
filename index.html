@@ -790,33 +790,33 @@
                 
                 <div class="form-field">
                     <label class="form-label">아파트명</label>
-                    <input type="text" class="form-input" id="apartmentName" placeholder="예: 래미안 아파트" onchange="saveCurrentProjectFromUI(); saveProjectsToLocalStorage(); renderProjectList();">
+                    <input type="text" class="form-input" id="apartmentName" placeholder="예: 래미안 아파트" oninput="autoSaveProjectData()">
                 </div>
 
                 <div class="grid-2">
                     <div class="form-field">
                         <label class="form-label">동</label>
-                        <input type="text" class="form-input" id="dong" placeholder="예: 101동" onchange="saveCurrentProjectFromUI(); saveProjectsToLocalStorage(); renderProjectList();">
+                        <input type="text" class="form-input" id="dong" placeholder="예: 101동" oninput="autoSaveProjectData()">
                     </div>
                     <div class="form-field">
                         <label class="form-label">호수</label>
-                        <input type="text" class="form-input" id="ho" placeholder="예: 502호" onchange="saveCurrentProjectFromUI(); saveProjectsToLocalStorage(); renderProjectList();">
+                        <input type="text" class="form-input" id="ho" placeholder="예: 502호" oninput="autoSaveProjectData()">
                     </div>
                 </div>
 
                 <div class="form-field">
                     <label class="form-label">점검일자</label>
-                    <input type="date" class="form-input" id="inspectionDate" onchange="saveCurrentProjectFromUI(); saveProjectsToLocalStorage();">
+                    <input type="date" class="form-input" id="inspectionDate" onchange="autoSaveProjectData()">
                 </div>
 
                 <div class="form-field">
                     <label class="form-label">고객명</label>
-                    <input type="text" class="form-input" id="customerName" placeholder="고객 이름" onchange="saveCurrentProjectFromUI(); saveProjectsToLocalStorage();">
+                    <input type="text" class="form-input" id="customerName" placeholder="고객 이름" oninput="autoSaveProjectData()">
                 </div>
 
                 <div class="form-field">
                     <label class="form-label">연락처</label>
-                    <input type="tel" class="form-input" id="customerPhone" placeholder="010-0000-0000" onchange="saveCurrentProjectFromUI(); saveProjectsToLocalStorage();">
+                    <input type="tel" class="form-input" id="customerPhone" placeholder="010-0000-0000" oninput="autoSaveProjectData()">
                 </div>
 
                 <button class="btn btn-primary" onclick="saveProject()">✅ 프로젝트 정보 저장</button>
@@ -2195,13 +2195,17 @@
         }, 1000);
             loadProjectsFromLocalStorage(); // 프로젝트 목록 로드
             loadProjectToUI(); // 현재 프로젝트 UI에 로드
+            await loadFromLocalStorage(); // IndexedDB에서 현재 작업 불러오기
             renderDefects();
             renderEquipment();
             renderAirQuality();
             await renderSavedList();
             updateProgress();
             
-            document.getElementById('inspectionDate').valueAsDate = new Date();
+            // 점검일자 기본값 설정 (저장된 값이 없을 때만)
+            if (!document.getElementById('inspectionDate').value) {
+                document.getElementById('inspectionDate').valueAsDate = new Date();
+            }
         });
 
         // 탭 전환
@@ -4553,6 +4557,29 @@
                 console.error('IndexedDB 삭제 오류:', e);
                 throw e;
             }
+        }
+
+        // ==================== 자동 저장 함수 ====================
+        let autoSaveTimeout;
+        
+        function autoSaveProjectData() {
+            // 디바운싱: 0.5초 후 저장 (연속 입력 시 마지막만 저장)
+            clearTimeout(autoSaveTimeout);
+            autoSaveTimeout = setTimeout(async () => {
+                // projectData 업데이트
+                projectData.apartmentName = document.getElementById('apartmentName').value;
+                projectData.dong = document.getElementById('dong').value;
+                projectData.ho = document.getElementById('ho').value;
+                projectData.inspectionDate = document.getElementById('inspectionDate').value;
+                projectData.customerName = document.getElementById('customerName').value;
+                projectData.customerPhone = document.getElementById('customerPhone').value;
+                
+                // 저장
+                await saveToLocalStorage();
+                updateProgress();
+                
+                console.log('✅ 자동 저장 완료');
+            }, 500);
         }
 
         // ==================== 데이터 저장/불러오기 ====================
