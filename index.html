@@ -1249,12 +1249,29 @@
             }
         }
 
-        function checkIfSignedIn() {
+        async function checkIfSignedIn() {
             const token = localStorage.getItem('google_access_token');
             if (token) {
                 accessToken = token;
                 gapi.client.setToken({ access_token: token });
-                updateSignInStatus(true);
+                
+                // 사용자 정보도 가져오기
+                try {
+                    const userInfo = await gapi.client.request({
+                        path: 'https://www.googleapis.com/oauth2/v1/userinfo',
+                    });
+                    currentUser = userInfo.result;
+                    updateSignInStatus(true);
+                    console.log('✅ 자동 로그인:', currentUser.email);
+                } catch (error) {
+                    console.error('❌ 자동 로그인 실패 (토큰 만료):', error);
+                    // 토큰 만료 시 제거
+                    accessToken = null;
+                    currentUser = null;
+                    localStorage.removeItem('google_access_token');
+                    gapi.client.setToken(null);
+                    updateSignInStatus(false);
+                }
             }
         }
 
@@ -1263,12 +1280,15 @@
             tokenClient.callback = async (response) => {
                 if (response.error !== undefined) {
                     console.error('로그인 오류:', response);
-                    showToast('로그인 실패: ' + response.error);
+                    showToast('❌ 로그인 실패: ' + response.error);
                     return;
                 }
                 
                 accessToken = response.access_token;
                 localStorage.setItem('google_access_token', accessToken);
+                
+                // GAPI 클라이언트에 토큰 설정 (필수!)
+                gapi.client.setToken({ access_token: accessToken });
                 
                 // 사용자 정보 가져오기
                 try {
@@ -1283,15 +1303,26 @@
                     
                     console.log('✅ 로그인 완료:', currentUser.email);
                 } catch (error) {
-                    console.error('사용자 정보 가져오기 실패:', error);
-                    showToast('로그인 오류 발생');
+                    console.error('❌ 사용자 정보 가져오기 실패:', error);
+                    showToast('❌ 로그인 오류: 사용자 정보를 가져올 수 없습니다');
+                    
+                    // 토큰 제거
+                    accessToken = null;
+                    localStorage.removeItem('google_access_token');
+                    gapi.client.setToken(null);
                 }
             };
 
-            if (accessToken === null) {
-                tokenClient.requestAccessToken({ prompt: 'consent' });
-            } else {
-                tokenClient.requestAccessToken({ prompt: '' });
+            // 로그인 요청
+            try {
+                if (accessToken === null) {
+                    tokenClient.requestAccessToken({ prompt: 'consent' });
+                } else {
+                    tokenClient.requestAccessToken({ prompt: '' });
+                }
+            } catch (error) {
+                console.error('❌ 로그인 요청 실패:', error);
+                showToast('❌ 로그인 요청 실패');
             }
         }
 
