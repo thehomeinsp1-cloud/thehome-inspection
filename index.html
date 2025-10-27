@@ -1290,6 +1290,19 @@
                 // GAPI 클라이언트에 토큰 설정 (필수!)
                 gapi.client.setToken({ access_token: accessToken });
                 
+                // GAPI 초기화 대기
+                let retries = 0;
+                while (!gapiInited && retries < 10) {
+                    console.log('GAPI 초기화 대기 중...', retries);
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    retries++;
+                }
+                
+                if (!gapiInited) {
+                    showToast('❌ 로그인 오류: API 초기화 실패');
+                    return;
+                }
+                
                 // 사용자 정보 가져오기
                 try {
                     const userInfo = await gapi.client.request({
