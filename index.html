@@ -835,6 +835,11 @@
                     <input type="tel" class="form-input" id="customerPhone" placeholder="010-0000-0000" oninput="autoSaveProjectData()">
                 </div>
 
+                <div class="form-field">
+                    <label class="form-label">점검 작성자</label>
+                    <input type="text" class="form-input" id="author" placeholder="작성자 이름" oninput="autoSaveProjectData()">
+                </div>
+
                 <button class="btn btn-primary" onclick="saveProject()">✅ 프로젝트 정보 저장</button>
             </div>
 
@@ -1351,6 +1356,7 @@
                 inspectionDate: new Date().toISOString().split('T')[0],
                 customerName: '',
                 customerPhone: '',
+                author: '', // ✅ 점검 작성자 추가
                 floorplan: null,
                 defects: [],
                 equipment: [],
@@ -2040,6 +2046,7 @@
                 project.inspectionDate = data.inspectionDate || '';
                 project.customerName = data.customerName || '';
                 project.customerPhone = data.customerPhone || '';
+                project.author = data.author || ''; // ✅ 작성자 추가
                 project.floorplan = data.floorplan || null;
                 project.defects = data.defects || [];
                 project.equipment = data.equipment || [];
@@ -2146,6 +2153,7 @@
                 project.inspectionDate = data.inspectionDate || '';
                 project.customerName = data.customerName || '';
                 project.customerPhone = data.customerPhone || '';
+                project.author = data.author || ''; // ✅ 작성자 추가
                 project.floorplan = data.floorplan || null;
                 project.defects = data.defects || [];
                 project.equipment = data.equipment || [];
@@ -2199,6 +2207,10 @@
                 const uploadStatus = project.isUploaded 
                     ? '<span style="color: #10b981;">✅ 업로드 완료</span>' 
                     : '<span style="color: #fbbf24;">⏳ 작업중</span>';
+                
+                const authorInfo = project.author 
+                    ? `작성자: ${project.author} | ` 
+                    : ''; // ✅ 작성자 정보 추가
 
                 return `
                     <div onclick="switchProject(${project.id})" 
@@ -2217,7 +2229,7 @@
                                     ${isActive ? '▶ ' : ''}${projectName}
                                 </div>
                                 <div style="font-size: 11px; opacity: 0.8;">
-                                    하자: ${project.defects.length}개 | 
+                                    ${authorInfo}하자: ${project.defects.length}개 | 
                                     장비: ${project.equipment ? project.equipment.length : 0}개 | 
                                     공기질: ${project.airQuality.length}개
                                 </div>
@@ -2328,6 +2340,7 @@
             project.inspectionDate = document.getElementById('inspectionDate').value;
             project.customerName = document.getElementById('customerName').value;
             project.customerPhone = document.getElementById('customerPhone').value;
+            project.author = document.getElementById('author').value; // ✅ 작성자 저장
             
             // floorplan, defects, equipment, airQuality는 이미 projectData 참조로 실시간 업데이트됨
         }
@@ -2342,6 +2355,7 @@
             document.getElementById('inspectionDate').value = project.inspectionDate || '';
             document.getElementById('customerName').value = project.customerName || '';
             document.getElementById('customerPhone').value = project.customerPhone || '';
+            document.getElementById('author').value = project.author || ''; // ✅ 작성자 로드
             
             // 평면도 표시 - displayFloorplan() 함수 사용
             displayFloorplan();
@@ -3973,6 +3987,7 @@
             try {
                 const zip = new JSZip();
                 const projectName = `${projectData.apartmentName}_${projectData.dong}_${projectData.ho}`;
+                const authorName = projectData.author ? `_${projectData.author}` : ''; // ✅ 작성자 변수 한 번만 선언
                 let photoCount = 0;
                 
                 // ========== 1. PDF 파일 생성 ==========
@@ -4054,7 +4069,10 @@
                 
                 // PDF를 Blob으로 변환하여 ZIP에 추가
                 const pdfBlob = doc.output('blob');
-                const pdfFileName = `${projectName}_하자점검보고서.pdf`;
+                
+                // 작성자 정보 포함한 파일명
+                const pdfFileName = `${projectName}${authorName}_하자점검보고서.pdf`;
+                
                 zip.file(pdfFileName, pdfBlob);
                 
                 // ========== 2. 엑셀 파일 생성 ==========
@@ -4454,7 +4472,10 @@
                 
                 // 엑셀 파일을 ZIP에 추가
                 const excelBuffer = await workbook.xlsx.writeBuffer();
-                const excelFileName = `${projectName}_하자목록.xlsx`;
+                
+                // 작성자 정보 포함한 파일명
+                const excelFileName = `${projectName}${authorName}_하자목록.xlsx`;
+                
                 zip.file(excelFileName, excelBuffer);
                 
                 // ========== 3. 사진 추가 ==========
@@ -4528,7 +4549,10 @@
                 const url = URL.createObjectURL(content);
                 const link = document.createElement('a');
                 link.href = url;
-                link.download = `${projectName}_전체자료_${projectData.inspectionDate || new Date().toISOString().split('T')[0]}.zip`;
+                
+                // 작성자 정보 포함한 파일명
+                link.download = `${projectName}${authorName}_전체자료_${projectData.inspectionDate || new Date().toISOString().split('T')[0]}.zip`;
+                
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
@@ -4828,8 +4852,10 @@
                     type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
                 });
                 
+                // ✅ 작성자 정보 포함한 파일명
                 const projectName = `${projectData.apartmentName}_${projectData.dong}_${projectData.ho}`;
-                const fileName = `${projectName}_하자점검리스트_${projectData.inspectionDate || new Date().toISOString().split('T')[0]}.xlsx`;
+                const authorName = projectData.author ? `_${projectData.author}` : '';
+                const fileName = `${projectName}${authorName}_하자점검리스트_${projectData.inspectionDate || new Date().toISOString().split('T')[0]}.xlsx`;
                 
                 const url = URL.createObjectURL(blob);
                 const link = document.createElement('a');
@@ -4935,6 +4961,7 @@
                 const link = document.createElement('a');
                 link.href = url;
                 link.download = `${projectName}_사진모음_${projectData.inspectionDate || new Date().toISOString().split('T')[0]}.zip`;
+                
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
