@@ -1536,7 +1536,11 @@
                 equipment: [],
                 airQuality: [],
                 createdAt: new Date().toISOString(),
-                isUploaded: false
+                isUploaded: false,
+                // ✅ 프로젝트별 ID 카운터 추가
+                lastDefectId: 0,
+                lastEquipmentId: 0,
+                lastAirQualityId: 0
             };
         }
 
@@ -1563,9 +1567,11 @@
             }
         });
 
-        let defectIdCounter = 1;
-        let equipmentIdCounter = 1;
-        let airQualityIdCounter = 1;
+        // ✅ ID 카운터를 프로젝트별로 관리하도록 변경
+        // 이제 각 프로젝트가 독립적인 ID 체계를 가짐
+        // let defectIdCounter = 1; // 제거됨
+        // let equipmentIdCounter = 1; // 제거됨  
+        // let airQualityIdCounter = 1; // 제거됨
         let cameraStream = null;
         let currentPhotoTarget = null;
 
@@ -2540,8 +2546,68 @@
             renderAirQuality();
         }
 
-        // 프로젝트 목록을 로컬 스토리지에 저장
+        // ==================== 자동 저장 최적화 ====================
+        let saveTimer = null;
+        let isSaving = false;
+        
+        // Debounced 저장 (텍스트 입력 등 빈번한 변경용)
+        function saveWithDebounce(delay = 1000) {
+            // 기존 타이머 취소
+            if (saveTimer) {
+                clearTimeout(saveTimer);
+            }
+            
+            // 새 타이머 설정
+            saveTimer = setTimeout(() => {
+                saveProjectsToLocalStorage();
+                saveTimer = null;
+            }, delay);
+        }
+        
+        // 즉시 저장 (중요한 작업용)
+        function saveImmediately() {
+            // Debounce 타이머 취소
+            if (saveTimer) {
+                clearTimeout(saveTimer);
+                saveTimer = null;
+            }
+            
+            // 즉시 저장
+            saveProjectsToLocalStorage();
+        }
+        
+        // 페이지 종료시 pending 저장 처리
+        window.addEventListener('beforeunload', (e) => {
+            if (saveTimer) {
+                // pending 저장이 있으면 즉시 실행
+                clearTimeout(saveTimer);
+                saveTimer = null;
+                
+                // 동기적으로 세션스토리지에 임시 저장
+                try {
+                    const backupData = {
+                        projects: projects,
+                        currentProjectId: currentProjectId,
+                        timestamp: new Date().toISOString()
+                    };
+                    sessionStorage.setItem('thehomein_temp_backup', JSON.stringify(backupData));
+                    console.log('📦 종료 전 임시 백업 완료');
+                } catch (error) {
+                    console.error('임시 백업 실패:', error);
+                }
+            }
+        });
+        
+        // 프로젝트 목록을 로컬 스토리지에 저장 (기존 함수 수정)
         async function saveProjectsToLocalStorage() {
+            // 중복 저장 방지
+            if (isSaving) {
+                console.log('⏳ 저장 중... 건너뜀');
+                return;
+            }
+            
+            isSaving = true;
+            
             try {
                 console.log('💾 저장 시작:', {
                     totalProjects: projects.length,
@@ -2567,6 +2633,51 @@
                 console.log('✅ 프로젝트 목록 저장 완료');
             } catch (e) {
                 console.error('프로젝트 목록 저장 실패:', e);
+                
+                // ✅ 사용자 알림 추가
+                if (e.name === 'QuotaExceededError') {
+                    // 저장 공간 부족
+                    showToast('⚠️ 저장 공간이 부족합니다! 불필요한 사진을 삭제해주세요', 'error');
+                    
+                    // 공간 사용량 체크 (가능한 경우)
+                    if (navigator.storage && navigator.storage.estimate) {
+                        const estimate = await navigator.storage.estimate();
+                        const usedMB = Math.round(estimate.usage / 1024 / 1024);
+                        const quotaMB = Math.round(estimate.quota / 1024 / 1024);
+                        console.log(`📊 저장공간: ${usedMB}MB / ${quotaMB}MB 사용 중`);
+                    }
+                } else if (e.name === 'InvalidStateError' || e.name === 'TransactionInactiveError') {
+                    // 트랜잭션 오류
+                    showToast('⚠️ 저장 중 오류 발생! 자동으로 다시 시도합니다', 'warning');
+                    
+                    // 1초 후 재시도
+                    setTimeout(async () => {
+                        try {
+                            await saveToIndexedDB('projects_list', { projects, currentProjectId });
+                            showToast('✅ 재시도 성공! 데이터가 저장되었습니다', 'success');
+                        } catch (retryError) {
+                            showToast('❌ 저장 실패! 앱을 새로고침 해주세요', 'error');
+                        }
+                    }, 1000);
+                } else {
+                    // 기타 오류
+                    showToast('⚠️ 저장 실패! 잠시 후 다시 시도해주세요', 'error');
+                }
+                
+                // 임시 백업 (세션 스토리지)
+                try {
+                    const backupData = {
+                        projects: projects,
+                        currentProjectId: currentProjectId,
+                        timestamp: new Date().toISOString()
+                    };
+                    sessionStorage.setItem('thehomein_temp_backup', JSON.stringify(backupData));
+                    console.log('📦 임시 백업 완료 (세션 스토리지)');
+                } catch (backupError) {
+                    console.error('임시 백업도 실패:', backupError);
+                }
+            } finally {
+                isSaving = false;
             }
         }
 
@@ -2592,16 +2703,8 @@
                         document.getElementById('customerPhone').value = currentProject.customerPhone || '';
                         document.getElementById('author').value = currentProject.author || '';
                         
-                        // 카운터 초기화
-                        if (currentProject.defects && currentProject.defects.length > 0) {
-                            defectIdCounter = Math.max(...currentProject.defects.map(d => d.id)) + 1;
-                        }
-                        if (currentProject.equipment && currentProject.equipment.length > 0) {
-                            equipmentIdCounter = Math.max(...currentProject.equipment.map(e => e.id)) + 1;
-                        }
-                        if (currentProject.airQuality && currentProject.airQuality.length > 0) {
-                            airQualityIdCounter = Math.max(...currentProject.airQuality.map(a => a.id)) + 1;
-                        }
+                        // ✅ ID 카운터 초기화 제거 (이제 프로젝트별로 관리됨)
+                        // 기존 코드 제거됨 - 프로젝트별 lastDefectId, lastEquipmentId, lastAirQualityId 사용
                         
                         // 렌더링
                         displayFloorplan();
@@ -2610,20 +2713,63 @@
                         renderAirQuality();
                     }
                 } else {
-                    // 첫 실행 시 빈 프로젝트 생성
-                    const newProject = createNewProject();
-                    projects.push(newProject);
-                    currentProjectId = newProject.id;
-                    console.log('✅ 새 프로젝트 생성 완료');
+                    // ✅ IndexedDB 실패 시 임시 백업 확인
+                    const tempBackup = sessionStorage.getItem('thehomein_temp_backup');
+                    if (tempBackup) {
+                        try {
+                            const backupData = JSON.parse(tempBackup);
+                            projects = backupData.projects;
+                            currentProjectId = backupData.currentProjectId;
+                            
+                            console.log('📦 임시 백업에서 복구:', projects.length + '개');
+                            showToast('📦 임시 백업에서 데이터를 복구했습니다', 'info');
+                            
+                            // 복구 후 다시 저장 시도
+                            saveProjectsToLocalStorage();
+                        } catch (backupError) {
+                            console.error('임시 백업 복구 실패:', backupError);
+                            // 새 프로젝트 생성
+                            const newProject = createNewProject();
+                            projects.push(newProject);
+                            currentProjectId = newProject.id;
+                        }
+                    } else {
+                        // 첫 실행 시 빈 프로젝트 생성
+                        const newProject = createNewProject();
+                        projects.push(newProject);
+                        currentProjectId = newProject.id;
+                        console.log('✅ 새 프로젝트 생성 완료');
+                    }
                 }
                 
                 renderProjectList();
             } catch (e) {
                 console.error('프로젝트 목록 불러오기 실패:', e);
-                // 실패 시 새 프로젝트 생성
-                const newProject = createNewProject();
-                projects.push(newProject);
-                currentProjectId = newProject.id;
+                
+                // ✅ 로드 실패 시 사용자 알림
+                showToast('⚠️ 데이터 로드 실패! 임시 백업을 확인합니다', 'warning');
+                
+                // 임시 백업 시도
+                const tempBackup = sessionStorage.getItem('thehomein_temp_backup');
+                if (tempBackup) {
+                    try {
+                        const backupData = JSON.parse(tempBackup);
+                        projects = backupData.projects;
+                        currentProjectId = backupData.currentProjectId;
+                        showToast('✅ 임시 백업에서 복구 성공!', 'success');
+                    } catch (backupError) {
+                        // 실패 시 새 프로젝트 생성
+                        const newProject = createNewProject();
+                        projects.push(newProject);
+                        currentProjectId = newProject.id;
+                        showToast('📝 새 프로젝트로 시작합니다', 'info');
+                    }
+                } else {
+                    // 실패 시 새 프로젝트 생성
+                    const newProject = createNewProject();
+                    projects.push(newProject);
+                    currentProjectId = newProject.id;
+                }
                 renderProjectList();
             }
         }
@@ -2762,13 +2908,16 @@
                     projectData.floorplan = null;
                     projectData.equipment = [];
                     projectData.airQuality = [
-                        { id: airQualityIdCounter++, name: '거실', radon: '', formaldehyde: '', vocs: '' },
-                        { id: airQualityIdCounter++, name: '침실1', radon: '', formaldehyde: '', vocs: '' },
-                        { id: airQualityIdCounter++, name: '침실2', radon: '', formaldehyde: '', vocs: '' },
-                        { id: airQualityIdCounter++, name: '침실3', radon: '', formaldehyde: '', vocs: '' },
-                        { id: airQualityIdCounter++, name: '공용욕실', radon: '', formaldehyde: '', vocs: '' },
-                        { id: airQualityIdCounter++, name: '부부욕실', radon: '', formaldehyde: '', vocs: '' }
+                        { id: 1, name: '거실', radon: '', formaldehyde: '', vocs: '' },
+                        { id: 2, name: '침실1', radon: '', formaldehyde: '', vocs: '' },
+                        { id: 3, name: '침실2', radon: '', formaldehyde: '', vocs: '' },
+                        { id: 4, name: '침실3', radon: '', formaldehyde: '', vocs: '' },
+                        { id: 5, name: '공용욕실', radon: '', formaldehyde: '', vocs: '' },
+                        { id: 6, name: '부부욕실', radon: '', formaldehyde: '', vocs: '' }
                     ];
+                    // 프로젝트별 카운터 초기화
+                    const project = getCurrentProject();
+                    project.lastAirQualityId = 6;
                     
                     renderDefects();
                     renderEquipment();
@@ -2894,9 +3043,23 @@
                 }
             }
             
+            // ✅ 프로젝트별 ID 카운터 사용
+            const project = getCurrentProject();
+            
+            // 기존 최대 ID 확인 (호환성 보장)
+            const maxExistingId = project.defects.length > 0 
+                ? Math.max(...project.defects.map(d => d.id))
+                : 0;
+            
+            // 프로젝트별 카운터 업데이트
+            project.lastDefectId = Math.max(
+                project.lastDefectId || 0,
+                maxExistingId
+            ) + 1;
+            
             // ✅ 모든 검증 통과 → 새 하자 추가
             const newDefect = {
-                id: defectIdCounter++,
+                id: project.lastDefectId,
                 spaces: [],      // 배열로 변경
                 locations: [],   // 배열로 변경
                 types: [],       // 배열로 변경
@@ -2907,7 +3070,7 @@
             };
             projectData.defects.push(newDefect);
             renderDefects();
-            saveProjectsToLocalStorage();
+            saveImmediately(); // ✅ 중요: 즉시 저장
             updateProgress();
             showToast('✅ 새 하자가 추가되었습니다');
             
@@ -3155,8 +3318,22 @@
 
         // ==================== 장비점검 ====================
         function addEquipment() {
+            // ✅ 프로젝트별 ID 카운터 사용
+            const project = getCurrentProject();
+            
+            // 기존 최대 ID 확인 (호환성 보장)
+            const maxExistingId = project.equipment && project.equipment.length > 0 
+                ? Math.max(...project.equipment.map(e => e.id))
+                : 0;
+            
+            // 프로젝트별 카운터 업데이트
+            project.lastEquipmentId = Math.max(
+                project.lastEquipmentId || 0,
+                maxExistingId
+            ) + 1;
+            
             const newEquipment = {
-                id: equipmentIdCounter++,
+                id: project.lastEquipmentId,
                 space: '',       // 단일 공간
                 inspection: '',  // 빈 값으로 시작
                 photos: {        // 위치별 사진 객체
@@ -3331,7 +3508,7 @@
             const item = projectData.equipment.find(e => e.id === id);
             if (item) {
                 item[field] = value;
-                saveProjectsToLocalStorage();
+                saveWithDebounce(); // ✅ 텍스트: 지연 저장
             }
         }
 
@@ -3340,7 +3517,7 @@
             if (item) {
                 item.inspection = value;
                 renderEquipment();
-                saveProjectsToLocalStorage();
+                saveWithDebounce(); // ✅ 텍스트: 지연 저장
             }
         }
 
@@ -3349,7 +3526,7 @@
             if (item) {
                 item.space = space;
                 renderEquipment();
-                saveProjectsToLocalStorage();
+                saveWithDebounce(); // ✅ 선택: 지연 저장
             }
         }
 
@@ -3453,13 +3630,16 @@
             
             if (projectData.airQuality.length === 0) {
                 projectData.airQuality = [
-                    { id: airQualityIdCounter++, name: '거실', radon: '', formaldehyde: '', vocs: '' },
-                    { id: airQualityIdCounter++, name: '침실1', radon: '', formaldehyde: '', vocs: '' },
-                    { id: airQualityIdCounter++, name: '침실2', radon: '', formaldehyde: '', vocs: '' },
-                    { id: airQualityIdCounter++, name: '침실3', radon: '', formaldehyde: '', vocs: '' },
-                    { id: airQualityIdCounter++, name: '공용욕실', radon: '', formaldehyde: '', vocs: '' },
-                    { id: airQualityIdCounter++, name: '부부욕실', radon: '', formaldehyde: '', vocs: '' }
+                    { id: 1, name: '거실', radon: '', formaldehyde: '', vocs: '' },
+                    { id: 2, name: '침실1', radon: '', formaldehyde: '', vocs: '' },
+                    { id: 3, name: '침실2', radon: '', formaldehyde: '', vocs: '' },
+                    { id: 4, name: '침실3', radon: '', formaldehyde: '', vocs: '' },
+                    { id: 5, name: '공용욕실', radon: '', formaldehyde: '', vocs: '' },
+                    { id: 6, name: '부부욕실', radon: '', formaldehyde: '', vocs: '' }
                 ];
+                // 프로젝트별 카운터 설정
+                const project = getCurrentProject();
+                project.lastAirQualityId = 6;
             }
 
             container.innerHTML = projectData.airQuality.map((room) => `
@@ -3505,8 +3685,22 @@
         }
 
         window.addAirQualityRoom = function() {
+            // ✅ 프로젝트별 ID 카운터 사용
+            const project = getCurrentProject();
+            
+            // 기존 최대 ID 확인 (호환성 보장)
+            const maxExistingId = project.airQuality && project.airQuality.length > 0 
+                ? Math.max(...project.airQuality.map(a => a.id))
+                : 0;
+            
+            // 프로젝트별 카운터 업데이트
+            project.lastAirQualityId = Math.max(
+                project.lastAirQualityId || 0,
+                maxExistingId
+            ) + 1;
+            
             const newRoom = {
-                id: airQualityIdCounter++,
+                id: project.lastAirQualityId,
                 name: `방${projectData.airQuality.length + 1}`,
                 radon: '',
                 formaldehyde: '',
@@ -3537,7 +3731,7 @@
             const room = projectData.airQuality.find(r => r.id === id);
             if (room) {
                 room.name = name;
-                saveProjectsToLocalStorage();
+                saveWithDebounce(); // ✅ 텍스트: 지연 저장
             }
         }
 
@@ -3550,7 +3744,7 @@
                 // 빈값은 허용
                 if (value === '' || value === null) {
                     room[field] = value;
-                    saveProjectsToLocalStorage();
+                    saveWithDebounce(); // ✅ 숫자 입력: 지연 저장
                     updateProgress();
                     return;
                 }
@@ -3585,7 +3779,7 @@
                 }
                 
                 room[field] = value;
-                saveProjectsToLocalStorage();
+                saveWithDebounce(); // ✅ 숫자 입력: 지연 저장
                 updateProgress();
             }
         }
@@ -4014,7 +4208,7 @@
                 }
             }
             
-            saveProjectsToLocalStorage();
+            saveImmediately(); // ✅ 사진: 즉시 저장
             updateProgress();
             closeCameraModal();
         }
@@ -4030,7 +4224,7 @@
                     renderDefects();
                 }
                 
-                saveProjectsToLocalStorage();
+                saveWithDebounce(); // ✅ 텍스트 입력: 지연 저장
             }
         }
 
@@ -4059,7 +4253,7 @@
             generateAutoDescription(id);
             
             renderDefects();
-            saveProjectsToLocalStorage();
+            saveWithDebounce(); // ✅ 체크박스: 지연 저장
         }
 
         function generateAutoDescription(id) {
@@ -4147,7 +4341,7 @@
             if (confirm('이 하자를 삭제하시겠습니까?')) {
                 projectData.defects = projectData.defects.filter(d => d.id !== id);
                 renderDefects();
-                saveProjectsToLocalStorage();
+                saveImmediately(); // ✅ 중요: 즉시 저장
                 updateProgress();
                 showToast('하자가 삭제되었습니다');
             }
@@ -6457,26 +6651,20 @@
         }
 
         // ==================== 자동 저장 함수 ====================
-        let autoSaveTimeout;
+        // autoSaveTimeout 제거됨 - saveTimer로 통합
         
         function autoSaveProjectData() {
-            // 디바운싱: 0.5초 후 저장 (연속 입력 시 마지막만 저장)
-            clearTimeout(autoSaveTimeout);
-            autoSaveTimeout = setTimeout(async () => {
-                // projectData 업데이트
-                projectData.apartmentName = document.getElementById('apartmentName').value;
-                projectData.dong = document.getElementById('dong').value;
-                projectData.ho = document.getElementById('ho').value;
-                projectData.inspectionDate = document.getElementById('inspectionDate').value;
-                projectData.customerName = document.getElementById('customerName').value;
-                projectData.customerPhone = document.getElementById('customerPhone').value;
-                
-                // 저장
-                await saveProjectsToLocalStorage();
-                updateProgress();
-                
-                console.log('✅ 자동 저장 완료');
-            }, 500);
+            // projectData 업데이트
+            projectData.apartmentName = document.getElementById('apartmentName').value;
+            projectData.dong = document.getElementById('dong').value;
+            projectData.ho = document.getElementById('ho').value;
+            projectData.inspectionDate = document.getElementById('inspectionDate').value;
+            projectData.customerName = document.getElementById('customerName').value;
+            projectData.customerPhone = document.getElementById('customerPhone').value;
+            
+            // 저장 (이미 debounce 적용)
+            saveWithDebounce(500); // 0.5초 지연
+            updateProgress();
         }
 
         // ==================== 데이터 저장/불러오기 (구버전 - 사용 안 함) ====================
