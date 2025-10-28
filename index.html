@@ -4141,6 +4141,35 @@
             });
         }
 
+        // 📱 갤러리에 사진 저장하는 함수
+        async function saveToGallery(imageDataUrl, filename) {
+            try {
+                // Base64를 Blob으로 변환
+                const response = await fetch(imageDataUrl);
+                const blob = await response.blob();
+                
+                // 파일 다운로드 트리거 (모바일에서는 갤러리에 저장됨)
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                a.style.display = 'none';
+                document.body.appendChild(a);
+                a.click();
+                
+                // 메모리 정리
+                setTimeout(() => {
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                }, 100);
+                
+                console.log('✅ 갤러리 저장 완료:', filename);
+            } catch (error) {
+                console.error('❌ 갤러리 저장 실패:', error);
+                // 저장 실패해도 앱 사용에는 문제없음 (조용히 실패 처리)
+            }
+        }
+
         window.capturePhoto = async function() {
             // 이벤트 전파 방지
             if (event) {
@@ -4162,9 +4191,18 @@
             // 이미지 압축 (1920px, 품질 85%)
             const imageData = await compressImage(originalImage, 1920, 0.85);
             
+            // 파일명 생성 (타임스탬프 기반)
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+            let filename = '';
+            
             if (currentPhotoTarget === 'floorplan') {
                 const project = getCurrentProject(); // ✅ 현재 프로젝트 가져오기
                 project.floorplan = imageData; // ✅ 현재 프로젝트에 저장
+                
+                // 갤러리에 자동 저장
+                filename = `더홈점검_평면도_${project.apartmentName}_${project.dong}동${project.ho}호_${timestamp}.jpg`;
+                await saveToGallery(imageData, filename);
+                
                 displayFloorplan();
                 showToast('평면도가 추가되었습니다');
             } else if (currentPhotoTarget && typeof currentPhotoTarget === 'object') {
@@ -4174,10 +4212,16 @@
                     if (defect) {
                         defect.photos.push(imageData);
                         
+                        // 갤러리에 자동 저장
+                        const project = getCurrentProject();
+                        const photoType = currentPhotoTarget.step === 'far' ? '멀리서' : '가까이서';
+                        filename = `더홈점검_하자${defect.id}_${photoType}_${project.apartmentName}_${project.dong}동${project.ho}호_${timestamp}.jpg`;
+                        await saveToGallery(imageData, filename);
+                        
                         if (currentPhotoTarget.step === 'far') {
-                            showToast('✓ 멀리서 촬영 완료! 이제 가까이서 촬영해주세요.');
+                            showToast('✓ 멀리서 촬영 완료!');
                         } else if (currentPhotoTarget.step === 'close') {
-                            showToast('✓ 가까이서 촬영 완료! 하자 사진이 모두 등록되었습니다.');
+                            showToast('✓ 가까이서 촬영 완료!');
                         }
                         
                         renderDefects();
@@ -4197,6 +4241,12 @@
                                 };
                             }
                             equipment.photos[currentPhotoTarget.location] = imageData;
+                            
+                            // 갤러리에 자동 저장
+                            const project = getCurrentProject();
+                            filename = `더홈점검_장비${equipment.id}_${currentPhotoTarget.location}_${project.apartmentName}_${project.dong}동${project.ho}호_${timestamp}.jpg`;
+                            await saveToGallery(imageData, filename);
+                            
                             showToast(`✓ ${currentPhotoTarget.location} 사진이 등록되었습니다.`);
                         } else {
                             // 구 버전 호환성
