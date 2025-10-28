@@ -5437,15 +5437,21 @@
                 const pageWidth = 210;
                 const pageHeight = 297;
 
-                // 1페이지: 전체 요약 (하자 목록 20개씩 페이지 분할)
-                const defectsPerPage = 20;
-                for (let i = 0; i < projectData.defects.length; i += defectsPerPage) {
-                    if (i > 0) doc.addPage(); // 첫 페이지가 아니면 새 페이지 추가
-                    const summaryHTML = createSummaryPage(i, defectsPerPage);
-                    await addHTMLPageToPDF(doc, summaryHTML, pageWidth, pageHeight);
+                // 1페이지: 프로젝트 정보 + 하자 목록 15개
+                const firstPageHTML = createSummaryFirstPage();
+                await addHTMLPageToPDF(doc, firstPageHTML, pageWidth, pageHeight);
+
+                // 2페이지~: 하자 목록만 (25개씩)
+                if (projectData.defects.length > 15) {
+                    const itemsPerPage = 25;
+                    for (let i = 15; i < projectData.defects.length; i += itemsPerPage) {
+                        doc.addPage();
+                        const listPageHTML = createDefectListPage(i, itemsPerPage);
+                        await addHTMLPageToPDF(doc, listPageHTML, pageWidth, pageHeight);
+                    }
                 }
 
-                // 2페이지~: 하자 상세 사진 (3개씩, 사진 2장씩)
+                // 하자 상세 사진 페이지 (3개씩, 사진 2장씩)
                 if (projectData.defects.length > 0) {
                     const defectsWithPhotos = projectData.defects.filter(d => d.photos && d.photos.length > 0);
                     
@@ -5573,24 +5579,20 @@
             doc.addImage(imgData, 'JPEG', 0, 0, imgWidth, Math.min(imgHeight, pageHeight));
         }
 
-        function createSummaryPage(startIndex = 0, itemsPerPage = 20) {
+        // 첫 페이지: 프로젝트 정보 + 하자 목록 15개
+        function createSummaryFirstPage() {
             let defectRows = '';
-            const endIndex = Math.min(startIndex + itemsPerPage, projectData.defects.length);
-            const defectsToDisplay = projectData.defects.slice(startIndex, endIndex);
+            const displayDefects = projectData.defects.slice(0, 15);
             
-            defectsToDisplay.forEach((defect, index) => {
-                const globalIndex = startIndex + index + 1;
-                // 배열을 문자열로 변환 (하위 호환성)
+            displayDefects.forEach((defect, index) => {
                 const spaces = defect.spaces ? defect.spaces.join(', ') : (defect.space || '-');
                 const locations = defect.locations ? defect.locations.join(', ') : (defect.location || '-');
                 const types = defect.types ? defect.types.join(', ') : (defect.type || '-');
-                
-                // 상세설명만 사용 (이미 모든 정보 포함)
                 const description = defect.description || '';
                 
                 defectRows += `
                     <tr style="border-bottom: 1px solid #ddd;">
-                        <td style="padding: 8px; text-align: center; font-weight: bold; color: #000000;">${globalIndex}</td>
+                        <td style="padding: 8px; text-align: center; font-weight: bold; color: #000000;">${index + 1}</td>
                         <td style="padding: 8px; text-align: center; color: #000000;">${spaces}</td>
                         <td style="padding: 8px; text-align: center; color: #000000;">${locations}</td>
                         <td style="padding: 8px; color: #000000;">${types}</td>
@@ -5599,16 +5601,10 @@
                     </tr>
                 `;
             });
-            
-            // 페이지 표시 추가
-            const totalPages = Math.ceil(projectData.defects.length / itemsPerPage);
-            const currentPage = Math.floor(startIndex / itemsPerPage) + 1;
-            const pageIndicator = totalPages > 1 ? ` (${currentPage}/${totalPages} 페이지)` : '';
-
 
             return `
-                <div style="width: 794px; min-height: 1123px; background: white; font-family: 'Malgun Gothic', sans-serif; padding: 30px;">
-                    <div style="background: #f8f9fa; color: #000; border: 2px solid #2c3e50; padding: 20px; margin-bottom: 25px; border-radius: 8px;">
+                <div style="width: 794px; min-height: 1123px; background: white; font-family: 'Malgun Gothic', sans-serif; padding: 30px 70px;">
+                    <div style="background: #f8f9fa; color: #000; border: 2px solid #2c3e50; padding: 20px; margin-bottom: 20px; border-radius: 8px;">
                         <div style="display: flex; justify-content: space-between; align-items: center;">
                             <div>
                                 <h1 style="margin: 0 0 8px 0; font-size: 28px;">더홈점검 하자 보고서</h1>
@@ -5652,7 +5648,7 @@
                         </div>
                     </div>
 
-                    <h3 style="margin: 0 0 12px 0; font-size: 16px; color: #000000; border-bottom: 2px solid #e74c3c; padding-bottom: 6px;">하자 점검 목록 (총 ${projectData.defects.length}건)${pageIndicator}</h3>
+                    <h3 style="margin: 0 0 12px 0; font-size: 16px; color: #000000; border-bottom: 2px solid #e74c3c; padding-bottom: 6px;">하자 점검 목록 (총 ${projectData.defects.length}건)</h3>
                     ${projectData.defects.length > 0 ? `
                         <table style="width: 100%; border-collapse: collapse; border: 1px solid #ddd; font-size: 13px;">
                             <thead>
@@ -5669,7 +5665,64 @@
                         </table>
                     ` : '<p style="text-align: center; color: #999; padding: 40px 0;">등록된 하자가 없습니다</p>'}
 
-                    <div style="position: absolute; bottom: 20px; left: 30px; right: 30px; padding-top: 15px; border-top: 1px solid #ddd; font-size: 11px; color: #000000; text-align: center;">
+                    <div style="position: absolute; bottom: 20px; left: 70px; right: 70px; padding-top: 15px; border-top: 1px solid #ddd; font-size: 11px; color: #000000; text-align: center;">
+                        <div>더홈점검 | 전화: 070-8019-1456 / 010-9985-0128 | 사전점검 전문업체</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 나머지 페이지: 하자 목록만 (25개씩)
+        function createDefectListPage(startIndex, itemsPerPage = 25) {
+            let defectRows = '';
+            const endIndex = Math.min(startIndex + itemsPerPage, projectData.defects.length);
+            const defectsToDisplay = projectData.defects.slice(startIndex, endIndex);
+            
+            defectsToDisplay.forEach((defect, index) => {
+                const globalIndex = startIndex + index + 1;
+                const spaces = defect.spaces ? defect.spaces.join(', ') : (defect.space || '-');
+                const locations = defect.locations ? defect.locations.join(', ') : (defect.location || '-');
+                const types = defect.types ? defect.types.join(', ') : (defect.type || '-');
+                const description = defect.description || '';
+                
+                defectRows += `
+                    <tr style="border-bottom: 1px solid #ddd;">
+                        <td style="padding: 10px; text-align: center; font-weight: bold; color: #000000;">${globalIndex}</td>
+                        <td style="padding: 10px; text-align: center; color: #000000;">${spaces}</td>
+                        <td style="padding: 10px; text-align: center; color: #000000;">${locations}</td>
+                        <td style="padding: 10px; color: #000000;">${types}</td>
+                        <td style="padding: 10px; color: #000000; font-size: 12px; word-break: break-word; white-space: normal; line-height: 1.5;">${description || '-'}</td>
+                        <td style="padding: 10px; text-align: center; font-size: 12px; color: #000000;">${defect.status === 'completed' ? '✓' : '○'}</td>
+                    </tr>
+                `;
+            });
+            
+            const totalPages = Math.ceil((projectData.defects.length - 15) / itemsPerPage) + 1;
+            const currentPage = Math.floor((startIndex - 15) / itemsPerPage) + 2;
+            const pageIndicator = ` (${currentPage}/${totalPages} 페이지)`;
+
+            return `
+                <div style="width: 794px; min-height: 1123px; background: white; font-family: 'Malgun Gothic', sans-serif; padding: 40px 70px;">
+                    <div style="background: white; color: #000; padding: 15px 20px; margin-bottom: 25px; border-radius: 8px; border: 1px solid #ddd;">
+                        <h2 style="margin: 0; font-size: 20px; font-weight: bold;">하자 점검 목록 (총 ${projectData.defects.length}건)${pageIndicator}</h2>
+                        <p style="margin: 5px 0 0 0; font-size: 12px; color: #666;">${projectData.apartmentName} ${projectData.dong} ${projectData.ho}</p>
+                    </div>
+
+                    <table style="width: 100%; border-collapse: collapse; border: 1px solid #ddd; font-size: 13px;">
+                        <thead>
+                            <tr style="background: #f8f9fa; border-bottom: 2px solid #ddd;">
+                                <th style="padding: 12px; width: 5%; color: #000000;">No</th>
+                                <th style="padding: 12px; width: 10%; color: #000000;">공간</th>
+                                <th style="padding: 12px; width: 10%; color: #000000;">위치</th>
+                                <th style="padding: 12px; width: 12%; color: #000000;">하자내용</th>
+                                <th style="padding: 12px; width: 50%; color: #000000;">상세설명</th>
+                                <th style="padding: 12px; width: 8%; color: #000000;">상태</th>
+                            </tr>
+                        </thead>
+                        <tbody>${defectRows}</tbody>
+                    </table>
+
+                    <div style="position: absolute; bottom: 30px; left: 70px; right: 70px; padding-top: 15px; border-top: 1px solid #ddd; font-size: 11px; color: #666; text-align: center;">
                         <div>더홈점검 | 전화: 070-8019-1456 / 010-9985-0128 | 사전점검 전문업체</div>
                     </div>
                 </div>
