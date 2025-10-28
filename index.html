@@ -6309,7 +6309,7 @@
 
                     <div style="background: #e8f5e9; border: 1px solid #4caf50; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
                         <h4 style="margin: 0 0 15px 0; color: #2e7d32; font-size: 16px;">✓ 권고기준 (실내공기질 공정시험기준)</h4>
-                        <div style="font-size: 14px; color: #1b5e20; line-height: 2;">
+                        <div style="font-size: 14px; color: #1b5e20; line-height: 1.6; font-size: 13px; margin-bottom: 15px;">
                             <div>• 라돈(Rn): <strong>148 Bq/m³ 이하</strong></div>
                             <div>• 포름알데히드(HCHO): <strong>0.210 mg/m³ 이하</strong></div>
                             <div>• 총휘발성유기화합물(TVOCs): <strong>0.500 mg/m³ 이하</strong></div>
@@ -6971,19 +6971,22 @@
             const price = '일당 1만~50만원 (업무별 상이)';
             const payDay = '업무 완료 후 1개월 이내';
             
+            // 서명 이미지 가져오기
+            const signatureCEO = ceoSigned ? signaturePads['CEO'].canvas.toDataURL() : null;
+            const signatureFreelancer = freelancerSigned ? signaturePads['Freelancer'].canvas.toDataURL() : null;
+            
             const previewHTML = generateContractHTML({
                 name, address, jumin1, jumin2, phone, email, business,
-                startDate, endDate, price, payDay, notes
+                startDate, endDate, price, payDay, notes,
+                signatureCEO, signatureFreelancer
             });
             
             document.getElementById('contractPreviewContent').innerHTML = previewHTML;
             document.getElementById('contractPreviewModal').style.display = 'block';
         }
 
-        // PDF 다운로드 (서명 포함)
+        // PDF 다운로드 (HTML을 이미지로 변환)
         window.downloadContractPDF = async function() {
-            console.log('📥 PDF 다운로드 시작');
-            
             const name = document.getElementById('contractName').value;
             const address = document.getElementById('contractAddress').value;
             const jumin1 = document.getElementById('contractJumin1').value;
@@ -6993,8 +6996,6 @@
             const startDate = document.getElementById('contractStartDate').value;
             const endDate = document.getElementById('contractEndDate').value;
             
-            console.log('입력값:', { name, address, phone, email, startDate, endDate });
-            
             if (!name || !address || !jumin1 || !jumin2 || !phone || !email || !startDate || !endDate) {
                 alert('필수 항목을 모두 입력해주세요');
                 return;
@@ -7003,120 +7004,80 @@
             const ceoSigned = signaturePads['CEO'] && !isCanvasBlank(signaturePads['CEO'].canvas);
             const freelancerSigned = signaturePads['Freelancer'] && !isCanvasBlank(signaturePads['Freelancer'].canvas);
             
-            console.log('서명 상태:', { ceoSigned, freelancerSigned });
-            
             if (!ceoSigned && !freelancerSigned) {
                 alert('최소 한 명은 서명이 필요합니다');
                 return;
             }
             
             try {
-                console.log('PDF 생성 시작...');
                 showToast('PDF 생성 중...', 'info');
                 
-                if (!window.jspdf) {
-                    throw new Error('jsPDF 라이브러리가 로드되지 않았습니다');
-                }
-                
-                const { jsPDF } = window.jspdf;
-                const doc = new jsPDF();
-                
-                console.log('jsPDF 생성 완료');
-                
-                // 한글 폰트는 나중에 로드되므로 일단 기본 폰트 사용
-                doc.setFont('helvetica');
-                
-                let y = 20;
-                const addText = (text) => {
-                    const lines = doc.splitTextToSize(text, 170);
-                    lines.forEach(line => {
-                        if (y > 270) { doc.addPage(); y = 20; }
-                        doc.text(line, 20, y);
-                        y += 6;
-                    });
-                };
-                
-                doc.setFontSize(18);
-                doc.text('Freelancer Contract', 105, y, { align: 'center' });
-                y += 15;
-                
-                doc.setFontSize(10);
-                addText(`TheHome Inspection (Party A) and ${name} (Party B) enter into this freelance contract.`);
-                y += 5;
-                
-                doc.setFontSize(11);
-                addText('Article 1: Purpose');
-                doc.setFontSize(10);
-                addText('This contract defines the terms for Party A to commission research and services to Party B.');
-                y += 3;
-                
-                doc.setFontSize(11);
-                addText('Article 2: Contract Work');
-                doc.setFontSize(10);
-                addText('Party B shall perform: 1. Apartment pre-inspection agency services');
-                y += 3;
-                
-                doc.setFontSize(11);
-                addText('Article 3: Contract Period');
-                doc.setFontSize(10);
-                addText(`Period: ${startDate} to ${endDate}`);
-                y += 3;
-                
-                doc.setFontSize(11);
-                addText('Article 4: Work Hours and Location');
-                doc.setFontSize(10);
-                addText('Party B shall work at designated hours and locations.');
-                y += 3;
-                
-                doc.setFontSize(11);
-                addText('Article 5: Contract Amount');
-                doc.setFontSize(10);
-                addText('Daily rate: 10,000-500,000 KRW. Payment within 1 month. 3.3% tax withheld.');
-                
-                if (y > 200) { doc.addPage(); y = 20; }
-                
-                y += 10;
-                doc.setFontSize(11);
-                addText(`${new Date().getFullYear()}.${new Date().getMonth() + 1}.${new Date().getDate()}`);
-                y += 10;
-                
-                doc.setFontSize(9);
-                addText('[Party A]');
-                addText('CEO: Park Ji-hyun (TheHome Inspection)');
-                addText('Address: 13, Chungseon-ro 209beon-gil, Bupyeong-gu, Incheon, 8F');
-                addText('Business No: 531-42-01293');
-                addText('Tel: 070-8019-1456');
-                
-                if (ceoSigned) {
-                    console.log('CEO 서명 추가 중...');
-                    doc.addImage(signaturePads['CEO'].canvas.toDataURL(), 'PNG', 70, y, 40, 20);
-                }
-                y += 25;
-                
                 const business = document.getElementById('contractBusiness').value;
-                addText('[Party B]');
-                addText(`Name: ${name}`);
-                addText(`Address: ${address}`);
-                addText(`ID: ${jumin1}-${jumin2}******`);
-                addText(`Phone: ${phone}`);
-                addText(`Email: ${email}`);
-                if (business) addText(`Business No: ${business}`);
+                const notes = document.getElementById('contractNotes').value;
+                const price = '일당 1만~50만원 (업무별 상이)';
+                const payDay = '업무 완료 후 1개월 이내';
                 
-                if (freelancerSigned) {
-                    console.log('프리랜서 서명 추가 중...');
-                    doc.addImage(signaturePads['Freelancer'].canvas.toDataURL(), 'PNG', 70, y, 40, 20);
+                // 서명 이미지 가져오기
+                const signatureCEO = ceoSigned ? signaturePads['CEO'].canvas.toDataURL() : null;
+                const signatureFreelancer = freelancerSigned ? signaturePads['Freelancer'].canvas.toDataURL() : null;
+                
+                // HTML 생성 (서명 포함)
+                const contractHTML = generateContractHTML({
+                    name, address, jumin1, jumin2, phone, email, business,
+                    startDate, endDate, price, payDay, notes,
+                    signatureCEO, signatureFreelancer
+                });
+                
+                // 임시 div 생성
+                const tempDiv = document.createElement('div');
+                tempDiv.style.position = 'absolute';
+                tempDiv.style.left = '-9999px';
+                tempDiv.style.width = '794px';
+                tempDiv.style.background = 'white';
+                tempDiv.innerHTML = contractHTML;
+                document.body.appendChild(tempDiv);
+                
+                // HTML을 이미지로 변환
+                const canvas = await html2canvas(tempDiv, {
+                    scale: 2,
+                    useCORS: true,
+                    logging: false,
+                    backgroundColor: '#ffffff'
+                });
+                
+                // div 제거
+                document.body.removeChild(tempDiv);
+                
+                // PDF 생성
+                const { jsPDF } = window.jspdf;
+                const imgData = canvas.toDataURL('image/png');
+                const imgWidth = 210; // A4 width in mm
+                const imgHeight = (canvas.height * imgWidth) / canvas.width;
+                
+                const doc = new jsPDF('p', 'mm', 'a4');
+                let heightLeft = imgHeight;
+                let position = 0;
+                
+                // 첫 페이지
+                doc.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                heightLeft -= 297;
+                
+                // 추가 페이지 (필요시)
+                while (heightLeft > 0) {
+                    position = heightLeft - imgHeight;
+                    doc.addPage();
+                    doc.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                    heightLeft -= 297;
                 }
                 
-                const fileName = `Contract_${name}_${new Date().toISOString().split('T')[0]}.pdf`;
-                console.log('PDF 저장:', fileName);
+                const fileName = `프리랜서계약서_${name}_${new Date().toISOString().split('T')[0]}.pdf`;
                 doc.save(fileName);
                 
                 showToast('✅ PDF 다운로드 완료!', 'success');
-                console.log('✅ PDF 다운로드 완료');
                 
             } catch (error) {
                 console.error('❌ PDF 생성 실패:', error);
-                alert('PDF 생성 실패: ' + error.message + '\n\n콘솔(F12)에서 자세한 에러를 확인하세요.');
+                alert('PDF 생성 실패: ' + error.message);
             }
         }
 
@@ -7177,125 +7138,125 @@
         // 계약서 HTML 생성
         function generateContractHTML(data) {
             return `
-                <div style="font-family: '맑은 고딕', sans-serif; line-height: 1.8; color: #333; max-width: 800px; margin: 0 auto;">
-                    <h2 style="text-align: center; margin-bottom: 30px; color: #10b981; font-size: 28px;">
+                <div style="font-family: '맑은 고딕', sans-serif; line-height: 1.6; color: #333; max-width: 800px; margin: 0 auto; padding: 20px;">
+                    <h2 style="text-align: center; margin-bottom: 25px; color: #10b981; font-size: 26px;">
                         표준 프리랜서 계약서
                     </h2>
                     
-                    <div style="margin-bottom: 30px; text-align: justify; line-height: 2;">
+                    <div style="margin-bottom: 25px; text-align: justify; line-height: 1.7; font-size: 14px;">
                         <strong>더홈점검</strong> (이하 "갑"이라 합니다)은 
                         <strong>${data.name}</strong> (이하 "을"이라 합니다)에게 
                         아파트사전점검 대행업무를 의뢰하면서 다음과 같이 프리랜서 계약을 체결한다.
                     </div>
                     
-                    <h3 style="color: #10b981; margin-top: 30px; margin-bottom: 15px; border-bottom: 2px solid #10b981; padding-bottom: 8px;">
+                    <h3 style="color: #10b981; margin-top: 20px; margin-bottom: 10px; border-bottom: 2px solid #10b981; padding-bottom: 5px; font-size: 15px;">
                         제1조 【목적】
                     </h3>
-                    <p style="text-align: justify; line-height: 2;">
+                    <p style="text-align: justify; line-height: 1.6; font-size: 13px; margin-bottom: 15px;">
                         본 계약은 "갑"이 "을"에게 연구 및 용역을 의뢰함에 있어 필요한 사항을 정하는 것을 목적으로 한다.
                     </p>
                     
-                    <h3 style="color: #10b981; margin-top: 30px; margin-bottom: 15px; border-bottom: 2px solid #10b981; padding-bottom: 8px;">
+                    <h3 style="color: #10b981; margin-top: 20px; margin-bottom: 10px; border-bottom: 2px solid #10b981; padding-bottom: 5px; font-size: 15px;">
                         제2조 【계약업무】
                     </h3>
-                    <p style="text-align: justify; line-height: 2;">
+                    <p style="text-align: justify; line-height: 1.6; font-size: 13px; margin-bottom: 5px;">
                         "을"은 "갑"이 의뢰한 다음 각 호의 과업을 수행하여야 한다.
                     </p>
-                    <p style="margin-left: 20px; line-height: 2;">
+                    <p style="margin-left: 20px; line-height: 1.6; font-size: 13px; margin-bottom: 15px;">
                         1. 아파트사전점검 대행 서비스
                     </p>
                     
-                    <h3 style="color: #10b981; margin-top: 30px; margin-bottom: 15px; border-bottom: 2px solid #10b981; padding-bottom: 8px;">
+                    <h3 style="color: #10b981; margin-top: 20px; margin-bottom: 10px; border-bottom: 2px solid #10b981; padding-bottom: 5px; font-size: 15px;">
                         제3조 【계약기간】
                     </h3>
-                    <p style="text-align: justify; line-height: 2;">
+                    <p style="text-align: justify; line-height: 1.6; font-size: 13px; margin-bottom: 15px;">
                         계약기간은 <strong>${data.startDate}</strong>로부터 <strong>${data.endDate}</strong>까지로 하며, 
                         "갑"과 "을"의 합의 하에 본 계약기간은 연장되거나 해지될 수 있다.
                     </p>
                     
-                    <h3 style="color: #10b981; margin-top: 30px; margin-bottom: 15px; border-bottom: 2px solid #10b981; padding-bottom: 8px;">
+                    <h3 style="color: #10b981; margin-top: 20px; margin-bottom: 10px; border-bottom: 2px solid #10b981; padding-bottom: 5px; font-size: 15px;">
                         제4조 【근무시간 및 장소】
                     </h3>
-                    <p style="text-align: justify; line-height: 2;">
+                    <p style="text-align: justify; line-height: 1.6; font-size: 13px; margin-bottom: 15px;">
                         "을"은 "갑"이 지정하는 근무시간 및 근무장소에서 업무를 성실히 수행하여야 한다. 
                         다만, "갑"과 합의하여 근무 시간과 근무장소를 조정할 수 있다.
                     </p>
                     
-                    <h3 style="color: #10b981; margin-top: 30px; margin-bottom: 15px; border-bottom: 2px solid #10b981; padding-bottom: 8px;">
+                    <h3 style="color: #10b981; margin-top: 20px; margin-bottom: 10px; border-bottom: 2px solid #10b981; padding-bottom: 5px; font-size: 15px;">
                         제5조 【계약금액】
                     </h3>
-                    <p style="line-height: 2;">
+                    <p style="line-height: 1.6; font-size: 13px; margin-bottom: 15px;">
                         ① 총 계약금액은 일당 1만원~50만원으로 한다. 
                         <strong style="color: #ef4444;">(업무에 따라 지급비용이 다르게 지급됨)</strong>
                     </p>
-                    <p style="line-height: 2;">
+                    <p style="line-height: 1.6; font-size: 13px; margin-bottom: 15px;">
                         ② "갑"은 "을"에게 아파트사전점검 업무 완료 후 
                         <strong style="color: #ef4444;">1개월 이내에</strong> "을" 명의의 계좌로 이체한다.
                     </p>
-                    <p style="line-height: 2;">
+                    <p style="line-height: 1.6; font-size: 13px; margin-bottom: 15px;">
                         ③ "갑"은 전 항의 보수 중 사업소득세율(3.3%)에 따라 원천징수의무를 이행한 후 
                         남은 금액을 "을"에게 지급한다.
                     </p>
                     
-                    <h3 style="color: #10b981; margin-top: 30px; margin-bottom: 15px; border-bottom: 2px solid #10b981; padding-bottom: 8px;">
+                    <h3 style="color: #10b981; margin-top: 20px; margin-bottom: 10px; border-bottom: 2px solid #10b981; padding-bottom: 5px; font-size: 15px;">
                         제6조 【양 당사자의 권리와 의무】
                     </h3>
-                    <p style="line-height: 2;">
+                    <p style="line-height: 1.6; font-size: 13px; margin-bottom: 15px;">
                         ① "갑"은 "을"이 과업하는데 필요한 자료 및 정보 등을 제공하여야 하며, 
                         과업수행을 위한 "을"의 요청이 있는 경우 이에 적극적으로 협조하여야 한다.
                     </p>
-                    <p style="line-height: 2;">
+                    <p style="line-height: 1.6; font-size: 13px; margin-bottom: 15px;">
                         ② "을"은 본 계약상 부담하는 모든 사항을 "갑"과 합의한 대로 이행하여야 하며, 
                         신의성실의 원칙에 따라 계약 내용을 이행하여야 한다.
                     </p>
-                    <p style="line-height: 2;">
+                    <p style="line-height: 1.6; font-size: 13px; margin-bottom: 15px;">
                         ③ "갑"은 "을"의 과업과 관련하여 협의할 사항이 있는 경우 "을"에게 협의를 요청할 수 있고 
                         "을"은 이러한 "갑"의 요구에 최대한 협조한다.
                     </p>
-                    <p style="line-height: 2;">
+                    <p style="line-height: 1.6; font-size: 13px; margin-bottom: 15px;">
                         ④ "을"은 본 계약 종료 후 지체없이 "갑"으로부터 제공받은 서류, 정보, 데이터 기타 
                         모든 형태의 자료를 "갑"에게 반환하여야 하고, 반환이 어려운 경우 이를 파기하고 
                         "갑"의 승인을 받아야 한다.
                     </p>
                     
-                    <h3 style="color: #10b981; margin-top: 30px; margin-bottom: 15px; border-bottom: 2px solid #10b981; padding-bottom: 8px;">
+                    <h3 style="color: #10b981; margin-top: 20px; margin-bottom: 10px; border-bottom: 2px solid #10b981; padding-bottom: 5px; font-size: 15px;">
                         제7조 【비밀유지 및 지식재산권의 귀속】
                     </h3>
-                    <p style="line-height: 2;">
+                    <p style="line-height: 1.6; font-size: 13px; margin-bottom: 15px;">
                         ① "을"은 본 계약 및 과업과 관련하여 알게 된 일체의 정보를 외부에 누설하거나 
                         유출해서는 아니되며, 이로 인해 발생하는 손해에 대해 책임을 지기로 한다.
                     </p>
-                    <p style="line-height: 2;">
+                    <p style="line-height: 1.6; font-size: 13px; margin-bottom: 15px;">
                         ② "을"은 창조, 개선, 작성, 생산한 모든 결과물의 저작권에 대한 책임을 보증하며, 
                         본 계약에 의한 결과물의 권리는 "갑"의 소유가 된다.
                     </p>
                     
-                    <h3 style="color: #10b981; margin-top: 30px; margin-bottom: 15px; border-bottom: 2px solid #10b981; padding-bottom: 8px;">
+                    <h3 style="color: #10b981; margin-top: 20px; margin-bottom: 10px; border-bottom: 2px solid #10b981; padding-bottom: 5px; font-size: 15px;">
                         제8조 【근무조건】
                     </h3>
-                    <p style="line-height: 2;">
+                    <p style="line-height: 1.6; font-size: 13px; margin-bottom: 15px;">
                         ① 본 계약상의 업무를 수행하기 위하여 필요한 기타사항은 자유로 한다.
                     </p>
-                    <p style="line-height: 2;">
+                    <p style="line-height: 1.6; font-size: 13px; margin-bottom: 15px;">
                         ② 본 계약 내용 외에도 다른 필요한 업무가 필요한 경우 "갑"은 "을"이 추가로 
                         작업을 수행하는 부분에 대한 인건비와 계약 기간은 상호 협의 하에 결정한다.
                     </p>
                     
-                    <h3 style="color: #10b981; margin-top: 30px; margin-bottom: 15px; border-bottom: 2px solid #10b981; padding-bottom: 8px;">
+                    <h3 style="color: #10b981; margin-top: 20px; margin-bottom: 10px; border-bottom: 2px solid #10b981; padding-bottom: 5px; font-size: 15px;">
                         제9조 【권리의 이전·양도·처분·재위탁 금지】
                     </h3>
-                    <p style="text-align: justify; line-height: 2;">
+                    <p style="text-align: justify; line-height: 1.6; font-size: 13px; margin-bottom: 15px;">
                         "갑" 또는 "을"은 서로 상대방의 서면 동의가 있는 경우를 제외하고는 어떠한 이유로도 
                         본 계약상 자신의 권리나 의무를 다른 제3자에게 이전·양도·처분·재위탁할 수 없다.
                     </p>
                     
-                    <h3 style="color: #10b981; margin-top: 30px; margin-bottom: 15px; border-bottom: 2px solid #10b981; padding-bottom: 8px;">
+                    <h3 style="color: #10b981; margin-top: 20px; margin-bottom: 10px; border-bottom: 2px solid #10b981; padding-bottom: 5px; font-size: 15px;">
                         제10조 【해지】
                     </h3>
-                    <p style="line-height: 2;">
+                    <p style="line-height: 1.6; font-size: 13px; margin-bottom: 15px;">
                         ① "갑"과 "을"은 다음 각 호에 해당될 경우 본 계약을 해지할 수 있다.
                     </p>
-                    <p style="margin-left: 20px; line-height: 2;">
+                    <p style="margin-left: 20px; line-height: 1.6; font-size: 13px; margin-bottom: 15px;">
                         1. 정당한 이유 없이 과업 진행이 이루어지지 않을 때<br>
                         2. 정당한 이유 없이 계약기간 내에 과업완료가 불가능하다고 판단될 때<br>
                         3. 상호간에 계약을 해지하기로 서면합의한 때<br>
@@ -7305,50 +7266,50 @@
                            7일 이내에 집행취소나 체납 등 처분의 취소를 받지 않은 때<br>
                         6. 기타 본 계약상의 과업을 수행하는 것이 불가능하다고 객관적으로 판단될 때
                     </p>
-                    <p style="line-height: 2;">
+                    <p style="line-height: 1.6; font-size: 13px; margin-bottom: 15px;">
                         ② 본 조에 따른 계약의 해지는 계약기간 중 발생한 당사자 간의 권리의무에 따른 
                         손해배상의 청구에 영향을 미치지 않는다.
                     </p>
                     
-                    <h3 style="color: #10b981; margin-top: 30px; margin-bottom: 15px; border-bottom: 2px solid #10b981; padding-bottom: 8px;">
+                    <h3 style="color: #10b981; margin-top: 20px; margin-bottom: 10px; border-bottom: 2px solid #10b981; padding-bottom: 5px; font-size: 15px;">
                         제11조 【손해배상】
                     </h3>
-                    <p style="line-height: 2;">
+                    <p style="line-height: 1.6; font-size: 13px; margin-bottom: 15px;">
                         ① "을"의 귀책사유로 인하여 본 계약이 불이행 되었을 경우 "을"은 "갑"이 제시한 
                         손해배상의 책임을 진다(이때, 손해배상액은 상호 협의 한다).
                     </p>
-                    <p style="line-height: 2;">
+                    <p style="line-height: 1.6; font-size: 13px; margin-bottom: 15px;">
                         ② "을"의 귀책사유로 인하여 기타 제3자에게 손해가 발생하는 경우 이는 "을"이 부담하며, 
                         "갑"이 전부 또는 일부를 배상한 때에는 "갑"이 "을"에게 이를 구상할 수 있다.
                     </p>
                     
-                    <h3 style="color: #10b981; margin-top: 30px; margin-bottom: 15px; border-bottom: 2px solid #10b981; padding-bottom: 8px;">
+                    <h3 style="color: #10b981; margin-top: 20px; margin-bottom: 10px; border-bottom: 2px solid #10b981; padding-bottom: 5px; font-size: 15px;">
                         제12조 【일부무효】
                     </h3>
-                    <p style="text-align: justify; line-height: 2;">
+                    <p style="text-align: justify; line-height: 1.6; font-size: 13px; margin-bottom: 15px;">
                         본 계약의 일부 조항이 법령 또는 판결에 의하여 무효 또는 불법으로 판정되는 경우에도 
                         본 계약 전체가 무효로 되는 것은 아니며, 무효로 되지 않는 다른 조항은 법령에 의하여 
                         허용되는 한도에서 여전히 유효하게 존속하고, 무효 또는 불법조항이 포함되지 않았던 것처럼 해석한다.
                     </p>
                     
-                    <h3 style="color: #10b981; margin-top: 30px; margin-bottom: 15px; border-bottom: 2px solid #10b981; padding-bottom: 8px;">
+                    <h3 style="color: #10b981; margin-top: 20px; margin-bottom: 10px; border-bottom: 2px solid #10b981; padding-bottom: 5px; font-size: 15px;">
                         제13조 【계약의 변경】
                     </h3>
-                    <p style="text-align: justify; line-height: 2;">
+                    <p style="text-align: justify; line-height: 1.6; font-size: 13px; margin-bottom: 15px;">
                         본 계약은 "갑"과 "을"의 서면합의에 따라 변경될 수 있다.
                     </p>
                     
-                    <h3 style="color: #10b981; margin-top: 30px; margin-bottom: 15px; border-bottom: 2px solid #10b981; padding-bottom: 8px;">
+                    <h3 style="color: #10b981; margin-top: 20px; margin-bottom: 10px; border-bottom: 2px solid #10b981; padding-bottom: 5px; font-size: 15px;">
                         제14조 【관할】
                     </h3>
-                    <p style="text-align: justify; line-height: 2;">
+                    <p style="text-align: justify; line-height: 1.6; font-size: 13px; margin-bottom: 15px;">
                         본 계약과 관련하여 분쟁이 발생한 경우 당사자의 상호 협의에 의한 해결을 모색하되, 
                         분쟁에 관한 합의가 이루어지지 아니한 경우에는 "갑"의 본점 소재지 관할법원을 
                         제1심 관할법원으로 하여 소송을 통해 분쟁을 해결하기로 한다.
                     </p>
                     
                     <div style="margin-top: 40px; padding: 20px; background: #f8f9fa; border-radius: 8px;">
-                        <p style="text-align: center; margin-bottom: 30px; line-height: 2;">
+                        <p style="text-align: center; margin-bottom: 30px; line-height: 1.6; font-size: 13px; margin-bottom: 15px;">
                             각 당사자는 위 계약을 증명하기 위하여 본 계약서 2통을 작성하여,<br>
                             각각 서명(또는 기명)날인 후 "갑"과 "을"이 각각 1통씩을 보관한다.
                         </p>
@@ -7357,27 +7318,47 @@
                             ${new Date().getFullYear()}년 ${new Date().getMonth() + 1}월 ${new Date().getDate()}일
                         </p>
                         
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 30px;">
-                            <div style="border: 2px solid #10b981; padding: 20px; border-radius: 8px;">
-                                <h4 style="color: #10b981; margin-bottom: 15px; text-align: center;">【갑】</h4>
-                                <p style="line-height: 2;">
-                                    <strong>대표자:</strong> 박지현 (더홈점검) (인)<br>
-                                    <strong>주소:</strong> 인천광역시 부평구 충선로209번길 13, 8층<br>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 30px;">
+                            <div style="border: 2px solid #10b981; padding: 15px; border-radius: 8px; background: white;">
+                                <h4 style="color: #10b981; margin-bottom: 10px; text-align: center; font-size: 16px;">【갑】</h4>
+                                <p style="line-height: 1.6; font-size: 13px;">
+                                    <strong>대표자:</strong> 박지현 (더홈점검)<br>
+                                    <strong>주소:</strong> 경기도 부천시 원미구 송내대로265번길 23, 201호<br>
                                     <strong>사업자번호:</strong> 531-42-01293<br>
                                     <strong>연락처:</strong> 070-8019-1456
                                 </p>
+                                ${data.signatureCEO ? `
+                                    <div style="margin-top: 10px; text-align: center;">
+                                        <img src="${data.signatureCEO}" style="max-width: 150px; max-height: 60px; border: 1px solid #ddd; padding: 5px; background: white;" alt="CEO 서명">
+                                        <p style="font-size: 11px; color: #666; margin-top: 5px;">(서명)</p>
+                                    </div>
+                                ` : `
+                                    <div style="margin-top: 10px; padding: 30px; border: 1px dashed #ddd; text-align: center; color: #999; font-size: 12px;">
+                                        서명 없음
+                                    </div>
+                                `}
                             </div>
                             
-                            <div style="border: 2px solid #10b981; padding: 20px; border-radius: 8px;">
-                                <h4 style="color: #10b981; margin-bottom: 15px; text-align: center;">【을】</h4>
-                                <p style="line-height: 2;">
-                                    <strong>성명:</strong> ${data.name} (인)<br>
+                            <div style="border: 2px solid #10b981; padding: 15px; border-radius: 8px; background: white;">
+                                <h4 style="color: #10b981; margin-bottom: 10px; text-align: center; font-size: 16px;">【을】</h4>
+                                <p style="line-height: 1.6; font-size: 13px;">
+                                    <strong>성명:</strong> ${data.name}<br>
                                     <strong>주소:</strong> ${data.address}<br>
                                     <strong>주민등록번호:</strong> ${data.jumin1}-${data.jumin2}******<br>
                                     <strong>연락처:</strong> ${data.phone}<br>
                                     <strong>이메일:</strong> ${data.email}
-                                    ${data.business ? `<br><strong>사업자등록번호:</strong> ${data.business}` : ''}
+                                    ${data.business ? `<br><strong>사업자번호:</strong> ${data.business}` : ''}
                                 </p>
+                                ${data.signatureFreelancer ? `
+                                    <div style="margin-top: 10px; text-align: center;">
+                                        <img src="${data.signatureFreelancer}" style="max-width: 150px; max-height: 60px; border: 1px solid #ddd; padding: 5px; background: white;" alt="프리랜서 서명">
+                                        <p style="font-size: 11px; color: #666; margin-top: 5px;">(서명)</p>
+                                    </div>
+                                ` : `
+                                    <div style="margin-top: 10px; padding: 30px; border: 1px dashed #ddd; text-align: center; color: #999; font-size: 12px;">
+                                        서명 없음
+                                    </div>
+                                `}
                             </div>
                         </div>
                     </div>
@@ -7385,7 +7366,7 @@
                     ${data.notes ? `
                         <div style="margin-top: 30px; padding: 20px; background: #fffbeb; border-radius: 8px; border-left: 5px solid #fbbf24;">
                             <h4 style="color: #92400e; margin-bottom: 10px;">📌 특이사항</h4>
-                            <p style="line-height: 2; color: #92400e;">${data.notes}</p>
+                            <p style="line-height: 1.6; font-size: 13px; margin-bottom: 15px; color: #92400e;">${data.notes}</p>
                         </div>
                     ` : ''}
                 </div>
@@ -7425,13 +7406,7 @@
             }, 500);
         }
 
-        // 계약서 PDF 다운로드
-        window.downloadContractPDF = async function(id) {
-            await viewContract(id);
-            setTimeout(() => {
-                generateContractPDF();
-            }, 500);
-        }
+
 
         // 계약서 삭제
         window.deleteContract = async function(id) {
