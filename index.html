@@ -16,7 +16,7 @@
     <meta name="apple-mobile-web-app-title" content="더홈점검">
     
     <!-- PWA Manifest -->
-    <link rel="manifest" href="./manifest.json">
+    <!-- manifest.json 제거 (CORS 에러 방지) -->
     
     <!-- jsPDF + html2canvas Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -1056,31 +1056,22 @@
                     프리랜서 고용계약서를 디지털로 작성하고 관리합니다
                 </p>
 
-                <!-- 계약서 작성/목록 토글 버튼 -->
-                <div style="margin-bottom: 20px; display: flex; gap: 10px;">
-                    <button class="btn btn-primary" onclick="showContractList()" id="btnShowList">
-                        📋 계약서 목록
+                <!-- 계약서 작성 안내 -->
+                <div style="text-align: center; margin-bottom: 30px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 30px; border-radius: 15px;">
+                    <p style="color: white; font-size: 20px; font-weight: bold; margin-bottom: 12px;">
+                        ✨ 간편한 계약서 작성
+                    </p>
+                    <p style="color: white; font-size: 15px; margin-bottom: 20px; opacity: 0.95;">
+                        작성 → 서명 → PDF 다운로드 → 카톡/이메일 공유
+                    </p>
+                    <button class="btn" onclick="showContractForm()" 
+                        style="background: white; color: #10b981; font-size: 17px; padding: 14px 35px; font-weight: bold; border: none;">
+                        ➕ 계약서 작성하기
                     </button>
-                    <button class="btn" onclick="showContractForm()" id="btnShowForm">
-                        ➕ 새 계약서 작성
-                    </button>
-                </div>
-
-                <!-- 계약서 목록 -->
-                <div id="contractList" style="display: block;">
-                    <div style="margin-bottom: 20px;">
-                        <input type="text" id="contractSearch" placeholder="🔍 이름으로 검색..." 
-                            style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--card-bg); color: var(--text-primary);"
-                            oninput="searchContracts()">
-                    </div>
-                    
-                    <div id="contractListContainer">
-                        <!-- JavaScript로 동적 생성 -->
-                    </div>
                 </div>
 
                 <!-- 계약서 작성 폼 -->
-                <div id="contractForm" style="display: none;">
+                <div id="contractForm" style="display: block;">
                     <div class="form-group">
                         <h3 style="color: var(--primary); margin-bottom: 15px;">👤 프리랜서 정보</h3>
                         
@@ -1193,10 +1184,16 @@
                     </div>
 
                     <div style="display: flex; gap: 10px; margin-top: 30px;">
-                        <button class="btn" onclick="showContractList()">⬅️ 취소</button>
-                        <button class="btn btn-primary" onclick="previewContract()">👁️ 미리보기</button>
-                        <button class="btn" onclick="saveContract()" style="background: var(--primary);">💾 계약서 저장</button>
+                        <button class="btn btn-primary" onclick="previewContract()" style="flex: 1;">
+                            👁️ 미리보기
+                        </button>
+                        <button class="btn btn-primary" onclick="downloadContractPDF()" style="flex: 1;">
+                            📥 PDF 다운로드
+                        </button>
                     </div>
+                    <p style="text-align: center; margin-top: 15px; color: var(--text-secondary); font-size: 14px;">
+                        💡 서명 후 PDF 다운로드 → 카톡/이메일로 공유하세요
+                    </p>
                 </div>
 
                 <!-- 계약서 미리보기 모달 -->
@@ -1213,10 +1210,9 @@
                         
                         <div id="contractPreviewContent"></div>
                         
-                        <div style="margin-top: 30px; display: flex; gap: 10px; justify-content: center;">
-                            <button class="btn" onclick="closePreview()">닫기</button>
-                            <button class="btn btn-primary" onclick="generateContractPDF()">
-                                📄 PDF 생성
+                        <div style="margin-top: 30px; text-align: center;">
+                            <button class="btn btn-primary" onclick="closePreview()" style="padding: 12px 40px; font-size: 16px;">
+                                닫기
                             </button>
                         </div>
                     </div>
@@ -6821,45 +6817,35 @@
             `).join('');
         }
 
-        // 계약서 작성 폼 표시
+        // 계약서 작성 폼으로 스크롤
         window.showContractForm = function() {
-            document.getElementById('contractList').style.display = 'none';
-            document.getElementById('contractForm').style.display = 'block';
-            document.getElementById('btnShowList').classList.remove('btn-primary');
-            document.getElementById('btnShowList').classList.add('btn');
-            document.getElementById('btnShowForm').classList.remove('btn');
-            document.getElementById('btnShowForm').classList.add('btn-primary');
+            const contractForm = document.getElementById('contractForm');
+            if (contractForm) {
+                contractForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
             
             // 서명 패드 초기화
-            initializeSignaturePads();
+            setTimeout(() => {
+                if (typeof initializeSignaturePads === 'function') {
+                    initializeSignaturePads();
+                }
+            }, 300);
             
             // 기본 날짜 설정
             const today = new Date().toISOString().split('T')[0];
             const nextYear = new Date();
             nextYear.setFullYear(nextYear.getFullYear() + 1);
-            document.getElementById('contractStartDate').value = today;
-            document.getElementById('contractEndDate').value = nextYear.toISOString().split('T')[0];
+            
+            const startDateEl = document.getElementById('contractStartDate');
+            const endDateEl = document.getElementById('contractEndDate');
+            if (startDateEl && !startDateEl.value) startDateEl.value = today;
+            if (endDateEl && !endDateEl.value) endDateEl.value = nextYear.toISOString().split('T')[0];
         }
 
         // 계약서 목록 표시
         window.showContractList = function() {
-            document.getElementById('contractList').style.display = 'block';
-            document.getElementById('contractForm').style.display = 'none';
-            document.getElementById('btnShowList').classList.add('btn-primary');
-            document.getElementById('btnShowList').classList.remove('btn');
-            document.getElementById('btnShowForm').classList.add('btn');
-            document.getElementById('btnShowForm').classList.remove('btn-primary');
-            
-            // 폼 초기화
-            const fields = ['contractName', 'contractAddress', 'contractJumin1', 'contractJumin2', 
-                           'contractPhone', 'contractEmail', 'contractBusiness', 'contractPrice', 
-                           'contractPayDay', 'contractNotes'];
-            fields.forEach(id => {
-                const el = document.getElementById(id);
-                if (el) el.value = '';
-            });
-            
-            loadContracts();
+            // 더 이상 목록 기능 없음 - 아무 동작 안 함
+            console.log('계약서 목록 기능이 제거되었습니다.');
         }
 
         // 서명 패드 초기화
@@ -6869,7 +6855,7 @@
                     const canvas = document.getElementById(`signature${type}`);
                     if (!canvas) return;
                     
-                    const ctx = canvas.getContext('2d');
+                    const ctx = canvas.getContext('2d', { willReadFrequently: true });
                     let isDrawing = false;
                     let lastX = 0;
                     let lastY = 0;
@@ -6943,7 +6929,7 @@
 
         // 캔버스가 비어있는지 확인
         function isCanvasBlank(canvas) {
-            const context = canvas.getContext('2d');
+            const context = canvas.getContext('2d', { willReadFrequently: true });
             const pixelBuffer = new Uint32Array(
                 context.getImageData(0, 0, canvas.width, canvas.height).data.buffer
             );
@@ -6972,7 +6958,6 @@
             const ceoSigned = signaturePads['CEO'] && !isCanvasBlank(signaturePads['CEO'].canvas);
             const freelancerSigned = signaturePads['Freelancer'] && !isCanvasBlank(signaturePads['Freelancer'].canvas);
             
-            // 둘 다 없으면 경고
             if (!ceoSigned && !freelancerSigned) {
                 alert('최소 한 명은 서명이 필요합니다');
                 return;
@@ -6994,6 +6979,147 @@
             document.getElementById('contractPreviewContent').innerHTML = previewHTML;
             document.getElementById('contractPreviewModal').style.display = 'block';
         }
+
+        // PDF 다운로드 (서명 포함)
+        window.downloadContractPDF = async function() {
+            console.log('📥 PDF 다운로드 시작');
+            
+            const name = document.getElementById('contractName').value;
+            const address = document.getElementById('contractAddress').value;
+            const jumin1 = document.getElementById('contractJumin1').value;
+            const jumin2 = document.getElementById('contractJumin2').value;
+            const phone = document.getElementById('contractPhone').value;
+            const email = document.getElementById('contractEmail').value;
+            const startDate = document.getElementById('contractStartDate').value;
+            const endDate = document.getElementById('contractEndDate').value;
+            
+            console.log('입력값:', { name, address, phone, email, startDate, endDate });
+            
+            if (!name || !address || !jumin1 || !jumin2 || !phone || !email || !startDate || !endDate) {
+                alert('필수 항목을 모두 입력해주세요');
+                return;
+            }
+            
+            const ceoSigned = signaturePads['CEO'] && !isCanvasBlank(signaturePads['CEO'].canvas);
+            const freelancerSigned = signaturePads['Freelancer'] && !isCanvasBlank(signaturePads['Freelancer'].canvas);
+            
+            console.log('서명 상태:', { ceoSigned, freelancerSigned });
+            
+            if (!ceoSigned && !freelancerSigned) {
+                alert('최소 한 명은 서명이 필요합니다');
+                return;
+            }
+            
+            try {
+                console.log('PDF 생성 시작...');
+                showToast('PDF 생성 중...', 'info');
+                
+                if (!window.jspdf) {
+                    throw new Error('jsPDF 라이브러리가 로드되지 않았습니다');
+                }
+                
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                
+                console.log('jsPDF 생성 완료');
+                
+                // 한글 폰트는 나중에 로드되므로 일단 기본 폰트 사용
+                doc.setFont('helvetica');
+                
+                let y = 20;
+                const addText = (text) => {
+                    const lines = doc.splitTextToSize(text, 170);
+                    lines.forEach(line => {
+                        if (y > 270) { doc.addPage(); y = 20; }
+                        doc.text(line, 20, y);
+                        y += 6;
+                    });
+                };
+                
+                doc.setFontSize(18);
+                doc.text('Freelancer Contract', 105, y, { align: 'center' });
+                y += 15;
+                
+                doc.setFontSize(10);
+                addText(`TheHome Inspection (Party A) and ${name} (Party B) enter into this freelance contract.`);
+                y += 5;
+                
+                doc.setFontSize(11);
+                addText('Article 1: Purpose');
+                doc.setFontSize(10);
+                addText('This contract defines the terms for Party A to commission research and services to Party B.');
+                y += 3;
+                
+                doc.setFontSize(11);
+                addText('Article 2: Contract Work');
+                doc.setFontSize(10);
+                addText('Party B shall perform: 1. Apartment pre-inspection agency services');
+                y += 3;
+                
+                doc.setFontSize(11);
+                addText('Article 3: Contract Period');
+                doc.setFontSize(10);
+                addText(`Period: ${startDate} to ${endDate}`);
+                y += 3;
+                
+                doc.setFontSize(11);
+                addText('Article 4: Work Hours and Location');
+                doc.setFontSize(10);
+                addText('Party B shall work at designated hours and locations.');
+                y += 3;
+                
+                doc.setFontSize(11);
+                addText('Article 5: Contract Amount');
+                doc.setFontSize(10);
+                addText('Daily rate: 10,000-500,000 KRW. Payment within 1 month. 3.3% tax withheld.');
+                
+                if (y > 200) { doc.addPage(); y = 20; }
+                
+                y += 10;
+                doc.setFontSize(11);
+                addText(`${new Date().getFullYear()}.${new Date().getMonth() + 1}.${new Date().getDate()}`);
+                y += 10;
+                
+                doc.setFontSize(9);
+                addText('[Party A]');
+                addText('CEO: Park Ji-hyun (TheHome Inspection)');
+                addText('Address: 13, Chungseon-ro 209beon-gil, Bupyeong-gu, Incheon, 8F');
+                addText('Business No: 531-42-01293');
+                addText('Tel: 070-8019-1456');
+                
+                if (ceoSigned) {
+                    console.log('CEO 서명 추가 중...');
+                    doc.addImage(signaturePads['CEO'].canvas.toDataURL(), 'PNG', 70, y, 40, 20);
+                }
+                y += 25;
+                
+                const business = document.getElementById('contractBusiness').value;
+                addText('[Party B]');
+                addText(`Name: ${name}`);
+                addText(`Address: ${address}`);
+                addText(`ID: ${jumin1}-${jumin2}******`);
+                addText(`Phone: ${phone}`);
+                addText(`Email: ${email}`);
+                if (business) addText(`Business No: ${business}`);
+                
+                if (freelancerSigned) {
+                    console.log('프리랜서 서명 추가 중...');
+                    doc.addImage(signaturePads['Freelancer'].canvas.toDataURL(), 'PNG', 70, y, 40, 20);
+                }
+                
+                const fileName = `Contract_${name}_${new Date().toISOString().split('T')[0]}.pdf`;
+                console.log('PDF 저장:', fileName);
+                doc.save(fileName);
+                
+                showToast('✅ PDF 다운로드 완료!', 'success');
+                console.log('✅ PDF 다운로드 완료');
+                
+            } catch (error) {
+                console.error('❌ PDF 생성 실패:', error);
+                alert('PDF 생성 실패: ' + error.message + '\n\n콘솔(F12)에서 자세한 에러를 확인하세요.');
+            }
+        }
+
 
         // 미리보기 닫기
         window.closePreview = function() {
