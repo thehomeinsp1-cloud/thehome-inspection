@@ -4141,35 +4141,6 @@
             });
         }
 
-        // 📱 갤러리에 사진 저장하는 함수
-        async function saveToGallery(imageDataUrl, filename) {
-            try {
-                // Base64를 Blob으로 변환
-                const response = await fetch(imageDataUrl);
-                const blob = await response.blob();
-                
-                // 파일 다운로드 트리거 (모바일에서는 갤러리에 저장됨)
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = filename;
-                a.style.display = 'none';
-                document.body.appendChild(a);
-                a.click();
-                
-                // 메모리 정리
-                setTimeout(() => {
-                    document.body.removeChild(a);
-                    URL.revokeObjectURL(url);
-                }, 100);
-                
-                console.log('✅ 갤러리 저장 완료:', filename);
-            } catch (error) {
-                console.error('❌ 갤러리 저장 실패:', error);
-                // 저장 실패해도 앱 사용에는 문제없음 (조용히 실패 처리)
-            }
-        }
-
         window.capturePhoto = async function() {
             // 이벤트 전파 방지
             if (event) {
@@ -4191,18 +4162,9 @@
             // 이미지 압축 (1920px, 품질 85%)
             const imageData = await compressImage(originalImage, 1920, 0.85);
             
-            // 파일명 생성 (타임스탬프 기반)
-            const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
-            let filename = '';
-            
             if (currentPhotoTarget === 'floorplan') {
                 const project = getCurrentProject(); // ✅ 현재 프로젝트 가져오기
                 project.floorplan = imageData; // ✅ 현재 프로젝트에 저장
-                
-                // 갤러리에 자동 저장
-                filename = `더홈점검_평면도_${project.apartmentName}_${project.dong}동${project.ho}호_${timestamp}.jpg`;
-                await saveToGallery(imageData, filename);
-                
                 displayFloorplan();
                 showToast('평면도가 추가되었습니다');
             } else if (currentPhotoTarget && typeof currentPhotoTarget === 'object') {
@@ -4212,16 +4174,10 @@
                     if (defect) {
                         defect.photos.push(imageData);
                         
-                        // 갤러리에 자동 저장
-                        const project = getCurrentProject();
-                        const photoType = currentPhotoTarget.step === 'far' ? '멀리서' : '가까이서';
-                        filename = `더홈점검_하자${defect.id}_${photoType}_${project.apartmentName}_${project.dong}동${project.ho}호_${timestamp}.jpg`;
-                        await saveToGallery(imageData, filename);
-                        
                         if (currentPhotoTarget.step === 'far') {
-                            showToast('✓ 멀리서 촬영 완료!');
+                            showToast('✓ 멀리서 촬영 완료! 이제 가까이서 촬영해주세요.');
                         } else if (currentPhotoTarget.step === 'close') {
-                            showToast('✓ 가까이서 촬영 완료!');
+                            showToast('✓ 가까이서 촬영 완료! 하자 사진이 모두 등록되었습니다.');
                         }
                         
                         renderDefects();
@@ -4241,12 +4197,6 @@
                                 };
                             }
                             equipment.photos[currentPhotoTarget.location] = imageData;
-                            
-                            // 갤러리에 자동 저장
-                            const project = getCurrentProject();
-                            filename = `더홈점검_장비${equipment.id}_${currentPhotoTarget.location}_${project.apartmentName}_${project.dong}동${project.ho}호_${timestamp}.jpg`;
-                            await saveToGallery(imageData, filename);
-                            
                             showToast(`✓ ${currentPhotoTarget.location} 사진이 등록되었습니다.`);
                         } else {
                             // 구 버전 호환성
@@ -5487,9 +5437,13 @@
                 const pageWidth = 210;
                 const pageHeight = 297;
 
-                // 1페이지: 전체 요약
-                const summaryHTML = createSummaryPage();
-                await addHTMLPageToPDF(doc, summaryHTML, pageWidth, pageHeight);
+                // 1페이지: 전체 요약 (하자 목록 20개씩 페이지 분할)
+                const defectsPerPage = 20;
+                for (let i = 0; i < projectData.defects.length; i += defectsPerPage) {
+                    if (i > 0) doc.addPage(); // 첫 페이지가 아니면 새 페이지 추가
+                    const summaryHTML = createSummaryPage(i, defectsPerPage);
+                    await addHTMLPageToPDF(doc, summaryHTML, pageWidth, pageHeight);
+                }
 
                 // 2페이지~: 하자 상세 사진 (3개씩, 사진 2장씩)
                 if (projectData.defects.length > 0) {
@@ -5619,10 +5573,13 @@
             doc.addImage(imgData, 'JPEG', 0, 0, imgWidth, Math.min(imgHeight, pageHeight));
         }
 
-        function createSummaryPage() {
+        function createSummaryPage(startIndex = 0, itemsPerPage = 20) {
             let defectRows = '';
-            const displayDefects = projectData.defects.slice(0, 15);
-            displayDefects.forEach((defect, index) => {
+            const endIndex = Math.min(startIndex + itemsPerPage, projectData.defects.length);
+            const defectsToDisplay = projectData.defects.slice(startIndex, endIndex);
+            
+            defectsToDisplay.forEach((defect, index) => {
+                const globalIndex = startIndex + index + 1;
                 // 배열을 문자열로 변환 (하위 호환성)
                 const spaces = defect.spaces ? defect.spaces.join(', ') : (defect.space || '-');
                 const locations = defect.locations ? defect.locations.join(', ') : (defect.location || '-');
@@ -5633,7 +5590,7 @@
                 
                 defectRows += `
                     <tr style="border-bottom: 1px solid #ddd;">
-                        <td style="padding: 8px; text-align: center; font-weight: bold; color: #000000;">${index + 1}</td>
+                        <td style="padding: 8px; text-align: center; font-weight: bold; color: #000000;">${globalIndex}</td>
                         <td style="padding: 8px; text-align: center; color: #000000;">${spaces}</td>
                         <td style="padding: 8px; text-align: center; color: #000000;">${locations}</td>
                         <td style="padding: 8px; color: #000000;">${types}</td>
@@ -5642,6 +5599,12 @@
                     </tr>
                 `;
             });
+            
+            // 페이지 표시 추가
+            const totalPages = Math.ceil(projectData.defects.length / itemsPerPage);
+            const currentPage = Math.floor(startIndex / itemsPerPage) + 1;
+            const pageIndicator = totalPages > 1 ? ` (${currentPage}/${totalPages} 페이지)` : '';
+
 
             return `
                 <div style="width: 794px; min-height: 1123px; background: white; font-family: 'Malgun Gothic', sans-serif; padding: 30px;">
@@ -5689,7 +5652,7 @@
                         </div>
                     </div>
 
-                    <h3 style="margin: 0 0 12px 0; font-size: 16px; color: #000000; border-bottom: 2px solid #e74c3c; padding-bottom: 6px;">하자 점검 목록 (총 ${projectData.defects.length}건)</h3>
+                    <h3 style="margin: 0 0 12px 0; font-size: 16px; color: #000000; border-bottom: 2px solid #e74c3c; padding-bottom: 6px;">하자 점검 목록 (총 ${projectData.defects.length}건)${pageIndicator}</h3>
                     ${projectData.defects.length > 0 ? `
                         <table style="width: 100%; border-collapse: collapse; border: 1px solid #ddd; font-size: 13px;">
                             <thead>
@@ -5805,15 +5768,15 @@
                         </table>
 
                         <!-- 사진 영역 -->
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 12px;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 16px 20px;">
                             <div style="border: 1px solid #ddd; border-radius: 4px; overflow: hidden;">
                                 <div style="padding: 8px; text-align: center; font-weight: bold; font-size: 12px; color: #333; border-bottom: 3px solid #10b981;">
                                     📷 원경 (멀리서)
                                 </div>
                                 ${farPhoto ? `
-                                    <img src="${farPhoto}" style="width: 100%; height: 220px; object-fit: cover; display: block;" />
+                                    <img src="${farPhoto}" style="width: 100%; height: 240px; object-fit: cover; display: block;" />
                                 ` : `
-                                    <div style="width: 100%; height: 220px; background: #f9f9f9; display: flex; align-items: center; justify-content: center; color: #999; font-size: 11px; text-align: center; padding: 10px;">사진 없음</div>
+                                    <div style="width: 100%; height: 240px; background: #f9f9f9; display: flex; align-items: center; justify-content: center; color: #999; font-size: 11px; text-align: center; padding: 10px;">사진 없음</div>
                                 `}
                             </div>
 
@@ -5822,9 +5785,9 @@
                                     📷 근경 (가까이서)
                                 </div>
                                 ${closePhoto ? `
-                                    <img src="${closePhoto}" style="width: 100%; height: 220px; object-fit: cover; display: block;" />
+                                    <img src="${closePhoto}" style="width: 100%; height: 240px; object-fit: cover; display: block;" />
                                 ` : `
-                                    <div style="width: 100%; height: 220px; background: #f9f9f9; display: flex; align-items: center; justify-content: center; color: #999; font-size: 11px; text-align: center; padding: 10px;">사진 없음</div>
+                                    <div style="width: 100%; height: 240px; background: #f9f9f9; display: flex; align-items: center; justify-content: center; color: #999; font-size: 11px; text-align: center; padding: 10px;">사진 없음</div>
                                 `}
                             </div>
                         </div>
@@ -5833,7 +5796,7 @@
             }
 
             return `
-                <div style="width: 794px; min-height: 1123px; background: white; font-family: 'Malgun Gothic', sans-serif; padding: 30px;">
+                <div style="width: 794px; min-height: 1123px; background: white; font-family: 'Malgun Gothic', sans-serif; padding: 30px 70px;">
                     <div style="background: white; color: #000; padding: 15px 20px; margin-bottom: 25px; border-radius: 8px; border: 1px solid #ddd;">
                         <h2 style="margin: 0; font-size: 18px; font-weight: bold;">하자 상세 사진 (원경+근경)</h2>
                         <p style="margin: 5px 0 0 0; font-size: 12px; color: #666;">${projectData.apartmentName} ${projectData.dong} ${projectData.ho}</p>
