@@ -1047,6 +1047,174 @@
         </div>
     </div>
 
+        <!-- 계약서 관리 섹션 (숨김) -->
+        <div id="contract" class="section" style="display: none;">
+            <div class="card">
+                <h2 style="color: var(--primary); margin-bottom: 20px;">📄 프리랜서 계약서 관리</h2>
+                <p style="color: var(--text-secondary); margin-bottom: 30px; font-size: 14px;">
+                    프리랜서 고용계약서를 디지털로 작성하고 관리합니다
+                </p>
+
+                <!-- 계약서 작성/목록 토글 버튼 -->
+                <div style="margin-bottom: 20px; display: flex; gap: 10px;">
+                    <button class="btn btn-primary" onclick="showContractList()" id="btnShowList">
+                        📋 계약서 목록
+                    </button>
+                    <button class="btn" onclick="showContractForm()" id="btnShowForm">
+                        ➕ 새 계약서 작성
+                    </button>
+                </div>
+
+                <!-- 계약서 목록 -->
+                <div id="contractList" style="display: block;">
+                    <div style="margin-bottom: 20px;">
+                        <input type="text" id="contractSearch" placeholder="🔍 이름으로 검색..." 
+                            style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--card-bg); color: var(--text-primary);"
+                            oninput="searchContracts()">
+                    </div>
+                    
+                    <div id="contractListContainer">
+                        <!-- JavaScript로 동적 생성 -->
+                    </div>
+                </div>
+
+                <!-- 계약서 작성 폼 -->
+                <div id="contractForm" style="display: none;">
+                    <div class="form-group">
+                        <h3 style="color: var(--primary); margin-bottom: 15px;">👤 프리랜서 정보</h3>
+                        
+                        <div class="form-field">
+                            <label class="form-label">성명 *</label>
+                            <input type="text" class="form-input" id="contractName" required>
+                        </div>
+
+                        <div class="form-field">
+                            <label class="form-label">주소 *</label>
+                            <input type="text" class="form-input" id="contractAddress" required>
+                        </div>
+
+                        <div class="form-field">
+                            <label class="form-label">주민등록번호 *</label>
+                            <div style="display: flex; gap: 10px; align-items: center;">
+                                <input type="text" class="form-input" id="contractJumin1" placeholder="생년월일 6자리" 
+                                    maxlength="6" style="width: 150px;" required>
+                                <span>-</span>
+                                <input type="text" class="form-input" id="contractJumin2" placeholder="뒷자리 1자리" 
+                                    maxlength="1" style="width: 60px;" required>
+                                <span>******</span>
+                            </div>
+                        </div>
+
+                        <div class="form-field">
+                            <label class="form-label">연락처 *</label>
+                            <input type="tel" class="form-input" id="contractPhone" placeholder="010-0000-0000" required>
+                        </div>
+
+                        <div class="form-field">
+                            <label class="form-label">이메일 *</label>
+                            <input type="email" class="form-input" id="contractEmail" required>
+                        </div>
+
+                        <div class="form-field">
+                            <label class="form-label">사업자등록번호 (선택)</label>
+                            <input type="text" class="form-input" id="contractBusiness" placeholder="000-00-00000">
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-top: 30px;">
+                        <h3 style="color: var(--primary); margin-bottom: 15px;">📋 계약 조건</h3>
+                        
+                        <div class="form-field">
+                            <label class="form-label">계약 시작일 *</label>
+                            <input type="date" class="form-input" id="contractStartDate" required>
+                        </div>
+
+                        <div class="form-field">
+                            <label class="form-label">계약 종료일 *</label>
+                            <input type="date" class="form-input" id="contractEndDate" required>
+                        </div>
+
+                        <div class="form-field">
+                            <label class="form-label">건당 단가 (원) *</label>
+                            <input type="number" class="form-input" id="contractPrice" placeholder="예: 150000" required>
+                        </div>
+
+                        <div class="form-field">
+                            <label class="form-label">지급일 *</label>
+                            <div style="display: flex; gap: 10px; align-items: center;">
+                                <span style="color: var(--text-secondary);">매월</span>
+                                <input type="number" class="form-input" id="contractPayDay" min="1" max="31" 
+                                    style="width: 80px;" required>
+                                <span style="color: var(--text-secondary);">일</span>
+                            </div>
+                        </div>
+
+                        <div class="form-field">
+                            <label class="form-label">특이사항 (선택)</label>
+                            <textarea class="form-input" id="contractNotes" rows="3" 
+                                placeholder="추가 계약 조건이나 특이사항을 입력하세요"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-top: 30px;">
+                        <h3 style="color: var(--primary); margin-bottom: 15px;">✍️ 전자 서명</h3>
+                        
+                        <div style="margin-bottom: 20px;">
+                            <label class="form-label">대표 서명 (박지현)</label>
+                            <div style="border: 2px solid var(--border); border-radius: 8px; background: white; position: relative;">
+                                <canvas id="signatureCEO" width="600" height="200" 
+                                    style="display: block; width: 100%; cursor: crosshair; touch-action: none;"></canvas>
+                            </div>
+                            <button class="btn" onclick="clearSignature('CEO')" style="margin-top: 10px; background: var(--danger);">
+                                🗑️ 서명 지우기
+                            </button>
+                        </div>
+
+                        <div style="margin-bottom: 20px;">
+                            <label class="form-label">프리랜서 서명</label>
+                            <div style="border: 2px solid var(--border); border-radius: 8px; background: white; position: relative;">
+                                <canvas id="signatureFreelancer" width="600" height="200" 
+                                    style="display: block; width: 100%; cursor: crosshair; touch-action: none;"></canvas>
+                            </div>
+                            <button class="btn" onclick="clearSignature('Freelancer')" style="margin-top: 10px; background: var(--danger);">
+                                🗑️ 서명 지우기
+                            </button>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: 10px; margin-top: 30px;">
+                        <button class="btn" onclick="showContractList()">⬅️ 취소</button>
+                        <button class="btn btn-primary" onclick="previewContract()">👁️ 미리보기</button>
+                        <button class="btn" onclick="saveContract()" style="background: var(--primary);">💾 계약서 저장</button>
+                    </div>
+                </div>
+
+                <!-- 계약서 미리보기 모달 -->
+                <div id="contractPreviewModal" style="display: none; position: fixed; top: 0; left: 0; 
+                    width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10000; 
+                    overflow: auto; padding: 20px;">
+                    <div style="max-width: 800px; margin: 0 auto; background: white; 
+                        border-radius: 15px; padding: 30px; position: relative; color: #333;">
+                        <button onclick="closePreview()" 
+                            style="position: absolute; top: 15px; right: 15px; 
+                            background: #dc3545; color: white; border: none; 
+                            border-radius: 50%; width: 40px; height: 40px; 
+                            font-size: 20px; cursor: pointer;">✕</button>
+                        
+                        <div id="contractPreviewContent"></div>
+                        
+                        <div style="margin-top: 30px; display: flex; gap: 10px; justify-content: center;">
+                            <button class="btn" onclick="closePreview()">닫기</button>
+                            <button class="btn btn-primary" onclick="generateContractPDF()">
+                                📄 PDF 생성
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
     <!-- 플로팅 하자/장비 추가 버튼 -->
     <button id="floatingAddBtn" class="floating-btn" onclick="handleFloatingBtnClick()" style="display: none;">
         ➕
@@ -2380,7 +2548,16 @@
                     }))
                 });
                 
+                // 프로젝트 목록 저장
                 await saveToIndexedDB('projects_list', { projects, currentProjectId });
+                
+                // ✅ 현재 작업 중인 프로젝트도 별도로 저장 (새로고침 시 복구용)
+                const currentProject = projects.find(p => p.id === currentProjectId);
+                if (currentProject) {
+                    await saveToIndexedDB('thehomein_current', currentProject);
+                    console.log('✅ 현재 프로젝트 저장 완료');
+                }
+                
                 console.log('✅ 프로젝트 목록 저장 완료');
             } catch (e) {
                 console.error('프로젝트 목록 저장 실패:', e);
@@ -2397,6 +2574,35 @@
                     currentProjectId = saved.currentProjectId;
                     
                     console.log('✅ 프로젝트 목록 불러오기 완료:', projects.length + '개');
+                    
+                    // ✅ 현재 프로젝트의 데이터를 UI에 반영
+                    const currentProject = getCurrentProject();
+                    if (currentProject) {
+                        document.getElementById('apartmentName').value = currentProject.apartmentName || '';
+                        document.getElementById('dong').value = currentProject.dong || '';
+                        document.getElementById('ho').value = currentProject.ho || '';
+                        document.getElementById('inspectionDate').value = currentProject.inspectionDate || '';
+                        document.getElementById('customerName').value = currentProject.customerName || '';
+                        document.getElementById('customerPhone').value = currentProject.customerPhone || '';
+                        document.getElementById('author').value = currentProject.author || '';
+                        
+                        // 카운터 초기화
+                        if (currentProject.defects && currentProject.defects.length > 0) {
+                            defectIdCounter = Math.max(...currentProject.defects.map(d => d.id)) + 1;
+                        }
+                        if (currentProject.equipment && currentProject.equipment.length > 0) {
+                            equipmentIdCounter = Math.max(...currentProject.equipment.map(e => e.id)) + 1;
+                        }
+                        if (currentProject.airQuality && currentProject.airQuality.length > 0) {
+                            airQualityIdCounter = Math.max(...currentProject.airQuality.map(a => a.id)) + 1;
+                        }
+                        
+                        // 렌더링
+                        displayFloorplan();
+                        renderDefects();
+                        renderEquipment();
+                        renderAirQuality();
+                    }
                 } else {
                     // 첫 실행 시 빈 프로젝트 생성
                     const newProject = createNewProject();
@@ -2440,11 +2646,8 @@
         // 자동 로그인 체크
         checkIfSignedIn();
         
-        // 프로젝트 목록 불러오기
+        // 프로젝트 목록 불러오기 (UI 반영 포함)
         await loadProjectsFromLocalStorage();
-        
-        // IndexedDB에서 현재 작업 불러오기 (render 포함)
-        await loadFromLocalStorage();
         
         // 저장된 프로젝트 목록 렌더링
         await renderSavedList();
@@ -6160,14 +6363,18 @@
                     const transaction = db.transaction([STORE_NAME], 'readwrite');
                     const objectStore = transaction.objectStore(STORE_NAME);
                     
-                    // data에서 id 제거하고 key를 id로 사용
-                    const dataToSave = { ...data };
-                    delete dataToSave.id; // 기존 id 제거
-                    const finalData = { id: key, ...dataToSave };
+                    // ✅ 수정: data를 그대로 저장하되, id를 key로 설정
+                    const finalData = { 
+                        id: key,  // IndexedDB의 키
+                        data: data  // 실제 데이터 (프로젝트 배열 또는 단일 프로젝트)
+                    };
                     
                     const request = objectStore.put(finalData);
                     
-                    request.onsuccess = () => resolve();
+                    request.onsuccess = () => {
+                        console.log('✅ IndexedDB 저장 성공:', key);
+                        resolve();
+                    };
                     request.onerror = () => reject(request.error);
                 });
             } catch (e) {
@@ -6188,11 +6395,12 @@
                     
                     request.onsuccess = () => {
                         const result = request.result;
-                        if (result) {
-                            // IndexedDB의 id 키 제거 (저장용 id이므로)
-                            const { id, ...data } = result;
-                            resolve(data);
+                        if (result && result.data) {
+                            // ✅ 수정: data 필드에서 실제 데이터 반환
+                            console.log('✅ IndexedDB 불러오기 성공:', key);
+                            resolve(result.data);
                         } else {
+                            console.log('ℹ️ IndexedDB에 데이터 없음:', key);
                             resolve(null);
                         }
                     };
@@ -6459,6 +6667,511 @@
                 }
             }
         }
+
+        // ==================== 계약서 관리 기능 ====================
+
+        // 전역 변수
+        let contracts = [];
+        let currentEditingContract = null;
+        let signaturePads = {};
+
+        // 계약서 데이터 로드
+        async function loadContracts() {
+            try {
+                const db = await initContractDB();
+                const tx = db.transaction('contracts', 'readonly');
+                const store = tx.objectStore('contracts');
+                const request = store.getAll();
+                
+                request.onsuccess = () => {
+                    contracts = request.result || [];
+                    displayContractList();
+                };
+            } catch (error) {
+                console.error('계약서 로드 실패:', error);
+                contracts = [];
+                displayContractList();
+            }
+        }
+
+        // IndexedDB에 contracts 저장소 추가
+        async function initContractDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open('TheHomeInspectionDB', 3); // 버전 업그레이드
+                
+                request.onerror = () => reject(request.error);
+                request.onsuccess = () => resolve(request.result);
+                
+                request.onupgradeneeded = (event) => {
+                    const db = event.target.result;
+                    
+                    // contracts 저장소가 없으면 생성
+                    if (!db.objectStoreNames.contains('contracts')) {
+                        const contractStore = db.createObjectStore('contracts', { 
+                            keyPath: 'id', 
+                            autoIncrement: true 
+                        });
+                        contractStore.createIndex('name', 'name', { unique: false });
+                        contractStore.createIndex('createdAt', 'createdAt', { unique: false });
+                    }
+                };
+            });
+        }
+
+        // 계약서 목록 표시
+        function displayContractList() {
+            const container = document.getElementById('contractListContainer');
+            
+            if (!container) return;
+            
+            if (contracts.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 60px 20px; color: var(--text-secondary);">
+                        <div style="font-size: 48px; margin-bottom: 20px;">📄</div>
+                        <p style="font-size: 18px;">작성된 계약서가 없습니다</p>
+                        <p style="font-size: 14px; margin-top: 10px;">
+                            "➕ 새 계약서 작성" 버튼을 클릭하여 첫 계약서를 작성하세요
+                        </p>
+                    </div>
+                `;
+                return;
+            }
+            
+            const sortedContracts = [...contracts].sort((a, b) => 
+                new Date(b.createdAt) - new Date(a.createdAt)
+            );
+            
+            container.innerHTML = sortedContracts.map(contract => `
+                <div class="card" style="margin-bottom: 15px;">
+                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 15px;">
+                        <div style="flex: 1;">
+                            <h3 style="color: var(--primary); margin-bottom: 8px; font-size: 20px;">
+                                ${contract.name}
+                            </h3>
+                            <p style="color: var(--text-secondary); font-size: 14px; margin: 5px 0;">
+                                📅 계약일: ${contract.startDate} ~ ${contract.endDate}
+                            </p>
+                            <p style="color: var(--text-secondary); font-size: 14px; margin: 5px 0;">
+                                💰 단가: ${Number(contract.price).toLocaleString()}원/건
+                            </p>
+                            <p style="color: var(--text-secondary); font-size: 12px; margin-top: 10px;">
+                                작성일: ${new Date(contract.createdAt).toLocaleDateString()}
+                            </p>
+                        </div>
+                        <div style="display: flex; gap: 8px; flex-direction: column;">
+                            <button class="btn btn-primary" onclick="viewContract(${contract.id})" 
+                                style="font-size: 14px; padding: 8px 15px;">
+                                👁️ 보기
+                            </button>
+                            <button class="btn" onclick="downloadContractPDF(${contract.id})" 
+                                style="font-size: 14px; padding: 8px 15px;">
+                                📥 PDF
+                            </button>
+                            <button class="btn" onclick="deleteContract(${contract.id})" 
+                                style="font-size: 14px; padding: 8px 15px; background: var(--danger); color: white;">
+                                🗑️ 삭제
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // 계약서 검색
+        function searchContracts() {
+            const searchTerm = document.getElementById('contractSearch').value.toLowerCase();
+            const filtered = contracts.filter(c => 
+                c.name.toLowerCase().includes(searchTerm)
+            );
+            
+            const container = document.getElementById('contractListContainer');
+            
+            if (filtered.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: var(--text-secondary);">
+                        <p>검색 결과가 없습니다</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = filtered.map(contract => `
+                <div class="card" style="margin-bottom: 15px;">
+                    <h3 style="color: var(--primary);">${contract.name}</h3>
+                    <p style="color: var(--text-secondary); font-size: 14px;">
+                        계약기간: ${contract.startDate} ~ ${contract.endDate}
+                    </p>
+                    <div style="margin-top: 15px; display: flex; gap: 10px;">
+                        <button class="btn btn-primary" onclick="viewContract(${contract.id})">보기</button>
+                        <button class="btn" onclick="downloadContractPDF(${contract.id})">PDF</button>
+                        <button class="btn" onclick="deleteContract(${contract.id})" 
+                            style="background: var(--danger); color: white;">삭제</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // 계약서 작성 폼 표시
+        function showContractForm() {
+            document.getElementById('contractList').style.display = 'none';
+            document.getElementById('contractForm').style.display = 'block';
+            document.getElementById('btnShowList').classList.remove('btn-primary');
+            document.getElementById('btnShowList').classList.add('btn');
+            document.getElementById('btnShowForm').classList.remove('btn');
+            document.getElementById('btnShowForm').classList.add('btn-primary');
+            
+            // 서명 패드 초기화
+            initializeSignaturePads();
+            
+            // 기본 날짜 설정
+            const today = new Date().toISOString().split('T')[0];
+            const nextYear = new Date();
+            nextYear.setFullYear(nextYear.getFullYear() + 1);
+            document.getElementById('contractStartDate').value = today;
+            document.getElementById('contractEndDate').value = nextYear.toISOString().split('T')[0];
+        }
+
+        // 계약서 목록 표시
+        function showContractList() {
+            document.getElementById('contractList').style.display = 'block';
+            document.getElementById('contractForm').style.display = 'none';
+            document.getElementById('btnShowList').classList.add('btn-primary');
+            document.getElementById('btnShowList').classList.remove('btn');
+            document.getElementById('btnShowForm').classList.add('btn');
+            document.getElementById('btnShowForm').classList.remove('btn-primary');
+            
+            // 폼 초기화
+            const fields = ['contractName', 'contractAddress', 'contractJumin1', 'contractJumin2', 
+                           'contractPhone', 'contractEmail', 'contractBusiness', 'contractPrice', 
+                           'contractPayDay', 'contractNotes'];
+            fields.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.value = '';
+            });
+            
+            loadContracts();
+        }
+
+        // 서명 패드 초기화
+        function initializeSignaturePads() {
+            setTimeout(() => {
+                ['CEO', 'Freelancer'].forEach(type => {
+                    const canvas = document.getElementById(`signature${type}`);
+                    if (!canvas) return;
+                    
+                    const ctx = canvas.getContext('2d');
+                    let isDrawing = false;
+                    let lastX = 0;
+                    let lastY = 0;
+                    
+                    // 캔버스 크기 설정
+                    const rect = canvas.getBoundingClientRect();
+                    canvas.width = rect.width * 2;
+                    canvas.height = rect.height * 2;
+                    ctx.scale(2, 2);
+                    
+                    // 선 스타일
+                    ctx.strokeStyle = '#000';
+                    ctx.lineWidth = 2;
+                    ctx.lineCap = 'round';
+                    ctx.lineJoin = 'round';
+                    
+                    function startDrawing(e) {
+                        isDrawing = true;
+                        const pos = getPosition(e);
+                        [lastX, lastY] = [pos.x, pos.y];
+                    }
+                    
+                    function draw(e) {
+                        if (!isDrawing) return;
+                        e.preventDefault();
+                        
+                        const pos = getPosition(e);
+                        ctx.beginPath();
+                        ctx.moveTo(lastX, lastY);
+                        ctx.lineTo(pos.x, pos.y);
+                        ctx.stroke();
+                        [lastX, lastY] = [pos.x, pos.y];
+                    }
+                    
+                    function stopDrawing() {
+                        isDrawing = false;
+                    }
+                    
+                    function getPosition(e) {
+                        const rect = canvas.getBoundingClientRect();
+                        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                        return {
+                            x: clientX - rect.left,
+                            y: clientY - rect.top
+                        };
+                    }
+                    
+                    // 이벤트 리스너
+                    canvas.addEventListener('mousedown', startDrawing);
+                    canvas.addEventListener('mousemove', draw);
+                    canvas.addEventListener('mouseup', stopDrawing);
+                    canvas.addEventListener('mouseout', stopDrawing);
+                    
+                    canvas.addEventListener('touchstart', startDrawing);
+                    canvas.addEventListener('touchmove', draw);
+                    canvas.addEventListener('touchend', stopDrawing);
+                    
+                    signaturePads[type] = { canvas, ctx };
+                });
+            }, 100);
+        }
+
+        // 서명 지우기
+        function clearSignature(type) {
+            const pad = signaturePads[type];
+            if (pad) {
+                pad.ctx.clearRect(0, 0, pad.canvas.width, pad.canvas.height);
+            }
+        }
+
+        // 캔버스가 비어있는지 확인
+        function isCanvasBlank(canvas) {
+            const context = canvas.getContext('2d');
+            const pixelBuffer = new Uint32Array(
+                context.getImageData(0, 0, canvas.width, canvas.height).data.buffer
+            );
+            return !pixelBuffer.some(color => color !== 0);
+        }
+
+        // 계약서 미리보기
+        function previewContract() {
+            // 필수 항목 검증
+            const name = document.getElementById('contractName').value;
+            const address = document.getElementById('contractAddress').value;
+            const jumin1 = document.getElementById('contractJumin1').value;
+            const jumin2 = document.getElementById('contractJumin2').value;
+            const phone = document.getElementById('contractPhone').value;
+            const email = document.getElementById('contractEmail').value;
+            const startDate = document.getElementById('contractStartDate').value;
+            const endDate = document.getElementById('contractEndDate').value;
+            const price = document.getElementById('contractPrice').value;
+            const payDay = document.getElementById('contractPayDay').value;
+            
+            if (!name || !address || !jumin1 || !jumin2 || !phone || !email || 
+                !startDate || !endDate || !price || !payDay) {
+                alert('필수 항목을 모두 입력해주세요');
+                return;
+            }
+            
+            // 서명 확인
+            const ceoSigned = signaturePads['CEO'] && !isCanvasBlank(signaturePads['CEO'].canvas);
+            const freelancerSigned = signaturePads['Freelancer'] && !isCanvasBlank(signaturePads['Freelancer'].canvas);
+            
+            if (!ceoSigned || !freelancerSigned) {
+                alert('양측의 서명이 필요합니다');
+                return;
+            }
+            
+            // 미리보기 생성
+            const business = document.getElementById('contractBusiness').value;
+            const notes = document.getElementById('contractNotes').value;
+            
+            const previewHTML = generateContractHTML({
+                name, address, jumin1, jumin2, phone, email, business,
+                startDate, endDate, price, payDay, notes
+            });
+            
+            document.getElementById('contractPreviewContent').innerHTML = previewHTML;
+            document.getElementById('contractPreviewModal').style.display = 'block';
+        }
+
+        // 미리보기 닫기
+        function closePreview() {
+            document.getElementById('contractPreviewModal').style.display = 'none';
+        }
+
+        // 계약서 저장
+        async function saveContract() {
+            // 유효성 검사
+            const name = document.getElementById('contractName').value;
+            if (!name) {
+                alert('필수 항목을 입력해주세요');
+                return;
+            }
+            
+            const contractData = {
+                name: document.getElementById('contractName').value,
+                address: document.getElementById('contractAddress').value,
+                jumin1: document.getElementById('contractJumin1').value,
+                jumin2: document.getElementById('contractJumin2').value,
+                phone: document.getElementById('contractPhone').value,
+                email: document.getElementById('contractEmail').value,
+                business: document.getElementById('contractBusiness').value,
+                startDate: document.getElementById('contractStartDate').value,
+                endDate: document.getElementById('contractEndDate').value,
+                price: document.getElementById('contractPrice').value,
+                payDay: document.getElementById('contractPayDay').value,
+                notes: document.getElementById('contractNotes').value,
+                signatureCEO: signaturePads['CEO'] ? signaturePads['CEO'].canvas.toDataURL() : null,
+                signatureFreelancer: signaturePads['Freelancer'] ? signaturePads['Freelancer'].canvas.toDataURL() : null,
+                createdAt: new Date().toISOString()
+            };
+            
+            try {
+                const db = await initContractDB();
+                const tx = db.transaction('contracts', 'readwrite');
+                const store = tx.objectStore('contracts');
+                
+                store.add(contractData);
+                
+                tx.oncomplete = () => {
+                    showToast('✅ 계약서가 저장되었습니다!', 'success');
+                    showContractList();
+                };
+                
+                tx.onerror = () => {
+                    throw new Error('저장 실패');
+                };
+            } catch (error) {
+                console.error('저장 실패:', error);
+                alert('저장에 실패했습니다: ' + error.message);
+            }
+        }
+
+        // 계약서 HTML 생성
+        function generateContractHTML(data) {
+            return `
+                <div style="font-family: '맑은 고딕', sans-serif; line-height: 1.8; color: #333;">
+                    <h2 style="text-align: center; margin-bottom: 30px; color: #10b981;">
+                        프리랜서 고용계약서
+                    </h2>
+                    
+                    <div style="border: 2px solid #10b981; padding: 20px; margin-bottom: 20px; border-radius: 8px;">
+                        <p><strong>계약건명:</strong> 아파트사전점검 대행 서비스</p>
+                        <p><strong>계약기간:</strong> ${data.startDate} ~ ${data.endDate}</p>
+                        <p><strong>계약형태:</strong> 프리랜서 용역계약 (근로계약 아님)</p>
+                    </div>
+                    
+                    <p style="margin: 20px 0;">
+                        더홈점검 (이하 "갑"이라 한다.) 와 프리랜서 (이하 "을"이라 한다.)은
+                        계약건명에 명시된 업무 수행을 위해 다음과 같이 계약을 체결한다.
+                    </p>
+                    
+                    <h3 style="color: #10b981; margin-top: 30px;">제1조 【목적】</h3>
+                    <p>본 계약은 "갑"이 "을"에게 의뢰한 아파트사전점검 대행 서비스 업무를 "갑"에게 공급함에 있어 
+                    "갑"과 "을" 사이에 필요한 제반 사항을 정하는 것을 목적으로 한다.</p>
+                    
+                    <h3 style="color: #10b981; margin-top: 30px;">제2조 【계약 기간】</h3>
+                    <p>(1) 계약 기간은 ${data.startDate}부터 ${data.endDate}까지로 한다.</p>
+                    <p>(2) 계약 만료 30일 전까지 어느 일방의 서면 이의가 없는 경우 동일 조건으로 1년간 자동 연장되며, 이후에도 같다.</p>
+                    
+                    <h3 style="color: #10b981; margin-top: 30px;">제3조 【계약 금액 및 지급 조건】</h3>
+                    <p>(1) 계약 금액: 아파트사전점검 1건당 <strong>${Number(data.price).toLocaleString()}원</strong> (부가세 별도)</p>
+                    <p>(2) 매월 ${data.payDay}일 기준으로 당월 완료 건수를 집계하여 익월 ${data.payDay}일까지 지급한다.</p>
+                    
+                    <div style="margin-top: 40px; border-top: 2px solid #ddd; padding-top: 30px;">
+                        <h3 style="color: #10b981; margin-bottom: 20px;">계약 당사자</h3>
+                        
+                        <div style="margin-bottom: 30px;">
+                            <h4>【갑】 더홈점검</h4>
+                            <p>주소: 인천광역시 부평구 충선로209번길 13, 8층</p>
+                            <p>대표자: 박지현</p>
+                            <p>연락처: 010-9127-7708</p>
+                        </div>
+                        
+                        <div>
+                            <h4>【을】 프리랜서</h4>
+                            <p>성명: ${data.name}</p>
+                            <p>주소: ${data.address}</p>
+                            <p>주민등록번호: ${data.jumin1}-${data.jumin2}******</p>
+                            <p>연락처: ${data.phone}</p>
+                            <p>이메일: ${data.email}</p>
+                            ${data.business ? `<p>사업자등록번호: ${data.business}</p>` : ''}
+                        </div>
+                    </div>
+                    
+                    ${data.notes ? `
+                        <div style="margin-top: 30px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+                            <h4 style="color: #10b981;">특이사항</h4>
+                            <p>${data.notes}</p>
+                        </div>
+                    ` : ''}
+                    
+                    <p style="margin-top: 40px; text-align: center; color: #666;">
+                        계약일자: ${new Date().toLocaleDateString('ko-KR')}
+                    </p>
+                </div>
+            `;
+        }
+
+        // 계약서 보기
+        async function viewContract(id) {
+            try {
+                const db = await initContractDB();
+                const tx = db.transaction('contracts', 'readonly');
+                const store = tx.objectStore('contracts');
+                const request = store.get(id);
+                
+                request.onsuccess = () => {
+                    const contract = request.result;
+                    if (!contract) {
+                        alert('계약서를 찾을 수 없습니다');
+                        return;
+                    }
+                    
+                    const html = generateContractHTML(contract);
+                    document.getElementById('contractPreviewContent').innerHTML = html;
+                    document.getElementById('contractPreviewModal').style.display = 'block';
+                };
+            } catch (error) {
+                console.error('조회 실패:', error);
+                alert('계약서를 불러올 수 없습니다');
+            }
+        }
+
+        // PDF 생성
+        function generateContractPDF() {
+            showToast('📄 인쇄 화면으로 이동합니다', 'info');
+            setTimeout(() => {
+                window.print();
+            }, 500);
+        }
+
+        // 계약서 PDF 다운로드
+        async function downloadContractPDF(id) {
+            await viewContract(id);
+            setTimeout(() => {
+                generateContractPDF();
+            }, 500);
+        }
+
+        // 계약서 삭제
+        async function deleteContract(id) {
+            if (!confirm('정말 이 계약서를 삭제하시겠습니까?')) {
+                return;
+            }
+            
+            try {
+                const db = await initContractDB();
+                const tx = db.transaction('contracts', 'readwrite');
+                const store = tx.objectStore('contracts');
+                
+                store.delete(id);
+                
+                tx.oncomplete = () => {
+                    showToast('삭제되었습니다', 'success');
+                    loadContracts();
+                };
+            } catch (error) {
+                console.error('삭제 실패:', error);
+                alert('삭제에 실패했습니다');
+            }
+        }
+
+        // 페이지 로드 시 계약서 데이터 로드
+        document.addEventListener('DOMContentLoaded', () => {
+            if (document.getElementById('contract')) {
+                loadContracts();
+            }
+        });
+
     </script>
 </body>
 </html>
