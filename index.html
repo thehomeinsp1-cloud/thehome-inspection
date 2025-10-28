@@ -5437,14 +5437,14 @@
                 const pageWidth = 210;
                 const pageHeight = 297;
 
-                // 1페이지: 프로젝트 정보 + 하자 목록 15개
+                // 1페이지: 프로젝트 정보 + 하자 목록 10개
                 const firstPageHTML = createSummaryFirstPage();
                 await addHTMLPageToPDF(doc, firstPageHTML, pageWidth, pageHeight);
 
-                // 2페이지~: 하자 목록만 (25개씩)
-                if (projectData.defects.length > 15) {
-                    const itemsPerPage = 25;
-                    for (let i = 15; i < projectData.defects.length; i += itemsPerPage) {
+                // 2페이지~: 하자 목록만 (20개씩)
+                if (projectData.defects.length > 10) {
+                    const itemsPerPage = 20;
+                    for (let i = 10; i < projectData.defects.length; i += itemsPerPage) {
                         doc.addPage();
                         const listPageHTML = createDefectListPage(i, itemsPerPage);
                         await addHTMLPageToPDF(doc, listPageHTML, pageWidth, pageHeight);
@@ -5579,10 +5579,10 @@
             doc.addImage(imgData, 'JPEG', 0, 0, imgWidth, Math.min(imgHeight, pageHeight));
         }
 
-        // 첫 페이지: 프로젝트 정보 + 하자 목록 15개
+        // 첫 페이지: 프로젝트 정보 + 하자 목록 10개
         function createSummaryFirstPage() {
             let defectRows = '';
-            const displayDefects = projectData.defects.slice(0, 15);
+            const displayDefects = projectData.defects.slice(0, 10);
             
             displayDefects.forEach((defect, index) => {
                 const spaces = defect.spaces ? defect.spaces.join(', ') : (defect.space || '-');
@@ -5592,25 +5592,25 @@
                 
                 defectRows += `
                     <tr style="border-bottom: 1px solid #ddd;">
-                        <td style="padding: 8px; text-align: center; font-weight: bold; color: #000000;">${index + 1}</td>
-                        <td style="padding: 8px; text-align: center; color: #000000;">${spaces}</td>
-                        <td style="padding: 8px; text-align: center; color: #000000;">${locations}</td>
-                        <td style="padding: 8px; color: #000000;">${types}</td>
-                        <td style="padding: 8px; color: #000000; font-size: 11px; word-break: break-word; white-space: normal; line-height: 1.4;">${description || '-'}</td>
-                        <td style="padding: 8px; text-align: center; font-size: 11px; color: #000000;">${defect.status === 'completed' ? '✓' : '○'}</td>
+                        <td style="padding: 10px; text-align: center; font-weight: bold; color: #000000; font-size: 13px;">${index + 1}</td>
+                        <td style="padding: 10px; text-align: center; color: #000000; font-size: 13px;">${spaces}</td>
+                        <td style="padding: 10px; text-align: center; color: #000000; font-size: 13px;">${locations}</td>
+                        <td style="padding: 10px; color: #000000; font-size: 13px;">${types}</td>
+                        <td style="padding: 10px; color: #000000; font-size: 13px; word-break: break-word; white-space: normal; line-height: 1.5;">${description || '-'}</td>
+                        <td style="padding: 10px; text-align: center; font-size: 13px; color: #000000;">${defect.status === 'completed' ? '✓' : '○'}</td>
                     </tr>
                 `;
             });
 
             return `
-                <div style="width: 794px; min-height: 1123px; background: white; font-family: 'Malgun Gothic', sans-serif; padding: 30px 70px;">
+                <div style="width: 794px; min-height: 1123px; background: white; font-family: 'Malgun Gothic', sans-serif; padding: 40px 80px;">
                     <div style="background: #f8f9fa; color: #000; border: 2px solid #2c3e50; padding: 20px; margin-bottom: 20px; border-radius: 8px;">
                         <div style="display: flex; justify-content: space-between; align-items: center;">
                             <div>
                                 <h1 style="margin: 0 0 8px 0; font-size: 28px;">더홈점검 하자 보고서</h1>
                                 <p style="margin: 0; font-size: 14px; opacity: 0.9;">${projectData.apartmentName} ${projectData.dong} ${projectData.ho} | ${projectData.inspectionDate || ''}</p>
                             </div>
-                            <div style="text-align: right; font-size: 12px;">
+                            <div style="text-align: right; font-size: 13px;">
                                 <div style="font-weight: bold; margin-bottom: 4px;">더홈점검</div>
                                 <div>070-8019-1456</div>
                             </div>
@@ -5653,27 +5653,27 @@
                         <table style="width: 100%; border-collapse: collapse; border: 1px solid #ddd; font-size: 13px;">
                             <thead>
                                 <tr style="background: #f8f9fa; border-bottom: 2px solid #ddd;">
-                                    <th style="padding: 10px; width: 5%; color: #000000;">No</th>
-                                    <th style="padding: 10px; width: 10%; color: #000000;">공간</th>
-                                    <th style="padding: 10px; width: 10%; color: #000000;">위치</th>
-                                    <th style="padding: 10px; width: 12%; color: #000000;">하자내용</th>
-                                    <th style="padding: 10px; width: 50%; color: #000000;">상세설명</th>
-                                    <th style="padding: 10px; width: 8%; color: #000000;">상태</th>
+                                    <th style="padding: 12px; width: 5%; color: #000000; font-size: 13px;">No</th>
+                                    <th style="padding: 12px; width: 10%; color: #000000; font-size: 13px;">공간</th>
+                                    <th style="padding: 12px; width: 10%; color: #000000; font-size: 13px;">위치</th>
+                                    <th style="padding: 12px; width: 12%; color: #000000; font-size: 13px;">하자내용</th>
+                                    <th style="padding: 12px; width: 50%; color: #000000; font-size: 13px;">상세설명</th>
+                                    <th style="padding: 12px; width: 8%; color: #000000; font-size: 13px;">상태</th>
                                 </tr>
                             </thead>
                             <tbody>${defectRows}</tbody>
                         </table>
                     ` : '<p style="text-align: center; color: #999; padding: 40px 0;">등록된 하자가 없습니다</p>'}
 
-                    <div style="position: absolute; bottom: 20px; left: 70px; right: 70px; padding-top: 15px; border-top: 1px solid #ddd; font-size: 11px; color: #000000; text-align: center;">
+                    <div style="position: absolute; bottom: 30px; left: 80px; right: 80px; padding-top: 15px; border-top: 1px solid #ddd; font-size: 11px; color: #666; text-align: center;">
                         <div>더홈점검 | 전화: 070-8019-1456 / 010-9985-0128 | 사전점검 전문업체</div>
                     </div>
                 </div>
             `;
         }
 
-        // 나머지 페이지: 하자 목록만 (25개씩)
-        function createDefectListPage(startIndex, itemsPerPage = 25) {
+        // 나머지 페이지: 하자 목록만 (20개씩)
+        function createDefectListPage(startIndex, itemsPerPage = 20) {
             let defectRows = '';
             const endIndex = Math.min(startIndex + itemsPerPage, projectData.defects.length);
             const defectsToDisplay = projectData.defects.slice(startIndex, endIndex);
@@ -5687,42 +5687,42 @@
                 
                 defectRows += `
                     <tr style="border-bottom: 1px solid #ddd;">
-                        <td style="padding: 10px; text-align: center; font-weight: bold; color: #000000;">${globalIndex}</td>
-                        <td style="padding: 10px; text-align: center; color: #000000;">${spaces}</td>
-                        <td style="padding: 10px; text-align: center; color: #000000;">${locations}</td>
-                        <td style="padding: 10px; color: #000000;">${types}</td>
-                        <td style="padding: 10px; color: #000000; font-size: 12px; word-break: break-word; white-space: normal; line-height: 1.5;">${description || '-'}</td>
-                        <td style="padding: 10px; text-align: center; font-size: 12px; color: #000000;">${defect.status === 'completed' ? '✓' : '○'}</td>
+                        <td style="padding: 10px; text-align: center; font-weight: bold; color: #000000; font-size: 13px;">${globalIndex}</td>
+                        <td style="padding: 10px; text-align: center; color: #000000; font-size: 13px;">${spaces}</td>
+                        <td style="padding: 10px; text-align: center; color: #000000; font-size: 13px;">${locations}</td>
+                        <td style="padding: 10px; color: #000000; font-size: 13px;">${types}</td>
+                        <td style="padding: 10px; color: #000000; font-size: 13px; word-break: break-word; white-space: normal; line-height: 1.5;">${description || '-'}</td>
+                        <td style="padding: 10px; text-align: center; font-size: 13px; color: #000000;">${defect.status === 'completed' ? '✓' : '○'}</td>
                     </tr>
                 `;
             });
             
-            const totalPages = Math.ceil((projectData.defects.length - 15) / itemsPerPage) + 1;
-            const currentPage = Math.floor((startIndex - 15) / itemsPerPage) + 2;
+            const totalPages = Math.ceil((projectData.defects.length - 10) / itemsPerPage) + 1;
+            const currentPage = Math.floor((startIndex - 10) / itemsPerPage) + 2;
             const pageIndicator = ` (${currentPage}/${totalPages} 페이지)`;
 
             return `
-                <div style="width: 794px; min-height: 1123px; background: white; font-family: 'Malgun Gothic', sans-serif; padding: 40px 70px;">
+                <div style="width: 794px; min-height: 1123px; background: white; font-family: 'Malgun Gothic', sans-serif; padding: 40px 80px;">
                     <div style="background: white; color: #000; padding: 15px 20px; margin-bottom: 25px; border-radius: 8px; border: 1px solid #ddd;">
                         <h2 style="margin: 0; font-size: 20px; font-weight: bold;">하자 점검 목록 (총 ${projectData.defects.length}건)${pageIndicator}</h2>
-                        <p style="margin: 5px 0 0 0; font-size: 12px; color: #666;">${projectData.apartmentName} ${projectData.dong} ${projectData.ho}</p>
+                        <p style="margin: 5px 0 0 0; font-size: 13px; color: #666;">${projectData.apartmentName} ${projectData.dong} ${projectData.ho}</p>
                     </div>
 
                     <table style="width: 100%; border-collapse: collapse; border: 1px solid #ddd; font-size: 13px;">
                         <thead>
                             <tr style="background: #f8f9fa; border-bottom: 2px solid #ddd;">
-                                <th style="padding: 12px; width: 5%; color: #000000;">No</th>
-                                <th style="padding: 12px; width: 10%; color: #000000;">공간</th>
-                                <th style="padding: 12px; width: 10%; color: #000000;">위치</th>
-                                <th style="padding: 12px; width: 12%; color: #000000;">하자내용</th>
-                                <th style="padding: 12px; width: 50%; color: #000000;">상세설명</th>
-                                <th style="padding: 12px; width: 8%; color: #000000;">상태</th>
+                                <th style="padding: 12px; width: 5%; color: #000000; font-size: 13px;">No</th>
+                                <th style="padding: 12px; width: 10%; color: #000000; font-size: 13px;">공간</th>
+                                <th style="padding: 12px; width: 10%; color: #000000; font-size: 13px;">위치</th>
+                                <th style="padding: 12px; width: 12%; color: #000000; font-size: 13px;">하자내용</th>
+                                <th style="padding: 12px; width: 50%; color: #000000; font-size: 13px;">상세설명</th>
+                                <th style="padding: 12px; width: 8%; color: #000000; font-size: 13px;">상태</th>
                             </tr>
                         </thead>
                         <tbody>${defectRows}</tbody>
                     </table>
 
-                    <div style="position: absolute; bottom: 30px; left: 70px; right: 70px; padding-top: 15px; border-top: 1px solid #ddd; font-size: 11px; color: #666; text-align: center;">
+                    <div style="position: absolute; bottom: 30px; left: 80px; right: 80px; padding-top: 15px; border-top: 1px solid #ddd; font-size: 11px; color: #666; text-align: center;">
                         <div>더홈점검 | 전화: 070-8019-1456 / 010-9985-0128 | 사전점검 전문업체</div>
                     </div>
                 </div>
@@ -5849,10 +5849,10 @@
             }
 
             return `
-                <div style="width: 794px; min-height: 1123px; background: white; font-family: 'Malgun Gothic', sans-serif; padding: 30px 70px;">
+                <div style="width: 794px; min-height: 1123px; background: white; font-family: 'Malgun Gothic', sans-serif; padding: 40px 80px;">
                     <div style="background: white; color: #000; padding: 15px 20px; margin-bottom: 25px; border-radius: 8px; border: 1px solid #ddd;">
-                        <h2 style="margin: 0; font-size: 18px; font-weight: bold;">하자 상세 사진 (원경+근경)</h2>
-                        <p style="margin: 5px 0 0 0; font-size: 12px; color: #666;">${projectData.apartmentName} ${projectData.dong} ${projectData.ho}</p>
+                        <h2 style="margin: 0; font-size: 20px; font-weight: bold;">하자 상세 사진 (원경+근경)</h2>
+                        <p style="margin: 5px 0 0 0; font-size: 13px; color: #666;">${projectData.apartmentName} ${projectData.dong} ${projectData.ho}</p>
                     </div>
 
                     ${contentHTML}
