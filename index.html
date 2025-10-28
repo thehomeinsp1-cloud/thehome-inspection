@@ -6981,6 +6981,10 @@
             const business = document.getElementById('contractBusiness').value;
             const notes = document.getElementById('contractNotes').value;
             
+            // ✅ price와 payDay 정의 추가
+            const price = '일당 1만~50만원 (업무별 상이)';
+            const payDay = '업무 완료 후 1개월 이내';
+            
             const previewHTML = generateContractHTML({
                 name, address, jumin1, jumin2, phone, email, business,
                 startDate, endDate, price, payDay, notes
