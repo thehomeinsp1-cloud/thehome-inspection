@@ -775,6 +775,7 @@
             <button class="tab" onclick="switchTab('equipment', event)">📸 장비점검</button>
             <button class="tab" onclick="switchTab('airquality', event)">🌬️ 공기질</button>
             <button class="tab" onclick="switchTab('data', event)">💾 데이터</button>
+            <button class="tab" onclick="switchTab('contract', event)">📄 계약서</button>
         </div>
 
         <!-- 프로젝트 정보 섹션 -->
@@ -1048,7 +1049,7 @@
     </div>
 
         <!-- 계약서 관리 섹션 (숨김) -->
-        <div id="contract" class="section" style="display: none;">
+        <div id="contract" class="section">
             <div class="card">
                 <h2 style="color: var(--primary); margin-bottom: 20px;">📄 프리랜서 계약서 관리</h2>
                 <p style="color: var(--text-secondary); margin-bottom: 30px; font-size: 14px;">
@@ -1135,17 +1136,26 @@
                         </div>
 
                         <div class="form-field">
-                            <label class="form-label">건당 단가 (원) *</label>
-                            <input type="number" class="form-input" id="contractPrice" placeholder="예: 150000" required>
+                            <label class="form-label">계약금액 안내</label>
+                            <div style="padding: 15px; background: rgba(16, 185, 129, 0.1); border-radius: 8px; border-left: 4px solid var(--primary);">
+                                <p style="color: var(--text-primary); margin-bottom: 8px;">
+                                    <strong>일당: 1만원 ~ 50만원</strong>
+                                </p>
+                                <p style="color: var(--text-secondary); font-size: 13px;">
+                                    ※ 업무에 따라 지급비용이 다르게 지급됩니다
+                                </p>
+                            </div>
                         </div>
 
                         <div class="form-field">
-                            <label class="form-label">지급일 *</label>
-                            <div style="display: flex; gap: 10px; align-items: center;">
-                                <span style="color: var(--text-secondary);">매월</span>
-                                <input type="number" class="form-input" id="contractPayDay" min="1" max="31" 
-                                    style="width: 80px;" required>
-                                <span style="color: var(--text-secondary);">일</span>
+                            <label class="form-label">지급일 안내</label>
+                            <div style="padding: 15px; background: rgba(251, 191, 36, 0.1); border-radius: 8px; border-left: 4px solid var(--secondary);">
+                                <p style="color: var(--text-primary); margin-bottom: 8px;">
+                                    <strong>업무 완료 후 1개월 이내 지급</strong>
+                                </p>
+                                <p style="color: var(--text-secondary); font-size: 13px;">
+                                    ※ 사업소득세 3.3% 원천징수 후 지급
+                                </p>
                             </div>
                         </div>
 
@@ -6951,11 +6961,9 @@
             const email = document.getElementById('contractEmail').value;
             const startDate = document.getElementById('contractStartDate').value;
             const endDate = document.getElementById('contractEndDate').value;
-            const price = document.getElementById('contractPrice').value;
-            const payDay = document.getElementById('contractPayDay').value;
             
             if (!name || !address || !jumin1 || !jumin2 || !phone || !email || 
-                !startDate || !endDate || !price || !payDay) {
+                !startDate || !endDate) {
                 alert('필수 항목을 모두 입력해주세요');
                 return;
             }
@@ -7006,8 +7014,8 @@
                 business: document.getElementById('contractBusiness').value,
                 startDate: document.getElementById('contractStartDate').value,
                 endDate: document.getElementById('contractEndDate').value,
-                price: document.getElementById('contractPrice').value,
-                payDay: document.getElementById('contractPayDay').value,
+                price: '일당 1만~50만원 (업무별 상이)',
+                payDay: '업무 완료 후 1개월 이내',
                 notes: document.getElementById('contractNotes').value,
                 signatureCEO: signaturePads['CEO'] ? signaturePads['CEO'].canvas.toDataURL() : null,
                 signatureFreelancer: signaturePads['Freelancer'] ? signaturePads['Freelancer'].canvas.toDataURL() : null,
@@ -7038,65 +7046,217 @@
         // 계약서 HTML 생성
         function generateContractHTML(data) {
             return `
-                <div style="font-family: '맑은 고딕', sans-serif; line-height: 1.8; color: #333;">
-                    <h2 style="text-align: center; margin-bottom: 30px; color: #10b981;">
-                        프리랜서 고용계약서
+                <div style="font-family: '맑은 고딕', sans-serif; line-height: 1.8; color: #333; max-width: 800px; margin: 0 auto;">
+                    <h2 style="text-align: center; margin-bottom: 30px; color: #10b981; font-size: 28px;">
+                        표준 프리랜서 계약서
                     </h2>
                     
-                    <div style="border: 2px solid #10b981; padding: 20px; margin-bottom: 20px; border-radius: 8px;">
-                        <p><strong>계약건명:</strong> 아파트사전점검 대행 서비스</p>
-                        <p><strong>계약기간:</strong> ${data.startDate} ~ ${data.endDate}</p>
-                        <p><strong>계약형태:</strong> 프리랜서 용역계약 (근로계약 아님)</p>
+                    <div style="margin-bottom: 30px; text-align: justify; line-height: 2;">
+                        <strong>더홈점검</strong> (이하 "갑"이라 합니다)은 
+                        <strong>${data.name}</strong> (이하 "을"이라 합니다)에게 
+                        아파트사전점검 대행업무를 의뢰하면서 다음과 같이 프리랜서 계약을 체결한다.
                     </div>
                     
-                    <p style="margin: 20px 0;">
-                        더홈점검 (이하 "갑"이라 한다.) 와 프리랜서 (이하 "을"이라 한다.)은
-                        계약건명에 명시된 업무 수행을 위해 다음과 같이 계약을 체결한다.
+                    <h3 style="color: #10b981; margin-top: 30px; margin-bottom: 15px; border-bottom: 2px solid #10b981; padding-bottom: 8px;">
+                        제1조 【목적】
+                    </h3>
+                    <p style="text-align: justify; line-height: 2;">
+                        본 계약은 "갑"이 "을"에게 연구 및 용역을 의뢰함에 있어 필요한 사항을 정하는 것을 목적으로 한다.
                     </p>
                     
-                    <h3 style="color: #10b981; margin-top: 30px;">제1조 【목적】</h3>
-                    <p>본 계약은 "갑"이 "을"에게 의뢰한 아파트사전점검 대행 서비스 업무를 "갑"에게 공급함에 있어 
-                    "갑"과 "을" 사이에 필요한 제반 사항을 정하는 것을 목적으로 한다.</p>
+                    <h3 style="color: #10b981; margin-top: 30px; margin-bottom: 15px; border-bottom: 2px solid #10b981; padding-bottom: 8px;">
+                        제2조 【계약업무】
+                    </h3>
+                    <p style="text-align: justify; line-height: 2;">
+                        "을"은 "갑"이 의뢰한 다음 각 호의 과업을 수행하여야 한다.
+                    </p>
+                    <p style="margin-left: 20px; line-height: 2;">
+                        1. 아파트사전점검 대행 서비스
+                    </p>
                     
-                    <h3 style="color: #10b981; margin-top: 30px;">제2조 【계약 기간】</h3>
-                    <p>(1) 계약 기간은 ${data.startDate}부터 ${data.endDate}까지로 한다.</p>
-                    <p>(2) 계약 만료 30일 전까지 어느 일방의 서면 이의가 없는 경우 동일 조건으로 1년간 자동 연장되며, 이후에도 같다.</p>
+                    <h3 style="color: #10b981; margin-top: 30px; margin-bottom: 15px; border-bottom: 2px solid #10b981; padding-bottom: 8px;">
+                        제3조 【계약기간】
+                    </h3>
+                    <p style="text-align: justify; line-height: 2;">
+                        계약기간은 <strong>${data.startDate}</strong>로부터 <strong>${data.endDate}</strong>까지로 하며, 
+                        "갑"과 "을"의 합의 하에 본 계약기간은 연장되거나 해지될 수 있다.
+                    </p>
                     
-                    <h3 style="color: #10b981; margin-top: 30px;">제3조 【계약 금액 및 지급 조건】</h3>
-                    <p>(1) 계약 금액: 아파트사전점검 1건당 <strong>${Number(data.price).toLocaleString()}원</strong> (부가세 별도)</p>
-                    <p>(2) 매월 ${data.payDay}일 기준으로 당월 완료 건수를 집계하여 익월 ${data.payDay}일까지 지급한다.</p>
+                    <h3 style="color: #10b981; margin-top: 30px; margin-bottom: 15px; border-bottom: 2px solid #10b981; padding-bottom: 8px;">
+                        제4조 【근무시간 및 장소】
+                    </h3>
+                    <p style="text-align: justify; line-height: 2;">
+                        "을"은 "갑"이 지정하는 근무시간 및 근무장소에서 업무를 성실히 수행하여야 한다. 
+                        다만, "갑"과 합의하여 근무 시간과 근무장소를 조정할 수 있다.
+                    </p>
                     
-                    <div style="margin-top: 40px; border-top: 2px solid #ddd; padding-top: 30px;">
-                        <h3 style="color: #10b981; margin-bottom: 20px;">계약 당사자</h3>
+                    <h3 style="color: #10b981; margin-top: 30px; margin-bottom: 15px; border-bottom: 2px solid #10b981; padding-bottom: 8px;">
+                        제5조 【계약금액】
+                    </h3>
+                    <p style="line-height: 2;">
+                        ① 총 계약금액은 일당 1만원~50만원으로 한다. 
+                        <strong style="color: #ef4444;">(업무에 따라 지급비용이 다르게 지급됨)</strong>
+                    </p>
+                    <p style="line-height: 2;">
+                        ② "갑"은 "을"에게 아파트사전점검 업무 완료 후 
+                        <strong style="color: #ef4444;">1개월 이내에</strong> "을" 명의의 계좌로 이체한다.
+                    </p>
+                    <p style="line-height: 2;">
+                        ③ "갑"은 전 항의 보수 중 사업소득세율(3.3%)에 따라 원천징수의무를 이행한 후 
+                        남은 금액을 "을"에게 지급한다.
+                    </p>
+                    
+                    <h3 style="color: #10b981; margin-top: 30px; margin-bottom: 15px; border-bottom: 2px solid #10b981; padding-bottom: 8px;">
+                        제6조 【양 당사자의 권리와 의무】
+                    </h3>
+                    <p style="line-height: 2;">
+                        ① "갑"은 "을"이 과업하는데 필요한 자료 및 정보 등을 제공하여야 하며, 
+                        과업수행을 위한 "을"의 요청이 있는 경우 이에 적극적으로 협조하여야 한다.
+                    </p>
+                    <p style="line-height: 2;">
+                        ② "을"은 본 계약상 부담하는 모든 사항을 "갑"과 합의한 대로 이행하여야 하며, 
+                        신의성실의 원칙에 따라 계약 내용을 이행하여야 한다.
+                    </p>
+                    <p style="line-height: 2;">
+                        ③ "갑"은 "을"의 과업과 관련하여 협의할 사항이 있는 경우 "을"에게 협의를 요청할 수 있고 
+                        "을"은 이러한 "갑"의 요구에 최대한 협조한다.
+                    </p>
+                    <p style="line-height: 2;">
+                        ④ "을"은 본 계약 종료 후 지체없이 "갑"으로부터 제공받은 서류, 정보, 데이터 기타 
+                        모든 형태의 자료를 "갑"에게 반환하여야 하고, 반환이 어려운 경우 이를 파기하고 
+                        "갑"의 승인을 받아야 한다.
+                    </p>
+                    
+                    <h3 style="color: #10b981; margin-top: 30px; margin-bottom: 15px; border-bottom: 2px solid #10b981; padding-bottom: 8px;">
+                        제7조 【비밀유지 및 지식재산권의 귀속】
+                    </h3>
+                    <p style="line-height: 2;">
+                        ① "을"은 본 계약 및 과업과 관련하여 알게 된 일체의 정보를 외부에 누설하거나 
+                        유출해서는 아니되며, 이로 인해 발생하는 손해에 대해 책임을 지기로 한다.
+                    </p>
+                    <p style="line-height: 2;">
+                        ② "을"은 창조, 개선, 작성, 생산한 모든 결과물의 저작권에 대한 책임을 보증하며, 
+                        본 계약에 의한 결과물의 권리는 "갑"의 소유가 된다.
+                    </p>
+                    
+                    <h3 style="color: #10b981; margin-top: 30px; margin-bottom: 15px; border-bottom: 2px solid #10b981; padding-bottom: 8px;">
+                        제8조 【근무조건】
+                    </h3>
+                    <p style="line-height: 2;">
+                        ① 본 계약상의 업무를 수행하기 위하여 필요한 기타사항은 자유로 한다.
+                    </p>
+                    <p style="line-height: 2;">
+                        ② 본 계약 내용 외에도 다른 필요한 업무가 필요한 경우 "갑"은 "을"이 추가로 
+                        작업을 수행하는 부분에 대한 인건비와 계약 기간은 상호 협의 하에 결정한다.
+                    </p>
+                    
+                    <h3 style="color: #10b981; margin-top: 30px; margin-bottom: 15px; border-bottom: 2px solid #10b981; padding-bottom: 8px;">
+                        제9조 【권리의 이전·양도·처분·재위탁 금지】
+                    </h3>
+                    <p style="text-align: justify; line-height: 2;">
+                        "갑" 또는 "을"은 서로 상대방의 서면 동의가 있는 경우를 제외하고는 어떠한 이유로도 
+                        본 계약상 자신의 권리나 의무를 다른 제3자에게 이전·양도·처분·재위탁할 수 없다.
+                    </p>
+                    
+                    <h3 style="color: #10b981; margin-top: 30px; margin-bottom: 15px; border-bottom: 2px solid #10b981; padding-bottom: 8px;">
+                        제10조 【해지】
+                    </h3>
+                    <p style="line-height: 2;">
+                        ① "갑"과 "을"은 다음 각 호에 해당될 경우 본 계약을 해지할 수 있다.
+                    </p>
+                    <p style="margin-left: 20px; line-height: 2;">
+                        1. 정당한 이유 없이 과업 진행이 이루어지지 않을 때<br>
+                        2. 정당한 이유 없이 계약기간 내에 과업완료가 불가능하다고 판단될 때<br>
+                        3. 상호간에 계약을 해지하기로 서면합의한 때<br>
+                        4. 회생절차, 파산절차의 개시신청, 채무자 회생 및 파산에 관한 법률에 의한 보전처분의 신청, 
+                           기타 이와 유사한 신청, 회사의 해산결의 등의 사유가 발생한 때<br>
+                        5. 압류, 가압류, 가처분, 경매의 집행을 받거나 국세나 지방세 체납, 기타 공법상의 처분을 받고 
+                           7일 이내에 집행취소나 체납 등 처분의 취소를 받지 않은 때<br>
+                        6. 기타 본 계약상의 과업을 수행하는 것이 불가능하다고 객관적으로 판단될 때
+                    </p>
+                    <p style="line-height: 2;">
+                        ② 본 조에 따른 계약의 해지는 계약기간 중 발생한 당사자 간의 권리의무에 따른 
+                        손해배상의 청구에 영향을 미치지 않는다.
+                    </p>
+                    
+                    <h3 style="color: #10b981; margin-top: 30px; margin-bottom: 15px; border-bottom: 2px solid #10b981; padding-bottom: 8px;">
+                        제11조 【손해배상】
+                    </h3>
+                    <p style="line-height: 2;">
+                        ① "을"의 귀책사유로 인하여 본 계약이 불이행 되었을 경우 "을"은 "갑"이 제시한 
+                        손해배상의 책임을 진다(이때, 손해배상액은 상호 협의 한다).
+                    </p>
+                    <p style="line-height: 2;">
+                        ② "을"의 귀책사유로 인하여 기타 제3자에게 손해가 발생하는 경우 이는 "을"이 부담하며, 
+                        "갑"이 전부 또는 일부를 배상한 때에는 "갑"이 "을"에게 이를 구상할 수 있다.
+                    </p>
+                    
+                    <h3 style="color: #10b981; margin-top: 30px; margin-bottom: 15px; border-bottom: 2px solid #10b981; padding-bottom: 8px;">
+                        제12조 【일부무효】
+                    </h3>
+                    <p style="text-align: justify; line-height: 2;">
+                        본 계약의 일부 조항이 법령 또는 판결에 의하여 무효 또는 불법으로 판정되는 경우에도 
+                        본 계약 전체가 무효로 되는 것은 아니며, 무효로 되지 않는 다른 조항은 법령에 의하여 
+                        허용되는 한도에서 여전히 유효하게 존속하고, 무효 또는 불법조항이 포함되지 않았던 것처럼 해석한다.
+                    </p>
+                    
+                    <h3 style="color: #10b981; margin-top: 30px; margin-bottom: 15px; border-bottom: 2px solid #10b981; padding-bottom: 8px;">
+                        제13조 【계약의 변경】
+                    </h3>
+                    <p style="text-align: justify; line-height: 2;">
+                        본 계약은 "갑"과 "을"의 서면합의에 따라 변경될 수 있다.
+                    </p>
+                    
+                    <h3 style="color: #10b981; margin-top: 30px; margin-bottom: 15px; border-bottom: 2px solid #10b981; padding-bottom: 8px;">
+                        제14조 【관할】
+                    </h3>
+                    <p style="text-align: justify; line-height: 2;">
+                        본 계약과 관련하여 분쟁이 발생한 경우 당사자의 상호 협의에 의한 해결을 모색하되, 
+                        분쟁에 관한 합의가 이루어지지 아니한 경우에는 "갑"의 본점 소재지 관할법원을 
+                        제1심 관할법원으로 하여 소송을 통해 분쟁을 해결하기로 한다.
+                    </p>
+                    
+                    <div style="margin-top: 40px; padding: 20px; background: #f8f9fa; border-radius: 8px;">
+                        <p style="text-align: center; margin-bottom: 30px; line-height: 2;">
+                            각 당사자는 위 계약을 증명하기 위하여 본 계약서 2통을 작성하여,<br>
+                            각각 서명(또는 기명)날인 후 "갑"과 "을"이 각각 1통씩을 보관한다.
+                        </p>
                         
-                        <div style="margin-bottom: 30px;">
-                            <h4>【갑】 더홈점검</h4>
-                            <p>주소: 인천광역시 부평구 충선로209번길 13, 8층</p>
-                            <p>대표자: 박지현</p>
-                            <p>연락처: 010-9127-7708</p>
-                        </div>
+                        <p style="text-align: center; font-size: 20px; font-weight: bold; margin-bottom: 40px;">
+                            ${new Date().getFullYear()}년 ${new Date().getMonth() + 1}월 ${new Date().getDate()}일
+                        </p>
                         
-                        <div>
-                            <h4>【을】 프리랜서</h4>
-                            <p>성명: ${data.name}</p>
-                            <p>주소: ${data.address}</p>
-                            <p>주민등록번호: ${data.jumin1}-${data.jumin2}******</p>
-                            <p>연락처: ${data.phone}</p>
-                            <p>이메일: ${data.email}</p>
-                            ${data.business ? `<p>사업자등록번호: ${data.business}</p>` : ''}
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 30px;">
+                            <div style="border: 2px solid #10b981; padding: 20px; border-radius: 8px;">
+                                <h4 style="color: #10b981; margin-bottom: 15px; text-align: center;">【갑】</h4>
+                                <p style="line-height: 2;">
+                                    <strong>대표자:</strong> 박지현 (더홈점검) (인)<br>
+                                    <strong>주소:</strong> 인천광역시 부평구 충선로209번길 13, 8층<br>
+                                    <strong>사업자번호:</strong> 531-42-01293<br>
+                                    <strong>연락처:</strong> 070-8019-1456
+                                </p>
+                            </div>
+                            
+                            <div style="border: 2px solid #10b981; padding: 20px; border-radius: 8px;">
+                                <h4 style="color: #10b981; margin-bottom: 15px; text-align: center;">【을】</h4>
+                                <p style="line-height: 2;">
+                                    <strong>성명:</strong> ${data.name} (인)<br>
+                                    <strong>주소:</strong> ${data.address}<br>
+                                    <strong>주민등록번호:</strong> ${data.jumin1}-${data.jumin2}******<br>
+                                    <strong>연락처:</strong> ${data.phone}<br>
+                                    <strong>이메일:</strong> ${data.email}
+                                    ${data.business ? `<br><strong>사업자등록번호:</strong> ${data.business}` : ''}
+                                </p>
+                            </div>
                         </div>
                     </div>
                     
                     ${data.notes ? `
-                        <div style="margin-top: 30px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
-                            <h4 style="color: #10b981;">특이사항</h4>
-                            <p>${data.notes}</p>
+                        <div style="margin-top: 30px; padding: 20px; background: #fffbeb; border-radius: 8px; border-left: 5px solid #fbbf24;">
+                            <h4 style="color: #92400e; margin-bottom: 10px;">📌 특이사항</h4>
+                            <p style="line-height: 2; color: #92400e;">${data.notes}</p>
                         </div>
                     ` : ''}
-                    
-                    <p style="margin-top: 40px; text-align: center; color: #666;">
-                        계약일자: ${new Date().toLocaleDateString('ko-KR')}
-                    </p>
                 </div>
             `;
         }
