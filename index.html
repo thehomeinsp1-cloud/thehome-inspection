@@ -1370,8 +1370,18 @@
             return projects.find(p => p.id === currentProjectId) || projects[0];
         }
 
-        // 하위 호환성을 위한 projectData
-        let projectData = getCurrentProject();
+        // ✅ projectData를 Proxy로 변경 - 항상 현재 프로젝트를 참조
+        const projectData = new Proxy({}, {
+            get(target, prop) {
+                const project = getCurrentProject();
+                return project[prop];
+            },
+            set(target, prop, value) {
+                const project = getCurrentProject();
+                project[prop] = value;
+                return true;
+            }
+        });
 
         let defectIdCounter = 1;
         let equipmentIdCounter = 1;
@@ -2022,34 +2032,33 @@
 
                 const data = await fileResponse.json();
 
-                // 데이터 로드
-                projectData = {
-                    apartmentName: data.apartmentName || '',
-                    dong: data.dong || '',
-                    ho: data.ho || '',
-                    inspectionDate: data.inspectionDate || '',
-                    customerName: data.customerName || '',
-                    customerPhone: data.customerPhone || '',
-                    floorplan: data.floorplan || null,
-                    defects: data.defects || [],
-                    equipment: data.equipment || [],
-                    airQuality: data.airQuality || []
-                };
+                // 현재 프로젝트에 데이터 로드
+                const project = getCurrentProject();
+                project.apartmentName = data.apartmentName || '';
+                project.dong = data.dong || '';
+                project.ho = data.ho || '';
+                project.inspectionDate = data.inspectionDate || '';
+                project.customerName = data.customerName || '';
+                project.customerPhone = data.customerPhone || '';
+                project.floorplan = data.floorplan || null;
+                project.defects = data.defects || [];
+                project.equipment = data.equipment || [];
+                project.airQuality = data.airQuality || [];
 
                 // ID 카운터 업데이트
-                if (projectData.defects.length > 0) {
-                    defectIdCounter = Math.max(...projectData.defects.map(d => d.id)) + 1;
+                if (project.defects.length > 0) {
+                    defectIdCounter = Math.max(...project.defects.map(d => d.id)) + 1;
                 }
-                if (projectData.equipment && projectData.equipment.length > 0) {
-                    equipmentIdCounter = Math.max(...projectData.equipment.map(e => e.id)) + 1;
+                if (project.equipment && project.equipment.length > 0) {
+                    equipmentIdCounter = Math.max(...project.equipment.map(e => e.id)) + 1;
                 }
-                if (projectData.airQuality.length > 0) {
-                    airQualityIdCounter = Math.max(...projectData.airQuality.map(a => a.id)) + 1;
+                if (project.airQuality.length > 0) {
+                    airQualityIdCounter = Math.max(...project.airQuality.map(a => a.id)) + 1;
                 }
 
                 // UI 업데이트
                 renderAll();
-                saveToLocalStorage();
+                saveProjectsToLocalStorage();
 
                 hideLoading();
                 showToast('✅ Drive에서 불러왔습니다!');
@@ -2129,34 +2138,33 @@
 
                 const data = await response.json();
 
-                // 데이터 로드
-                projectData = {
-                    apartmentName: data.apartmentName || '',
-                    dong: data.dong || '',
-                    ho: data.ho || '',
-                    inspectionDate: data.inspectionDate || '',
-                    customerName: data.customerName || '',
-                    customerPhone: data.customerPhone || '',
-                    floorplan: data.floorplan || null,
-                    defects: data.defects || [],
-                    equipment: data.equipment || [],
-                    airQuality: data.airQuality || []
-                };
+                // 현재 프로젝트에 데이터 로드
+                const project = getCurrentProject();
+                project.apartmentName = data.apartmentName || '';
+                project.dong = data.dong || '';
+                project.ho = data.ho || '';
+                project.inspectionDate = data.inspectionDate || '';
+                project.customerName = data.customerName || '';
+                project.customerPhone = data.customerPhone || '';
+                project.floorplan = data.floorplan || null;
+                project.defects = data.defects || [];
+                project.equipment = data.equipment || [];
+                project.airQuality = data.airQuality || [];
 
                 // ID 카운터 업데이트
-                if (projectData.defects.length > 0) {
-                    defectIdCounter = Math.max(...projectData.defects.map(d => d.id)) + 1;
+                if (project.defects.length > 0) {
+                    defectIdCounter = Math.max(...project.defects.map(d => d.id)) + 1;
                 }
-                if (projectData.equipment && projectData.equipment.length > 0) {
-                    equipmentIdCounter = Math.max(...projectData.equipment.map(e => e.id)) + 1;
+                if (project.equipment && project.equipment.length > 0) {
+                    equipmentIdCounter = Math.max(...project.equipment.map(e => e.id)) + 1;
                 }
-                if (projectData.airQuality.length > 0) {
-                    airQualityIdCounter = Math.max(...projectData.airQuality.map(a => a.id)) + 1;
+                if (project.airQuality.length > 0) {
+                    airQualityIdCounter = Math.max(...project.airQuality.map(a => a.id)) + 1;
                 }
 
                 // UI 업데이트
                 renderAll();
-                saveToLocalStorage();
+                saveProjectsToLocalStorage();
 
                 hideLoading();
                 showToast('✅ 프로젝트를 불러왔습니다!');
@@ -2229,8 +2237,11 @@
             projects.push(newProject);
             currentProjectId = newProject.id;
             
-            // 현재 프로젝트 참조 업데이트
-            projectData = getCurrentProject();
+            console.log('➕ 새 프로젝트 생성:', {
+                newProjectId: newProject.id,
+                totalProjects: projects.length,
+                hasFloorplan: !!newProject.floorplan
+            });
             
             // UI 새로고침
             renderProjectList();
@@ -2247,12 +2258,21 @@
         function switchProject(projectId) {
             if (projectId === currentProjectId) return;
             
+            console.log('🔄 프로젝트 전환:', {
+                from: currentProjectId,
+                to: projectId
+            });
+            
             // 현재 프로젝트 UI 데이터 저장
             saveCurrentProjectFromUI();
             
-            // 프로젝트 전환
+            // 프로젝트 전환 (Proxy가 자동으로 새 프로젝트 참조)
             currentProjectId = projectId;
-            projectData = getCurrentProject();
+            
+            console.log('📂 전환 후 프로젝트:', {
+                id: projectId,
+                hasFloorplan: !!getCurrentProject().floorplan
+            });
             
             // 새 프로젝트 UI 로드
             loadProjectToUI();
@@ -2286,7 +2306,6 @@
             
             // 첫 번째 프로젝트로 전환
             currentProjectId = projects[0].id;
-            projectData = getCurrentProject();
             
             // UI 업데이트
             loadProjectToUI();
@@ -2324,13 +2343,8 @@
             document.getElementById('customerName').value = project.customerName || '';
             document.getElementById('customerPhone').value = project.customerPhone || '';
             
-            // 평면도 표시
-            if (project.floorplan) {
-                document.getElementById('floorplanPreview').innerHTML = 
-                    `<img src="${project.floorplan}" alt="평면도" style="max-width: 100%; border-radius: 8px;">`;
-            } else {
-                document.getElementById('floorplanPreview').innerHTML = '';
-            }
+            // 평면도 표시 - displayFloorplan() 함수 사용
+            displayFloorplan();
             
             // 하자, 장비, 공기질 목록 렌더링
             renderDefects();
@@ -2341,6 +2355,17 @@
         // 프로젝트 목록을 로컬 스토리지에 저장
         async function saveProjectsToLocalStorage() {
             try {
+                console.log('💾 저장 시작:', {
+                    totalProjects: projects.length,
+                    currentProjectId: currentProjectId,
+                    projects: projects.map(p => ({
+                        id: p.id,
+                        name: `${p.apartmentName} ${p.dong} ${p.ho}`.trim() || '(이름없음)',
+                        hasFloorplan: !!p.floorplan,
+                        floorplanSize: p.floorplan ? p.floorplan.length : 0
+                    }))
+                });
+                
                 await saveToIndexedDB('projects_list', { projects, currentProjectId });
                 console.log('✅ 프로젝트 목록 저장 완료');
             } catch (e) {
@@ -2357,14 +2382,12 @@
                     projects = saved.projects;
                     currentProjectId = saved.currentProjectId;
                     
-                    projectData = getCurrentProject();
                     console.log('✅ 프로젝트 목록 불러오기 완료:', projects.length + '개');
                 } else {
                     // 첫 실행 시 빈 프로젝트 생성
                     const newProject = createNewProject();
                     projects.push(newProject);
                     currentProjectId = newProject.id;
-                    projectData = getCurrentProject();
                     console.log('✅ 새 프로젝트 생성 완료');
                 }
                 
@@ -2375,7 +2398,6 @@
                 const newProject = createNewProject();
                 projects.push(newProject);
                 currentProjectId = newProject.id;
-                projectData = getCurrentProject();
                 renderProjectList();
             }
         }
@@ -2542,7 +2564,7 @@
             projectData.customerName = document.getElementById('customerName').value;
             projectData.customerPhone = document.getElementById('customerPhone').value;
 
-            saveToLocalStorage();
+            saveProjectsToLocalStorage();
             updateProgress();
             showToast('프로젝트 정보가 저장되었습니다');
         }
@@ -2561,9 +2583,25 @@
                 const file = e.target.files[0];
                 if (file) {
                     const compressed = await compressImage(file);
-                    projectData.floorplan = compressed;
+                    const project = getCurrentProject(); // ✅ 현재 프로젝트 가져오기
+                    
+                    console.log('🔵 평면도 저장 전:', {
+                        projectId: project.id,
+                        projectName: `${project.apartmentName} ${project.dong} ${project.ho}`,
+                        currentProjectId: currentProjectId,
+                        hasFloorplan: !!project.floorplan
+                    });
+                    
+                    project.floorplan = compressed; // ✅ 현재 프로젝트에 저장
+                    
+                    console.log('🟢 평면도 저장 후:', {
+                        projectId: project.id,
+                        hasFloorplan: !!project.floorplan,
+                        totalProjects: projects.length
+                    });
+                    
                     displayFloorplan();
-                    saveToLocalStorage();
+                    saveProjectsToLocalStorage(); // ✅ 프로젝트 배열 저장
                     updateProgress();
                     showToast('평면도가 추가되었습니다');
                 }
@@ -2574,12 +2612,20 @@
         function displayFloorplan() {
             const preview = document.getElementById('floorplanPreview');
             const placeholder = document.getElementById('floorplanPlaceholder');
+            const project = getCurrentProject(); // ✅ 현재 프로젝트 가져오기
             
-            if (projectData.floorplan) {
-                preview.src = projectData.floorplan;
+            console.log('🖼️ displayFloorplan 호출:', {
+                projectId: project.id,
+                hasFloorplan: !!project.floorplan,
+                floorplanLength: project.floorplan ? project.floorplan.length : 0
+            });
+            
+            if (project.floorplan) {
+                preview.src = project.floorplan;
                 preview.style.display = 'block';
                 placeholder.style.display = 'none';
             } else {
+                preview.src = '';
                 preview.style.display = 'none';
                 placeholder.style.display = 'block';
             }
@@ -2587,9 +2633,10 @@
 
         function deleteFloorplan() {
             if (confirm('평면도를 삭제하시겠습니까?')) {
-                projectData.floorplan = null;
+                const project = getCurrentProject(); // ✅ 현재 프로젝트 가져오기
+                project.floorplan = null; // ✅ 현재 프로젝트에서 삭제
                 displayFloorplan();
-                saveToLocalStorage();
+                saveProjectsToLocalStorage(); // ✅ 프로젝트 배열 저장
                 updateProgress();
                 showToast('평면도가 삭제되었습니다');
             }
@@ -2637,7 +2684,7 @@
             };
             projectData.defects.push(newDefect);
             renderDefects();
-            saveToLocalStorage();
+            saveProjectsToLocalStorage();
             updateProgress();
             showToast('✅ 새 하자가 추가되었습니다');
             
@@ -2850,7 +2897,7 @@
                 if (defect) {
                     defect.photos = [];
                     renderDefects();
-                    saveToLocalStorage();
+                    saveProjectsToLocalStorage();
                     showToast('사진이 초기화되었습니다. 다시 촬영해주세요.');
                 }
             }
@@ -2875,7 +2922,7 @@
                         }
                         
                         renderDefects();
-                        saveToLocalStorage();
+                        saveProjectsToLocalStorage();
                         updateProgress();
                     }
                 }
@@ -2897,7 +2944,7 @@
             };
             projectData.equipment.push(newEquipment);
             renderEquipment();
-            saveToLocalStorage();
+            saveProjectsToLocalStorage();
             updateProgress();
             showToast('새 장비점검이 추가되었습니다');
             
@@ -3061,7 +3108,7 @@
             const item = projectData.equipment.find(e => e.id === id);
             if (item) {
                 item[field] = value;
-                saveToLocalStorage();
+                saveProjectsToLocalStorage();
             }
         }
 
@@ -3070,7 +3117,7 @@
             if (item) {
                 item.inspection = value;
                 renderEquipment();
-                saveToLocalStorage();
+                saveProjectsToLocalStorage();
             }
         }
 
@@ -3079,7 +3126,7 @@
             if (item) {
                 item.space = space;
                 renderEquipment();
-                saveToLocalStorage();
+                saveProjectsToLocalStorage();
             }
         }
 
@@ -3108,7 +3155,7 @@
                         }
                         item.photos[location] = compressed;
                         renderEquipment();
-                        saveToLocalStorage();
+                        saveProjectsToLocalStorage();
                         updateProgress();
                         showToast(`${location} 사진이 추가되었습니다`);
                     }
@@ -3123,7 +3170,7 @@
                 if (item && item.photos) {
                     item.photos[location] = null;
                     renderEquipment();
-                    saveToLocalStorage();
+                    saveProjectsToLocalStorage();
                     updateProgress();
                     showToast(`${location} 사진이 삭제되었습니다`);
                 }
@@ -3134,7 +3181,7 @@
             if (confirm('이 장비점검을 삭제하시겠습니까?')) {
                 projectData.equipment = projectData.equipment.filter(e => e.id !== id);
                 renderEquipment();
-                saveToLocalStorage();
+                saveProjectsToLocalStorage();
                 updateProgress();
                 showToast('장비점검이 삭제되었습니다');
             }
@@ -3157,7 +3204,7 @@
                     if (item) {
                         item.photo = compressed;
                         renderEquipment();
-                        saveToLocalStorage();
+                        saveProjectsToLocalStorage();
                         showToast('사진이 추가되었습니다');
                     }
                 }
@@ -3171,7 +3218,7 @@
                 if (item) {
                     item.photo = null;
                     renderEquipment();
-                    saveToLocalStorage();
+                    saveProjectsToLocalStorage();
                     showToast('사진이 삭제되었습니다');
                 }
             }
@@ -3244,7 +3291,7 @@
             };
             projectData.airQuality.push(newRoom);
             renderAirQuality();
-            saveToLocalStorage();
+            saveProjectsToLocalStorage();
             updateProgress();
             showToast('방이 추가되었습니다');
         }
@@ -3257,7 +3304,7 @@
             if (confirm('이 방을 삭제하시겠습니까?')) {
                 projectData.airQuality = projectData.airQuality.filter(r => r.id !== id);
                 renderAirQuality();
-                saveToLocalStorage();
+                saveProjectsToLocalStorage();
                 updateProgress();
                 showToast('방이 삭제되었습니다');
             }
@@ -3267,7 +3314,7 @@
             const room = projectData.airQuality.find(r => r.id === id);
             if (room) {
                 room.name = name;
-                saveToLocalStorage();
+                saveProjectsToLocalStorage();
             }
         }
 
@@ -3280,7 +3327,7 @@
                 // 빈값은 허용
                 if (value === '' || value === null) {
                     room[field] = value;
-                    saveToLocalStorage();
+                    saveProjectsToLocalStorage();
                     updateProgress();
                     return;
                 }
@@ -3315,7 +3362,7 @@
                 }
                 
                 room[field] = value;
-                saveToLocalStorage();
+                saveProjectsToLocalStorage();
                 updateProgress();
             }
         }
@@ -3699,7 +3746,8 @@
             const imageData = await compressImage(originalImage, 1920, 0.85);
             
             if (currentPhotoTarget === 'floorplan') {
-                projectData.floorplan = imageData;
+                const project = getCurrentProject(); // ✅ 현재 프로젝트 가져오기
+                project.floorplan = imageData; // ✅ 현재 프로젝트에 저장
                 displayFloorplan();
                 showToast('평면도가 추가되었습니다');
             } else if (currentPhotoTarget && typeof currentPhotoTarget === 'object') {
@@ -3743,7 +3791,7 @@
                 }
             }
             
-            saveToLocalStorage();
+            saveProjectsToLocalStorage();
             updateProgress();
             closeCameraModal();
         }
@@ -3759,7 +3807,7 @@
                     renderDefects();
                 }
                 
-                saveToLocalStorage();
+                saveProjectsToLocalStorage();
             }
         }
 
@@ -3788,7 +3836,7 @@
             generateAutoDescription(id);
             
             renderDefects();
-            saveToLocalStorage();
+            saveProjectsToLocalStorage();
         }
 
         function generateAutoDescription(id) {
@@ -3867,7 +3915,7 @@
             if (defect) {
                 defect.status = status;
                 renderDefects();
-                saveToLocalStorage();
+                saveProjectsToLocalStorage();
                 showToast(status === 'completed' ? '하자가 완료 처리되었습니다' : '하자가 미완료 상태로 변경되었습니다');
             }
         }
@@ -3876,7 +3924,7 @@
             if (confirm('이 하자를 삭제하시겠습니까?')) {
                 projectData.defects = projectData.defects.filter(d => d.id !== id);
                 renderDefects();
-                saveToLocalStorage();
+                saveProjectsToLocalStorage();
                 updateProgress();
                 showToast('하자가 삭제되었습니다');
             }
@@ -6183,28 +6231,30 @@
                 projectData.customerPhone = document.getElementById('customerPhone').value;
                 
                 // 저장
-                await saveToLocalStorage();
+                await saveProjectsToLocalStorage();
                 updateProgress();
                 
                 console.log('✅ 자동 저장 완료');
             }, 500);
         }
 
-        // ==================== 데이터 저장/불러오기 ====================
-        async function saveToLocalStorage() {
-            try {
-                await saveToIndexedDB('thehomein_current', projectData);
-            } catch (e) {
-                console.error('저장 오류:', e);
-                alert('저장 실패: ' + e.message);
-            }
-        }
+        // ==================== 데이터 저장/불러오기 (구버전 - 사용 안 함) ====================
+        // async function saveToLocalStorage() {
+        //     try {
+        //         await saveToIndexedDB('thehomein_current', projectData);
+        //     } catch (e) {
+        //         console.error('저장 오류:', e);
+        //         alert('저장 실패: ' + e.message);
+        //     }
+        // }
 
         async function loadFromLocalStorage() {
             try {
                 const saved = await loadFromIndexedDB('thehomein_current');
                 if (saved) {
-                    projectData = saved;
+                    // Proxy를 통해 현재 프로젝트에 데이터 로드
+                    const project = getCurrentProject();
+                    Object.assign(project, saved);
                     
                     document.getElementById('apartmentName').value = projectData.apartmentName || '';
                     document.getElementById('dong').value = projectData.dong || '';
@@ -6291,11 +6341,13 @@
                         return;
                     }
                     
-                    projectData = data;
+                    // Proxy를 통해 현재 프로젝트에 데이터 로드
+                    const project = getCurrentProject();
+                    Object.assign(project, data);
                     
                     // equipment 데이터가 없으면 초기화
-                    if (!projectData.equipment) {
-                        projectData.equipment = [];
+                    if (!project.equipment) {
+                        project.equipment = [];
                     }
                     
                     document.getElementById('apartmentName').value = projectData.apartmentName || '';
@@ -6309,7 +6361,7 @@
                     renderDefects();
                     renderEquipment();
                     renderAirQuality();
-                    await saveToLocalStorage();
+                    await saveProjectsToLocalStorage();
                     updateProgress();
                     
                     showToast('데이터를 불러왔습니다');
@@ -6342,18 +6394,18 @@
                             await deleteFromIndexedDB(item.id);
                         }
                         
-                        projectData = {
-                            apartmentName: '',
-                            dong: '',
-                            ho: '',
-                            inspectionDate: '',
-                            customerName: '',
-                            customerPhone: '',
-                            floorplan: null,
-                            defects: [],
-                            equipment: [],
-                            airQuality: []
-                        };
+                        // 현재 프로젝트 초기화
+                        const project = getCurrentProject();
+                        project.apartmentName = '';
+                        project.dong = '';
+                        project.ho = '';
+                        project.inspectionDate = '';
+                        project.customerName = '';
+                        project.customerPhone = '';
+                        project.floorplan = null;
+                        project.defects = [];
+                        project.equipment = [];
+                        project.airQuality = [];
                         
                         defectIdCounter = 1;
                         equipmentIdCounter = 1;
