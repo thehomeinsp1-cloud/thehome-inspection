@@ -4141,6 +4141,35 @@
             });
         }
 
+        // 📱 갤러리에 사진 저장하는 함수
+        async function saveToGallery(imageDataUrl, filename) {
+            try {
+                // Base64를 Blob으로 변환
+                const response = await fetch(imageDataUrl);
+                const blob = await response.blob();
+                
+                // 파일 다운로드 트리거 (모바일에서는 갤러리에 저장됨)
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                a.style.display = 'none';
+                document.body.appendChild(a);
+                a.click();
+                
+                // 메모리 정리
+                setTimeout(() => {
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                }, 100);
+                
+                console.log('✅ 갤러리 저장 완료:', filename);
+            } catch (error) {
+                console.error('❌ 갤러리 저장 실패:', error);
+                // 저장 실패해도 앱 사용에는 문제없음 (조용히 실패 처리)
+            }
+        }
+
         window.capturePhoto = async function() {
             // 이벤트 전파 방지
             if (event) {
@@ -4162,9 +4191,18 @@
             // 이미지 압축 (1920px, 품질 85%)
             const imageData = await compressImage(originalImage, 1920, 0.85);
             
+            // 파일명 생성 (타임스탬프 기반)
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+            let filename = '';
+            
             if (currentPhotoTarget === 'floorplan') {
                 const project = getCurrentProject(); // ✅ 현재 프로젝트 가져오기
                 project.floorplan = imageData; // ✅ 현재 프로젝트에 저장
+                
+                // 갤러리에 자동 저장
+                filename = `더홈점검_평면도_${project.apartmentName}_${project.dong}동${project.ho}호_${timestamp}.jpg`;
+                await saveToGallery(imageData, filename);
+                
                 displayFloorplan();
                 showToast('평면도가 추가되었습니다');
             } else if (currentPhotoTarget && typeof currentPhotoTarget === 'object') {
@@ -4174,10 +4212,16 @@
                     if (defect) {
                         defect.photos.push(imageData);
                         
+                        // 갤러리에 자동 저장
+                        const project = getCurrentProject();
+                        const photoType = currentPhotoTarget.step === 'far' ? '멀리서' : '가까이서';
+                        filename = `더홈점검_하자${defect.id}_${photoType}_${project.apartmentName}_${project.dong}동${project.ho}호_${timestamp}.jpg`;
+                        await saveToGallery(imageData, filename);
+                        
                         if (currentPhotoTarget.step === 'far') {
-                            showToast('✓ 멀리서 촬영 완료! 이제 가까이서 촬영해주세요.');
+                            showToast('✓ 멀리서 촬영 완료!');
                         } else if (currentPhotoTarget.step === 'close') {
-                            showToast('✓ 가까이서 촬영 완료! 하자 사진이 모두 등록되었습니다.');
+                            showToast('✓ 가까이서 촬영 완료!');
                         }
                         
                         renderDefects();
@@ -4197,6 +4241,12 @@
                                 };
                             }
                             equipment.photos[currentPhotoTarget.location] = imageData;
+                            
+                            // 갤러리에 자동 저장
+                            const project = getCurrentProject();
+                            filename = `더홈점검_장비${equipment.id}_${currentPhotoTarget.location}_${project.apartmentName}_${project.dong}동${project.ho}호_${timestamp}.jpg`;
+                            await saveToGallery(imageData, filename);
+                            
                             showToast(`✓ ${currentPhotoTarget.location} 사진이 등록되었습니다.`);
                         } else {
                             // 구 버전 호환성
@@ -4895,22 +4945,29 @@
                 if (projectData.defects && projectData.defects.length > 0) {
                     const defectFolder = zip.folder('하자사진');
                     
-                    projectData.defects.forEach((defect, index) => {
+                    for (let index = 0; index < projectData.defects.length; index++) {
+                        const defect = projectData.defects[index];
                         if (defect.photos && defect.photos.length > 0) {
                             const defectNum = String(index + 1).padStart(2, '0');
                             // ✅ 배열에서 첫 번째 값 가져오기
                             const spaceName = (defect.spaces && defect.spaces.length > 0) ? defect.spaces[0] : '미지정';
                             const locationName = (defect.locations && defect.locations.length > 0) ? defect.locations[0] : '미지정';
                             
-                            defect.photos.forEach((photo, photoIndex) => {
-                                const photoData = photo.split(',')[1];
+                            for (let photoIndex = 0; photoIndex < defect.photos.length; photoIndex++) {
+                                const photo = defect.photos[photoIndex];
                                 const photoType = photoIndex === 0 ? '원경' : '근접';
+                                
+                                // 워터마크 추가
+                                const watermarkText = photoIndex === 0 ? `${index + 1}` : `${index + 1}-1`;
+                                const photoWithWatermark = await addWatermarkToPhoto(photo, watermarkText);
+                                
+                                const photoData = photoWithWatermark.split(',')[1];
                                 const fileName = `${defectNum}_${spaceName}_${locationName}_${photoType}.jpg`.replace(/\//g, '-');
                                 defectFolder.file(fileName, photoData, { base64: true });
                                 photoCount++;
-                            });
+                            }
                         }
-                    });
+                    }
                 }
                 
                 // 장비 사진
@@ -5302,22 +5359,29 @@
                 if (projectData.defects && projectData.defects.length > 0) {
                     const defectFolder = zip.folder('하자사진');
                     
-                    projectData.defects.forEach((defect, index) => {
+                    for (let index = 0; index < projectData.defects.length; index++) {
+                        const defect = projectData.defects[index];
                         if (defect.photos && defect.photos.length > 0) {
                             const defectNum = String(index + 1).padStart(2, '0'); // 01, 02, 03...
                             // ✅ 배열에서 첫 번째 값 가져오기
                             const spaceName = (defect.spaces && defect.spaces.length > 0) ? defect.spaces[0] : '미지정';
                             const locationName = (defect.locations && defect.locations.length > 0) ? defect.locations[0] : '미지정';
                             
-                            defect.photos.forEach((photo, photoIndex) => {
-                                const photoData = photo.split(',')[1];
+                            for (let photoIndex = 0; photoIndex < defect.photos.length; photoIndex++) {
+                                const photo = defect.photos[photoIndex];
                                 const photoType = photoIndex === 0 ? '원경' : '근접';
+                                
+                                // 워터마크 추가
+                                const watermarkText = photoIndex === 0 ? `${index + 1}` : `${index + 1}-1`;
+                                const photoWithWatermark = await addWatermarkToPhoto(photo, watermarkText);
+                                
+                                const photoData = photoWithWatermark.split(',')[1];
                                 const fileName = `${defectNum}_${spaceName}_${locationName}_${photoType}.jpg`.replace(/\//g, '-');
                                 defectFolder.file(fileName, photoData, { base64: true });
                                 photoCount++;
-                            });
+                            }
                         }
-                    });
+                    }
                 }
                 
                 // 3. 장비 사진
@@ -5435,7 +5499,7 @@
                         for (let i = 0; i < defectsWithPhotos.length; i += 3) {
                             doc.addPage();
                             const batch = defectsWithPhotos.slice(i, i + 3);
-                            const detailHTML = createDefectDetailPage(batch, i);
+                            const detailHTML = await createDefectDetailPage(batch, i);
                             await addHTMLPageToPDF(doc, detailHTML, pageWidth, pageHeight);
                         }
                     }
@@ -5649,13 +5713,63 @@
             `;
         }
 
-        function createDefectDetailPage(defects, startIndex) {
+        // 📷 사진에 워터마크 추가하는 함수
+        async function addWatermarkToPhoto(imageDataUrl, text) {
+            return new Promise((resolve) => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    
+                    const ctx = canvas.getContext('2d');
+                    
+                    // 원본 이미지 그리기
+                    ctx.drawImage(img, 0, 0);
+                    
+                    // 워터마크 배지 크기 계산 (이미지 크기에 비례, 더욱 크게)
+                    const badgeSize = Math.max(80, Math.min(img.width * 0.15, 120));
+                    const fontSize = badgeSize * 0.6;
+                    const padding = badgeSize * 0.25;
+                    
+                    // 반투명 검은색 배경
+                    ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
+                    ctx.roundRect(20, 20, badgeSize, badgeSize, 12);
+                    ctx.fill();
+                    
+                    // 흰색 테두리
+                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+                    ctx.lineWidth = 3;
+                    ctx.roundRect(20, 20, badgeSize, badgeSize, 12);
+                    ctx.stroke();
+                    
+                    // 흰색 텍스트
+                    ctx.fillStyle = '#FFFFFF';
+                    ctx.font = `bold ${fontSize}px Arial`;
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(text, 20 + badgeSize / 2, 20 + badgeSize / 2);
+                    
+                    resolve(canvas.toDataURL('image/jpeg', 0.95));
+                };
+                img.src = imageDataUrl;
+            });
+        }
+
+        async function createDefectDetailPage(defects, startIndex) {
             let contentHTML = '';
             
-            defects.forEach((defect, idx) => {
+            for (let idx = 0; idx < defects.length; idx++) {
+                const defect = defects[idx];
                 const globalIndex = startIndex + idx + 1;
-                const farPhoto = defect.photos && defect.photos.length > 0 ? defect.photos[0] : '';
-                const closePhoto = defect.photos && defect.photos.length > 1 ? defect.photos[1] : '';
+                
+                // 원본 사진
+                const farPhotoOriginal = defect.photos && defect.photos.length > 0 ? defect.photos[0] : '';
+                const closePhotoOriginal = defect.photos && defect.photos.length > 1 ? defect.photos[1] : '';
+                
+                // 워터마크 추가된 사진
+                const farPhoto = farPhotoOriginal ? await addWatermarkToPhoto(farPhotoOriginal, `${globalIndex}`) : '';
+                const closePhoto = closePhotoOriginal ? await addWatermarkToPhoto(closePhotoOriginal, `${globalIndex}-1`) : '';
                 
                 // 배열을 문자열로 변환 (하위 호환성)
                 const spaces = defect.spaces ? defect.spaces.join(', ') : (defect.space || '-');
@@ -5716,7 +5830,7 @@
                         </div>
                     </div>
                 `;
-            });
+            }
 
             return `
                 <div style="width: 794px; min-height: 1123px; background: white; font-family: 'Malgun Gothic', sans-serif; padding: 30px;">
