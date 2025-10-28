@@ -1412,7 +1412,7 @@
         }
         
         // 대기 중인 프로젝트 동기화
-        async function syncPendingProjects() {
+        window.syncPendingProjects = async function() {
             if (!isOnline) {
                 showToast('❌ 인터넷 연결이 필요합니다', 'error');
                 return;
@@ -1482,7 +1482,7 @@
         }
         
         // Client ID 설정 토글
-        function toggleClientIdSetup() {
+        window.toggleClientIdSetup = function() {
             const setup = document.getElementById('clientIdSetup');
             if (setup.style.display === 'none') {
                 setup.style.display = 'block';
@@ -1493,7 +1493,7 @@
         }
         
         // Client ID 저장
-        function saveClientId() {
+        window.saveClientId = function() {
             const clientId = document.getElementById('clientIdInput').value.trim();
             if (!clientId) {
                 showToast('❌ Client ID를 입력하세요');
@@ -1510,7 +1510,7 @@
         }
         
         // Google Drive 카드 토글
-        function toggleGoogleDrive() {
+        window.toggleGoogleDrive = function() {
             const card = document.getElementById('googleDriveCard');
             if (card.style.display === 'none') {
                 card.style.display = 'block';
@@ -1579,7 +1579,7 @@
         }
 
         // ==================== OAuth2 팝업 로그인 ====================
-        async function handleGoogleSignIn() {
+        window.handleGoogleSignIn = async function() {
             // Client ID 확인
             if (!GOOGLE_CLIENT_ID) {
                 showToast('❌ Client ID를 먼저 설정하세요 (⚙️ 버튼)');
@@ -1687,7 +1687,7 @@
             }
         }
 
-        function handleGoogleSignOut() {
+        window.handleGoogleSignOut = function() {
             if (accessToken) {
                 // Google OAuth2 토큰 해지
                 fetch('https://accounts.google.com/o/oauth2/revoke?token=' + accessToken);
@@ -2074,7 +2074,7 @@
 
         // 메인 업로드 함수
 
-        async function uploadProjectToDrive(projectToUpload = null) {
+        window.uploadProjectToDrive = async function(projectToUpload = null) {
             // projectToUpload가 있으면 그것 사용 (동기화용), 없으면 현재 프로젝트
             const project = projectToUpload || getCurrentProject();
             
@@ -2171,7 +2171,7 @@
         // ==================== Drive 불러오기 (삭제 예정) ====================
 
 
-        async function loadFromDrive() {
+        window.loadFromDrive = async function() {
             if (!accessToken) {
                 alert('먼저 Google 로그인을 해주세요');
                 return;
@@ -2255,7 +2255,7 @@
         }
 
         // ==================== Drive 프로젝트 목록 ====================
-        async function showDriveProjects() {
+        window.showDriveProjects = async function() {
             if (!accessToken) {
                 alert('먼저 Google 로그인을 해주세요');
                 return;
@@ -2305,7 +2305,7 @@
             }
         }
 
-        async function loadDriveProjectById(fileId) {
+        window.loadDriveProjectById = async function(fileId) {
             showLoading();
             closeDriveProjectsModal();
 
@@ -2361,7 +2361,7 @@
             }
         }
 
-        function closeDriveProjectsModal() {
+        window.closeDriveProjectsModal = function() {
             document.getElementById('driveProjectsModal').style.display = 'none';
         }
 
@@ -2422,7 +2422,7 @@
         }
 
         // 새 프로젝트 추가
-        function addNewProject() {
+        window.addNewProject = function() {
             const newProject = createNewProject();
             projects.push(newProject);
             currentProjectId = newProject.id;
@@ -2445,7 +2445,7 @@
         }
 
         // 프로젝트 전환
-        function switchProject(projectId) {
+        window.switchProject = function(projectId) {
             if (projectId === currentProjectId) return;
             
             console.log('🔄 프로젝트 전환:', {
@@ -2476,7 +2476,7 @@
         }
 
         // 현재 프로젝트 삭제
-        function deleteCurrentProject() {
+        window.deleteCurrentProject = function() {
             if (projects.length <= 1) {
                 alert('❌ 마지막 프로젝트는 삭제할 수 없습니다');
                 return;
@@ -2674,7 +2674,7 @@
         });
 
         // 탭 전환
-        function switchTab(tabName, evt) {
+        window.switchTab = function(tabName, evt) {
             document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
             document.querySelectorAll('.section').forEach(section => section.classList.remove('active'));
             
@@ -2749,7 +2749,7 @@
         }
 
         // ==================== 프로젝트 정보 ====================
-        function saveProject() {
+        window.saveProject = function() {
             const newApartmentName = document.getElementById('apartmentName').value;
             const newDong = document.getElementById('dong').value;
             const newHo = document.getElementById('ho').value;
@@ -2797,12 +2797,12 @@
         }
 
         // ==================== 평면도 관리 ====================
-        function openFloorplanCamera() {
+        window.openFloorplanCamera = function() {
             currentPhotoTarget = 'floorplan';
             openCamera();
         }
 
-        async function openFloorplanGallery() {
+        window.openFloorplanGallery = async function() {
             const input = document.createElement('input');
             input.type = 'file';
             input.accept = 'image/*';
@@ -2858,7 +2858,7 @@
             }
         }
 
-        function deleteFloorplan() {
+        window.deleteFloorplan = function() {
             if (confirm('평면도를 삭제하시겠습니까?')) {
                 const project = getCurrentProject(); // ✅ 현재 프로젝트 가져오기
                 project.floorplan = null; // ✅ 현재 프로젝트에서 삭제
@@ -2870,7 +2870,7 @@
         }
 
         // ==================== 하자 점검 ====================
-        function handleFloatingBtnClick() {
+        window.handleFloatingBtnClick = function() {
             const activeSection = document.querySelector('.section.active');
             if (activeSection.id === 'defects') {
                 addDefect();
@@ -3108,17 +3108,17 @@
             }).join('');
         }
 
-        function startDefectPhotoSequence(defectId) {
+        window.startDefectPhotoSequence = function(defectId) {
             currentPhotoTarget = { defectId: defectId, step: 'far' };
             openCamera();
         }
 
-        function continueDefectPhotoSequence(defectId) {
+        window.continueDefectPhotoSequence = function(defectId) {
             currentPhotoTarget = { defectId: defectId, step: 'close' };
             openCamera();
         }
 
-        function retakeDefectPhotos(defectId) {
+        window.retakeDefectPhotos = function(defectId) {
             if (confirm('사진을 다시 촬영하시겠습니까?\n(기존 사진 2장이 삭제됩니다)')) {
                 const defect = projectData.defects.find(d => d.id === defectId);
                 if (defect) {
@@ -3130,7 +3130,7 @@
             }
         }
 
-        async function uploadDefectPhotoFromGallery(defectId, step) {
+        window.uploadDefectPhotoFromGallery = async function(defectId, step) {
             const input = document.createElement('input');
             input.type = 'file';
             input.accept = 'image/*';
@@ -3339,7 +3339,7 @@
             }
         }
 
-        function updateEquipmentInspection(id, value) {
+        window.updateEquipmentInspection = function(id, value) {
             const item = projectData.equipment.find(e => e.id === id);
             if (item) {
                 item.inspection = value;
@@ -3348,7 +3348,7 @@
             }
         }
 
-        function updateEquipmentSpace(id, space) {
+        window.updateEquipmentSpace = function(id, space) {
             const item = projectData.equipment.find(e => e.id === id);
             if (item) {
                 item.space = space;
@@ -3357,12 +3357,12 @@
             }
         }
 
-        function openEquipmentLocationCamera(id, location) {
+        window.openEquipmentLocationCamera = function(id, location) {
             currentPhotoTarget = { equipmentId: id, location: location };
             openCamera();
         }
 
-        async function openEquipmentLocationGallery(id, location) {
+        window.openEquipmentLocationGallery = async function(id, location) {
             const input = document.createElement('input');
             input.type = 'file';
             input.accept = 'image/*';
@@ -3391,7 +3391,7 @@
             input.click();
         }
 
-        function deleteEquipmentLocationPhoto(id, location) {
+        window.deleteEquipmentLocationPhoto = function(id, location) {
             if (confirm(`${location} 사진을 삭제하시겠습니까?`)) {
                 const item = projectData.equipment.find(e => e.id === id);
                 if (item && item.photos) {
@@ -3404,7 +3404,7 @@
             }
         }
 
-        function deleteEquipment(id) {
+        window.deleteEquipment = function(id) {
             if (confirm('이 장비점검을 삭제하시겠습니까?')) {
                 projectData.equipment = projectData.equipment.filter(e => e.id !== id);
                 renderEquipment();
@@ -3508,7 +3508,7 @@
             `).join('');
         }
 
-        function addAirQualityRoom() {
+        window.addAirQualityRoom = function() {
             const newRoom = {
                 id: airQualityIdCounter++,
                 name: `방${projectData.airQuality.length + 1}`,
@@ -3523,7 +3523,7 @@
             showToast('방이 추가되었습니다');
         }
 
-        function deleteAirRoom(id) {
+        window.deleteAirRoom = function(id) {
             if (projectData.airQuality.length <= 1) {
                 alert('최소 1개의 방은 있어야 합니다');
                 return;
@@ -3784,7 +3784,7 @@
             }
         }
 
-        function closeCameraModal() {
+        window.closeCameraModal = function() {
             if (cameraStream) {
                 cameraStream.getTracks().forEach(track => track.stop());
                 cameraStream = null;
@@ -3951,7 +3951,7 @@
             });
         }
 
-        async function capturePhoto() {
+        window.capturePhoto = async function() {
             // 이벤트 전파 방지
             if (event) {
                 event.preventDefault();
@@ -4038,7 +4038,7 @@
             }
         }
 
-        function toggleDefectSelection(id, field, value) {
+        window.toggleDefectSelection = function(id, field, value) {
             const defect = projectData.defects.find(d => d.id === id);
             if (!defect) return;
             
@@ -4147,7 +4147,7 @@
             }
         }
 
-        function deleteDefect(id) {
+        window.deleteDefect = function(id) {
             if (confirm('이 하자를 삭제하시겠습니까?')) {
                 projectData.defects = projectData.defects.filter(d => d.id !== id);
                 renderDefects();
@@ -4159,7 +4159,7 @@
 
         // ==================== 엑셀 다운로드 (시공사 제출용) ====================
         // ==================== 모든 자료 다운로드 (PDF + 엑셀 + 사진 ZIP) ====================
-        async function downloadAllData() {
+        window.downloadAllData = async function() {
             // ✅ 1. 프로젝트 정보 검증
             if (!projectData.apartmentName || !projectData.dong || !projectData.ho) {
                 alert('프로젝트 정보를 먼저 입력해주세요');
@@ -5189,7 +5189,7 @@
         }
 
         // ==================== PDF 생성 ====================
-        async function generatePDF() {
+        window.generatePDF = async function() {
             // ✅ 1. 프로젝트 정보 검증
             if (!projectData.apartmentName || !projectData.dong || !projectData.ho) {
                 alert('프로젝트 정보를 먼저 입력해주세요');
@@ -6528,7 +6528,7 @@
             }
         }
 
-        async function saveCurrentData() {
+        window.saveCurrentData = async function() {
             const timestamp = new Date().toISOString();
             const key = `thehomein_${timestamp}`;
             
@@ -6577,7 +6577,7 @@
             }
         }
 
-        async function loadSavedData(key) {
+        window.loadSavedData = async function(key) {
             if (confirm('현재 작업 중인 데이터를 불러온 데이터로 덮어쓰시겠습니까?')) {
                 try {
                     const data = await loadFromIndexedDB(key);
@@ -6617,7 +6617,7 @@
             }
         }
 
-        async function deleteSavedData(key) {
+        window.deleteSavedData = async function(key) {
             if (confirm('이 프로젝트를 삭제하시겠습니까?')) {
                 try {
                     await deleteFromIndexedDB(key);
@@ -6629,7 +6629,7 @@
             }
         }
 
-        async function clearAllData() {
+        window.clearAllData = async function() {
             if (confirm('정말로 모든 데이터를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) {
                 if (confirm('다시 한번 확인합니다. 모든 데이터가 삭제됩니다.')) {
                     try {
@@ -6822,7 +6822,7 @@
         }
 
         // 계약서 작성 폼 표시
-        function showContractForm() {
+        window.showContractForm = function() {
             document.getElementById('contractList').style.display = 'none';
             document.getElementById('contractForm').style.display = 'block';
             document.getElementById('btnShowList').classList.remove('btn-primary');
@@ -6842,7 +6842,7 @@
         }
 
         // 계약서 목록 표시
-        function showContractList() {
+        window.showContractList = function() {
             document.getElementById('contractList').style.display = 'block';
             document.getElementById('contractForm').style.display = 'none';
             document.getElementById('btnShowList').classList.add('btn-primary');
@@ -6934,7 +6934,7 @@
         }
 
         // 서명 지우기
-        function clearSignature(type) {
+        window.clearSignature = function(type) {
             const pad = signaturePads[type];
             if (pad) {
                 pad.ctx.clearRect(0, 0, pad.canvas.width, pad.canvas.height);
@@ -6951,7 +6951,7 @@
         }
 
         // 계약서 미리보기
-        function previewContract() {
+        window.previewContract = function() {
             // 필수 항목 검증
             const name = document.getElementById('contractName').value;
             const address = document.getElementById('contractAddress').value;
@@ -6972,8 +6972,9 @@
             const ceoSigned = signaturePads['CEO'] && !isCanvasBlank(signaturePads['CEO'].canvas);
             const freelancerSigned = signaturePads['Freelancer'] && !isCanvasBlank(signaturePads['Freelancer'].canvas);
             
-            if (!ceoSigned || !freelancerSigned) {
-                alert('양측의 서명이 필요합니다');
+            // 둘 다 없으면 경고
+            if (!ceoSigned && !freelancerSigned) {
+                alert('최소 한 명은 서명이 필요합니다');
                 return;
             }
             
@@ -6995,12 +6996,12 @@
         }
 
         // 미리보기 닫기
-        function closePreview() {
+        window.closePreview = function() {
             document.getElementById('contractPreviewModal').style.display = 'none';
         }
 
         // 계약서 저장
-        async function saveContract() {
+        window.saveContract = async function() {
             // 유효성 검사
             const name = document.getElementById('contractName').value;
             if (!name) {
@@ -7266,7 +7267,7 @@
         }
 
         // 계약서 보기
-        async function viewContract(id) {
+        window.viewContract = async function(id) {
             try {
                 const db = await initContractDB();
                 const tx = db.transaction('contracts', 'readonly');
@@ -7291,7 +7292,7 @@
         }
 
         // PDF 생성
-        function generateContractPDF() {
+        window.generateContractPDF = function() {
             showToast('📄 인쇄 화면으로 이동합니다', 'info');
             setTimeout(() => {
                 window.print();
@@ -7299,7 +7300,7 @@
         }
 
         // 계약서 PDF 다운로드
-        async function downloadContractPDF(id) {
+        window.downloadContractPDF = async function(id) {
             await viewContract(id);
             setTimeout(() => {
                 generateContractPDF();
@@ -7307,7 +7308,7 @@
         }
 
         // 계약서 삭제
-        async function deleteContract(id) {
+        window.deleteContract = async function(id) {
             if (!confirm('정말 이 계약서를 삭제하시겠습니까?')) {
                 return;
             }
