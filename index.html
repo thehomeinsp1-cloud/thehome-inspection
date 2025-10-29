@@ -4406,10 +4406,23 @@
                 const pageWidth = 210;
                 const pageHeight = 297;
 
-                // PDF 페이지들 생성
-                const summaryHTML = createSummaryFirstPage();
-                await window.addHTMLPageToPDF(doc, summaryHTML, pageWidth, pageHeight);
+                // ★ generatePDF와 동일한 PDF 생성 로직 ★
+                
+                // 1페이지: 프로젝트 정보 + 하자 목록 10개
+                const firstPageHTML = window.createSummaryFirstPage();
+                await window.addHTMLPageToPDF(doc, firstPageHTML, pageWidth, pageHeight);
 
+                // 2페이지~: 하자 목록만 (20개씩)
+                if (projectData.defects.length > 10) {
+                    const itemsPerPage = 20;
+                    for (let i = 10; i < projectData.defects.length; i += itemsPerPage) {
+                        doc.addPage();
+                        const listPageHTML = window.createDefectListPage(i, itemsPerPage);
+                        await window.addHTMLPageToPDF(doc, listPageHTML, pageWidth, pageHeight);
+                    }
+                }
+
+                // 하자 상세 사진 페이지 (3개씩, 사진 2장씩)
                 if (projectData.defects.length > 0) {
                     const defectsWithPhotos = projectData.defects.filter(d => d.photos && d.photos.length > 0);
                     
@@ -4417,12 +4430,13 @@
                         for (let i = 0; i < defectsWithPhotos.length; i += 3) {
                             doc.addPage();
                             const batch = defectsWithPhotos.slice(i, i + 3);
-                            const detailHTML = createDefectDetailPage(batch, i);
+                            const detailHTML = await window.createDefectDetailPage(batch, i);
                             await window.addHTMLPageToPDF(doc, detailHTML, pageWidth, pageHeight);
                         }
                     }
                 }
 
+                // 장비점검 페이지 (1개씩)
                 if (projectData.equipment && projectData.equipment.length > 0) {
                     const equipmentWithPhotos = projectData.equipment.filter(e => {
                         if (e.photos && typeof e.photos === 'object') {
@@ -4435,39 +4449,41 @@
                         for (let i = 0; i < equipmentWithPhotos.length; i += 3) {
                             doc.addPage();
                             const batch = equipmentWithPhotos.slice(i, i + 3);
-                            const equipmentHTML = createEquipmentPage(batch, i);
+                            const equipmentHTML = await window.createEquipmentPage(batch, i);
                             await window.addHTMLPageToPDF(doc, equipmentHTML, pageWidth, pageHeight);
                         }
                     }
                 }
 
+                // 공기질 상세 페이지 추가
                 const airQualityWithData = projectData.airQuality.filter(room => 
                     room.radon || room.formaldehyde || room.vocs
                 );
                 if (airQualityWithData.length > 0) {
                     doc.addPage();
-                    const airQualityHTML = createAirQualityDetailPage();
+                    const airQualityHTML = window.createAirQualityDetailPage();
                     await window.addHTMLPageToPDF(doc, airQualityHTML, pageWidth, pageHeight);
                 }
 
+                // 참고자료 페이지 추가 (보고서 뒤쪽에)
                 doc.addPage();
-                const warrantyPage1 = createWarrantyGuidePage1();
+                const warrantyPage1 = window.createWarrantyGuidePage1();
                 await window.addHTMLPageToPDF(doc, warrantyPage1, pageWidth, pageHeight);
 
                 doc.addPage();
-                const warrantyPage2 = createWarrantyGuidePage2();
+                const warrantyPage2 = window.createWarrantyGuidePage2();
                 await window.addHTMLPageToPDF(doc, warrantyPage2, pageWidth, pageHeight);
 
                 doc.addPage();
-                const airQualityGuide = createAirQualityManagementGuidePage();
+                const airQualityGuide = window.createAirQualityManagementGuidePage();
                 await window.addHTMLPageToPDF(doc, airQualityGuide, pageWidth, pageHeight);
 
                 doc.addPage();
-                const condensationGuide = createCondensationGuidePage();
+                const condensationGuide = window.createCondensationGuidePage();
                 await window.addHTMLPageToPDF(doc, condensationGuide, pageWidth, pageHeight);
 
                 doc.addPage();
-                const movingInGuide = createMovingInGuidePage();
+                const movingInGuide = window.createMovingInGuidePage();
                 await window.addHTMLPageToPDF(doc, movingInGuide, pageWidth, pageHeight);
                 
                 // PDF를 Blob으로 변환하여 ZIP에 추가
@@ -5494,29 +5510,29 @@
                 );
                 if (airQualityWithData.length > 0) {
                     doc.addPage();
-                    const airQualityHTML = createAirQualityDetailPage();
+                    const airQualityHTML = window.createAirQualityDetailPage();
                     await window.addHTMLPageToPDF(doc, airQualityHTML, pageWidth, pageHeight);
                 }
 
                 // 참고자료 페이지 추가 (보고서 뒤쪽에)
                 doc.addPage();
-                const warrantyPage1 = createWarrantyGuidePage1();
+                const warrantyPage1 = window.createWarrantyGuidePage1();
                 await window.addHTMLPageToPDF(doc, warrantyPage1, pageWidth, pageHeight);
 
                 doc.addPage();
-                const warrantyPage2 = createWarrantyGuidePage2();
+                const warrantyPage2 = window.createWarrantyGuidePage2();
                 await window.addHTMLPageToPDF(doc, warrantyPage2, pageWidth, pageHeight);
 
                 doc.addPage();
-                const airQualityGuide = createAirQualityManagementGuidePage();
+                const airQualityGuide = window.createAirQualityManagementGuidePage();
                 await window.addHTMLPageToPDF(doc, airQualityGuide, pageWidth, pageHeight);
 
                 doc.addPage();
-                const condensationGuide = createCondensationGuidePage();
+                const condensationGuide = window.createCondensationGuidePage();
                 await window.addHTMLPageToPDF(doc, condensationGuide, pageWidth, pageHeight);
 
                 doc.addPage();
-                const movingInGuide = createMovingInGuidePage();
+                const movingInGuide = window.createMovingInGuidePage();
                 await window.addHTMLPageToPDF(doc, movingInGuide, pageWidth, pageHeight);
 
                 // 모바일 호환 다운로드
@@ -5986,7 +6002,7 @@
         }
 
         // 참고자료 페이지 생성 함수들
-        function createWarrantyGuidePage1() {
+        window.createWarrantyGuidePage1 = function() {
             return `
                 <div style="width: 794px; min-height: 1123px; background: white; font-family: 'Malgun Gothic', sans-serif; padding: 30px; position: relative;">
                     <h2 style="margin: 0 0 20px 0; font-size: 20px; color: #000; border-bottom: 3px solid #e74c3c; padding-bottom: 10px;">📝 하자보수 청구 가이드</h2>
@@ -6079,7 +6095,7 @@
             `;
         }
 
-        function createWarrantyGuidePage2() {
+        window.createWarrantyGuidePage2 = function() {
             return `
                 <div style="width: 794px; min-height: 1123px; background: white; font-family: 'Malgun Gothic', sans-serif; padding: 30px; position: relative;">
                     <h2 style="margin: 0 0 20px 0; font-size: 20px; color: #000; border-bottom: 3px solid #e74c3c; padding-bottom: 10px;">⏰ 하자담보책임 기간 상세</h2>
@@ -6180,7 +6196,7 @@
             `;
         }
 
-        function createAirQualityManagementGuidePage() {
+        window.createAirQualityManagementGuidePage = function() {
             return `
                 <div style="width: 794px; min-height: 1123px; background: white; font-family: 'Malgun Gothic', sans-serif; padding: 30px; position: relative;">
                     <h2 style="margin: 0 0 20px 0; font-size: 20px; color: #000; border-bottom: 3px solid #2ecc71; padding-bottom: 10px;">🌿 실내 공기질 관리 가이드</h2>
@@ -6303,7 +6319,7 @@
             `;
         }
 
-        function createCondensationGuidePage() {
+        window.createCondensationGuidePage = function() {
             return `
                 <div style="width: 794px; min-height: 1123px; background: white; font-family: 'Malgun Gothic', sans-serif; padding: 30px; position: relative;">
                     <h2 style="margin: 0 0 20px 0; font-size: 20px; color: #000; border-bottom: 3px solid #3498db; padding-bottom: 10px;">💧 결로 예방 및 관리 가이드</h2>
@@ -6421,7 +6437,7 @@
             `;
         }
 
-        function createMovingInGuidePage() {
+        window.createMovingInGuidePage = function() {
             return `
                 <div style="width: 794px; min-height: 1123px; background: white; font-family: 'Malgun Gothic', sans-serif; padding: 30px; position: relative;">
                     <h2 style="margin: 0 0 20px 0; font-size: 20px; color: #000; border-bottom: 3px solid #9b59b6; padding-bottom: 10px;">🏡 입주 시 알아두면 유용한 정보</h2>
@@ -6555,7 +6571,7 @@
             `;
         }
 
-        function createAirQualityDetailPage() {
+        window.createAirQualityDetailPage = function() {
             const airQualityData = projectData.airQuality.filter(room => 
                 room.radon || room.formaldehyde || room.vocs
             );
