@@ -3151,22 +3151,48 @@
                             </div>
                         ` : `
                             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
-                                <div style="position: relative;">
-                                    <img src="${defect.photos[0]}" alt="멀리서" style="width: 100%; height: 220px; object-fit: cover; border-radius: 8px; border: 2px solid var(--primary);">
-                                    <div style="position: absolute; bottom: 6px; left: 6px; background: rgba(16, 185, 129, 0.95); color: white; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: bold;">
-                                        ✓ 멀리서
+                                <!-- 원경 사진 -->
+                                <div>
+                                    <div style="position: relative; margin-bottom: 4px;">
+                                        <img src="${defect.photos[0]}" alt="멀리서" style="width: 100%; height: 200px; object-fit: cover; border-radius: 8px 8px 0 0; border: 2px solid var(--primary); border-bottom: none;">
+                                        <div style="position: absolute; top: 6px; left: 6px; background: rgba(16, 185, 129, 0.95); color: white; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: bold;">
+                                            ✓ 멀리서
+                                        </div>
+                                    </div>
+                                    <div style="display: flex; border: 2px solid var(--primary); border-top: none; border-radius: 0 0 8px 8px; overflow: hidden;">
+                                        <button class="btn" onclick="retakeDefectPhoto(${defect.id}, 0, 'far')" style="flex: 1; border-radius: 0; border: none; padding: 8px; font-size: 11px; background: #f3f4f6; color: #374151;">
+                                            🔄 재촬영
+                                        </button>
+                                        <button class="btn" onclick="reattachDefectPhoto(${defect.id}, 0, 'far')" style="flex: 1; border-radius: 0; border: none; border-left: 1px solid #ddd; padding: 8px; font-size: 11px; background: #f3f4f6; color: #374151;">
+                                            🖼️ 재첨부
+                                        </button>
+                                        <button class="btn" onclick="deleteDefectPhoto(${defect.id}, 0)" style="flex: 1; border-radius: 0; border: none; border-left: 1px solid #ddd; padding: 8px; font-size: 11px; background: #fee2e2; color: #dc2626;">
+                                            🗑️ 삭제
+                                        </button>
                                     </div>
                                 </div>
-                                <div style="position: relative;">
-                                    <img src="${defect.photos[1]}" alt="가까이서" style="width: 100%; height: 220px; object-fit: cover; border-radius: 8px; border: 2px solid var(--secondary);">
-                                    <div style="position: absolute; bottom: 6px; left: 6px; background: rgba(251, 191, 36, 0.95); color: white; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: bold;">
-                                        ✓ 가까이서
+                                
+                                <!-- 근경 사진 -->
+                                <div>
+                                    <div style="position: relative; margin-bottom: 4px;">
+                                        <img src="${defect.photos[1]}" alt="가까이서" style="width: 100%; height: 200px; object-fit: cover; border-radius: 8px 8px 0 0; border: 2px solid var(--secondary); border-bottom: none;">
+                                        <div style="position: absolute; top: 6px; left: 6px; background: rgba(251, 191, 36, 0.95); color: white; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: bold;">
+                                            ✓ 가까이서
+                                        </div>
+                                    </div>
+                                    <div style="display: flex; border: 2px solid var(--secondary); border-top: none; border-radius: 0 0 8px 8px; overflow: hidden;">
+                                        <button class="btn" onclick="retakeDefectPhoto(${defect.id}, 1, 'close')" style="flex: 1; border-radius: 0; border: none; padding: 8px; font-size: 11px; background: #fef3c7; color: #92400e;">
+                                            🔄 재촬영
+                                        </button>
+                                        <button class="btn" onclick="reattachDefectPhoto(${defect.id}, 1, 'close')" style="flex: 1; border-radius: 0; border: none; border-left: 1px solid #ddd; padding: 8px; font-size: 11px; background: #fef3c7; color: #92400e;">
+                                            🖼️ 재첨부
+                                        </button>
+                                        <button class="btn" onclick="deleteDefectPhoto(${defect.id}, 1)" style="flex: 1; border-radius: 0; border: none; border-left: 1px solid #ddd; padding: 8px; font-size: 11px; background: #fee2e2; color: #dc2626;">
+                                            🗑️ 삭제
+                                        </button>
                                     </div>
                                 </div>
                             </div>
-                            <button class="btn btn-secondary" onclick="retakeDefectPhotos(${defect.id})" style="padding: 8px; font-size: 13px;">
-                                🔄 다시 촬영
-                            </button>
                         `}
                     </div>
 
@@ -3285,6 +3311,56 @@
                     renderDefects();
                     saveProjectsToLocalStorage();
                     showToast('사진이 초기화되었습니다. 다시 촬영해주세요.');
+                }
+            }
+        }
+
+        // 개별 사진 재촬영
+        window.retakeDefectPhoto = function(defectId, photoIndex, photoType) {
+            currentPhotoTarget = { defectId: defectId, photoIndex: photoIndex, photoType: photoType };
+            openCamera();
+        }
+
+        // 개별 사진 재첨부 (갤러리)
+        window.reattachDefectPhoto = function(defectId, photoIndex, photoType) {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/*';
+            input.onchange = async function(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                try {
+                    showToast('사진을 처리 중입니다...');
+                    
+                    // 이미지 리사이즈 및 압축
+                    const resizedImage = await resizeImage(file, 1920, 1920, 0.85);
+                    
+                    const defect = projectData.defects.find(d => d.id === defectId);
+                    if (defect && defect.photos) {
+                        defect.photos[photoIndex] = resizedImage;
+                        renderDefects();
+                        saveProjectsToLocalStorage();
+                        showToast(`${photoType === 'far' ? '원경' : '근경'} 사진이 변경되었습니다.`);
+                    }
+                } catch (error) {
+                    console.error('사진 처리 오류:', error);
+                    showToast('사진 처리에 실패했습니다.', 'error');
+                }
+            };
+            input.click();
+        }
+
+        // 개별 사진 삭제
+        window.deleteDefectPhoto = function(defectId, photoIndex) {
+            const photoType = photoIndex === 0 ? '원경(멀리서)' : '근경(가까이서)';
+            if (confirm(`${photoType} 사진을 삭제하시겠습니까?`)) {
+                const defect = projectData.defects.find(d => d.id === defectId);
+                if (defect && defect.photos) {
+                    defect.photos.splice(photoIndex, 1);
+                    renderDefects();
+                    saveProjectsToLocalStorage();
+                    showToast(`${photoType} 사진이 삭제되었습니다.`);
                 }
             }
         }
@@ -4172,12 +4248,20 @@
                     // 하자점검 사진
                     const defect = projectData.defects.find(d => d.id === currentPhotoTarget.defectId);
                     if (defect) {
-                        defect.photos.push(imageData);
-                        
-                        if (currentPhotoTarget.step === 'far') {
-                            showToast('✓ 멀리서 촬영 완료! 이제 가까이서 촬영해주세요.');
-                        } else if (currentPhotoTarget.step === 'close') {
-                            showToast('✓ 가까이서 촬영 완료! 하자 사진이 모두 등록되었습니다.');
+                        // 개별 사진 교체 (재촬영)
+                        if (currentPhotoTarget.photoIndex !== undefined) {
+                            defect.photos[currentPhotoTarget.photoIndex] = imageData;
+                            const photoName = currentPhotoTarget.photoType === 'far' ? '원경' : '근경';
+                            showToast(`✓ ${photoName} 사진이 변경되었습니다.`);
+                        } else {
+                            // 일반 촬영 (새로 추가)
+                            defect.photos.push(imageData);
+                            
+                            if (currentPhotoTarget.step === 'far') {
+                                showToast('✓ 멀리서 촬영 완료! 이제 가까이서 촬영해주세요.');
+                            } else if (currentPhotoTarget.step === 'close') {
+                                showToast('✓ 가까이서 촬영 완료! 하자 사진이 모두 등록되었습니다.');
+                            }
                         }
                         
                         renderDefects();
