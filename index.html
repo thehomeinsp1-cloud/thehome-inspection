@@ -4571,9 +4571,9 @@
                     });
                     
                     if (equipmentWithPhotos.length > 0) {
-                        for (let i = 0; i < equipmentWithPhotos.length; i += 3) {
+                        for (let i = 0; i < equipmentWithPhotos.length; i += 2) {
                             doc.addPage();
-                            const batch = equipmentWithPhotos.slice(i, i + 3);
+                            const batch = equipmentWithPhotos.slice(i, i + 2);
                             const equipmentHTML = await window.createEquipmentPage(batch, i);
                             await window.addHTMLPageToPDF(doc, equipmentHTML, pageWidth, pageHeight);
                         }
@@ -5625,10 +5625,10 @@
                     });
                     
                     if (equipmentWithPhotos.length > 0) {
-                        // 3개씩 페이지에 표시 (하자와 동일)
-                        for (let i = 0; i < equipmentWithPhotos.length; i += 3) {
+                        // 2개씩 페이지에 표시 (여유롭고 가독성 좋게)
+                        for (let i = 0; i < equipmentWithPhotos.length; i += 2) {
                             doc.addPage();
-                            const batch = equipmentWithPhotos.slice(i, i + 3);
+                            const batch = equipmentWithPhotos.slice(i, i + 2);
                             const equipmentHTML = await window.createEquipmentPage(batch, i);
                             await window.addHTMLPageToPDF(doc, equipmentHTML, pageWidth, pageHeight);
                         }
@@ -6042,28 +6042,39 @@
                             <!-- 사진 영역 -->
                             <div style="padding: 0 15px 15px 15px;">
                                 ${(() => {
-                                    // 사진이 있는 위치만 필터링
-                                    const leftPhoto = item.photos['좌측'];
-                                    const rightPhoto = item.photos['우측'];
-                                    const floorPhoto = item.photos['바닥'];
+                                    // 사진 배열로 변환 (null 아닌 것만)
+                                    const photoList = [];
+                                    const locations = ['좌측', '우측', '바닥'];
+                                    const colors = { '좌측': '#3498db', '우측': '#e74c3c', '바닥': '#f39c12' };
+                                    const icons = { '좌측': '⬅️', '우측': '➡️', '바닥': '⬇️' };
                                     
-                                    const hasTopPhotos = leftPhoto || rightPhoto;
-                                    const hasFloorPhoto = floorPhoto;
+                                    locations.forEach(loc => {
+                                        if (item.photos[loc]) {
+                                            photoList.push({
+                                                name: loc,
+                                                photo: item.photos[loc],
+                                                color: colors[loc],
+                                                icon: icons[loc]
+                                            });
+                                        }
+                                    });
+                                    
+                                    if (photoList.length === 0) {
+                                        return `
+                                            <div style="padding: 40px; text-align: center; color: #999; background: #f8f9fa; border-radius: 6px;">
+                                                <div style="font-size: 14px; margin-bottom: 8px;">📷 촬영된 사진이 없습니다</div>
+                                                <div style="font-size: 11px;">장비점검 시 사진을 첨부해주세요</div>
+                                            </div>
+                                        `;
+                                    }
                                     
                                     let html = '';
                                     
-                                    // 좌측/우측 사진이 하나라도 있으면 표시
-                                    if (hasTopPhotos) {
-                                        const locations = [];
-                                        if (leftPhoto) locations.push({ name: '좌측', photo: leftPhoto, color: '#3498db', icon: '⬅️' });
-                                        if (rightPhoto) locations.push({ name: '우측', photo: rightPhoto, color: '#e74c3c', icon: '➡️' });
-                                        
-                                        // 1개면 full width, 2개면 grid
-                                        const gridStyle = locations.length === 2 ? 'display: grid; grid-template-columns: 1fr 1fr; gap: 10px;' : '';
-                                        
+                                    // 1줄: 처음 2장 (좌우 배치)
+                                    if (photoList.length >= 2) {
                                         html += `
-                                            <div style="${gridStyle} margin-bottom: ${hasFloorPhoto ? '10px' : '0'};">
-                                                ${locations.map(loc => `
+                                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+                                                ${photoList.slice(0, 2).map(loc => `
                                                     <div style="border: 1px solid #ddd; border-radius: 4px; overflow: hidden;">
                                                         <div style="padding: 8px; text-align: center; font-weight: bold; font-size: 12px; color: #333; border-bottom: 3px solid ${loc.color};">
                                                             ${loc.icon} ${loc.name}
@@ -6073,26 +6084,28 @@
                                                 `).join('')}
                                             </div>
                                         `;
-                                    }
-                                    
-                                    // 바닥 사진이 있으면 표시
-                                    if (hasFloorPhoto) {
+                                    } else if (photoList.length === 1) {
+                                        // 사진 1장만 있을 때 (풀사이즈)
+                                        const loc = photoList[0];
                                         html += `
-                                            <div style="border: 1px solid #ddd; border-radius: 4px; overflow: hidden;">
-                                                <div style="padding: 8px; text-align: center; font-weight: bold; font-size: 12px; color: #333; border-bottom: 3px solid #f39c12;">
-                                                    ⬇️ 바닥
+                                            <div style="border: 1px solid #ddd; border-radius: 4px; overflow: hidden; margin-bottom: 10px;">
+                                                <div style="padding: 8px; text-align: center; font-weight: bold; font-size: 12px; color: #333; border-bottom: 3px solid ${loc.color};">
+                                                    ${loc.icon} ${loc.name}
                                                 </div>
-                                                <img src="${floorPhoto}" style="width: 100%; height: 260px; object-fit: cover; display: block;" />
+                                                <img src="${loc.photo}" style="width: 100%; height: 280px; object-fit: cover; display: block;" />
                                             </div>
                                         `;
                                     }
                                     
-                                    // 사진이 하나도 없으면 안내 메시지
-                                    if (!hasTopPhotos && !hasFloorPhoto) {
-                                        html = `
-                                            <div style="padding: 40px; text-align: center; color: #999; background: #f8f9fa; border-radius: 6px;">
-                                                <div style="font-size: 14px; margin-bottom: 8px;">📷 촬영된 사진이 없습니다</div>
-                                                <div style="font-size: 11px;">장비점검 시 사진을 첨부해주세요</div>
+                                    // 2줄: 3번째 사진 (중앙 크게)
+                                    if (photoList.length >= 3) {
+                                        const loc = photoList[2];
+                                        html += `
+                                            <div style="border: 1px solid #ddd; border-radius: 4px; overflow: hidden;">
+                                                <div style="padding: 8px; text-align: center; font-weight: bold; font-size: 12px; color: #333; border-bottom: 3px solid ${loc.color};">
+                                                    ${loc.icon} ${loc.name}
+                                                </div>
+                                                <img src="${loc.photo}" style="width: 100%; height: 280px; object-fit: cover; display: block;" />
                                             </div>
                                         `;
                                     }
