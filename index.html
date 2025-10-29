@@ -4396,7 +4396,6 @@
                 // ========== 1. PDF 파일 생성 ==========
                 showToast('📄 PDF 보고서 생성 중...');
                 
-                // generatePDF와 동일한 로직으로 PDF 생성
                 const { jsPDF } = window.jspdf;
                 const doc = new jsPDF({
                     orientation: 'portrait',
@@ -4407,320 +4406,10 @@
                 const pageWidth = 210;
                 const pageHeight = 297;
 
-                // 임시 워터마크 함수 (generatePDF 내부 함수 복사)
-                async function addWatermarkToPhoto(photoBase64, watermarkText) {
-                    return new Promise((resolve) => {
-                        const img = new Image();
-                        img.onload = () => {
-                            const canvas = document.createElement('canvas');
-                            canvas.width = img.width;
-                            canvas.height = img.height;
-                            const ctx = canvas.getContext('2d');
-                            
-                            ctx.drawImage(img, 0, 0);
-                            
-                            const fontSize = Math.max(80, img.height * 0.08);
-                            ctx.font = `bold ${fontSize}px Arial`;
-                            ctx.textAlign = 'center';
-                            ctx.textBaseline = 'middle';
-                            
-                            const boxPadding = fontSize * 0.4;
-                            const boxWidth = ctx.measureText(watermarkText).width + boxPadding * 2;
-                            const boxHeight = fontSize + boxPadding * 1.5;
-                            const x = img.width / 2;
-                            const y = img.height / 2;
-                            
-                            ctx.fillStyle = 'rgba(255, 255, 255, 0.92)';
-                            ctx.fillRect(x - boxWidth/2, y - boxHeight/2, boxWidth, boxHeight);
-                            
-                            ctx.strokeStyle = 'rgba(0, 0, 0, 0.95)';
-                            ctx.lineWidth = Math.max(4, fontSize * 0.06);
-                            ctx.strokeRect(x - boxWidth/2, y - boxHeight/2, boxWidth, boxHeight);
-                            
-                            ctx.fillStyle = 'rgba(0, 0, 0, 0.95)';
-                            ctx.fillText(watermarkText, x, y);
-                            
-                            resolve(canvas.toDataURL('image/jpeg', 0.92));
-                        };
-                        img.src = photoBase64;
-                    });
-                }
+                // PDF 페이지들 생성
+                const summaryHTML = createSummaryFirstPage();
+                await window.addHTMLPageToPDF(doc, summaryHTML, pageWidth, pageHeight);
 
-                // HTML을 PDF로 추가하는 함수
-                async function addHTMLPageToPDF(doc, htmlContent, pageWidth, pageHeight) {
-                    const tempDiv = document.createElement('div');
-                    tempDiv.style.width = '794px';
-                    tempDiv.style.position = 'absolute';
-                    tempDiv.style.left = '-9999px';
-                    tempDiv.style.background = '#ffffff';
-                    tempDiv.innerHTML = htmlContent;
-                    document.body.appendChild(tempDiv);
-
-                    const canvas = await html2canvas(tempDiv, {
-                        scale: 2,
-                        useCORS: true,
-                        backgroundColor: '#ffffff',
-                        logging: false
-                    });
-
-                    document.body.removeChild(tempDiv);
-
-                    const imgData = canvas.toDataURL('image/jpeg', 0.95);
-                    const imgWidth = pageWidth;
-                    const imgHeight = (canvas.height * pageWidth) / canvas.width;
-                    
-                    doc.addImage(imgData, 'JPEG', 0, 0, imgWidth, Math.min(imgHeight, pageHeight));
-                }
-
-                // 첫 페이지 생성 함수
-                function createSummaryFirstPage() {
-                    let defectRows = '';
-                    const displayDefects = projectData.defects.slice(0, 10);
-                    
-                    displayDefects.forEach((defect, index) => {
-                        const spaces = defect.spaces ? defect.spaces.join(', ') : (defect.space || '-');
-                        const locations = defect.locations ? defect.locations.join(', ') : (defect.location || '-');
-                        const types = defect.types ? defect.types.join(', ') : (defect.type || '-');
-                        const description = defect.description || '';
-                        
-                        defectRows += `
-                            <tr style="border-bottom: 1px solid #ccc;">
-                                <td style="padding: 10px 6px; text-align: center; font-weight: bold; color: #1a1a1a; font-size: 13px; vertical-align: middle; height: 42px; white-space: nowrap; border-right: 1px solid #e0e0e0;">\${index + 1}</td>
-                                <td style="padding: 10px 6px; text-align: center; color: #1a1a1a; font-size: 13px; vertical-align: middle; height: 42px; white-space: nowrap; border-right: 1px solid #e0e0e0;">\${spaces}</td>
-                                <td style="padding: 10px 6px; text-align: center; color: #1a1a1a; font-size: 13px; vertical-align: middle; height: 42px; white-space: nowrap; border-right: 1px solid #e0e0e0;">\${locations}</td>
-                                <td style="padding: 10px 6px; color: #1a1a1a; font-size: 13px; vertical-align: middle; height: 42px; white-space: nowrap; border-right: 1px solid #e0e0e0;">\${types}</td>
-                                <td style="padding: 10px 8px; color: #1a1a1a; font-size: 12px; word-break: break-word; white-space: normal; line-height: 1.4; vertical-align: middle; height: 42px; border-right: 1px solid #e0e0e0;">\${description || '-'}</td>
-                                <td style="padding: 10px 6px; text-align: center; font-size: 13px; color: #1a1a1a; vertical-align: middle; height: 42px; white-space: nowrap;">\${defect.status === 'completed' ? '✓' : '○'}</td>
-                            </tr>
-                        `;
-                    });
-
-                    return `
-                        <div style="width: 794px; min-height: 1123px; background: white; font-family: 'Malgun Gothic', sans-serif; padding: 30px;">
-                            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 35px 30px; margin: -30px -30px 30px -30px; border-radius: 0;">
-                                <div style="display: flex; justify-content: space-between; align-items: center;">
-                                    <div>
-                                        <h1 style="margin: 0 0 12px 0; font-size: 32px; text-shadow: 2px 2px 4px rgba(0,0,0,0.2);">🏠 더홈점검 하자보고서</h1>
-                                        <p style="margin: 0; font-size: 16px; opacity: 0.95;">\${projectData.apartmentName} \${projectData.dong} \${projectData.ho} | \${projectData.inspectionDate || ''}</p>
-                                    </div>
-                                    <div style="text-align: right; font-size: 14px; background: rgba(255,255,255,0.15); padding: 15px 20px; border-radius: 10px; backdrop-filter: blur(10px);">
-                                        <div style="font-weight: bold; margin-bottom: 6px; font-size: 16px;">더홈점검</div>
-                                        <div style="font-size: 13px;">☎ 070-8019-1456</div>
-                                        <div style="font-size: 13px;">📱 010-9985-0128</div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 25px; margin-bottom: 30px;">
-                                <div>
-                                    <h3 style="margin: 0 0 15px 0; font-size: 18px; color: #000; border-bottom: 3px solid #667eea; padding-bottom: 8px;">📐 세대 평면도</h3>
-                                    \${projectData.floorplan ? `
-                                        <img src="\${projectData.floorplan}" style="width: 100%; max-height: 280px; object-fit: contain; border: 2px solid #e0e0e0; border-radius: 8px; background: #f8f9fa; padding: 10px;" />
-                                    ` : '<div style="width: 100%; height: 280px; background: #f8f9fa; border: 2px dashed #ccc; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #999; font-size: 14px;">평면도 없음</div>'}
-                                </div>
-
-                                <div>
-                                    <h3 style="margin: 0 0 15px 0; font-size: 18px; color: #000; border-bottom: 3px solid #667eea; padding-bottom: 8px;">📋 프로젝트 정보</h3>
-                                    <table style="width: 100%; border-collapse: collapse; border: 2px solid #e0e0e0; border-radius: 8px; overflow: hidden; font-size: 14px;">
-                                        <tr style="border-bottom: 1px solid #e0e0e0;">
-                                            <td style="padding: 12px 15px; background: #f8f9fa; font-weight: bold; width: 35%; color: #000;">아파트명</td>
-                                            <td style="padding: 12px 15px; color: #000;">\${projectData.apartmentName}</td>
-                                        </tr>
-                                        <tr style="border-bottom: 1px solid #e0e0e0;">
-                                            <td style="padding: 12px 15px; background: #f8f9fa; font-weight: bold; color: #000;">동/호수</td>
-                                            <td style="padding: 12px 15px; color: #000;">\${projectData.dong} / \${projectData.ho}</td>
-                                        </tr>
-                                        <tr style="border-bottom: 1px solid #e0e0e0;">
-                                            <td style="padding: 12px 15px; background: #f8f9fa; font-weight: bold; color: #000;">점검일자</td>
-                                            <td style="padding: 12px 15px; color: #000;">\${projectData.inspectionDate || '-'}</td>
-                                        </tr>
-                                        <tr>
-                                            <td style="padding: 12px 15px; background: #f8f9fa; font-weight: bold; color: #000;">고객명</td>
-                                            <td style="padding: 12px 15px; color: #000;">\${projectData.customerName || '-'}</td>
-                                        </tr>
-                                    </table>
-                                </div>
-                            </div>
-
-                            <h3 style="margin: 0 0 12px 0; font-size: 18px; color: #000; border-bottom: 2px solid #e74c3c; padding-bottom: 8px;">📋 하자 점검 목록 (총 \${projectData.defects.length}건)</h3>
-                            \${projectData.defects.length > 0 ? `
-                                <table style="width: 100%; border-collapse: collapse; border: 1px solid #ddd; font-size: 13px; margin-bottom: 0;">
-                                    <thead>
-                                        <tr style="background: #f8f9fa; border-bottom: 2px solid #999;">
-                                            <th style="padding: 10px 6px; width: 5%; color: #1a1a1a; font-size: 13px; font-weight: bold; border-right: 1px solid #e0e0e0;">No</th>
-                                            <th style="padding: 10px 6px; width: 12%; color: #1a1a1a; font-size: 13px; font-weight: bold; border-right: 1px solid #e0e0e0;">공간</th>
-                                            <th style="padding: 10px 6px; width: 12%; color: #1a1a1a; font-size: 13px; font-weight: bold; border-right: 1px solid #e0e0e0;">위치</th>
-                                            <th style="padding: 10px 6px; width: 15%; color: #1a1a1a; font-size: 13px; font-weight: bold; border-right: 1px solid #e0e0e0;">하자내용</th>
-                                            <th style="padding: 10px 8px; width: 46%; color: #1a1a1a; font-size: 13px; font-weight: bold; border-right: 1px solid #e0e0e0;">상세설명</th>
-                                            <th style="padding: 10px 6px; width: 6%; color: #1a1a1a; font-size: 13px; font-weight: bold;">상태</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>\${defectRows}</tbody>
-                                </table>
-                            ` : '<p style="text-align: center; color: #999; padding: 40px 0;">등록된 하자가 없습니다</p>'}
-
-                            <div style="position: absolute; bottom: 20px; left: 30px; right: 30px; padding-top: 15px; border-top: 1px solid #ddd; font-size: 11px; color: #000; text-align: center;">
-                                <div>더홈점검 | 전화: 070-8019-1456 / 010-9985-0128 | 사전점검 전문업체</div>
-                            </div>
-                        </div>
-                    `;
-                }
-
-                // 나머지 페이지 생성 함수
-                function createDefectListPage(startIndex, itemsPerPage = 20) {
-                    let defectRows = '';
-                    const endIndex = Math.min(startIndex + itemsPerPage, projectData.defects.length);
-                    const defectsToDisplay = projectData.defects.slice(startIndex, endIndex);
-                    
-                    defectsToDisplay.forEach((defect, index) => {
-                        const globalIndex = startIndex + index + 1;
-                        const spaces = defect.spaces ? defect.spaces.join(', ') : (defect.space || '-');
-                        const locations = defect.locations ? defect.locations.join(', ') : (defect.location || '-');
-                        const types = defect.types ? defect.types.join(', ') : (defect.type || '-');
-                        const description = defect.description || '';
-                        
-                        defectRows += `
-                            <tr style="border-bottom: 1px solid #ccc;">
-                                <td style="padding: 10px 6px; text-align: center; font-weight: bold; color: #1a1a1a; font-size: 13px; vertical-align: middle; height: 42px; white-space: nowrap; border-right: 1px solid #e0e0e0;">\${globalIndex}</td>
-                                <td style="padding: 10px 6px; text-align: center; color: #1a1a1a; font-size: 13px; vertical-align: middle; height: 42px; white-space: nowrap; border-right: 1px solid #e0e0e0;">\${spaces}</td>
-                                <td style="padding: 10px 6px; text-align: center; color: #1a1a1a; font-size: 13px; vertical-align: middle; height: 42px; white-space: nowrap; border-right: 1px solid #e0e0e0;">\${locations}</td>
-                                <td style="padding: 10px 6px; color: #1a1a1a; font-size: 13px; vertical-align: middle; height: 42px; white-space: nowrap; border-right: 1px solid #e0e0e0;">\${types}</td>
-                                <td style="padding: 10px 8px; color: #1a1a1a; font-size: 12px; word-break: break-word; white-space: normal; line-height: 1.4; vertical-align: middle; height: 42px; border-right: 1px solid #e0e0e0;">\${description || '-'}</td>
-                                <td style="padding: 10px 6px; text-align: center; font-size: 13px; color: #1a1a1a; vertical-align: middle; height: 42px; white-space: nowrap;">\${defect.status === 'completed' ? '✓' : '○'}</td>
-                            </tr>
-                        `;
-                    });
-
-                    const currentPage = Math.floor(startIndex / itemsPerPage) + 1;
-                    const totalPages = Math.ceil(projectData.defects.length / itemsPerPage);
-                    const pageIndicator = ` (${currentPage}/${totalPages} 페이지)`;
-
-                    return `
-                        <div style="width: 794px; min-height: 1123px; background: white; font-family: 'Malgun Gothic', sans-serif; padding: 30px;">
-                            <div style="background: #ffebee; border: 2px solid #e74c3c; padding: 20px; margin-bottom: 25px; border-radius: 8px;">
-                                <h1 style="margin: 0 0 8px 0; font-size: 26px; color: #000;">하자 점검 목록 (계속)</h1>
-                                <p style="margin: 0; font-size: 14px; color: #000;">\${projectData.apartmentName} \${projectData.dong} \${projectData.ho} | \${projectData.inspectionDate || ''}</p>
-                            </div>
-
-                            <h3 style="margin: 0 0 15px 0; font-size: 18px; color: #000; border-bottom: 2px solid #e74c3c; padding-bottom: 8px;">📋 하자 점검 목록 (총 \${projectData.defects.length}건)\${pageIndicator}</h3>
-                            
-                            <table style="width: 100%; border-collapse: collapse; border: 1px solid #ddd; font-size: 13px; margin-bottom: 0;">
-                                <thead>
-                                    <tr style="background: #f8f9fa; border-bottom: 2px solid #999;">
-                                        <th style="padding: 10px 6px; width: 5%; color: #1a1a1a; font-size: 13px; font-weight: bold; border-right: 1px solid #e0e0e0;">No</th>
-                                        <th style="padding: 10px 6px; width: 12%; color: #1a1a1a; font-size: 13px; font-weight: bold; border-right: 1px solid #e0e0e0;">공간</th>
-                                        <th style="padding: 10px 6px; width: 12%; color: #1a1a1a; font-size: 13px; font-weight: bold; border-right: 1px solid #e0e0e0;">위치</th>
-                                        <th style="padding: 10px 6px; width: 15%; color: #1a1a1a; font-size: 13px; font-weight: bold; border-right: 1px solid #e0e0e0;">하자내용</th>
-                                        <th style="padding: 10px 8px; width: 46%; color: #1a1a1a; font-size: 13px; font-weight: bold; border-right: 1px solid #e0e0e0;">상세설명</th>
-                                        <th style="padding: 10px 6px; width: 6%; color: #1a1a1a; font-size: 13px; font-weight: bold;">상태</th>
-                                    </tr>
-                                </thead>
-                                <tbody>\${defectRows}</tbody>
-                            </table>
-
-                            <div style="position: absolute; bottom: 20px; left: 30px; right: 30px; padding-top: 15px; border-top: 1px solid #ddd; font-size: 11px; color: #000; text-align: center;">
-                                <div>더홈점검 | 전화: 070-8019-1456 / 010-9985-0128 | 사전점검 전문업체</div>
-                            </div>
-                        </div>
-                    `;
-                }
-
-                // 하자 상세 사진 페이지 생성 함수
-                async function createDefectDetailPage(defects, startIndex) {
-                    let contentHTML = '';
-                    
-                    for (let idx = 0; idx < defects.length; idx++) {
-                        const defect = defects[idx];
-                        const globalIndex = startIndex + idx + 1;
-                        
-                        const farPhotoOriginal = defect.photos && defect.photos.length > 0 ? defect.photos[0] : '';
-                        const closePhotoOriginal = defect.photos && defect.photos.length > 1 ? defect.photos[1] : '';
-                        
-                        const farPhoto = farPhotoOriginal ? await addWatermarkToPhoto(farPhotoOriginal, `\${globalIndex}`) : '';
-                        const closePhoto = closePhotoOriginal ? await addWatermarkToPhoto(closePhotoOriginal, `\${globalIndex}-1`) : '';
-                        
-                        const spaces = defect.spaces ? defect.spaces.join(', ') : (defect.space || '-');
-                        const description = defect.description || '';
-                        
-                        contentHTML += `
-                            <div style="border: 2px solid #ddd; border-radius: 8px; padding: 15px; margin-bottom: 20px; background: white;">
-                                <div style="background: #f8f9fa; color: #000; border-bottom: 2px solid #3498db; padding: 10px 15px; margin: -15px -15px 15px -15px; border-radius: 6px 6px 0 0; font-size: 15px; font-weight: bold;">
-                                    하자 \${globalIndex}
-                                </div>
-                                
-                                <table style="width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 15px;">
-                                    <tr style="border-bottom: 1px solid #ddd;">
-                                        <td style="padding: 10px; width: 20%; background: #f8f9fa; font-weight: bold; color: #000;">공간</td>
-                                        <td style="padding: 10px; color: #000;">\${spaces}</td>
-                                    </tr>
-                                    <tr>
-                                        <td style="padding: 10px; background: #f8f9fa; font-weight: bold; color: #000;">상세설명</td>
-                                        <td style="padding: 10px; color: #000; line-height: 1.6;">\${description || '-'}</td>
-                                    </tr>
-                                </table>
-
-                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                                    <div style="border: 1px solid #ddd; border-radius: 4px; overflow: hidden;">
-                                        <div style="padding: 10px; text-align: center; font-weight: bold; font-size: 13px; color: #000; background: #e8f5e9; border-bottom: 2px solid #10b981;">
-                                            📷 원경 (멀리서)
-                                        </div>
-                                        \${farPhoto ? `
-                                            <img src="\${farPhoto}" style="width: 100%; height: 360px; object-fit: cover; display: block;" />
-                                        ` : `
-                                            <div style="width: 100%; height: 360px; background: #f9f9f9; display: flex; align-items: center; justify-content: center; color: #666; font-size: 13px; font-weight: 600; text-align: center; padding: 10px;">사진 없음</div>
-                                        `}
-                                    </div>
-
-                                    <div style="border: 1px solid #ddd; border-radius: 4px; overflow: hidden;">
-                                        <div style="padding: 10px; text-align: center; font-weight: bold; font-size: 13px; color: #000; background: #fff7ed; border-bottom: 2px solid #f59e0b;">
-                                            📷 근경 (가까이서)
-                                        </div>
-                                        \${closePhoto ? `
-                                            <img src="\${closePhoto}" style="width: 100%; height: 360px; object-fit: cover; display: block;" />
-                                        ` : `
-                                            <div style="width: 100%; height: 360px; background: #f9f9f9; display: flex; align-items: center; justify-content: center; color: #666; font-size: 13px; font-weight: 600; text-align: center; padding: 10px;">사진 없음</div>
-                                        `}
-                                    </div>
-                                </div>
-                            </div>
-                        `;
-                    }
-
-                    return `
-                        <div style="width: 794px; min-height: 1123px; background: white; font-family: 'Malgun Gothic', sans-serif; padding: 30px;">
-                            <div style="background: #ffebee; border: 2px solid #e74c3c; padding: 20px; margin-bottom: 25px; border-radius: 8px;">
-                                <h1 style="margin: 0 0 8px 0; font-size: 26px; color: #000;">하자 상세 사진 (원경+근경)</h1>
-                                <p style="margin: 0; font-size: 14px; color: #000;">\${projectData.apartmentName} \${projectData.dong} \${projectData.ho} | \${projectData.inspectionDate || ''}</p>
-                            </div>
-
-                            \${contentHTML}
-
-                            <div style="position: absolute; bottom: 20px; left: 30px; right: 30px; padding-top: 15px; border-top: 1px solid #ddd; font-size: 11px; color: #000; text-align: center;">
-                                <div>더홈점검 | 전화: 070-8019-1456 / 010-9985-0128 | 사전점검 전문업체</div>
-                            </div>
-                        </div>
-                    `;
-                }
-
-                // PDF 생성 시작
-                const firstPageHTML = createSummaryFirstPage();
-                await addHTMLPageToPDF(doc, firstPageHTML, pageWidth, pageHeight);
-
-                // 2페이지 이후: 나머지 하자 목록 (20개씩)
-                if (projectData.defects.length > 10) {
-                    let remaining = projectData.defects.length - 10;
-                    let startIndex = 10;
-                    
-                    while (remaining > 0) {
-                        doc.addPage();
-                        const listPageHTML = createDefectListPage(startIndex, 20);
-                        await addHTMLPageToPDF(doc, listPageHTML, pageWidth, pageHeight);
-                        remaining -= 20;
-                        startIndex += 20;
-                    }
-                }
-
-                // 하자 상세 사진 페이지들 (★ 여기가 중요!)
                 if (projectData.defects.length > 0) {
                     const defectsWithPhotos = projectData.defects.filter(d => d.photos && d.photos.length > 0);
                     
@@ -4728,15 +4417,65 @@
                         for (let i = 0; i < defectsWithPhotos.length; i += 3) {
                             doc.addPage();
                             const batch = defectsWithPhotos.slice(i, i + 3);
-                            const detailHTML = await createDefectDetailPage(batch, i);
-                            await addHTMLPageToPDF(doc, detailHTML, pageWidth, pageHeight);
+                            const detailHTML = createDefectDetailPage(batch, i);
+                            await window.addHTMLPageToPDF(doc, detailHTML, pageWidth, pageHeight);
                         }
                     }
                 }
 
+                if (projectData.equipment && projectData.equipment.length > 0) {
+                    const equipmentWithPhotos = projectData.equipment.filter(e => {
+                        if (e.photos && typeof e.photos === 'object') {
+                            return Object.values(e.photos).some(photo => photo !== null);
+                        }
+                        return e.photo;
+                    });
+                    
+                    if (equipmentWithPhotos.length > 0) {
+                        for (let i = 0; i < equipmentWithPhotos.length; i += 3) {
+                            doc.addPage();
+                            const batch = equipmentWithPhotos.slice(i, i + 3);
+                            const equipmentHTML = createEquipmentPage(batch, i);
+                            await window.addHTMLPageToPDF(doc, equipmentHTML, pageWidth, pageHeight);
+                        }
+                    }
+                }
+
+                const airQualityWithData = projectData.airQuality.filter(room => 
+                    room.radon || room.formaldehyde || room.vocs
+                );
+                if (airQualityWithData.length > 0) {
+                    doc.addPage();
+                    const airQualityHTML = createAirQualityDetailPage();
+                    await window.addHTMLPageToPDF(doc, airQualityHTML, pageWidth, pageHeight);
+                }
+
+                doc.addPage();
+                const warrantyPage1 = createWarrantyGuidePage1();
+                await window.addHTMLPageToPDF(doc, warrantyPage1, pageWidth, pageHeight);
+
+                doc.addPage();
+                const warrantyPage2 = createWarrantyGuidePage2();
+                await window.addHTMLPageToPDF(doc, warrantyPage2, pageWidth, pageHeight);
+
+                doc.addPage();
+                const airQualityGuide = createAirQualityManagementGuidePage();
+                await window.addHTMLPageToPDF(doc, airQualityGuide, pageWidth, pageHeight);
+
+                doc.addPage();
+                const condensationGuide = createCondensationGuidePage();
+                await window.addHTMLPageToPDF(doc, condensationGuide, pageWidth, pageHeight);
+
+                doc.addPage();
+                const movingInGuide = createMovingInGuidePage();
+                await window.addHTMLPageToPDF(doc, movingInGuide, pageWidth, pageHeight);
+                
                 // PDF를 Blob으로 변환하여 ZIP에 추가
                 const pdfBlob = doc.output('blob');
-                const pdfFileName = `\${projectName}\${authorName}_하자점검보고서.pdf`;
+                
+                // 작성자 정보 포함한 파일명
+                const pdfFileName = `${projectName}${authorName}_하자점검보고서.pdf`;
+                
                 zip.file(pdfFileName, pdfBlob);
                 
                 // ========== 2. 엑셀 파일 생성 ==========
@@ -5170,7 +4909,7 @@
                                 
                                 // 워터마크 추가
                                 const watermarkText = photoIndex === 0 ? `${index + 1}` : `${index + 1}-1`;
-                                const photoWithWatermark = await addWatermarkToPhoto(photo, watermarkText);
+                                const photoWithWatermark = await window.addWatermarkToPhoto(photo, watermarkText);
                                 
                                 const photoData = photoWithWatermark.split(',')[1];
                                 const fileName = `${defectNum}_${spaceName}_${locationName}_${photoType}.jpg`.replace(/\//g, '-');
@@ -5584,7 +5323,7 @@
                                 
                                 // 워터마크 추가
                                 const watermarkText = photoIndex === 0 ? `${index + 1}` : `${index + 1}-1`;
-                                const photoWithWatermark = await addWatermarkToPhoto(photo, watermarkText);
+                                const photoWithWatermark = await window.addWatermarkToPhoto(photo, watermarkText);
                                 
                                 const photoData = photoWithWatermark.split(',')[1];
                                 const fileName = `${defectNum}_${spaceName}_${locationName}_${photoType}.jpg`.replace(/\//g, '-');
@@ -5699,16 +5438,16 @@
                 const pageHeight = 297;
 
                 // 1페이지: 프로젝트 정보 + 하자 목록 10개
-                const firstPageHTML = createSummaryFirstPage();
-                await addHTMLPageToPDF(doc, firstPageHTML, pageWidth, pageHeight);
+                const firstPageHTML = window.createSummaryFirstPage();
+                await window.addHTMLPageToPDF(doc, firstPageHTML, pageWidth, pageHeight);
 
                 // 2페이지~: 하자 목록만 (20개씩)
                 if (projectData.defects.length > 10) {
                     const itemsPerPage = 20;
                     for (let i = 10; i < projectData.defects.length; i += itemsPerPage) {
                         doc.addPage();
-                        const listPageHTML = createDefectListPage(i, itemsPerPage);
-                        await addHTMLPageToPDF(doc, listPageHTML, pageWidth, pageHeight);
+                        const listPageHTML = window.createDefectListPage(i, itemsPerPage);
+                        await window.addHTMLPageToPDF(doc, listPageHTML, pageWidth, pageHeight);
                     }
                 }
 
@@ -5720,8 +5459,8 @@
                         for (let i = 0; i < defectsWithPhotos.length; i += 3) {
                             doc.addPage();
                             const batch = defectsWithPhotos.slice(i, i + 3);
-                            const detailHTML = await createDefectDetailPage(batch, i);
-                            await addHTMLPageToPDF(doc, detailHTML, pageWidth, pageHeight);
+                            const detailHTML = await window.createDefectDetailPage(batch, i);
+                            await window.addHTMLPageToPDF(doc, detailHTML, pageWidth, pageHeight);
                         }
                     }
                 }
@@ -5744,7 +5483,7 @@
                             doc.addPage();
                             const batch = equipmentWithPhotos.slice(i, i + 3);
                             const equipmentHTML = createEquipmentPage(batch, i);
-                            await addHTMLPageToPDF(doc, equipmentHTML, pageWidth, pageHeight);
+                            await window.addHTMLPageToPDF(doc, equipmentHTML, pageWidth, pageHeight);
                         }
                     }
                 }
@@ -5756,29 +5495,29 @@
                 if (airQualityWithData.length > 0) {
                     doc.addPage();
                     const airQualityHTML = createAirQualityDetailPage();
-                    await addHTMLPageToPDF(doc, airQualityHTML, pageWidth, pageHeight);
+                    await window.addHTMLPageToPDF(doc, airQualityHTML, pageWidth, pageHeight);
                 }
 
                 // 참고자료 페이지 추가 (보고서 뒤쪽에)
                 doc.addPage();
                 const warrantyPage1 = createWarrantyGuidePage1();
-                await addHTMLPageToPDF(doc, warrantyPage1, pageWidth, pageHeight);
+                await window.addHTMLPageToPDF(doc, warrantyPage1, pageWidth, pageHeight);
 
                 doc.addPage();
                 const warrantyPage2 = createWarrantyGuidePage2();
-                await addHTMLPageToPDF(doc, warrantyPage2, pageWidth, pageHeight);
+                await window.addHTMLPageToPDF(doc, warrantyPage2, pageWidth, pageHeight);
 
                 doc.addPage();
                 const airQualityGuide = createAirQualityManagementGuidePage();
-                await addHTMLPageToPDF(doc, airQualityGuide, pageWidth, pageHeight);
+                await window.addHTMLPageToPDF(doc, airQualityGuide, pageWidth, pageHeight);
 
                 doc.addPage();
                 const condensationGuide = createCondensationGuidePage();
-                await addHTMLPageToPDF(doc, condensationGuide, pageWidth, pageHeight);
+                await window.addHTMLPageToPDF(doc, condensationGuide, pageWidth, pageHeight);
 
                 doc.addPage();
                 const movingInGuide = createMovingInGuidePage();
-                await addHTMLPageToPDF(doc, movingInGuide, pageWidth, pageHeight);
+                await window.addHTMLPageToPDF(doc, movingInGuide, pageWidth, pageHeight);
 
                 // 모바일 호환 다운로드
                 const filename = `더홈점검_${projectData.apartmentName}_${projectData.dong}${projectData.ho}_${new Date().toISOString().split('T')[0]}.pdf`;
@@ -5815,7 +5554,7 @@
             }
         }
 
-        async function addHTMLPageToPDF(doc, htmlContent, pageWidth, pageHeight) {
+        window.addHTMLPageToPDF = async function(doc, htmlContent, pageWidth, pageHeight) {
             const tempDiv = document.createElement('div');
             tempDiv.style.width = '794px';
             tempDiv.style.position = 'absolute';
@@ -5841,7 +5580,7 @@
         }
 
         // 첫 페이지: 프로젝트 정보 + 하자 목록 10개
-        function createSummaryFirstPage() {
+        window.createSummaryFirstPage = function() {
             let defectRows = '';
             const displayDefects = projectData.defects.slice(0, 10);
             
@@ -5853,11 +5592,11 @@
                 
                 defectRows += `
                     <tr style="border-bottom: 1px solid #ccc;">
-                        <td style="padding: 10px 6px; text-align: center; font-weight: bold; color: #1a1a1a; font-size: 13px; vertical-align: middle; height: 42px; white-space: nowrap;">${index + 1}</td>
-                        <td style="padding: 10px 6px; text-align: center; color: #1a1a1a; font-size: 13px; vertical-align: middle; height: 42px; white-space: nowrap;">${spaces}</td>
-                        <td style="padding: 10px 6px; text-align: center; color: #1a1a1a; font-size: 13px; vertical-align: middle; height: 42px; white-space: nowrap;">${locations}</td>
-                        <td style="padding: 10px 6px; color: #1a1a1a; font-size: 13px; vertical-align: middle; height: 42px; white-space: nowrap;">${types}</td>
-                        <td style="padding: 10px 8px; color: #1a1a1a; font-size: 12px; word-break: break-word; white-space: normal; line-height: 1.4; vertical-align: middle; height: 42px;">${description || '-'}</td>
+                        <td style="padding: 10px 6px; text-align: center; font-weight: bold; color: #1a1a1a; font-size: 13px; vertical-align: middle; height: 42px; white-space: nowrap; border-right: 1px solid #e0e0e0;">${index + 1}</td>
+                        <td style="padding: 10px 6px; text-align: center; color: #1a1a1a; font-size: 13px; vertical-align: middle; height: 42px; white-space: nowrap; border-right: 1px solid #e0e0e0;">${spaces}</td>
+                        <td style="padding: 10px 6px; text-align: center; color: #1a1a1a; font-size: 13px; vertical-align: middle; height: 42px; white-space: nowrap; border-right: 1px solid #e0e0e0;">${locations}</td>
+                        <td style="padding: 10px 6px; color: #1a1a1a; font-size: 13px; vertical-align: middle; height: 42px; white-space: nowrap; border-right: 1px solid #e0e0e0;">${types}</td>
+                        <td style="padding: 10px 8px; color: #1a1a1a; font-size: 12px; word-break: break-word; white-space: normal; line-height: 1.4; vertical-align: middle; height: 42px; border-right: 1px solid #e0e0e0;">${description || '-'}</td>
                         <td style="padding: 10px 6px; text-align: center; font-size: 13px; color: #1a1a1a; vertical-align: middle; height: 42px; white-space: nowrap;">${defect.status === 'completed' ? '✓' : '○'}</td>
                     </tr>
                 `;
@@ -5909,11 +5648,11 @@
                         <table style="width: 100%; border-collapse: collapse; border: 1px solid #ddd; font-size: 13px; margin-bottom: 0;">
                             <thead>
                                 <tr style="background: #f8f9fa; border-bottom: 2px solid #999;">
-                                    <th style="padding: 10px 6px; width: 5%; color: #1a1a1a; font-size: 13px; font-weight: bold;">No</th>
-                                    <th style="padding: 10px 6px; width: 12%; color: #1a1a1a; font-size: 13px; font-weight: bold;">공간</th>
-                                    <th style="padding: 10px 6px; width: 12%; color: #1a1a1a; font-size: 13px; font-weight: bold;">위치</th>
-                                    <th style="padding: 10px 6px; width: 15%; color: #1a1a1a; font-size: 13px; font-weight: bold;">하자내용</th>
-                                    <th style="padding: 10px 8px; width: 46%; color: #1a1a1a; font-size: 13px; font-weight: bold;">상세설명</th>
+                                    <th style="padding: 10px 6px; width: 5%; color: #1a1a1a; font-size: 13px; font-weight: bold; border-right: 1px solid #e0e0e0;">No</th>
+                                    <th style="padding: 10px 6px; width: 12%; color: #1a1a1a; font-size: 13px; font-weight: bold; border-right: 1px solid #e0e0e0;">공간</th>
+                                    <th style="padding: 10px 6px; width: 12%; color: #1a1a1a; font-size: 13px; font-weight: bold; border-right: 1px solid #e0e0e0;">위치</th>
+                                    <th style="padding: 10px 6px; width: 15%; color: #1a1a1a; font-size: 13px; font-weight: bold; border-right: 1px solid #e0e0e0;">하자내용</th>
+                                    <th style="padding: 10px 8px; width: 46%; color: #1a1a1a; font-size: 13px; font-weight: bold; border-right: 1px solid #e0e0e0;">상세설명</th>
                                     <th style="padding: 10px 6px; width: 6%; color: #1a1a1a; font-size: 13px; font-weight: bold;">상태</th>
                                 </tr>
                             </thead>
@@ -5929,7 +5668,7 @@
         }
 
         // 나머지 페이지: 하자 목록만 (20개씩)
-        function createDefectListPage(startIndex, itemsPerPage = 20) {
+        window.createDefectListPage = function(startIndex, itemsPerPage = 20) {
             let defectRows = '';
             const endIndex = Math.min(startIndex + itemsPerPage, projectData.defects.length);
             const defectsToDisplay = projectData.defects.slice(startIndex, endIndex);
@@ -5943,11 +5682,11 @@
                 
                 defectRows += `
                     <tr style="border-bottom: 1px solid #ccc;">
-                        <td style="padding: 10px 6px; text-align: center; font-weight: bold; color: #1a1a1a; font-size: 13px; vertical-align: middle; height: 42px; white-space: nowrap;">${globalIndex}</td>
-                        <td style="padding: 10px 6px; text-align: center; color: #1a1a1a; font-size: 13px; vertical-align: middle; height: 42px; white-space: nowrap;">${spaces}</td>
-                        <td style="padding: 10px 6px; text-align: center; color: #1a1a1a; font-size: 13px; vertical-align: middle; height: 42px; white-space: nowrap;">${locations}</td>
-                        <td style="padding: 10px 6px; color: #1a1a1a; font-size: 13px; vertical-align: middle; height: 42px; white-space: nowrap;">${types}</td>
-                        <td style="padding: 10px 8px; color: #1a1a1a; font-size: 12px; word-break: break-word; white-space: normal; line-height: 1.4; vertical-align: middle; height: 42px;">${description || '-'}</td>
+                        <td style="padding: 10px 6px; text-align: center; font-weight: bold; color: #1a1a1a; font-size: 13px; vertical-align: middle; height: 42px; white-space: nowrap; border-right: 1px solid #e0e0e0;">${globalIndex}</td>
+                        <td style="padding: 10px 6px; text-align: center; color: #1a1a1a; font-size: 13px; vertical-align: middle; height: 42px; white-space: nowrap; border-right: 1px solid #e0e0e0;">${spaces}</td>
+                        <td style="padding: 10px 6px; text-align: center; color: #1a1a1a; font-size: 13px; vertical-align: middle; height: 42px; white-space: nowrap; border-right: 1px solid #e0e0e0;">${locations}</td>
+                        <td style="padding: 10px 6px; color: #1a1a1a; font-size: 13px; vertical-align: middle; height: 42px; white-space: nowrap; border-right: 1px solid #e0e0e0;">${types}</td>
+                        <td style="padding: 10px 8px; color: #1a1a1a; font-size: 12px; word-break: break-word; white-space: normal; line-height: 1.4; vertical-align: middle; height: 42px; border-right: 1px solid #e0e0e0;">${description || '-'}</td>
                         <td style="padding: 10px 6px; text-align: center; font-size: 13px; color: #1a1a1a; vertical-align: middle; height: 42px; white-space: nowrap;">${defect.status === 'completed' ? '✓' : '○'}</td>
                     </tr>
                 `;
@@ -5967,11 +5706,11 @@
                     <table style="width: 100%; border-collapse: collapse; border: 1px solid #ddd; font-size: 13px; margin-bottom: 0;">
                         <thead>
                             <tr style="background: #f8f9fa; border-bottom: 2px solid #999;">
-                                <th style="padding: 10px 6px; width: 5%; color: #1a1a1a; font-size: 13px; font-weight: bold;">No</th>
-                                <th style="padding: 10px 6px; width: 12%; color: #1a1a1a; font-size: 13px; font-weight: bold;">공간</th>
-                                <th style="padding: 10px 6px; width: 12%; color: #1a1a1a; font-size: 13px; font-weight: bold;">위치</th>
-                                <th style="padding: 10px 6px; width: 15%; color: #1a1a1a; font-size: 13px; font-weight: bold;">하자내용</th>
-                                <th style="padding: 10px 8px; width: 46%; color: #1a1a1a; font-size: 13px; font-weight: bold;">상세설명</th>
+                                <th style="padding: 10px 6px; width: 5%; color: #1a1a1a; font-size: 13px; font-weight: bold; border-right: 1px solid #e0e0e0;">No</th>
+                                <th style="padding: 10px 6px; width: 12%; color: #1a1a1a; font-size: 13px; font-weight: bold; border-right: 1px solid #e0e0e0;">공간</th>
+                                <th style="padding: 10px 6px; width: 12%; color: #1a1a1a; font-size: 13px; font-weight: bold; border-right: 1px solid #e0e0e0;">위치</th>
+                                <th style="padding: 10px 6px; width: 15%; color: #1a1a1a; font-size: 13px; font-weight: bold; border-right: 1px solid #e0e0e0;">하자내용</th>
+                                <th style="padding: 10px 8px; width: 46%; color: #1a1a1a; font-size: 13px; font-weight: bold; border-right: 1px solid #e0e0e0;">상세설명</th>
                                 <th style="padding: 10px 6px; width: 6%; color: #1a1a1a; font-size: 13px; font-weight: bold;">상태</th>
                             </tr>
                         </thead>
@@ -5986,7 +5725,7 @@
         }
 
         // 📷 사진에 워터마크 추가하는 함수
-        async function addWatermarkToPhoto(imageDataUrl, text) {
+        window.addWatermarkToPhoto = async function(imageDataUrl, text) {
             return new Promise((resolve) => {
                 const img = new Image();
                 img.onload = () => {
@@ -6028,7 +5767,7 @@
             });
         }
 
-        async function createDefectDetailPage(defects, startIndex) {
+        window.createDefectDetailPage = async function(defects, startIndex) {
             let contentHTML = '';
             
             for (let idx = 0; idx < defects.length; idx++) {
@@ -6040,8 +5779,8 @@
                 const closePhotoOriginal = defect.photos && defect.photos.length > 1 ? defect.photos[1] : '';
                 
                 // 워터마크 추가된 사진
-                const farPhoto = farPhotoOriginal ? await addWatermarkToPhoto(farPhotoOriginal, `${globalIndex}`) : '';
-                const closePhoto = closePhotoOriginal ? await addWatermarkToPhoto(closePhotoOriginal, `${globalIndex}-1`) : '';
+                const farPhoto = farPhotoOriginal ? await window.addWatermarkToPhoto(farPhotoOriginal, `${globalIndex}`) : '';
+                const closePhoto = closePhotoOriginal ? await window.addWatermarkToPhoto(closePhotoOriginal, `${globalIndex}-1`) : '';
                 
                 // 배열을 문자열로 변환 (하위 호환성)
                 const spaces = defect.spaces ? defect.spaces.join(', ') : (defect.space || '-');
@@ -6113,7 +5852,7 @@
         }
 
         // === 장비점검 측정 보고서 페이지 (3개씩) ===
-        function createEquipmentPage(equipmentList, startIndex) {
+        window.createEquipmentPage = function(equipmentList, startIndex) {
             let contentHTML = '';
             
             equipmentList.forEach((item, idx) => {
