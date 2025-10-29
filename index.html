@@ -4408,7 +4408,7 @@
 
                 // PDF 페이지들 생성
                 const firstPageHTML = window.createSummaryFirstPage();
-                await window.addHTMLPageToPDF(doc, summaryHTML, pageWidth, pageHeight);
+                await window.addHTMLPageToPDF(doc, firstPageHTML, pageWidth, pageHeight);
 
                 if (projectData.defects.length > 0) {
                     const defectsWithPhotos = projectData.defects.filter(d => d.photos && d.photos.length > 0);
@@ -4417,7 +4417,7 @@
                         for (let i = 0; i < defectsWithPhotos.length; i += 3) {
                             doc.addPage();
                             const batch = defectsWithPhotos.slice(i, i + 3);
-                            const detailHTML = createDefectDetailPage(batch, i);
+                            const detailHTML = await window.createDefectDetailPage(batch, i);
                             await window.addHTMLPageToPDF(doc, detailHTML, pageWidth, pageHeight);
                         }
                     }
@@ -4435,7 +4435,7 @@
                         for (let i = 0; i < equipmentWithPhotos.length; i += 3) {
                             doc.addPage();
                             const batch = equipmentWithPhotos.slice(i, i + 3);
-                            const equipmentHTML = createEquipmentPage(batch, i);
+                            const equipmentHTML = await window.createEquipmentPage(batch, i);
                             await window.addHTMLPageToPDF(doc, equipmentHTML, pageWidth, pageHeight);
                         }
                     }
@@ -5482,7 +5482,7 @@
                         for (let i = 0; i < equipmentWithPhotos.length; i += 3) {
                             doc.addPage();
                             const batch = equipmentWithPhotos.slice(i, i + 3);
-                            const equipmentHTML = createEquipmentPage(batch, i);
+                            const equipmentHTML = await window.createEquipmentPage(batch, i);
                             await window.addHTMLPageToPDF(doc, equipmentHTML, pageWidth, pageHeight);
                         }
                     }
