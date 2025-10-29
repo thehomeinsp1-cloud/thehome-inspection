@@ -4407,7 +4407,7 @@
                 const pageHeight = 297;
 
                 // PDF 페이지들 생성
-                const summaryHTML = createSummaryPage();
+                const summaryHTML = createSummaryFirstPage();
                 await addHTMLPageToPDF(doc, summaryHTML, pageWidth, pageHeight);
 
                 if (projectData.defects.length > 0) {
@@ -5706,7 +5706,7 @@
                     <table style="width: 100%; border-collapse: collapse; border: 1px solid #ddd; font-size: 13px; margin-bottom: 0;">
                         <thead>
                             <tr style="background: #f8f9fa; border-bottom: 2px solid #999;">
-                                <th style="padding: 10px 6px; width: 5%; color: #1a1a1a; font-size: 13px; font-weight: bold;">No</th>
+                                <th style="padding: 10px 6px; width: 5%; color: #1a1a1a; font-size: 13px; font-weight: bold; border-right: 1px solid #e0e0e0;">No</th>
                                 <th style="padding: 10px 6px; width: 12%; color: #1a1a1a; font-size: 13px; font-weight: bold; border-right: 1px solid #e0e0e0;">공간</th>
                                 <th style="padding: 10px 6px; width: 12%; color: #1a1a1a; font-size: 13px; font-weight: bold; border-right: 1px solid #e0e0e0;">위치</th>
                                 <th style="padding: 10px 6px; width: 15%; color: #1a1a1a; font-size: 13px; font-weight: bold; border-right: 1px solid #e0e0e0;">하자내용</th>
