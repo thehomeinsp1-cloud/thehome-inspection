@@ -4410,6 +4410,17 @@
                 const firstPageHTML = window.createSummaryFirstPage();
                 await window.addHTMLPageToPDF(doc, firstPageHTML, pageWidth, pageHeight);
 
+                // 2페이지~: 하자 목록만 (20개씩)
+                if (projectData.defects.length > 10) {
+                    const itemsPerPage = 20;
+                    for (let i = 10; i < projectData.defects.length; i += itemsPerPage) {
+                        doc.addPage();
+                        const listPageHTML = window.createDefectListPage(i, itemsPerPage);
+                        await window.addHTMLPageToPDF(doc, listPageHTML, pageWidth, pageHeight);
+                    }
+                }
+
+                // 하자 상세 사진 페이지 (3개씩, 사진 2장씩)
                 if (projectData.defects.length > 0) {
                     const defectsWithPhotos = projectData.defects.filter(d => d.photos && d.photos.length > 0);
                     
