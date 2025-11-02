@@ -964,15 +964,17 @@
 
         .zoom-level {
             position: absolute;
-            top: 100px;
+            top: 80px;
             right: 20px;
-            background: rgba(0, 0, 0, 0.6);
+            background: rgba(16, 185, 129, 0.9);
             color: white;
-            padding: 8px 12px;
-            border-radius: 8px;
-            font-size: 14px;
+            padding: 10px 16px;
+            border-radius: 20px;
+            font-size: 15px;
+            font-weight: bold;
             z-index: 10;
             backdrop-filter: blur(10px);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
         }
     </style>
 
@@ -983,6 +985,9 @@
         <div class="camera-header">
             <div>
                 <h3>📷 하자 촬영</h3>
+                <p style="font-size: 12px; opacity: 0.8; margin: 5px 0 0 0;">
+                    💡 두 손가락으로 확대/축소
+                </p>
             </div>
             <button class="camera-close-btn" onclick="closeCameraModal()">✕ 닫기</button>
         </div>
@@ -1027,7 +1032,7 @@
     <!-- 헤더 -->
     <div class="header">
         <h1>🏠 더홈점검</h1>
-        <p>하자관리 시스템 v3.2 (사진 2장 촬영)</p>
+        <p>하자관리 시스템 v3.3 (카메라 줌 + 미리보기)</p>
         <div class="progress-bar">
             <div class="progress-fill" id="progressBar"></div>
         </div>
