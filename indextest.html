@@ -73,9 +73,7 @@
             padding: 20px;
             text-align: center;
             box-shadow: 0 4px 20px rgba(16, 185, 129, 0.3);
-            position: sticky;
-            top: 0;
-            z-index: 100;
+            /* sticky 제거 - 탭만 고정 */
         }
 
         .header h1 {
@@ -113,10 +111,17 @@
             background: var(--card-bg);
             border-radius: 12px;
             padding: 5px;
-            margin: 20px 0;
+            margin: 20px -20px;
             gap: 5px;
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
+            
+            /* 상단 고정 */
+            position: sticky;
+            top: 0;
+            z-index: 99;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
         }
 
         .tab {
