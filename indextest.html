@@ -843,30 +843,111 @@
         }
 
         .capture-btn {
-            width: 70px;
-            height: 70px;
+            width: 80px;
+            height: 80px;
             border-radius: 50%;
             background: white;
-            border: 5px solid rgba(255, 255, 255, 0.3);
+            border: 6px solid rgba(255, 255, 255, 0.3);
             cursor: pointer;
             transition: all 0.2s ease;
             position: relative;
             -webkit-tap-highlight-color: transparent;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
         }
 
         .capture-btn:active {
-            transform: scale(0.95);
+            transform: scale(0.9);
         }
 
         .capture-btn::after {
             content: '';
             position: absolute;
-            top: 5px;
-            left: 5px;
-            right: 5px;
-            bottom: 5px;
+            top: 6px;
+            left: 6px;
+            right: 6px;
+            bottom: 6px;
             border-radius: 50%;
             background: white;
+        }
+
+        /* 미리보기 화면 */
+        .preview-container {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #000;
+            z-index: 10000;
+            flex-direction: column;
+        }
+
+        .preview-container.active {
+            display: flex;
+        }
+
+        .preview-header {
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px 20px;
+            color: white;
+            text-align: center;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .preview-image-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            padding: 20px;
+        }
+
+        .preview-image {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        .preview-actions {
+            padding: 20px;
+            display: flex;
+            gap: 15px;
+            background: rgba(0, 0, 0, 0.9);
+        }
+
+        .preview-btn {
+            flex: 1;
+            padding: 16px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .preview-btn-retake {
+            background: #6b7280;
+            color: white;
+        }
+
+        .preview-btn-retake:active {
+            background: #4b5563;
+            transform: scale(0.97);
+        }
+
+        .preview-btn-use {
+            background: #10b981;
+            color: white;
+        }
+
+        .preview-btn-use:active {
+            background: #059669;
+            transform: scale(0.97);
         }
 
         .camera-close-btn {
@@ -922,6 +1003,24 @@
             <div class="camera-controls">
                 <button class="capture-btn" onclick="capturePhoto()"></button>
             </div>
+        </div>
+    </div>
+
+    <!-- 미리보기 모달 -->
+    <div class="preview-container" id="previewModal">
+        <div class="preview-header">
+            📸 촬영된 사진 미리보기
+        </div>
+        <div class="preview-image-container">
+            <img id="previewImage" class="preview-image" alt="미리보기">
+        </div>
+        <div class="preview-actions">
+            <button class="preview-btn preview-btn-retake" onclick="retakePhoto()">
+                🔄 재촬영
+            </button>
+            <button class="preview-btn preview-btn-use" onclick="usePhoto()">
+                ✅ 사용하기
+            </button>
         </div>
     </div>
 
@@ -1475,6 +1574,7 @@
         // 카메라 모달 닫기
         function closeCameraModal() {
             const modal = document.getElementById('cameraModal');
+            const previewModal = document.getElementById('previewModal');
             const video = document.getElementById('cameraVideo');
             
             // 카메라 스트림 정지
@@ -1485,12 +1585,14 @@
             
             video.srcObject = null;
             modal.classList.remove('active');
+            previewModal.classList.remove('active'); // 미리보기도 닫기
             
             // 줌 초기화
             currentZoom = 1.0;
             videoTrack = null;
             cameraCallback = null;
             currentPhotoTarget = null; // 촬영 타겟 초기화
+            tempCapturedFile = null; // 임시 파일 초기화
         }
 
         // 줌 조정
@@ -1567,7 +1669,9 @@
             return Math.sqrt(dx * dx + dy * dy);
         }
 
-        // 사진 촬영
+        // 사진 촬영 - 미리보기 표시
+        let tempCapturedFile = null; // 임시 저장
+
         function capturePhoto() {
             const video = document.getElementById('cameraVideo');
             const canvas = document.getElementById('cameraCanvas');
@@ -1580,27 +1684,59 @@
             // 비디오 프레임을 캔버스에 그리기
             context.drawImage(video, 0, 0, canvas.width, canvas.height);
             
-            // 캔버스를 Blob으로 변환 (JPEG, 품질 0.9)
+            // 캔버스를 이미지로 변환
+            const imageDataUrl = canvas.toDataURL('image/jpeg', 0.9);
+            
+            // 미리보기 이미지 표시
+            const previewImage = document.getElementById('previewImage');
+            previewImage.src = imageDataUrl;
+            
+            // Blob으로 변환하여 임시 저장
             canvas.toBlob((blob) => {
                 if (blob) {
-                    // File 객체로 변환
-                    const file = new File([blob], `capture_${Date.now()}.jpg`, { 
+                    tempCapturedFile = new File([blob], `capture_${Date.now()}.jpg`, { 
                         type: 'image/jpeg' 
                     });
                     
-                    // 콜백 함수 호출 (사진 추가)
-                    if (cameraCallback) {
-                        cameraCallback(file);
-                    }
-                    
-                    // 카메라 모달 닫기
-                    closeCameraModal();
-                    
-                    showToast('📸 사진이 촬영되었습니다', 'success');
+                    // 카메라 모달 숨기고 미리보기 모달 표시
+                    document.getElementById('cameraModal').classList.remove('active');
+                    document.getElementById('previewModal').classList.add('active');
                 } else {
                     alert('사진 캡처에 실패했습니다.');
                 }
             }, 'image/jpeg', 0.9);
+        }
+
+        // 재촬영 버튼
+        function retakePhoto() {
+            // 미리보기 닫고 카메라로 돌아가기
+            document.getElementById('previewModal').classList.remove('active');
+            document.getElementById('cameraModal').classList.add('active');
+            tempCapturedFile = null;
+        }
+
+        // 사진 사용하기 버튼
+        function usePhoto() {
+            if (!tempCapturedFile) {
+                alert('사진 데이터가 없습니다.');
+                return;
+            }
+            
+            // 미리보기 닫기
+            document.getElementById('previewModal').classList.remove('active');
+            
+            // 콜백 함수 호출 (사진 저장)
+            if (cameraCallback) {
+                cameraCallback(tempCapturedFile);
+            }
+            
+            // 카메라 모달 완전히 닫기
+            closeCameraModal();
+            
+            // 임시 파일 초기화
+            tempCapturedFile = null;
+            
+            showToast('📸 사진이 저장되었습니다', 'success');
         }
 
         // ==================== 전역 에러 핸들러 (크로스 플랫폼 안정성) ====================
