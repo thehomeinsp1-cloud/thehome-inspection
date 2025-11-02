@@ -73,9 +73,7 @@
             padding: 20px;
             text-align: center;
             box-shadow: 0 4px 20px rgba(16, 185, 129, 0.3);
-            position: sticky;
-            top: 0;
-            z-index: 100;
+            /* sticky 제거 - 탭만 고정 */
         }
 
         .header h1 {
@@ -113,10 +111,17 @@
             background: var(--card-bg);
             border-radius: 12px;
             padding: 5px;
-            margin: 20px 0;
+            margin: 20px -20px;
             gap: 5px;
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
+            
+            /* 상단 고정 */
+            position: sticky;
+            top: 0;
+            z-index: 99;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
         }
 
         .tab {
@@ -611,6 +616,55 @@
             background: var(--danger);
         }
 
+        /* 핀치줌 기능 추가 */
+        .zoom-level {
+            position: absolute;
+            top: 30px;
+            right: 20px;
+            background: rgba(16, 185, 129, 0.9);
+            color: white;
+            padding: 10px 16px;
+            border-radius: 20px;
+            font-size: 15px;
+            font-weight: bold;
+            z-index: 1001;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .zoom-controls {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            z-index: 1001;
+        }
+
+        .zoom-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            border: 2px solid white;
+            color: white;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .zoom-btn:active {
+            background: rgba(255, 255, 255, 0.5);
+            transform: scale(0.95);
+        }
+
         /* 플로팅 버튼 */
         .floating-btn {
             position: fixed;
@@ -1048,6 +1102,16 @@
     <!-- 카메라 모달 -->
     <div id="cameraModal" class="camera-modal">
         <video id="cameraPreview" autoplay playsinline></video>
+        
+        <!-- 줌 레벨 표시 -->
+        <div class="zoom-level" id="zoomLevel">줌: 1.0x</div>
+        
+        <!-- 줌 컨트롤 버튼 -->
+        <div class="zoom-controls">
+            <button class="zoom-btn" onclick="adjustZoom(0.1)">+</button>
+            <button class="zoom-btn" onclick="adjustZoom(-0.1)">−</button>
+        </div>
+        
         <div class="camera-controls">
             <button class="camera-btn" onclick="capturePhoto()" ontouchstart="">📸</button>
             <button class="camera-btn close" onclick="closeCameraModal()" ontouchstart="">✕</button>
@@ -3981,26 +4045,82 @@
                 let touchStartX = 0;
                 let touchStartY = 0;
                 
+                // 핀치줌 변수 추가
+                let currentZoom = 1.0;
+                let initialDistance = 0;
+                let initialZoom = 1.0;
+                const videoTrack = cameraStream.getVideoTracks()[0];
+                const capabilities = videoTrack.getCapabilities();
+                
+                // 줌 레벨 표시 업데이트 함수
+                const updateZoomDisplay = () => {
+                    document.getElementById('zoomLevel').textContent = `줌: ${currentZoom.toFixed(1)}x`;
+                };
+                
+                // 줌 적용 함수
+                const applyZoom = (zoom) => {
+                    currentZoom = Math.max(1.0, Math.min(zoom, 5.0));
+                    
+                    if (capabilities.zoom) {
+                        // 하드웨어 줌 지원
+                        const zoomValue = capabilities.zoom.min + 
+                            (currentZoom - 1.0) * (capabilities.zoom.max - capabilities.zoom.min) / 4.0;
+                        videoTrack.applyConstraints({
+                            advanced: [{ zoom: Math.min(zoomValue, capabilities.zoom.max) }]
+                        }).catch(() => {
+                            // 실패 시 CSS 줌
+                            video.style.transform = `scale(${currentZoom})`;
+                        });
+                    } else {
+                        // CSS 줌
+                        video.style.transform = `scale(${currentZoom})`;
+                    }
+                    
+                    updateZoomDisplay();
+                };
+                
+                // 두 터치 포인트 간 거리 계산
+                const getDistance = (touch1, touch2) => {
+                    const dx = touch1.clientX - touch2.clientX;
+                    const dy = touch1.clientY - touch2.clientY;
+                    return Math.sqrt(dx * dx + dy * dy);
+                };
+                
+                // 핀치줌 버튼 추가
+                window.adjustZoom = (delta) => {
+                    applyZoom(currentZoom + delta);
+                };
+                
                 video.addEventListener('touchstart', (e) => {
                     touchStartTime = Date.now();
-                    touchStartX = e.touches[0].clientX;
-                    touchStartY = e.touches[0].clientY;
                     
-                    // 멀티 터치 차단 (줌 방지)
-                    if (e.touches.length > 1) {
+                    if (e.touches.length === 2) {
+                        // 핀치줌 시작
                         e.preventDefault();
-                        e.stopPropagation();
+                        initialDistance = getDistance(e.touches[0], e.touches[1]);
+                        initialZoom = currentZoom;
+                    } else if (e.touches.length === 1) {
+                        touchStartX = e.touches[0].clientX;
+                        touchStartY = e.touches[0].clientY;
                     }
                 }, { passive: false });
                 
                 video.addEventListener('touchmove', (e) => {
-                    // 드래그/스크롤 차단
-                    const moveX = Math.abs(e.touches[0].clientX - touchStartX);
-                    const moveY = Math.abs(e.touches[0].clientY - touchStartY);
-                    
-                    if (moveX > 10 || moveY > 10) {
+                    if (e.touches.length === 2) {
+                        // 핀치줌 동작
                         e.preventDefault();
-                        e.stopPropagation();
+                        const currentDistance = getDistance(e.touches[0], e.touches[1]);
+                        const scale = currentDistance / initialDistance;
+                        applyZoom(initialZoom * scale);
+                    } else if (e.touches.length === 1) {
+                        // 드래그/스크롤 차단
+                        const moveX = Math.abs(e.touches[0].clientX - touchStartX);
+                        const moveY = Math.abs(e.touches[0].clientY - touchStartY);
+                        
+                        if (moveX > 10 || moveY > 10) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                        }
                     }
                 }, { passive: false });
                 
