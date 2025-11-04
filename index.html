@@ -944,11 +944,11 @@
                 <div class="grid-2">
                     <div class="form-field">
                         <label class="form-label">동</label>
-                        <input type="text" class="form-input" id="dong" placeholder="예: 101동" oninput="autoSaveProjectData()">
+                        <input type="text" class="form-input" id="dong" placeholder="예: 101" oninput="cleanDongHo(this, '동'); autoSaveProjectData()">
                     </div>
                     <div class="form-field">
                         <label class="form-label">호수</label>
-                        <input type="text" class="form-input" id="ho" placeholder="예: 502호" oninput="autoSaveProjectData()">
+                        <input type="text" class="form-input" id="ho" placeholder="예: 502" oninput="cleanDongHo(this, '호'); autoSaveProjectData()">
                     </div>
                 </div>
 
@@ -962,7 +962,7 @@
                     <input type="text" class="form-input" id="customerName" placeholder="고객 이름" oninput="autoSaveProjectData()">
                 </div>
 
-                <div class="form-field">
+                <div class="form-field" style="display: none;">
                     <label class="form-label">연락처</label>
                     <input type="tel" class="form-input" id="customerPhone" placeholder="010-0000-0000" oninput="autoSaveProjectData()">
                 </div>
@@ -7515,6 +7515,25 @@
 
         // ==================== 자동 저장 함수 ====================
         // autoSaveTimeout 제거됨 - saveTimer로 통합
+        
+        // 동/호수 입력 시 "동", "호" 자동 제거
+        function cleanDongHo(input, type) {
+            let value = input.value;
+            
+            // "동" 또는 "호" 제거
+            if (type === '동') {
+                value = value.replace(/동/g, '').trim();
+            } else if (type === '호') {
+                value = value.replace(/호/g, '').trim();
+            }
+            
+            // 값이 변경되었으면 업데이트
+            if (input.value !== value) {
+                const cursorPos = input.selectionStart - (input.value.length - value.length);
+                input.value = value;
+                input.setSelectionRange(cursorPos, cursorPos);
+            }
+        }
         
         function autoSaveProjectData() {
             // projectData 업데이트
