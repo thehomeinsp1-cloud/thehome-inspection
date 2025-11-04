@@ -958,19 +958,21 @@
                     <input type="date" class="form-input" id="inspectionDate" onchange="autoSaveProjectData()">
                 </div>
 
-                <div class="form-field">
-                    <label class="form-label">고객명</label>
-                    <input type="text" class="form-input" id="customerName" placeholder="고객 이름" oninput="autoSaveProjectData()">
+                <div class="grid-2">
+                    <div class="form-field">
+                        <label class="form-label">고객명</label>
+                        <input type="text" class="form-input" id="customerName" placeholder="고객 이름" oninput="autoSaveProjectData()">
+                    </div>
+
+                    <div class="form-field">
+                        <label class="form-label">점검 작성자</label>
+                        <input type="text" class="form-input" id="author" placeholder="작성자 이름" oninput="autoSaveProjectData()">
+                    </div>
                 </div>
 
                 <div class="form-field" style="display: none;">
                     <label class="form-label">연락처</label>
                     <input type="tel" class="form-input" id="customerPhone" placeholder="010-0000-0000" oninput="autoSaveProjectData()">
-                </div>
-
-                <div class="form-field">
-                    <label class="form-label">점검 작성자</label>
-                    <input type="text" class="form-input" id="author" placeholder="작성자 이름" oninput="autoSaveProjectData()">
                 </div>
 
                 <button class="btn btn-primary" onclick="saveProject()">✅ 프로젝트 정보 저장</button>
