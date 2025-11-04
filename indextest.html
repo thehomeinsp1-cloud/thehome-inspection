@@ -88,6 +88,7 @@
             padding: 20px;
             text-align: center;
             box-shadow: 0 4px 20px rgba(16, 185, 129, 0.3);
+            position: relative; /* 버튼 위치 기준 */
             /* sticky 제거 - 탭만 고정 */
         }
 
@@ -706,15 +707,15 @@
 
         /* 테마 토글 버튼 */
         .theme-toggle {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 9999;
-            width: 50px;
-            height: 50px;
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            z-index: 10;
+            width: 45px;
+            height: 45px;
             border-radius: 50%;
-            background: var(--card-bg);
-            border: 2px solid var(--border);
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
             backdrop-filter: blur(10px);
             display: flex;
             align-items: center;
@@ -729,6 +730,11 @@
 
         .theme-toggle:active {
             transform: scale(0.95);
+        }
+
+        body.light-mode .theme-toggle {
+            background: rgba(0, 0, 0, 0.1);
+            border: 2px solid rgba(0, 0, 0, 0.2);
         }
 
         /* 플로팅 버튼 */
@@ -878,13 +884,13 @@
 
 </head>
 <body>
-    <!-- 테마 토글 버튼 -->
-    <button class="theme-toggle" onclick="toggleTheme()" id="themeToggle" title="다크/라이트 모드 전환">
-        🌙
-    </button>
-
     <!-- 헤더 -->
     <div class="header">
+        <!-- 테마 토글 버튼 -->
+        <button class="theme-toggle" onclick="toggleTheme()" id="themeToggle" title="다크/라이트 모드 전환">
+            🌙
+        </button>
+        
         <h1>🏠 더홈점검</h1>
         <p>하자관리 시스템 v3.2 (사진 2장 촬영)</p>
         <div class="progress-bar">
