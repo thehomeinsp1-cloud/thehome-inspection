@@ -1168,16 +1168,19 @@
                         <button class="btn btn-secondary" onclick="saveCurrentData()" style="width: 100%; margin-bottom: 10px;">
                             💾 수동 저장 (자동 저장되므로 불필요)
                         </button>
-                        <button class="btn btn-danger" onclick="clearAllData()" style="width: 100%;">
+                        <button class="btn btn-danger" onclick="clearAllData()" style="width: 100%; margin-bottom: 15px;">
                             🗑️ 모든 데이터 삭제 (복구 불가)
                         </button>
+                        
+                        <div style="border-top: 2px solid rgba(239, 68, 68, 0.2); padding-top: 15px; margin-top: 15px;">
+                            <h3 style="color: var(--danger); margin-bottom: 15px; font-size: 16px;">📦 저장된 프로젝트 목록</h3>
+                            <p style="font-size: 13px; color: #666; margin-bottom: 10px;">
+                                ⚠️ <strong>프로젝트 삭제 시 복구 불가능합니다!</strong>
+                            </p>
+                            <div id="savedList" class="saved-list"></div>
+                        </div>
                     </div>
                 </details>
-            </div>
-
-            <div class="card">
-                <h3 style="color: var(--primary); margin-bottom: 15px;">📦 저장된 프로젝트 목록</h3>
-                <div id="savedList" class="saved-list"></div>
             </div>
         </div>
     </div>
