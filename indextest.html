@@ -53,6 +53,16 @@
             --text-secondary: #94a3b8;
         }
 
+        /* 라이트 모드 */
+        body.light-mode {
+            --bg-dark: #f3f4f6;
+            --bg-darker: #e5e7eb;
+            --card-bg: rgba(255, 255, 255, 0.9);
+            --border: rgba(0, 0, 0, 0.1);
+            --text-primary: #1f2937;
+            --text-secondary: #6b7280;
+        }
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
@@ -60,6 +70,11 @@
             min-height: 100vh;
             padding: 0;
             overflow-x: hidden;
+            transition: background 0.3s ease, color 0.3s ease;
+        }
+
+        body.light-mode {
+            background: linear-gradient(135deg, #f9fafb 0%, #e5e7eb 100%);
         }
 
         .container {
@@ -167,6 +182,11 @@
             backdrop-filter: blur(10px);
         }
 
+        body.light-mode .card {
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e5e7eb;
+        }
+
         .form-field {
             margin-bottom: 20px;
         }
@@ -188,6 +208,19 @@
             color: var(--text-primary);
             font-size: 16px;
             transition: all 0.3s ease;
+        }
+
+        body.light-mode .form-input {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid #d1d5db;
+        }
+
+        body.light-mode textarea.form-input {
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        body.light-mode select.form-input {
+            background: rgba(255, 255, 255, 0.9);
         }
 
         .form-input:focus {
@@ -295,6 +328,11 @@
             position: relative;
         }
 
+        body.light-mode .defect-card {
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e5e7eb;
+        }
+
         .defect-header {
             display: flex;
             justify-content: space-between;
@@ -317,6 +355,7 @@
             border-radius: 20px;
             font-size: 12px;
             font-weight: bold;
+            display: none; /* 숨김 처리 */
         }
 
         .status-pending {
@@ -665,6 +704,33 @@
             transform: scale(0.95);
         }
 
+        /* 테마 토글 버튼 */
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--card-bg);
+            border: 2px solid var(--border);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .theme-toggle:active {
+            transform: scale(0.95);
+        }
+
         /* 플로팅 버튼 */
         .floating-btn {
             position: fixed;
@@ -812,6 +878,11 @@
 
 </head>
 <body>
+    <!-- 테마 토글 버튼 -->
+    <button class="theme-toggle" onclick="toggleTheme()" id="themeToggle" title="다크/라이트 모드 전환">
+        🌙
+    </button>
+
     <!-- 헤더 -->
     <div class="header">
         <h1>🏠 더홈점검</h1>
@@ -6250,8 +6321,7 @@
                         <td style="padding: 10px 6px; text-align: center; color: #1a1a1a; font-size: 13px; vertical-align: middle; height: 42px; white-space: nowrap; border-right: 1px solid #e0e0e0;">${spaces}</td>
                         <td style="padding: 10px 6px; text-align: center; color: #1a1a1a; font-size: 13px; vertical-align: middle; height: 42px; white-space: nowrap; border-right: 1px solid #e0e0e0;">${locations}</td>
                         <td style="padding: 10px 6px; color: #1a1a1a; font-size: 13px; vertical-align: middle; height: 42px; white-space: nowrap; border-right: 1px solid #e0e0e0;">${types}</td>
-                        <td style="padding: 10px 8px; color: #1a1a1a; font-size: 12px; word-break: break-word; white-space: normal; line-height: 1.4; vertical-align: middle; height: 42px; border-right: 1px solid #e0e0e0;">${description || '-'}</td>
-                        <td style="padding: 10px 6px; text-align: center; font-size: 13px; color: #1a1a1a; vertical-align: middle; height: 42px; white-space: nowrap;">${defect.status === 'completed' ? '✓' : '○'}</td>
+                        <td style="padding: 10px 8px; color: #1a1a1a; font-size: 12px; word-break: break-word; white-space: normal; line-height: 1.4; vertical-align: middle; height: 42px;">${description || '-'}</td>
                     </tr>
                 `;
             });
@@ -6309,8 +6379,7 @@
                                     <th style="padding: 10px 6px; width: 12%; color: #1a1a1a; font-size: 13px; font-weight: bold; border-right: 1px solid #e0e0e0;">공간</th>
                                     <th style="padding: 10px 6px; width: 12%; color: #1a1a1a; font-size: 13px; font-weight: bold; border-right: 1px solid #e0e0e0;">위치</th>
                                     <th style="padding: 10px 6px; width: 15%; color: #1a1a1a; font-size: 13px; font-weight: bold; border-right: 1px solid #e0e0e0;">하자내용</th>
-                                    <th style="padding: 10px 8px; width: 46%; color: #1a1a1a; font-size: 13px; font-weight: bold; border-right: 1px solid #e0e0e0;">상세설명</th>
-                                    <th style="padding: 10px 6px; width: 6%; color: #1a1a1a; font-size: 13px; font-weight: bold;">상태</th>
+                                    <th style="padding: 10px 8px; width: 52%; color: #1a1a1a; font-size: 13px; font-weight: bold;">상세설명</th>
                                 </tr>
                             </thead>
                             <tbody>${defectRows}</tbody>
@@ -6343,8 +6412,7 @@
                         <td style="padding: 10px 6px; text-align: center; color: #1a1a1a; font-size: 13px; vertical-align: middle; height: 42px; white-space: nowrap; border-right: 1px solid #e0e0e0;">${spaces}</td>
                         <td style="padding: 10px 6px; text-align: center; color: #1a1a1a; font-size: 13px; vertical-align: middle; height: 42px; white-space: nowrap; border-right: 1px solid #e0e0e0;">${locations}</td>
                         <td style="padding: 10px 6px; color: #1a1a1a; font-size: 13px; vertical-align: middle; height: 42px; white-space: nowrap; border-right: 1px solid #e0e0e0;">${types}</td>
-                        <td style="padding: 10px 8px; color: #1a1a1a; font-size: 12px; word-break: break-word; white-space: normal; line-height: 1.4; vertical-align: middle; height: 42px; border-right: 1px solid #e0e0e0;">${description || '-'}</td>
-                        <td style="padding: 10px 6px; text-align: center; font-size: 13px; color: #1a1a1a; vertical-align: middle; height: 42px; white-space: nowrap;">${defect.status === 'completed' ? '✓' : '○'}</td>
+                        <td style="padding: 10px 8px; color: #1a1a1a; font-size: 12px; word-break: break-word; white-space: normal; line-height: 1.4; vertical-align: middle; height: 42px;">${description || '-'}</td>
                     </tr>
                 `;
             });
@@ -6367,8 +6435,7 @@
                                 <th style="padding: 10px 6px; width: 12%; color: #1a1a1a; font-size: 13px; font-weight: bold; border-right: 1px solid #e0e0e0;">공간</th>
                                 <th style="padding: 10px 6px; width: 12%; color: #1a1a1a; font-size: 13px; font-weight: bold; border-right: 1px solid #e0e0e0;">위치</th>
                                 <th style="padding: 10px 6px; width: 15%; color: #1a1a1a; font-size: 13px; font-weight: bold; border-right: 1px solid #e0e0e0;">하자내용</th>
-                                <th style="padding: 10px 8px; width: 46%; color: #1a1a1a; font-size: 13px; font-weight: bold; border-right: 1px solid #e0e0e0;">상세설명</th>
-                                <th style="padding: 10px 6px; width: 6%; color: #1a1a1a; font-size: 13px; font-weight: bold;">상태</th>
+                                <th style="padding: 10px 8px; width: 52%; color: #1a1a1a; font-size: 13px; font-weight: bold;">상세설명</th>
                             </tr>
                         </thead>
                         <tbody>${defectRows}</tbody>
@@ -8411,7 +8478,43 @@
             if (document.getElementById('contract')) {
                 loadContracts();
             }
+            
+            // 테마 설정 불러오기
+            loadTheme();
         });
+
+        // ==================== 테마 토글 기능 ====================
+        function toggleTheme() {
+            const body = document.body;
+            const themeToggle = document.getElementById('themeToggle');
+            
+            if (body.classList.contains('light-mode')) {
+                // 라이트 모드 → 다크 모드
+                body.classList.remove('light-mode');
+                themeToggle.textContent = '🌙';
+                localStorage.setItem('theme', 'dark');
+            } else {
+                // 다크 모드 → 라이트 모드
+                body.classList.add('light-mode');
+                themeToggle.textContent = '☀️';
+                localStorage.setItem('theme', 'light');
+            }
+        }
+
+        // 저장된 테마 불러오기
+        function loadTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            const body = document.body;
+            const themeToggle = document.getElementById('themeToggle');
+            
+            if (savedTheme === 'light') {
+                body.classList.add('light-mode');
+                themeToggle.textContent = '☀️';
+            } else {
+                body.classList.remove('light-mode');
+                themeToggle.textContent = '🌙';
+            }
+        }
 
     </script>
 </body>
