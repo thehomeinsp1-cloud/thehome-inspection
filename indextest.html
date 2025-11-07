@@ -881,94 +881,6 @@
             color: var(--text-secondary);
             margin-top: 5px;
         }
-
-        /* 하자 포인트 마커 편집 관련 스타일 */
-        .marker-editor {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.95);
-            z-index: 2000;
-            display: none;
-        }
-
-        .marker-editor.active {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .marker-controls {
-            background: var(--card-bg);
-            padding: 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .marker-canvas-container {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: auto;
-            position: relative;
-        }
-
-        #markerCanvas {
-            max-width: 100%;
-            max-height: 100%;
-            display: block;
-            touch-action: none;
-        }
-
-        .marker-counter {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: rgba(0, 0, 0, 0.7);
-            color: white;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 14px;
-            font-weight: bold;
-        }
-
-        .btn-group {
-            display: flex;
-            gap: 10px;
-        }
-
-        .btn-small {
-            padding: 8px 16px;
-            font-size: 14px;
-            border-radius: 8px;
-            border: none;
-            cursor: pointer;
-            font-weight: bold;
-            transition: all 0.2s ease;
-        }
-
-        .btn-cancel {
-            background: #6b7280;
-            color: white;
-        }
-
-        .btn-undo {
-            background: #f59e0b;
-            color: white;
-        }
-
-        .btn-complete {
-            background: var(--primary);
-            color: white;
-        }
-
-        .btn-small:active {
-            transform: scale(0.95);
-        }
     </style>
 
 </head>
@@ -1821,13 +1733,6 @@
         // let airQualityIdCounter = 1; // 제거됨
         let cameraStream = null;
         let currentPhotoTarget = null;
-
-        // 하자 포인트 마커 관련 변수
-        let markerCanvas = null;
-        let markerCtx = null;
-        let markerPoints = [];
-        let originalImageForMarker = null;
-        let tempCapturedImage = null;
 
         // ==================== Google API 초기화 ====================
         function gapiLoaded() {
@@ -4602,11 +4507,27 @@
                 showToast('평면도가 추가되었습니다');
             } else if (currentPhotoTarget && typeof currentPhotoTarget === 'object') {
                 if (currentPhotoTarget.defectId) {
-                    // 하자점검 사진 - 마커 편집 모드로 진입
-                    tempCapturedImage = imageData;
-                    closeCameraModal();
-                    startMarkerEdit(imageData);
-                    return; // 여기서 함수 종료, 마커 완료 후 저장
+                    // 하자점검 사진
+                    const defect = projectData.defects.find(d => d.id === currentPhotoTarget.defectId);
+                    if (defect) {
+                        // 개별 사진 교체 (재촬영)
+                        if (currentPhotoTarget.photoIndex !== undefined) {
+                            defect.photos[currentPhotoTarget.photoIndex] = imageData;
+                            const photoName = currentPhotoTarget.photoType === 'far' ? '원경' : '근경';
+                            showToast(`✓ ${photoName} 사진이 변경되었습니다.`);
+                        } else {
+                            // 일반 촬영 (새로 추가)
+                            defect.photos.push(imageData);
+                            
+                            if (currentPhotoTarget.step === 'far') {
+                                showToast('✓ 멀리서 촬영 완료! 이제 가까이서 촬영해주세요.');
+                            } else if (currentPhotoTarget.step === 'close') {
+                                showToast('✓ 가까이서 촬영 완료! 하자 사진이 모두 등록되었습니다.');
+                            }
+                        }
+                        
+                        renderDefects();
+                    }
                 } else if (currentPhotoTarget.equipmentId) {
                     // 장비점검 사진
                     const equipment = projectData.equipment.find(e => e.id === currentPhotoTarget.equipmentId);
@@ -5355,8 +5276,9 @@
                                 
                                 const photoType = photoIndex === 0 ? '원경' : '근접';
                                 
-                                // 워터마크 추가
-                                const watermarkText = photoIndex === 0 ? `${index + 1}` : `${index + 1}-1`;
+                                // 워터마크 추가 (동호수 포함)
+                                const dongHo = `${projectData.dong}동${projectData.ho}호`;
+                                const watermarkText = photoIndex === 0 ? `${dongHo}_${index + 1}` : `${dongHo}_${index + 1}-1`;
                                 const photoWithWatermark = await window.addWatermarkToPhoto(photo, watermarkText);
                                 
                                 const photoData = photoWithWatermark.split(',')[1];
@@ -5773,8 +5695,9 @@
                                 
                                 const photoType = photoIndex === 0 ? '원경' : '근접';
                                 
-                                // 워터마크 추가
-                                const watermarkText = photoIndex === 0 ? `${index + 1}` : `${index + 1}-1`;
+                                // 워터마크 추가 (동호수 포함)
+                                const dongHo = `${projectData.dong}동${projectData.ho}호`;
+                                const watermarkText = photoIndex === 0 ? `${dongHo}_${index + 1}` : `${dongHo}_${index + 1}-1`;
                                 const photoWithWatermark = await window.addWatermarkToPhoto(photo, watermarkText);
                                 
                                 const photoData = photoWithWatermark.split(',')[1];
@@ -6553,20 +6476,25 @@
                     // 원본 이미지 그리기
                     ctx.drawImage(img, 0, 0);
                     
-                    // 워터마크 배지 크기 계산 (이미지 크기에 비례, 더욱 크게)
-                    const badgeSize = Math.max(80, Math.min(img.width * 0.15, 120));
-                    const fontSize = badgeSize * 0.6;
-                    const padding = badgeSize * 0.25;
+                    // 워터마크 배지 크기 (이미지 높이의 8%로 고정 - 모든 사진에서 동일한 비율)
+                    const badgeHeight = img.height * 0.08; // 이미지 높이의 8%
+                    const fontSize = badgeHeight * 0.5; // 배지 높이의 50%
                     
-                    // 반투명 검은색 배경
+                    // 텍스트 너비 측정
+                    ctx.font = `bold ${fontSize}px Arial`;
+                    const textWidth = ctx.measureText(text).width;
+                    const badgeWidth = textWidth + badgeHeight * 0.6; // 좌우 여백 비율
+                    const padding = badgeHeight * 0.2; // 여백 비율
+                    
+                    // 반투명 검은색 배경 (직사각형)
                     ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
-                    ctx.roundRect(20, 20, badgeSize, badgeSize, 12);
+                    ctx.roundRect(20, 20, badgeWidth, badgeHeight, 12);
                     ctx.fill();
                     
                     // 흰색 테두리
                     ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
                     ctx.lineWidth = 3;
-                    ctx.roundRect(20, 20, badgeSize, badgeSize, 12);
+                    ctx.roundRect(20, 20, badgeWidth, badgeHeight, 12);
                     ctx.stroke();
                     
                     // 흰색 텍스트
@@ -6574,7 +6502,7 @@
                     ctx.font = `bold ${fontSize}px Arial`;
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'middle';
-                    ctx.fillText(text, 20 + badgeSize / 2, 20 + badgeSize / 2);
+                    ctx.fillText(text, 20 + badgeWidth / 2, 20 + badgeHeight / 2);
                     
                     resolve(canvas.toDataURL('image/jpeg', 0.95));
                 };
@@ -6593,9 +6521,10 @@
                 const farPhotoOriginal = defect.photos && defect.photos.length > 0 ? defect.photos[0] : '';
                 const closePhotoOriginal = defect.photos && defect.photos.length > 1 ? defect.photos[1] : '';
                 
-                // 워터마크 추가된 사진
-                const farPhoto = farPhotoOriginal ? await window.addWatermarkToPhoto(farPhotoOriginal, `${globalIndex}`) : '';
-                const closePhoto = closePhotoOriginal ? await window.addWatermarkToPhoto(closePhotoOriginal, `${globalIndex}-1`) : '';
+                // 워터마크 추가된 사진 (동호수 포함)
+                const dongHo = `${projectData.dong}동${projectData.ho}호`;
+                const farPhoto = farPhotoOriginal ? await window.addWatermarkToPhoto(farPhotoOriginal, `${dongHo}_${globalIndex}`) : '';
+                const closePhoto = closePhotoOriginal ? await window.addWatermarkToPhoto(closePhotoOriginal, `${dongHo}_${globalIndex}-1`) : '';
                 
                 // 배열을 문자열로 변환 (하위 호환성)
                 const spaces = defect.spaces ? defect.spaces.join(', ') : (defect.space || '-');
@@ -8626,187 +8555,6 @@
             }
         }
 
-        // ==================== 하자 포인트 마커 편집 기능 ====================
-        
-        // 마커 편집 시작
-        function startMarkerEdit(imageDataUrl) {
-            originalImageForMarker = new Image();
-            originalImageForMarker.onload = () => {
-                // 마커 포인트 초기화
-                markerPoints = [];
-                
-                // 캔버스 초기화
-                markerCanvas = document.getElementById('markerCanvas');
-                markerCtx = markerCanvas.getContext('2d');
-                
-                // 캔버스 크기 설정
-                markerCanvas.width = originalImageForMarker.width;
-                markerCanvas.height = originalImageForMarker.height;
-                
-                // 이미지 그리기
-                markerCtx.drawImage(originalImageForMarker, 0, 0);
-                
-                // 마커 편집기 표시
-                document.getElementById('markerEditor').classList.add('active');
-                updateMarkerCounter();
-                
-                // 터치/클릭 이벤트 리스너 추가
-                markerCanvas.addEventListener('click', addMarkerPoint);
-                markerCanvas.addEventListener('touchstart', handleMarkerTouchStart);
-            };
-            originalImageForMarker.src = imageDataUrl;
-        }
-
-        // 마커 포인트 추가 (클릭)
-        function addMarkerPoint(event) {
-            const rect = markerCanvas.getBoundingClientRect();
-            const scaleX = markerCanvas.width / rect.width;
-            const scaleY = markerCanvas.height / rect.height;
-            
-            const x = (event.clientX - rect.left) * scaleX;
-            const y = (event.clientY - rect.top) * scaleY;
-            
-            markerPoints.push({ x, y, number: markerPoints.length + 1 });
-            redrawMarkerCanvas();
-            updateMarkerCounter();
-        }
-
-        // 터치 이벤트 처리
-        function handleMarkerTouchStart(event) {
-            event.preventDefault();
-            const touch = event.touches[0];
-            const rect = markerCanvas.getBoundingClientRect();
-            const scaleX = markerCanvas.width / rect.width;
-            const scaleY = markerCanvas.height / rect.height;
-            
-            const x = (touch.clientX - rect.left) * scaleX;
-            const y = (touch.clientY - rect.top) * scaleY;
-            
-            markerPoints.push({ x, y, number: markerPoints.length + 1 });
-            redrawMarkerCanvas();
-            updateMarkerCounter();
-        }
-
-        // 캔버스 다시 그리기
-        function redrawMarkerCanvas() {
-            // 원본 이미지 다시 그리기
-            markerCtx.clearRect(0, 0, markerCanvas.width, markerCanvas.height);
-            markerCtx.drawImage(originalImageForMarker, 0, 0);
-            
-            // 모든 마커 포인트 그리기
-            markerPoints.forEach(point => {
-                drawMarkerPoint(point.x, point.y, point.number);
-            });
-        }
-
-        // 마커 그리기 (투명한 빨간 원)
-        function drawMarkerPoint(x, y, number) {
-            const radius = Math.max(markerCanvas.width * 0.02, 20);
-            
-            // 반투명 빨간 원
-            markerCtx.beginPath();
-            markerCtx.arc(x, y, radius, 0, Math.PI * 2);
-            markerCtx.fillStyle = 'rgba(239, 68, 68, 0.3)';
-            markerCtx.fill();
-            
-            // 진한 빨간 테두리
-            markerCtx.strokeStyle = '#ef4444';
-            markerCtx.lineWidth = 3;
-            markerCtx.stroke();
-            
-            // 번호 표시 (하얀색)
-            const fontSize = Math.max(markerCanvas.width * 0.015, 14);
-            markerCtx.font = `bold ${fontSize}px Arial`;
-            markerCtx.fillStyle = 'white';
-            markerCtx.textAlign = 'center';
-            markerCtx.textBaseline = 'middle';
-            markerCtx.fillText(number, x, y);
-        }
-
-        // 마지막 마커 취소
-        function undoLastMarker() {
-            if (markerPoints.length > 0) {
-                markerPoints.pop();
-                redrawMarkerCanvas();
-                updateMarkerCounter();
-                showToast('마지막 포인트가 삭제되었습니다', 'info');
-            }
-        }
-
-        // 마커 카운터 업데이트
-        function updateMarkerCounter() {
-            document.getElementById('markerCounter').textContent = `하자 포인트: ${markerPoints.length}개`;
-        }
-
-        // 마커 편집 완료
-        function completeMarkerEdit() {
-            // 이벤트 리스너 제거
-            markerCanvas.removeEventListener('click', addMarkerPoint);
-            markerCanvas.removeEventListener('touchstart', handleMarkerTouchStart);
-            
-            // 최종 이미지 데이터 (마커가 그려진 상태로)
-            const finalImageDataUrl = markerCanvas.toDataURL('image/jpeg', 0.9);
-            
-            // 하자점검 사진으로 저장
-            const defect = projectData.defects.find(d => d.id === currentPhotoTarget.defectId);
-            if (defect) {
-                // 개별 사진 교체 (재촬영)
-                if (currentPhotoTarget.photoIndex !== undefined) {
-                    defect.photos[currentPhotoTarget.photoIndex] = finalImageDataUrl;
-                    const photoName = currentPhotoTarget.photoType === 'far' ? '원경' : '근경';
-                    showToast(`✓ ${photoName} 사진이 변경되었습니다 (하자 포인트: ${markerPoints.length}개)`);
-                } else {
-                    // 일반 촬영 (새로 추가)
-                    defect.photos.push(finalImageDataUrl);
-                    
-                    if (currentPhotoTarget.step === 'far') {
-                        showToast(`✓ 멀리서 촬영 완료! 이제 가까이서 촬영해주세요 (하자 포인트: ${markerPoints.length}개)`);
-                    } else if (currentPhotoTarget.step === 'close') {
-                        showToast(`✓ 가까이서 촬영 완료! 하자 사진이 모두 등록되었습니다 (하자 포인트: ${markerPoints.length}개)`);
-                    }
-                }
-                
-                renderDefects();
-                saveImmediately();
-                updateProgress();
-            }
-            
-            // 마커 편집기 닫기
-            document.getElementById('markerEditor').classList.remove('active');
-        }
-
-        // 마커 편집 취소
-        function cancelMarkerEdit() {
-            if (markerPoints.length > 0) {
-                if (!confirm('편집한 내용이 저장되지 않습니다. 취소하시겠습니까?')) {
-                    return;
-                }
-            }
-            
-            // 이벤트 리스너 제거
-            markerCanvas.removeEventListener('click', addMarkerPoint);
-            markerCanvas.removeEventListener('touchstart', handleMarkerTouchStart);
-            
-            // 마커 편집기 닫기
-            document.getElementById('markerEditor').classList.remove('active');
-            showToast('촬영이 취소되었습니다', 'info');
-        }
-
     </script>
-
-    <!-- 하자 포인트 마커 편집기 -->
-    <div id="markerEditor" class="marker-editor">
-        <div class="marker-controls">
-            <div class="btn-group">
-                <button class="btn-small btn-cancel" onclick="cancelMarkerEdit()">취소</button>
-                <button class="btn-small btn-undo" onclick="undoLastMarker()">↶ 실행취소</button>
-            </div>
-            <button class="btn-small btn-complete" onclick="completeMarkerEdit()">✓ 완료</button>
-        </div>
-        <div class="marker-canvas-container">
-            <canvas id="markerCanvas"></canvas>
-            <div class="marker-counter" id="markerCounter">하자 포인트: 0개</div>
-        </div>
-    </div>
 </body>
 </html>
