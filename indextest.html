@@ -6715,36 +6715,42 @@
                                         html += `</div>`;
                                     }
                                     
-                                    // 2줄: 바닥1, 바닥2 (2칸 고정)
-                                    const bottomPhotos = [
-                                        item.photos['바닥1'] ? { name: '바닥1', photo: item.photos['바닥1'], color: colors['바닥1'], icon: icons['바닥1'] } : null,
-                                        item.photos['바닥2'] ? { name: '바닥2', photo: item.photos['바닥2'], color: colors['바닥2'], icon: icons['바닥2'] } : null
-                                    ];
+                                    // 2줄: 바닥 사진 처리
+                                    const hasFloor1 = item.photos['바닥1'] ? true : false;
+                                    const hasFloor2 = item.photos['바닥2'] ? true : false;
                                     
-                                    if (bottomPhotos[0] || bottomPhotos[1]) {
-                                        html += `<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">`;
-                                        [bottomPhotos[0], bottomPhotos[1]].forEach(loc => {
-                                            if (loc) {
-                                                html += `
-                                                    <div style="border: 1px solid #ddd; border-radius: 4px; overflow: hidden;">
-                                                        <div style="padding: 8px; text-align: center; font-weight: bold; font-size: 12px; color: #333; border-bottom: 3px solid ${loc.color};">
-                                                            ${loc.icon} ${loc.name}
-                                                        </div>
-                                                        <img src="${loc.photo}" style="width: 100%; height: 240px; object-fit: cover; display: block;" />
+                                    if (hasFloor1 && hasFloor2) {
+                                        // 바닥 2장 모두 있으면 → 2칸으로 나란히
+                                        html += `
+                                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                                                <div style="border: 1px solid #ddd; border-radius: 4px; overflow: hidden;">
+                                                    <div style="padding: 8px; text-align: center; font-weight: bold; font-size: 12px; color: #333; border-bottom: 3px solid ${colors['바닥1']};">
+                                                        ${icons['바닥1']} 바닥1
                                                     </div>
-                                                `;
-                                            } else {
-                                                html += `
-                                                    <div style="border: 1px solid #ddd; border-radius: 4px; overflow: hidden; background: #f8f9fa;">
-                                                        <div style="padding: 8px; text-align: center; font-weight: bold; font-size: 12px; color: #999; border-bottom: 3px solid #ddd;">
-                                                            사진 없음
-                                                        </div>
-                                                        <div style="width: 100%; height: 240px; display: flex; align-items: center; justify-content: center; color: #ccc; font-size: 48px;">📷</div>
+                                                    <img src="${item.photos['바닥1']}" style="width: 100%; height: 240px; object-fit: cover; display: block;" />
+                                                </div>
+                                                <div style="border: 1px solid #ddd; border-radius: 4px; overflow: hidden;">
+                                                    <div style="padding: 8px; text-align: center; font-weight: bold; font-size: 12px; color: #333; border-bottom: 3px solid ${colors['바닥2']};">
+                                                        ${icons['바닥2']} 바닥2
                                                     </div>
-                                                `;
-                                            }
-                                        });
-                                        html += `</div>`;
+                                                    <img src="${item.photos['바닥2']}" style="width: 100%; height: 240px; object-fit: cover; display: block;" />
+                                                </div>
+                                            </div>
+                                        `;
+                                    } else if (hasFloor1 || hasFloor2) {
+                                        // 바닥 1장만 있으면 → 중앙에 표시 (퍼지지 않게)
+                                        const floorPhoto = hasFloor1 ? { name: '바닥1', photo: item.photos['바닥1'], color: colors['바닥1'], icon: icons['바닥1'] } 
+                                                                      : { name: '바닥2', photo: item.photos['바닥2'], color: colors['바닥2'], icon: icons['바닥2'] };
+                                        html += `
+                                            <div style="display: flex; justify-content: center;">
+                                                <div style="width: 60%; border: 1px solid #ddd; border-radius: 4px; overflow: hidden;">
+                                                    <div style="padding: 8px; text-align: center; font-weight: bold; font-size: 12px; color: #333; border-bottom: 3px solid ${floorPhoto.color};">
+                                                        ${floorPhoto.icon} ${floorPhoto.name}
+                                                    </div>
+                                                    <img src="${floorPhoto.photo}" style="width: 100%; height: 280px; object-fit: cover; display: block;" />
+                                                </div>
+                                            </div>
+                                        `;
                                     }
                                     
                                     return html;
