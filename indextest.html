@@ -3616,7 +3616,8 @@
                 photos: {        // 위치별 사진 객체
                     '좌측': null,
                     '우측': null,
-                    '바닥': null
+                    '바닥1': null,
+                    '바닥2': null
                 }
             };
             projectData.equipment.push(newEquipment);
@@ -3647,25 +3648,33 @@
             }
 
             container.innerHTML = projectData.equipment.map((item, index) => {
-                // 하위 호환성: 기존 4개 구조를 3개로 변환
+                // 하위 호환성: 기존 4개 구조를 4개로 변환
                 if (!item.photos || item.photos['좌측상단']) {
                     item.photos = {
                         '좌측': item.photos?.['좌측상단'] || item.photos?.['좌측하단'] || null,
                         '우측': item.photos?.['우측상단'] || item.photos?.['우측하단'] || null,
-                        '바닥': null
+                        '바닥1': item.photos?.['바닥'] || null,
+                        '바닥2': null
                     };
+                } else if (item.photos && item.photos['바닥'] && !item.photos['바닥1']) {
+                    // 기존 '바닥'을 '바닥1'로 변환
+                    item.photos['바닥1'] = item.photos['바닥'];
+                    delete item.photos['바닥'];
+                    if (!item.photos['바닥2']) item.photos['바닥2'] = null;
                 }
                 
-                const locations = ['좌측', '우측', '바닥'];
+                const locations = ['좌측', '우측', '바닥1', '바닥2'];
                 const locationColors = {
                     '좌측': '#3498db',
                     '우측': '#e74c3c',
-                    '바닥': '#f39c12'
+                    '바닥1': '#f39c12',
+                    '바닥2': '#f39c12'
                 };
                 const locationIcons = {
                     '좌측': '⬅️',
                     '우측': '➡️',
-                    '바닥': '⬇️'
+                    '바닥1': '⬇️',
+                    '바닥2': '⬇️'
                 };
                 
                 return `
@@ -3707,7 +3716,7 @@
                     </div>
 
                     <div class="form-field">
-                        <label class="form-label">📷 위치별 사진 촬영/첨부 (${Object.values(item.photos).filter(p => p).length}/3)</label>
+                        <label class="form-label">📷 위치별 사진 촬영/첨부 (${Object.values(item.photos).filter(p => p).length}/4)</label>
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
                             ${locations.slice(0, 2).map(location => `
                                 <div style="border: 2px solid ${locationColors[location]}; border-radius: 8px; overflow: hidden;">
@@ -3743,37 +3752,41 @@
                                 </div>
                             `).join('')}
                         </div>
-                        <!-- 바닥 사진 (전체 너비) -->
-                        <div style="border: 2px solid ${locationColors['바닥']}; border-radius: 8px; overflow: hidden;">
-                            <div style="background: ${locationColors['바닥']}; color: white; padding: 8px; text-align: center; font-weight: bold; font-size: 13px;">
-                                ${locationIcons['바닥']} 바닥
-                            </div>
-                            ${item.photos['바닥'] ? `
-                                <img src="${item.photos['바닥']}" style="width: 100%; height: 200px; object-fit: cover;">
-                                <div style="display: flex; border-top: 1px solid #ddd;">
-                                    <button class="btn btn-secondary" onclick="openEquipmentLocationCamera(${item.id}, '바닥')" style="flex: 1; border-radius: 0; border: none; padding: 10px; font-size: 12px;">
-                                        🔄 재촬영
-                                    </button>
-                                    <button class="btn btn-secondary" onclick="openEquipmentLocationGallery(${item.id}, '바닥')" style="flex: 1; border-radius: 0; border: none; border-left: 1px solid #ddd; padding: 10px; font-size: 12px;">
-                                        🖼️ 재첨부
-                                    </button>
-                                    <button class="btn btn-danger" onclick="deleteEquipmentLocationPhoto(${item.id}, '바닥')" style="flex: 1; border-radius: 0; border: none; border-left: 1px solid #ddd; padding: 10px; font-size: 12px;">
-                                        🗑️ 삭제
-                                    </button>
-                                </div>
-                            ` : `
-                                <div style="height: 200px; background: #f8f9fa; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;">
-                                    <div style="font-size: 32px; opacity: 0.3;">📷</div>
-                                    <div style="display: flex; gap: 10px; width: 100%; padding: 0 20px;">
-                                        <button class="btn btn-primary" onclick="openEquipmentLocationCamera(${item.id}, '바닥')" style="flex: 1; padding: 10px; font-size: 12px;">
-                                            📸 촬영
-                                        </button>
-                                        <button class="btn btn-primary" onclick="openEquipmentLocationGallery(${item.id}, '바닥')" style="flex: 1; padding: 10px; font-size: 12px;">
-                                            🖼️ 첨부
-                                        </button>
+                        <!-- 바닥 사진 (2칸 그리드) -->
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                            ${locations.slice(2, 4).map(location => `
+                                <div style="border: 2px solid ${locationColors[location]}; border-radius: 8px; overflow: hidden;">
+                                    <div style="background: ${locationColors[location]}; color: white; padding: 8px; text-align: center; font-weight: bold; font-size: 13px;">
+                                        ${locationIcons[location]} ${location}
                                     </div>
+                                    ${item.photos[location] ? `
+                                        <img src="${item.photos[location]}" style="width: 100%; height: 200px; object-fit: cover;">
+                                        <div style="display: flex; border-top: 1px solid #ddd;">
+                                            <button class="btn btn-secondary" onclick="openEquipmentLocationCamera(${item.id}, '${location}')" style="flex: 1; border-radius: 0; border: none; padding: 10px; font-size: 12px;">
+                                                🔄
+                                            </button>
+                                            <button class="btn btn-secondary" onclick="openEquipmentLocationGallery(${item.id}, '${location}')" style="flex: 1; border-radius: 0; border: none; border-left: 1px solid #ddd; padding: 10px; font-size: 12px;">
+                                                🖼️
+                                            </button>
+                                            <button class="btn btn-danger" onclick="deleteEquipmentLocationPhoto(${item.id}, '${location}')" style="flex: 1; border-radius: 0; border: none; border-left: 1px solid #ddd; padding: 10px; font-size: 12px;">
+                                                🗑️
+                                            </button>
+                                        </div>
+                                    ` : `
+                                        <div style="height: 200px; background: #f8f9fa; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;">
+                                            <div style="font-size: 32px; opacity: 0.3;">📷</div>
+                                            <div style="display: flex; gap: 10px; width: 100%; padding: 0 12px;">
+                                                <button class="btn btn-primary" onclick="openEquipmentLocationCamera(${item.id}, '${location}')" style="flex: 1; padding: 10px; font-size: 12px;">
+                                                    📸 촬영
+                                                </button>
+                                                <button class="btn btn-primary" onclick="openEquipmentLocationGallery(${item.id}, '${location}')" style="flex: 1; padding: 10px; font-size: 12px;">
+                                                    🖼️ 첨부
+                                                </button>
+                                            </div>
+                                        </div>
+                                    `}
                                 </div>
-                            `}
+                            `).join('')}
                         </div>
                     </div>
                 </div>
@@ -6605,13 +6618,19 @@
                 // 하위 호환성
                 const space = item.space || (item.spaces ? item.spaces.join(', ') : '-');
                 
-                // 하위 호환성: 기존 4개 구조를 3개로 변환
+                // 하위 호환성: 기존 4개 구조를 4개로 변환
                 if (item.photos && item.photos['좌측상단']) {
                     item.photos = {
                         '좌측': item.photos['좌측상단'] || item.photos['좌측하단'] || null,
                         '우측': item.photos['우측상단'] || item.photos['우측하단'] || null,
-                        '바닥': null
+                        '바닥1': item.photos['바닥'] || null,
+                        '바닥2': null
                     };
+                } else if (item.photos && item.photos['바닥'] && !item.photos['바닥1']) {
+                    // 기존 '바닥'을 '바닥1'로 변환
+                    item.photos['바닥1'] = item.photos['바닥'];
+                    delete item.photos['바닥'];
+                    if (!item.photos['바닥2']) item.photos['바닥2'] = null;
                 }
                 
                 // photos 객체가 있으면 위치별 사진, 없으면 단일 사진 (구 버전)
@@ -6638,9 +6657,9 @@
                                 ${(() => {
                                     // 사진 배열로 변환 (null 아닌 것만)
                                     const photoList = [];
-                                    const locations = ['좌측', '우측', '바닥'];
-                                    const colors = { '좌측': '#3498db', '우측': '#e74c3c', '바닥': '#f39c12' };
-                                    const icons = { '좌측': '⬅️', '우측': '➡️', '바닥': '⬇️' };
+                                    const locations = ['좌측', '우측', '바닥1', '바닥2'];
+                                    const colors = { '좌측': '#3498db', '우측': '#e74c3c', '바닥1': '#f39c12', '바닥2': '#f39c12' };
+                                    const icons = { '좌측': '⬅️', '우측': '➡️', '바닥1': '⬇️', '바닥2': '⬇️' };
                                     
                                     locations.forEach(loc => {
                                         if (item.photos[loc]) {
@@ -6664,44 +6683,68 @@
                                     
                                     let html = '';
                                     
-                                    // 1줄: 처음 2장 (좌우 배치)
-                                    if (photoList.length >= 2) {
-                                        html += `
-                                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
-                                                ${photoList.slice(0, 2).map(loc => `
+                                    // 1줄: 좌측, 우측 (2칸 고정)
+                                    const topPhotos = [
+                                        item.photos['좌측'] ? { name: '좌측', photo: item.photos['좌측'], color: colors['좌측'], icon: icons['좌측'] } : null,
+                                        item.photos['우측'] ? { name: '우측', photo: item.photos['우측'], color: colors['우측'], icon: icons['우측'] } : null
+                                    ].filter(p => p);
+                                    
+                                    if (topPhotos.length > 0) {
+                                        html += `<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">`;
+                                        topPhotos.forEach(loc => {
+                                            html += `
+                                                <div style="border: 1px solid #ddd; border-radius: 4px; overflow: hidden;">
+                                                    <div style="padding: 8px; text-align: center; font-weight: bold; font-size: 12px; color: #333; border-bottom: 3px solid ${loc.color};">
+                                                        ${loc.icon} ${loc.name}
+                                                    </div>
+                                                    <img src="${loc.photo}" style="width: 100%; height: 240px; object-fit: cover; display: block;" />
+                                                </div>
+                                            `;
+                                        });
+                                        // 좌측이나 우측 중 하나만 있으면 빈칸 추가
+                                        if (topPhotos.length === 1) {
+                                            html += `
+                                                <div style="border: 1px solid #ddd; border-radius: 4px; overflow: hidden; background: #f8f9fa;">
+                                                    <div style="padding: 8px; text-align: center; font-weight: bold; font-size: 12px; color: #999; border-bottom: 3px solid #ddd;">
+                                                        사진 없음
+                                                    </div>
+                                                    <div style="width: 100%; height: 240px; display: flex; align-items: center; justify-content: center; color: #ccc; font-size: 48px;">📷</div>
+                                                </div>
+                                            `;
+                                        }
+                                        html += `</div>`;
+                                    }
+                                    
+                                    // 2줄: 바닥1, 바닥2 (2칸 고정)
+                                    const bottomPhotos = [
+                                        item.photos['바닥1'] ? { name: '바닥1', photo: item.photos['바닥1'], color: colors['바닥1'], icon: icons['바닥1'] } : null,
+                                        item.photos['바닥2'] ? { name: '바닥2', photo: item.photos['바닥2'], color: colors['바닥2'], icon: icons['바닥2'] } : null
+                                    ];
+                                    
+                                    if (bottomPhotos[0] || bottomPhotos[1]) {
+                                        html += `<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">`;
+                                        [bottomPhotos[0], bottomPhotos[1]].forEach(loc => {
+                                            if (loc) {
+                                                html += `
                                                     <div style="border: 1px solid #ddd; border-radius: 4px; overflow: hidden;">
                                                         <div style="padding: 8px; text-align: center; font-weight: bold; font-size: 12px; color: #333; border-bottom: 3px solid ${loc.color};">
                                                             ${loc.icon} ${loc.name}
                                                         </div>
                                                         <img src="${loc.photo}" style="width: 100%; height: 240px; object-fit: cover; display: block;" />
                                                     </div>
-                                                `).join('')}
-                                            </div>
-                                        `;
-                                    } else if (photoList.length === 1) {
-                                        // 사진 1장만 있을 때 (풀사이즈)
-                                        const loc = photoList[0];
-                                        html += `
-                                            <div style="border: 1px solid #ddd; border-radius: 4px; overflow: hidden; margin-bottom: 10px;">
-                                                <div style="padding: 8px; text-align: center; font-weight: bold; font-size: 12px; color: #333; border-bottom: 3px solid ${loc.color};">
-                                                    ${loc.icon} ${loc.name}
-                                                </div>
-                                                <img src="${loc.photo}" style="width: 100%; height: 280px; object-fit: cover; display: block;" />
-                                            </div>
-                                        `;
-                                    }
-                                    
-                                    // 2줄: 3번째 사진 (중앙 크게)
-                                    if (photoList.length >= 3) {
-                                        const loc = photoList[2];
-                                        html += `
-                                            <div style="border: 1px solid #ddd; border-radius: 4px; overflow: hidden;">
-                                                <div style="padding: 8px; text-align: center; font-weight: bold; font-size: 12px; color: #333; border-bottom: 3px solid ${loc.color};">
-                                                    ${loc.icon} ${loc.name}
-                                                </div>
-                                                <img src="${loc.photo}" style="width: 100%; height: 280px; object-fit: cover; display: block;" />
-                                            </div>
-                                        `;
+                                                `;
+                                            } else {
+                                                html += `
+                                                    <div style="border: 1px solid #ddd; border-radius: 4px; overflow: hidden; background: #f8f9fa;">
+                                                        <div style="padding: 8px; text-align: center; font-weight: bold; font-size: 12px; color: #999; border-bottom: 3px solid #ddd;">
+                                                            사진 없음
+                                                        </div>
+                                                        <div style="width: 100%; height: 240px; display: flex; align-items: center; justify-content: center; color: #ccc; font-size: 48px;">📷</div>
+                                                    </div>
+                                                `;
+                                            }
+                                        });
+                                        html += `</div>`;
                                     }
                                     
                                     return html;
