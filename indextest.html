@@ -6476,14 +6476,14 @@
                     // 원본 이미지 그리기
                     ctx.drawImage(img, 0, 0);
                     
-                    // 워터마크 배지 크기 (이미지 높이의 8%로 고정 - 모든 사진에서 동일한 비율)
-                    const badgeHeight = img.height * 0.08; // 이미지 높이의 8%
+                    // 워터마크 배지 크기 (이미지 높이의 6%로 축소)
+                    const badgeHeight = img.height * 0.06; // 이미지 높이의 6% (더 작게)
                     const fontSize = badgeHeight * 0.5; // 배지 높이의 50%
                     
                     // 텍스트 너비 측정
                     ctx.font = `bold ${fontSize}px Arial`;
                     const textWidth = ctx.measureText(text).width;
-                    const badgeWidth = textWidth + badgeHeight * 0.6; // 좌우 여백 비율
+                    const badgeWidth = textWidth + badgeHeight * 0.4; // 좌우 여백 줄임
                     const padding = badgeHeight * 0.2; // 여백 비율
                     
                     // 반투명 검은색 배경 (직사각형)
