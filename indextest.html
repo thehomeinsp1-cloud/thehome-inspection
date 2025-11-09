@@ -1041,7 +1041,7 @@
                 type="text" 
                 id="accessCodeInput" 
                 class="login-input" 
-                placeholder="액세스 코드 (예: DH2024-001)"
+                placeholder="이름 (예: 박지현)"
                 autocomplete="off"
             >
             
@@ -1062,7 +1062,7 @@
             <div id="loginError" class="login-error"></div>
             
             <div class="login-info">
-                📌 액세스 코드와 PIN을 모르시면<br>
+                📌 이름과 PIN을 모르시면<br>
                 관리자에게 문의하세요<br>
                 📞 070-8019-1456
             </div>
@@ -1605,7 +1605,7 @@
         // ==================== 로그인 시스템 ====================
         // Google Sheets 공개 URL (CSV 형식)
         // 사용 방법: Google Sheets → 파일 → 공유 → 웹에 게시 → CSV 형식 선택
-        const GOOGLE_SHEETS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS4Tz0-NgXyWR36c9hkZ4ko0ll4g-oj5YGHZysuH0c1Mngr4Ev9-VgiryTHHcMd2Zq5NuOmOI6dMZeh/pubhtml';
+        const GOOGLE_SHEETS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS4Tz0-NgXyWR36c9hkZ4ko0ll4g-oj5YGHZysuH0c1Mngr4Ev9-VgiryTHHcMd2Zq5NuOmOI6dMZeh/pub?output=csv';
         
         // 로그인 확인
         function checkLoginStatus() {
@@ -1682,7 +1682,7 @@
                     }
                 }
                 
-                return { success: false, message: '액세스 코드 또는 PIN이 올바르지 않습니다' };
+                return { success: false, message: '이름 또는 PIN이 올바르지 않습니다' };
                 
             } catch (error) {
                 console.error('액세스 코드 확인 오류:', error);
@@ -1721,7 +1721,7 @@
             
             // 입력값 확인
             if (!code) {
-                errorDiv.textContent = '액세스 코드를 입력하세요';
+                errorDiv.textContent = '이름을 입력하세요';
                 errorDiv.classList.add('show');
                 return;
             }
