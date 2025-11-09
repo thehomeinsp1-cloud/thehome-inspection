@@ -6348,14 +6348,14 @@
                 const pageWidth = 210;
                 const pageHeight = 297;
 
-                // 1페이지: 프로젝트 정보 + 하자 목록 10개
+                // 1페이지: 프로젝트 정보 + 하자 목록 12개
                 const firstPageHTML = window.createSummaryFirstPage();
                 await window.addHTMLPageToPDF(doc, firstPageHTML, pageWidth, pageHeight);
 
-                // 2페이지~: 하자 목록만 (20개씩)
-                if (projectData.defects.length > 15) {
-                    const itemsPerPage = 20;
-                    for (let i = 15; i < projectData.defects.length; i += itemsPerPage) {
+                // 2페이지~: 하자 목록만 (15개씩)
+                if (projectData.defects.length > 12) {
+                    const itemsPerPage = 15;
+                    for (let i = 12; i < projectData.defects.length; i += itemsPerPage) {
                         doc.addPage();
                         const listPageHTML = window.createDefectListPage(i, itemsPerPage);
                         await window.addHTMLPageToPDF(doc, listPageHTML, pageWidth, pageHeight);
@@ -6857,7 +6857,7 @@
         // 첫 페이지: 프로젝트 정보 + 하자 목록 10개
 window.createSummaryFirstPage = function() {
             let defectRows = '';
-            const displayDefects = projectData.defects.slice(0, 15); // 10개에서 15개로 증가
+            const displayDefects = projectData.defects.slice(0, 12); // 12개로 조정
             
             displayDefects.forEach((defect, index) => {
                 const spaces = defect.spaces ? defect.spaces.join(', ') : (defect.space || '-');
@@ -6867,25 +6867,25 @@ window.createSummaryFirstPage = function() {
                 
                 defectRows += `
                     <tr style="border-bottom: 1px solid #ddd;">
-                        <td style="padding: 6px 3px; text-align: center; font-weight: bold; color: #000; font-size: 11px; vertical-align: middle; border-right: 1px solid #e0e0e0;">${index + 1}</td>
-                        <td style="padding: 6px 3px; text-align: center; color: #000; font-weight: 600; font-size: 11px; vertical-align: middle; border-right: 1px solid #e0e0e0;">${spaces}</td>
-                        <td style="padding: 6px 3px; text-align: center; color: #000; font-weight: 600; font-size: 11px; vertical-align: middle; border-right: 1px solid #e0e0e0;">${locations}</td>
-                        <td style="padding: 6px 3px; color: #000; font-weight: 600; font-size: 11px; vertical-align: middle; border-right: 1px solid #e0e0e0;">${types}</td>
-                        <td style="padding: 6px 4px; color: #000; font-weight: 500; font-size: 10px; word-break: break-word; white-space: normal; line-height: 1.3; vertical-align: middle;">${description || '-'}</td>
+                        <td style="padding: 8px 3px; text-align: center; font-weight: bold; color: #000; font-size: 12px; vertical-align: middle; border-right: 1px solid #e0e0e0;">${index + 1}</td>
+                        <td style="padding: 8px 3px; text-align: center; color: #000; font-weight: 600; font-size: 12px; vertical-align: middle; border-right: 1px solid #e0e0e0;">${spaces}</td>
+                        <td style="padding: 8px 3px; text-align: center; color: #000; font-weight: 600; font-size: 12px; vertical-align: middle; border-right: 1px solid #e0e0e0;">${locations}</td>
+                        <td style="padding: 8px 3px; color: #000; font-weight: 600; font-size: 12px; vertical-align: middle; border-right: 1px solid #e0e0e0;">${types}</td>
+                        <td style="padding: 8px 4px; color: #000; font-weight: 500; font-size: 11px; word-break: break-word; white-space: normal; line-height: 1.4; vertical-align: middle;">${description || '-'}</td>
                     </tr>
                 `;
             });
             
-            // 15개 미만일 때 빈 행 추가하여 테이블 높이 유지
-            const emptyRowCount = Math.max(0, 15 - displayDefects.length);
+            // 12개 미만일 때 빈 행 추가하여 테이블 높이 유지
+            const emptyRowCount = Math.max(0, 12 - displayDefects.length);
             for (let i = 0; i < emptyRowCount; i++) {
                 defectRows += `
                     <tr style="border-bottom: 1px solid #ddd;">
-                        <td style="padding: 6px 3px; height: 28px; border-right: 1px solid #e0e0e0;">&nbsp;</td>
-                        <td style="padding: 6px 3px; height: 28px; border-right: 1px solid #e0e0e0;">&nbsp;</td>
-                        <td style="padding: 6px 3px; height: 28px; border-right: 1px solid #e0e0e0;">&nbsp;</td>
-                        <td style="padding: 6px 3px; height: 28px; border-right: 1px solid #e0e0e0;">&nbsp;</td>
-                        <td style="padding: 6px 4px; height: 28px;">&nbsp;</td>
+                        <td style="padding: 8px 3px; height: 32px; border-right: 1px solid #e0e0e0;">&nbsp;</td>
+                        <td style="padding: 8px 3px; height: 32px; border-right: 1px solid #e0e0e0;">&nbsp;</td>
+                        <td style="padding: 8px 3px; height: 32px; border-right: 1px solid #e0e0e0;">&nbsp;</td>
+                        <td style="padding: 8px 3px; height: 32px; border-right: 1px solid #e0e0e0;">&nbsp;</td>
+                        <td style="padding: 8px 4px; height: 32px;">&nbsp;</td>
                     </tr>
                 `;
             }
@@ -6936,14 +6936,14 @@ window.createSummaryFirstPage = function() {
                     <!-- 하자 목록 테이블 (컴팩트하게) -->
                     <h3 style="margin: 0 0 8px 0; font-size: 15px; color: #000; border-bottom: 2px solid #e74c3c; padding-bottom: 5px;">📋 하자점검 목록 (총 ${projectData.defects.length}건)</h3>
                     ${projectData.defects.length > 0 || true ? `
-                        <table style="width: 100%; border-collapse: collapse; border: 1px solid #ddd; font-size: 11px; table-layout: fixed;">
+                        <table style="width: 100%; border-collapse: collapse; border: 1px solid #ddd; font-size: 12px; table-layout: fixed;">
                             <thead>
                                 <tr style="background: #f8f9fa; border-bottom: 2px solid #666;">
-                                    <th style="padding: 7px 3px; width: 5%; color: #000; font-size: 11px; font-weight: bold; border-right: 1px solid #e0e0e0;">No</th>
-                                    <th style="padding: 7px 3px; width: 12%; color: #000; font-size: 11px; font-weight: bold; border-right: 1px solid #e0e0e0;">공간</th>
-                                    <th style="padding: 7px 3px; width: 12%; color: #000; font-size: 11px; font-weight: bold; border-right: 1px solid #e0e0e0;">위치</th>
-                                    <th style="padding: 7px 3px; width: 15%; color: #000; font-size: 11px; font-weight: bold; border-right: 1px solid #e0e0e0;">하자내용</th>
-                                    <th style="padding: 7px 4px; width: 56%; color: #000; font-size: 11px; font-weight: bold;">상세설명</th>
+                                    <th style="padding: 8px 3px; width: 5%; color: #000; font-size: 12px; font-weight: bold; border-right: 1px solid #e0e0e0;">No</th>
+                                    <th style="padding: 8px 3px; width: 12%; color: #000; font-size: 12px; font-weight: bold; border-right: 1px solid #e0e0e0;">공간</th>
+                                    <th style="padding: 8px 3px; width: 12%; color: #000; font-size: 12px; font-weight: bold; border-right: 1px solid #e0e0e0;">위치</th>
+                                    <th style="padding: 8px 3px; width: 15%; color: #000; font-size: 12px; font-weight: bold; border-right: 1px solid #e0e0e0;">하자내용</th>
+                                    <th style="padding: 8px 4px; width: 56%; color: #000; font-size: 12px; font-weight: bold;">상세설명</th>
                                 </tr>
                             </thead>
                             <tbody>${defectRows || '<tr><td colspan="5" style="text-align: center; padding: 20px; color: #333;">등록된 하자가 없습니다</td></tr>'}</tbody>
@@ -6973,17 +6973,17 @@ window.createSummaryFirstPage = function() {
                 
                 defectRows += `
                     <tr style="border-bottom: 1px solid #ddd;">
-                        <td style="padding: 8px 4px; text-align: center; font-weight: bold; color: #000; font-size: 11px; vertical-align: middle; border-right: 1px solid #e0e0e0;">${globalIndex}</td>
-                        <td style="padding: 8px 4px; text-align: center; color: #000; font-weight: 600; font-size: 11px; vertical-align: middle; border-right: 1px solid #e0e0e0;">${spaces}</td>
-                        <td style="padding: 8px 4px; text-align: center; color: #000; font-weight: 600; font-size: 11px; vertical-align: middle; border-right: 1px solid #e0e0e0;">${locations}</td>
-                        <td style="padding: 8px 4px; color: #000; font-weight: 600; font-size: 11px; vertical-align: middle; border-right: 1px solid #e0e0e0;">${types}</td>
-                        <td style="padding: 8px 6px; color: #000; font-weight: 500; font-size: 10px; word-break: break-word; white-space: normal; line-height: 1.3; vertical-align: middle;">${description || '-'}</td>
+                        <td style="padding: 10px 4px; text-align: center; font-weight: bold; color: #000; font-size: 13px; vertical-align: middle; border-right: 1px solid #e0e0e0;">${globalIndex}</td>
+                        <td style="padding: 10px 4px; text-align: center; color: #000; font-weight: 600; font-size: 13px; vertical-align: middle; border-right: 1px solid #e0e0e0;">${spaces}</td>
+                        <td style="padding: 10px 4px; text-align: center; color: #000; font-weight: 600; font-size: 13px; vertical-align: middle; border-right: 1px solid #e0e0e0;">${locations}</td>
+                        <td style="padding: 10px 4px; color: #000; font-weight: 600; font-size: 13px; vertical-align: middle; border-right: 1px solid #e0e0e0;">${types}</td>
+                        <td style="padding: 10px 6px; color: #000; font-weight: 500; font-size: 12px; word-break: break-word; white-space: normal; line-height: 1.5; vertical-align: middle;">${description || '-'}</td>
                     </tr>
                 `;
             });
             
-            const totalPages = Math.ceil((projectData.defects.length - 15) / itemsPerPage) + 1;  // 10을 15로 변경
-            const currentPage = Math.floor((startIndex - 15) / itemsPerPage) + 2;  // 10을 15로 변경
+            const totalPages = Math.ceil((projectData.defects.length - 12) / itemsPerPage) + 1;
+            const currentPage = Math.floor((startIndex - 12) / itemsPerPage) + 2;
             const pageIndicator = ` (${currentPage}/${totalPages} 페이지)`;
 
             return `
@@ -6993,14 +6993,14 @@ window.createSummaryFirstPage = function() {
                         <p style="margin: 5px 0 12px 0; font-size: 12px; color: #333;">${projectData.apartmentName} ${projectData.dong}동 ${projectData.ho}호</p>
                     </div>
 
-                    <table style="width: 100%; border-collapse: collapse; border: 1px solid #ddd; font-size: 11px;">
+                    <table style="width: 100%; border-collapse: collapse; border: 1px solid #ddd; font-size: 13px;">
                         <thead>
                             <tr style="background: #f8f9fa; border-bottom: 2px solid #999;">
-                                <th style="padding: 8px 4px; width: 5%; color: #000; font-size: 11px; font-weight: bold; border-right: 1px solid #e0e0e0;">No</th>
-                                <th style="padding: 8px 4px; width: 12%; color: #000; font-size: 11px; font-weight: bold; border-right: 1px solid #e0e0e0;">공간</th>
-                                <th style="padding: 8px 4px; width: 12%; color: #000; font-size: 11px; font-weight: bold; border-right: 1px solid #e0e0e0;">위치</th>
-                                <th style="padding: 8px 4px; width: 15%; color: #000; font-size: 11px; font-weight: bold; border-right: 1px solid #e0e0e0;">하자내용</th>
-                                <th style="padding: 8px 6px; width: 52%; color: #000; font-size: 11px; font-weight: bold;">상세설명</th>
+                                <th style="padding: 10px 4px; width: 5%; color: #000; font-size: 13px; font-weight: bold; border-right: 1px solid #e0e0e0;">No</th>
+                                <th style="padding: 10px 4px; width: 12%; color: #000; font-size: 13px; font-weight: bold; border-right: 1px solid #e0e0e0;">공간</th>
+                                <th style="padding: 10px 4px; width: 12%; color: #000; font-size: 13px; font-weight: bold; border-right: 1px solid #e0e0e0;">위치</th>
+                                <th style="padding: 10px 4px; width: 15%; color: #000; font-size: 13px; font-weight: bold; border-right: 1px solid #e0e0e0;">하자내용</th>
+                                <th style="padding: 10px 6px; width: 52%; color: #000; font-size: 13px; font-weight: bold;">상세설명</th>
                             </tr>
                         </thead>
                         <tbody>${defectRows}</tbody>
