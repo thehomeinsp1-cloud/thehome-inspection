@@ -995,25 +995,35 @@
         }
 
         .logout-btn {
-            position: fixed;
-            top: 80px;
-            left: 20px;
-            padding: 8px 16px;
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            z-index: 10;
+            padding: 8px 14px;
+            border-radius: 20px;
             background: rgba(239, 68, 68, 0.2);
+            border: 2px solid rgba(239, 68, 68, 0.4);
+            backdrop-filter: blur(10px);
             color: var(--danger);
-            border: 1px solid var(--danger);
-            border-radius: 8px;
             font-size: 12px;
             font-weight: bold;
             cursor: pointer;
-            z-index: 100;
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
             transition: all 0.3s ease;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+            display: none;
         }
 
         .logout-btn:active {
             transform: scale(0.95);
             background: var(--danger);
             color: white;
+        }
+        
+        body.light-mode .logout-btn {
+            background: rgba(239, 68, 68, 0.15);
+            border: 2px solid rgba(239, 68, 68, 0.3);
         }
         /* ==================== 로그인 화면 스타일 끝 ==================== */
     </style>
@@ -1059,14 +1069,15 @@
         </div>
     </div>
 
-    <!-- 로그아웃 버튼 (로그인 후 표시) -->
-    <button id="logoutBtn" class="logout-btn" onclick="handleLogout()" style="display: none;">
-        🚪 로그아웃
-    </button>
     <!-- ==================== 로그인 화면 끝 ==================== -->
 
     <!-- 헤더 -->
     <div class="header">
+        <!-- 로그아웃 버튼 (로그인 후 표시) -->
+        <button id="logoutBtn" class="logout-btn" onclick="handleLogout()">
+            🚪 로그아웃
+        </button>
+        
         <!-- 테마 토글 버튼 -->
         <button class="theme-toggle" onclick="toggleTheme()" id="themeToggle" title="다크/라이트 모드 전환">
             🌙
