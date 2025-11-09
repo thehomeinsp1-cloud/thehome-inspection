@@ -1192,6 +1192,9 @@
     <div id="cameraModal" class="camera-modal">
         <video id="cameraPreview" autoplay playsinline></video>
         
+        <!-- 터치 포인트 마커 표시용 캔버스 오버레이 -->
+        <canvas id="markerCanvas" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10;"></canvas>
+        
         <!-- 줌 레벨 표시 -->
         <div class="zoom-level" id="zoomLevel">줌: 1.0x</div>
         
@@ -4198,6 +4201,64 @@
                     applyZoom(1.0);
                 };
                 
+                // ==================== 터치 포인트 마커 기능 ====================
+                // 마커 저장 배열
+                const markers = [];
+                
+                // 마커 캔버스 설정
+                const markerCanvas = document.getElementById('markerCanvas');
+                const markerCtx = markerCanvas.getContext('2d');
+                
+                // 캔버스 크기를 비디오에 맞춤
+                const resizeMarkerCanvas = () => {
+                    const rect = video.getBoundingClientRect();
+                    markerCanvas.width = rect.width;
+                    markerCanvas.height = rect.height;
+                    redrawMarkers();
+                };
+                
+                // 마커 그리기 함수
+                const drawMarker = (x, y) => {
+                    markerCtx.strokeStyle = '#10b981'; // 녹색
+                    markerCtx.lineWidth = 3;
+                    markerCtx.beginPath();
+                    markerCtx.arc(x, y, 30, 0, 2 * Math.PI);
+                    markerCtx.stroke();
+                    
+                    // 중심점
+                    markerCtx.fillStyle = '#10b981';
+                    markerCtx.beginPath();
+                    markerCtx.arc(x, y, 5, 0, 2 * Math.PI);
+                    markerCtx.fill();
+                };
+                
+                // 모든 마커 다시 그리기
+                const redrawMarkers = () => {
+                    markerCtx.clearRect(0, 0, markerCanvas.width, markerCanvas.height);
+                    markers.forEach(marker => drawMarker(marker.x, marker.y));
+                };
+                
+                // 마커 초기화 함수
+                window.clearMarkers = () => {
+                    markers.length = 0;
+                    markerCtx.clearRect(0, 0, markerCanvas.width, markerCanvas.height);
+                };
+                
+                // 마커 배열 가져오기 함수 (capturePhoto에서 사용)
+                window.getMarkers = () => {
+                    return markers.map(m => ({
+                        x: m.x / markerCanvas.width,
+                        y: m.y / markerCanvas.height
+                    }));
+                };
+                
+                // 초기 캔버스 크기 설정
+                setTimeout(resizeMarkerCanvas, 100);
+                
+                // 화면 회전/크기 변경 시 캔버스 크기 재조정
+                window.addEventListener('resize', resizeMarkerCanvas);
+                // ==================== 터치 포인트 마커 기능 끝 ====================
+                
                 video.addEventListener('touchstart', (e) => {
                     touchStartTime = Date.now();
                     
@@ -4238,7 +4299,30 @@
                     if (touchDuration > 500) {
                         e.preventDefault();
                         e.stopPropagation();
+                        return;
                     }
+                    
+                    // ==================== 터치 포인트 마커 추가 ====================
+                    // 짧은 탭 + 싱글 터치 + 드래그 아님 = 마커 추가
+                    if (e.changedTouches.length === 1 && touchDuration < 500) {
+                        const touch = e.changedTouches[0];
+                        const moveX = Math.abs(touch.clientX - touchStartX);
+                        const moveY = Math.abs(touch.clientY - touchStartY);
+                        
+                        // 드래그가 아닌 경우만 마커 추가 (이동 거리 10px 미만)
+                        if (moveX < 10 && moveY < 10) {
+                            const rect = video.getBoundingClientRect();
+                            const x = touch.clientX - rect.left;
+                            const y = touch.clientY - rect.top;
+                            
+                            // 마커 추가 (최대 10개까지)
+                            if (markers.length < 10) {
+                                markers.push({ x, y });
+                                drawMarker(x, y);
+                            }
+                        }
+                    }
+                    // ==================== 터치 포인트 마커 추가 끝 ====================
                 }, { passive: false });
                 
                 // 더블 탭 줌 방지
@@ -4330,6 +4414,12 @@
                 cameraStream.getTracks().forEach(track => track.stop());
                 cameraStream = null;
             }
+            
+            // 마커 초기화
+            if (window.clearMarkers) {
+                window.clearMarkers();
+            }
+            
             document.getElementById('cameraModal').classList.remove('active');
             currentPhotoTarget = null;
         }
@@ -4506,6 +4596,38 @@
             
             const ctx = canvas.getContext('2d');
             ctx.drawImage(video, 0, 0);
+            
+            // ==================== 마커 오버레이 그리기 ====================
+            const markerCanvas = document.getElementById('markerCanvas');
+            const markers = window.getMarkers ? window.getMarkers() : [];
+            
+            if (markers.length > 0) {
+                // 마커를 비디오 해상도에 맞게 그리기
+                markers.forEach(marker => {
+                    const x = marker.x * canvas.width;
+                    const y = marker.y * canvas.height;
+                    const radius = 30 * (canvas.width / markerCanvas.width);
+                    
+                    // 원형 마커
+                    ctx.strokeStyle = '#10b981';
+                    ctx.lineWidth = 3 * (canvas.width / markerCanvas.width);
+                    ctx.beginPath();
+                    ctx.arc(x, y, radius, 0, 2 * Math.PI);
+                    ctx.stroke();
+                    
+                    // 중심점
+                    ctx.fillStyle = '#10b981';
+                    ctx.beginPath();
+                    ctx.arc(x, y, 5 * (canvas.width / markerCanvas.width), 0, 2 * Math.PI);
+                    ctx.fill();
+                });
+                
+                // 마커 초기화
+                if (window.clearMarkers) {
+                    window.clearMarkers();
+                }
+            }
+            // ==================== 마커 오버레이 그리기 끝 ====================
             
             // 원본 이미지
             const originalImage = canvas.toDataURL('image/jpeg', 0.95);
