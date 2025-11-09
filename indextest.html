@@ -6348,14 +6348,14 @@
                 const pageWidth = 210;
                 const pageHeight = 297;
 
-                // 1페이지: 프로젝트 정보 + 하자 목록 12개
+                // 1페이지: 프로젝트 정보 + 하자 목록 15개
                 const firstPageHTML = window.createSummaryFirstPage();
                 await window.addHTMLPageToPDF(doc, firstPageHTML, pageWidth, pageHeight);
 
-                // 2페이지~: 하자 목록만 (15개씩)
-                if (projectData.defects.length > 12) {
-                    const itemsPerPage = 15;
-                    for (let i = 12; i < projectData.defects.length; i += itemsPerPage) {
+                // 2페이지~: 하자 목록만 (20개씩)
+                if (projectData.defects.length > 15) {
+                    const itemsPerPage = 20;
+                    for (let i = 15; i < projectData.defects.length; i += itemsPerPage) {
                         doc.addPage();
                         const listPageHTML = window.createDefectListPage(i, itemsPerPage);
                         await window.addHTMLPageToPDF(doc, listPageHTML, pageWidth, pageHeight);
@@ -6857,7 +6857,7 @@
         // 첫 페이지: 프로젝트 정보 + 하자 목록 10개
 window.createSummaryFirstPage = function() {
             let defectRows = '';
-            const displayDefects = projectData.defects.slice(0, 12); // 12개로 조정
+            const displayDefects = projectData.defects.slice(0, 15); // 15개로 조정
             
             displayDefects.forEach((defect, index) => {
                 const spaces = defect.spaces ? defect.spaces.join(', ') : (defect.space || '-');
@@ -6876,8 +6876,8 @@ window.createSummaryFirstPage = function() {
                 `;
             });
             
-            // 12개 미만일 때 빈 행 추가하여 테이블 높이 유지
-            const emptyRowCount = Math.max(0, 12 - displayDefects.length);
+            // 15개 미만일 때 빈 행 추가하여 테이블 높이 유지
+            const emptyRowCount = Math.max(0, 15 - displayDefects.length);
             for (let i = 0; i < emptyRowCount; i++) {
                 defectRows += `
                     <tr style="border-bottom: 1px solid #ddd;">
@@ -6982,8 +6982,8 @@ window.createSummaryFirstPage = function() {
                 `;
             });
             
-            const totalPages = Math.ceil((projectData.defects.length - 12) / itemsPerPage) + 1;
-            const currentPage = Math.floor((startIndex - 12) / itemsPerPage) + 2;
+            const totalPages = Math.ceil((projectData.defects.length - 15) / itemsPerPage) + 1;
+            const currentPage = Math.floor((startIndex - 15) / itemsPerPage) + 2;
             const pageIndicator = ` (${currentPage}/${totalPages} 페이지)`;
 
             return `
