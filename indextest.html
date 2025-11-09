@@ -6700,9 +6700,9 @@
             }).join('');
 
             return `
-                <div style="width: 794px; height: 1123px; background: white; font-family: 'Malgun Gothic', sans-serif; padding: 22px 18px; position: relative; box-sizing: border-box;">
+                <div style="width: 794px; height: 1123px; background: white; font-family: 'Malgun Gothic', sans-serif; padding: 22px 18px 40px 18px; position: relative; box-sizing: border-box; display: flex; flex-direction: column;">
                     <!-- 헤더 -->
-                    <div style="border: 2px solid #000; padding: 15px; margin-bottom: 12px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
+                    <div style="border: 2px solid #000; padding: 15px; margin-bottom: 12px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;">
                         <div>
                             <h1 style="margin: 0 0 5px 0; font-size: 22px; color: #000; font-weight: bold;">하자점검리스트(제출용)</h1>
                             <p style="margin: 0; font-size: 13px; color: #000; font-weight: 600;">${projectData.apartmentName} ${projectData.dong}동 ${projectData.ho}호 | ${projectData.inspectionDate || ''}</p>
@@ -6712,27 +6712,29 @@
                         </div>
                     </div>
 
-                    ${defects.length > 0 ? `
-                    <!-- 테이블 -->
-                    <table style="width: 100%; border-collapse: collapse; font-size: 12px; border: 2px solid #000;">
-                        <thead>
-                            <tr style="background: #e8e8e8;">
-                                <th style="padding: 9px 5px; border: 1px solid #000; text-align: center; font-weight: bold; color: #000; width: 38px;">No</th>
-                                <th style="padding: 9px 5px; border: 1px solid #000; text-align: center; font-weight: bold; color: #000; width: 58px;">공간</th>
-                                <th style="padding: 9px 5px; border: 1px solid #000; text-align: center; font-weight: bold; color: #000; width: 68px;">하자</th>
-                                <th style="padding: 9px 5px; border: 1px solid #000; text-align: center; font-weight: bold; color: #000;">내용</th>
-                                <th style="padding: 9px 5px; border: 1px solid #000; text-align: center; font-weight: bold; color: #000; width: 108px;">원경</th>
-                                <th style="padding: 9px 5px; border: 1px solid #000; text-align: center; font-weight: bold; color: #000; width: 108px;">근접</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${rowsHTML}
-                        </tbody>
-                    </table>
-                    ` : ''}
+                    <!-- 테이블 영역 (flex-grow로 남은 공간 채우기) -->
+                    <div style="flex-grow: 1; margin-bottom: 8px;">
+                        ${defects.length > 0 ? `
+                        <table style="width: 100%; border-collapse: collapse; font-size: 12px; border: 2px solid #000;">
+                            <thead>
+                                <tr style="background: #e8e8e8;">
+                                    <th style="padding: 9px 5px; border: 1px solid #000; text-align: center; font-weight: bold; color: #000; width: 38px;">No</th>
+                                    <th style="padding: 9px 5px; border: 1px solid #000; text-align: center; font-weight: bold; color: #000; width: 58px;">공간</th>
+                                    <th style="padding: 9px 5px; border: 1px solid #000; text-align: center; font-weight: bold; color: #000; width: 68px;">하자</th>
+                                    <th style="padding: 9px 5px; border: 1px solid #000; text-align: center; font-weight: bold; color: #000;">내용</th>
+                                    <th style="padding: 9px 5px; border: 1px solid #000; text-align: center; font-weight: bold; color: #000; width: 108px;">원경</th>
+                                    <th style="padding: 9px 5px; border: 1px solid #000; text-align: center; font-weight: bold; color: #000; width: 108px;">근접</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${rowsHTML}
+                            </tbody>
+                        </table>
+                        ` : ''}
+                    </div>
 
-                    <!-- 푸터 -->
-                    <div style="position: absolute; bottom: 12px; left: 18px; right: 18px; padding-top: 8px; border-top: 1px solid #000; font-size: 10px; color: #000; text-align: center; font-weight: bold;">
+                    <!-- 푸터 (flex 하단 고정) -->
+                    <div style="padding-top: 8px; border-top: 1px solid #000; font-size: 10px; color: #000; text-align: center; font-weight: bold; flex-shrink: 0;">
                         더홈점검 | 전화: 070-8019-1456 / 010-9985-0128 | 사전점검 전문업체
                     </div>
                 </div>
@@ -6771,33 +6773,35 @@
             }).join('');
 
             return `
-                <div style="width: 794px; height: 1123px; background: white; padding: 18px 16px; font-family: 'Malgun Gothic', sans-serif; box-sizing: border-box;">
+                <div style="width: 794px; height: 1123px; background: white; padding: 18px 16px 35px 16px; font-family: 'Malgun Gothic', sans-serif; box-sizing: border-box; display: flex; flex-direction: column;">
                     <!-- 헤더 -->
-                    <div style="margin-bottom: 10px; padding-bottom: 7px; border-bottom: 3px solid #000;">
+                    <div style="margin-bottom: 10px; padding-bottom: 7px; border-bottom: 3px solid #000; flex-shrink: 0;">
                         <h2 style="font-size: 15px; margin: 0; color: #000; font-weight: bold;">
                             ${projectData.apartmentName} ${projectData.dong}동 ${projectData.ho}호 - 하자점검 목록
                         </h2>
                     </div>
 
-                    <!-- 테이블 -->
-                    <table style="width: 100%; border-collapse: collapse; font-size: 12px; border: 2px solid #000;">
-                        <thead>
-                            <tr style="background: #e8e8e8;">
-                                <th style="padding: 9px 4px; border: 1px solid #000; text-align: center; font-weight: bold; color: #000; width: 38px;">No</th>
-                                <th style="padding: 9px 4px; border: 1px solid #000; text-align: center; font-weight: bold; color: #000; width: 58px;">공간</th>
-                                <th style="padding: 9px 4px; border: 1px solid #000; text-align: center; font-weight: bold; color: #000; width: 68px;">하자</th>
-                                <th style="padding: 9px 5px; border: 1px solid #000; text-align: center; font-weight: bold; color: #000;">내용</th>
-                                <th style="padding: 9px 4px; border: 1px solid #000; text-align: center; font-weight: bold; color: #000; width: 108px;">원경</th>
-                                <th style="padding: 9px 4px; border: 1px solid #000; text-align: center; font-weight: bold; color: #000; width: 108px;">근접</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${rowsHTML}
-                        </tbody>
-                    </table>
+                    <!-- 테이블 영역 (flex-grow로 남은 공간 채우기) -->
+                    <div style="flex-grow: 1; margin-bottom: 8px;">
+                        <table style="width: 100%; border-collapse: collapse; font-size: 12px; border: 2px solid #000;">
+                            <thead>
+                                <tr style="background: #e8e8e8;">
+                                    <th style="padding: 9px 4px; border: 1px solid #000; text-align: center; font-weight: bold; color: #000; width: 38px;">No</th>
+                                    <th style="padding: 9px 4px; border: 1px solid #000; text-align: center; font-weight: bold; color: #000; width: 58px;">공간</th>
+                                    <th style="padding: 9px 4px; border: 1px solid #000; text-align: center; font-weight: bold; color: #000; width: 68px;">하자</th>
+                                    <th style="padding: 9px 5px; border: 1px solid #000; text-align: center; font-weight: bold; color: #000;">내용</th>
+                                    <th style="padding: 9px 4px; border: 1px solid #000; text-align: center; font-weight: bold; color: #000; width: 108px;">원경</th>
+                                    <th style="padding: 9px 4px; border: 1px solid #000; text-align: center; font-weight: bold; color: #000; width: 108px;">근접</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${rowsHTML}
+                            </tbody>
+                        </table>
+                    </div>
 
-                    <!-- 푸터 -->
-                    <div style="position: absolute; bottom: 12px; left: 16px; right: 16px; text-align: right; font-size: 10px; color: #000; padding-top: 7px; border-top: 1px solid #000; font-weight: bold;">
+                    <!-- 푸터 (flex 하단 고정) -->
+                    <div style="text-align: right; font-size: 10px; color: #000; padding-top: 7px; border-top: 1px solid #000; font-weight: bold; flex-shrink: 0;">
                         더홈점검 | 070-8019-1456
                     </div>
                 </div>
@@ -6857,7 +6861,9 @@
         // 첫 페이지: 프로젝트 정보 + 하자 목록 10개
 window.createSummaryFirstPage = function() {
             let defectRows = '';
-            const displayDefects = projectData.defects.slice(0, 15); // 10개에서 15개로 증가
+            // 페이지에 들어갈 수 있는 최대 개수를 동적으로 계산 (18-22개)
+            const maxItems = projectData.floorplan ? 18 : 22; // 평면도가 있으면 18개, 없으면 22개
+            const displayDefects = projectData.defects.slice(0, maxItems);
             
             displayDefects.forEach((defect, index) => {
                 const spaces = defect.spaces ? defect.spaces.join(', ') : (defect.space || '-');
@@ -6866,92 +6872,78 @@ window.createSummaryFirstPage = function() {
                 const description = defect.description || '';
                 
                 defectRows += `
-                    <tr style="border-bottom: 1px solid #ddd;">
-                        <td style="padding: 6px 3px; text-align: center; font-weight: bold; color: #000; font-size: 11px; vertical-align: middle; border-right: 1px solid #e0e0e0;">${index + 1}</td>
-                        <td style="padding: 6px 3px; text-align: center; color: #000; font-weight: 600; font-size: 11px; vertical-align: middle; border-right: 1px solid #e0e0e0;">${spaces}</td>
-                        <td style="padding: 6px 3px; text-align: center; color: #000; font-weight: 600; font-size: 11px; vertical-align: middle; border-right: 1px solid #e0e0e0;">${locations}</td>
-                        <td style="padding: 6px 3px; color: #000; font-weight: 600; font-size: 11px; vertical-align: middle; border-right: 1px solid #e0e0e0;">${types}</td>
-                        <td style="padding: 6px 4px; color: #000; font-weight: 500; font-size: 10px; word-break: break-word; white-space: normal; line-height: 1.3; vertical-align: middle;">${description || '-'}</td>
+                    <tr style="border-bottom: 1px solid #ddd; height: 26px;">
+                        <td style="padding: 4px 2px; text-align: center; font-weight: bold; color: #000; font-size: 10px; vertical-align: middle; border-right: 1px solid #e0e0e0;">${index + 1}</td>
+                        <td style="padding: 4px 2px; text-align: center; color: #000; font-weight: 600; font-size: 10px; vertical-align: middle; border-right: 1px solid #e0e0e0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${spaces}</td>
+                        <td style="padding: 4px 2px; text-align: center; color: #000; font-weight: 600; font-size: 10px; vertical-align: middle; border-right: 1px solid #e0e0e0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${locations}</td>
+                        <td style="padding: 4px 2px; color: #000; font-weight: 600; font-size: 10px; vertical-align: middle; border-right: 1px solid #e0e0e0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${types}</td>
+                        <td style="padding: 4px 3px; color: #000; font-weight: 500; font-size: 9px; word-break: break-word; white-space: normal; line-height: 1.2; vertical-align: middle; max-height: 26px; overflow: hidden;">${description || '-'}</td>
                     </tr>
                 `;
             });
-            
-            // 15개 미만일 때 빈 행 추가하여 테이블 높이 유지
-            const emptyRowCount = Math.max(0, 15 - displayDefects.length);
-            for (let i = 0; i < emptyRowCount; i++) {
-                defectRows += `
-                    <tr style="border-bottom: 1px solid #ddd;">
-                        <td style="padding: 6px 3px; height: 28px; border-right: 1px solid #e0e0e0;">&nbsp;</td>
-                        <td style="padding: 6px 3px; height: 28px; border-right: 1px solid #e0e0e0;">&nbsp;</td>
-                        <td style="padding: 6px 3px; height: 28px; border-right: 1px solid #e0e0e0;">&nbsp;</td>
-                        <td style="padding: 6px 3px; height: 28px; border-right: 1px solid #e0e0e0;">&nbsp;</td>
-                        <td style="padding: 6px 4px; height: 28px;">&nbsp;</td>
-                    </tr>
-                `;
-            }
 
             return `
-                <div style="width: 794px; height: 1123px; background: white; font-family: 'Malgun Gothic', sans-serif; padding: 35px; position: relative; box-sizing: border-box;">
+                <div style="width: 794px; height: 1123px; background: white; font-family: 'Malgun Gothic', sans-serif; padding: 30px 30px 50px 30px; position: relative; box-sizing: border-box; display: flex; flex-direction: column;">
                     <!-- 헤더 개선 -->
-                    <div style="text-align: center; margin-bottom: 25px;">
-                        <h1 style="margin: 0 0 12px 0; font-size: 30px; color: #000; font-weight: bold;">사전점검 보고서</h1>
-                        <div style="height: 3px; width: 120px; background: linear-gradient(90deg, #10b981, #fbbf24); margin: 0 auto;"></div>
+                    <div style="text-align: center; margin-bottom: 18px; flex-shrink: 0;">
+                        <h1 style="margin: 0 0 10px 0; font-size: 28px; color: #000; font-weight: bold;">사전점검 보고서</h1>
+                        <div style="height: 2px; width: 100px; background: linear-gradient(90deg, #10b981, #fbbf24); margin: 0 auto;"></div>
                     </div>
 
                     <!-- 평면도와 프로젝트 정보 -->
-                    <div style="margin-bottom: 20px;">
-                        <div style="display: flex; gap: 15px; align-items: flex-start;">
-                            <!-- 평면도 영역 (크기 조정) -->
+                    <div style="margin-bottom: 12px; flex-shrink: 0;">
+                        <div style="display: flex; gap: 12px; align-items: flex-start;">
+                            <!-- 평면도 영역 (크기 더 축소) -->
                             ${projectData.floorplan ? `
-                                <div style="flex: 1.2; border: 2px solid #ddd; border-radius: 8px; overflow: hidden;">
-                                    <img src="${projectData.floorplan}" style="width: 100%; height: 240px; object-fit: contain; background: #f9f9f9;" />
+                                <div style="flex: 1; border: 1px solid #ddd; border-radius: 6px; overflow: hidden;">
+                                    <img src="${projectData.floorplan}" style="width: 100%; height: 200px; object-fit: contain; background: #f9f9f9;" />
                                 </div>
                             ` : ''}
                             
-                            <!-- 프로젝트 정보 (컴팩트하게) -->
-                            <div style="flex: 1;">
-                                <div style="font-weight: bold; margin-bottom: 8px; font-size: 13px; color: #000;">프로젝트 정보</div>
-                                <table style="width: 100%; border-collapse: collapse; border: 1px solid #ddd; font-size: 11px;">
+                            <!-- 프로젝트 정보 (더 컴팩트하게) -->
+                            <div style="flex: ${projectData.floorplan ? '0.8' : '1'};">
+                                <div style="font-weight: bold; margin-bottom: 6px; font-size: 12px; color: #000;">프로젝트 정보</div>
+                                <table style="width: 100%; border-collapse: collapse; border: 1px solid #ddd; font-size: 10px;">
                                     <tr style="border-bottom: 1px solid #ddd;">
-                                        <td style="padding: 7px; background: #f8f9fa; font-weight: bold; width: 35%; color: #000;">아파트명</td>
-                                        <td style="padding: 7px; color: #000;">${projectData.apartmentName}</td>
+                                        <td style="padding: 5px; background: #f8f9fa; font-weight: bold; width: 35%; color: #000;">아파트명</td>
+                                        <td style="padding: 5px; color: #000; font-weight: 600;">${projectData.apartmentName}</td>
                                     </tr>
                                     <tr style="border-bottom: 1px solid #ddd;">
-                                        <td style="padding: 7px; background: #f8f9fa; font-weight: bold; color: #000;">동/호수</td>
-                                        <td style="padding: 7px; color: #000;">${projectData.dong} / ${projectData.ho}</td>
+                                        <td style="padding: 5px; background: #f8f9fa; font-weight: bold; color: #000;">동/호수</td>
+                                        <td style="padding: 5px; color: #000; font-weight: 600;">${projectData.dong} / ${projectData.ho}</td>
                                     </tr>
                                     <tr style="border-bottom: 1px solid #ddd;">
-                                        <td style="padding: 7px; background: #f8f9fa; font-weight: bold; color: #000;">점검일자</td>
-                                        <td style="padding: 7px; color: #000;">${projectData.inspectionDate || '-'}</td>
+                                        <td style="padding: 5px; background: #f8f9fa; font-weight: bold; color: #000;">점검일자</td>
+                                        <td style="padding: 5px; color: #000; font-weight: 600;">${projectData.inspectionDate || '-'}</td>
                                     </tr>
                                     <tr>
-                                        <td style="padding: 7px; background: #f8f9fa; font-weight: bold; color: #000;">고객명</td>
-                                        <td style="padding: 7px; color: #000;">${projectData.customerName || '-'}</td>
+                                        <td style="padding: 5px; background: #f8f9fa; font-weight: bold; color: #000;">고객명</td>
+                                        <td style="padding: 5px; color: #000; font-weight: 600;">${projectData.customerName || '-'}</td>
                                     </tr>
                                 </table>
                             </div>
                         </div>
                     </div>
 
-                    <!-- 하자 목록 테이블 (컴팩트하게) -->
-                    <h3 style="margin: 0 0 8px 0; font-size: 15px; color: #000; border-bottom: 2px solid #e74c3c; padding-bottom: 5px;">📋 하자점검 목록 (총 ${projectData.defects.length}건)</h3>
-                    ${projectData.defects.length > 0 || true ? `
-                        <table style="width: 100%; border-collapse: collapse; border: 1px solid #ddd; font-size: 11px; table-layout: fixed;">
+                    <!-- 하자 목록 테이블 (flex-grow로 남은 공간 채우기) -->
+                    <div style="flex-grow: 1; display: flex; flex-direction: column; margin-bottom: 8px;">
+                        <h3 style="margin: 0 0 6px 0; font-size: 14px; color: #000; border-bottom: 2px solid #e74c3c; padding-bottom: 4px; flex-shrink: 0;">📋 하자점검 목록 (총 ${projectData.defects.length}건)</h3>
+                        <table style="width: 100%; border-collapse: collapse; border: 1px solid #ddd; font-size: 10px; table-layout: fixed;">
                             <thead>
-                                <tr style="background: #f8f9fa; border-bottom: 2px solid #666;">
-                                    <th style="padding: 7px 3px; width: 5%; color: #000; font-size: 11px; font-weight: bold; border-right: 1px solid #e0e0e0;">No</th>
-                                    <th style="padding: 7px 3px; width: 12%; color: #000; font-size: 11px; font-weight: bold; border-right: 1px solid #e0e0e0;">공간</th>
-                                    <th style="padding: 7px 3px; width: 12%; color: #000; font-size: 11px; font-weight: bold; border-right: 1px solid #e0e0e0;">위치</th>
-                                    <th style="padding: 7px 3px; width: 15%; color: #000; font-size: 11px; font-weight: bold; border-right: 1px solid #e0e0e0;">하자내용</th>
-                                    <th style="padding: 7px 4px; width: 56%; color: #000; font-size: 11px; font-weight: bold;">상세설명</th>
+                                <tr style="background: #f8f9fa; border-bottom: 2px solid #666; height: 28px;">
+                                    <th style="padding: 5px 2px; width: 5%; color: #000; font-size: 10px; font-weight: bold; border-right: 1px solid #e0e0e0;">No</th>
+                                    <th style="padding: 5px 2px; width: 12%; color: #000; font-size: 10px; font-weight: bold; border-right: 1px solid #e0e0e0;">공간</th>
+                                    <th style="padding: 5px 2px; width: 12%; color: #000; font-size: 10px; font-weight: bold; border-right: 1px solid #e0e0e0;">위치</th>
+                                    <th style="padding: 5px 2px; width: 15%; color: #000; font-size: 10px; font-weight: bold; border-right: 1px solid #e0e0e0;">하자내용</th>
+                                    <th style="padding: 5px 3px; width: 56%; color: #000; font-size: 10px; font-weight: bold;">상세설명</th>
                                 </tr>
                             </thead>
-                            <tbody>${defectRows || '<tr><td colspan="5" style="text-align: center; padding: 20px; color: #333;">등록된 하자가 없습니다</td></tr>'}</tbody>
+                            <tbody>${defectRows || '<tr><td colspan="5" style="text-align: center; padding: 15px; color: #333;">등록된 하자가 없습니다</td></tr>'}</tbody>
                         </table>
-                    ` : ''}
+                    </div>
 
-                    <!-- 하단 정보 -->
-                    <div style="position: absolute; bottom: 20px; left: 35px; right: 35px; padding-top: 10px; border-top: 1px solid #ddd; font-size: 10px; color: #333; text-align: center;">
+                    <!-- 하단 정보 (flex 하단 고정) -->
+                    <div style="padding-top: 8px; border-top: 1px solid #ddd; font-size: 10px; color: #333; text-align: center; flex-shrink: 0;">
                         <div>더홈점검 | 전화: 070-8019-1456 / 010-9985-0128 | 사전점검 전문업체</div>
                     </div>
                 </div>
@@ -6987,26 +6979,31 @@ window.createSummaryFirstPage = function() {
             const pageIndicator = ` (${currentPage}/${totalPages} 페이지)`;
 
             return `
-                <div style="width: 794px; height: 1123px; background: white; font-family: 'Malgun Gothic', sans-serif; padding: 35px; position: relative; box-sizing: border-box;">
-                    <div style="margin-bottom: 20px;">
+                <div style="width: 794px; height: 1123px; background: white; font-family: 'Malgun Gothic', sans-serif; padding: 35px 35px 50px 35px; position: relative; box-sizing: border-box; display: flex; flex-direction: column;">
+                    <!-- 헤더 -->
+                    <div style="margin-bottom: 15px; flex-shrink: 0;">
                         <h3 style="margin: 0 0 12px 0; font-size: 16px; color: #000; border-bottom: 2px solid #e74c3c; padding-bottom: 6px;">📋 하자점검 목록 (총 ${projectData.defects.length}건)${pageIndicator}</h3>
-                        <p style="margin: 5px 0 12px 0; font-size: 12px; color: #333;">${projectData.apartmentName} ${projectData.dong}동 ${projectData.ho}호</p>
+                        <p style="margin: 5px 0 0 0; font-size: 12px; color: #333;">${projectData.apartmentName} ${projectData.dong}동 ${projectData.ho}호</p>
                     </div>
 
-                    <table style="width: 100%; border-collapse: collapse; border: 1px solid #ddd; font-size: 11px;">
-                        <thead>
-                            <tr style="background: #f8f9fa; border-bottom: 2px solid #999;">
-                                <th style="padding: 8px 4px; width: 5%; color: #000; font-size: 11px; font-weight: bold; border-right: 1px solid #e0e0e0;">No</th>
-                                <th style="padding: 8px 4px; width: 12%; color: #000; font-size: 11px; font-weight: bold; border-right: 1px solid #e0e0e0;">공간</th>
-                                <th style="padding: 8px 4px; width: 12%; color: #000; font-size: 11px; font-weight: bold; border-right: 1px solid #e0e0e0;">위치</th>
-                                <th style="padding: 8px 4px; width: 15%; color: #000; font-size: 11px; font-weight: bold; border-right: 1px solid #e0e0e0;">하자내용</th>
-                                <th style="padding: 8px 6px; width: 52%; color: #000; font-size: 11px; font-weight: bold;">상세설명</th>
-                            </tr>
-                        </thead>
-                        <tbody>${defectRows}</tbody>
-                    </table>
+                    <!-- 테이블 (flex-grow로 남은 공간 채우기) -->
+                    <div style="flex-grow: 1; margin-bottom: 8px;">
+                        <table style="width: 100%; border-collapse: collapse; border: 1px solid #ddd; font-size: 11px;">
+                            <thead>
+                                <tr style="background: #f8f9fa; border-bottom: 2px solid #999;">
+                                    <th style="padding: 8px 4px; width: 5%; color: #000; font-size: 11px; font-weight: bold; border-right: 1px solid #e0e0e0;">No</th>
+                                    <th style="padding: 8px 4px; width: 12%; color: #000; font-size: 11px; font-weight: bold; border-right: 1px solid #e0e0e0;">공간</th>
+                                    <th style="padding: 8px 4px; width: 12%; color: #000; font-size: 11px; font-weight: bold; border-right: 1px solid #e0e0e0;">위치</th>
+                                    <th style="padding: 8px 4px; width: 15%; color: #000; font-size: 11px; font-weight: bold; border-right: 1px solid #e0e0e0;">하자내용</th>
+                                    <th style="padding: 8px 6px; width: 52%; color: #000; font-size: 11px; font-weight: bold;">상세설명</th>
+                                </tr>
+                            </thead>
+                            <tbody>${defectRows}</tbody>
+                        </table>
+                    </div>
 
-                    <div style="position: absolute; bottom: 20px; left: 35px; right: 35px; padding-top: 10px; border-top: 1px solid #ddd; font-size: 10px; color: #333; text-align: center;">
+                    <!-- 하단 정보 (flex 하단 고정) -->
+                    <div style="padding-top: 8px; border-top: 1px solid #ddd; font-size: 10px; color: #333; text-align: center; flex-shrink: 0;">
                         <div>더홈점검 | 전화: 070-8019-1456 / 010-9985-0128 | 사전점검 전문업체</div>
                     </div>
                 </div>
@@ -7607,62 +7604,24 @@ window.createSummaryFirstPage = function() {
                     </div>
 
                     <div style="border: 2px solid #3498db; border-radius: 8px; padding: 15px; background: #e3f2fd;">
-                        <h3 style="margin: 0 0 10px 0; color: #3498db; font-size: 16px;">📊 실내 공기질 권고기준 (실내공기질 공정시험기준)</h3>
+                        <h3 style="margin: 0 0 10px 0; color: #3498db; font-size: 16px;">📊 실내 공기질 권고기준</h3>
                         <table style="width: 100%; border-collapse: collapse; font-size: 12px; background: white;">
                             <thead>
                                 <tr style="background: #f8f9fa; border: 1px solid #ddd;">
-                                    <th style="padding: 10px; color: #000; font-weight: bold; border: 1px solid #ddd;">오염물질</th>
-                                    <th style="padding: 10px; color: #000; font-weight: bold; border: 1px solid #ddd;">권고기준</th>
-                                    <th style="padding: 10px; color: #000; font-weight: bold; border: 1px solid #ddd;">단위</th>
-                                    <th style="padding: 10px; color: #000; font-weight: bold; border: 1px solid #ddd;">건강영향</th>
+                                    <th style="padding: 10px; color: #000; border: 1px solid #ddd;">오염물질</th>
+                                    <th style="padding: 10px; color: #000; border: 1px solid #ddd;">권고기준</th>
+                                    <th style="padding: 10px; color: #000; border: 1px solid #ddd;">주요 배출원</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr style="border: 1px solid #ddd;">
-                                    <td style="padding: 8px; font-weight: bold; color: #000; border: 1px solid #ddd;">라돈(Rn)</td>
-                                    <td style="padding: 8px; color: #e74c3c; font-weight: bold; text-align: center; border: 1px solid #ddd;">148 이하</td>
-                                    <td style="padding: 8px; color: #000; text-align: center; border: 1px solid #ddd;">Bq/m³</td>
-                                    <td style="padding: 8px; color: #000; font-size: 11px; border: 1px solid #ddd;">폐암 유발 1급 발암물질</td>
+                                    <td style="padding: 8px; font-weight: bold; color: #000; border: 1px solid #ddd;">라돈</td>
+                                    <td style="padding: 8px; color: #000; text-align: center; border: 1px solid #ddd;">148 Bq/m³ 이하</td>
+                                    <td style="padding: 8px; color: #000; font-size: 11px; border: 1px solid #ddd;">토양, 콘크리트</td>
                                 </tr>
                                 <tr style="border: 1px solid #ddd;">
-                                    <td style="padding: 8px; font-weight: bold; color: #000; border: 1px solid #ddd;">포름알데히드(HCHO)</td>
-                                    <td style="padding: 8px; color: #e74c3c; font-weight: bold; text-align: center; border: 1px solid #ddd;">0.210 이하</td>
-                                    <td style="padding: 8px; color: #000; text-align: center; border: 1px solid #ddd;">mg/m³</td>
-                                    <td style="padding: 8px; color: #000; font-size: 11px; border: 1px solid #ddd;">눈·코 자극, 두통, 새집증후군</td>
-                                </tr>
-                                <tr style="border: 1px solid #ddd;">
-                                    <td style="padding: 8px; font-weight: bold; color: #000; border: 1px solid #ddd;">총VOCs(TVOCs)</td>
-                                    <td style="padding: 8px; color: #e74c3c; font-weight: bold; text-align: center; border: 1px solid #ddd;">0.500 이하</td>
-                                    <td style="padding: 8px; color: #000; text-align: center; border: 1px solid #ddd;">mg/m³</td>
-                                    <td style="padding: 8px; color: #000; font-size: 11px; border: 1px solid #ddd;">현기증, 피로, 호흡기 자극</td>
-                                </tr>
-                                <tr style="border: 1px solid #ddd; background: #f8f9fa;">
-                                    <td style="padding: 8px; font-weight: bold; color: #000; border: 1px solid #ddd;">미세먼지(PM10)</td>
-                                    <td style="padding: 8px; color: #333; text-align: center; border: 1px solid #ddd;">100 이하</td>
-                                    <td style="padding: 8px; color: #000; text-align: center; border: 1px solid #ddd;">㎍/m³</td>
-                                    <td style="padding: 8px; color: #000; font-size: 11px; border: 1px solid #ddd;">호흡기 질환, 심혈관계 영향</td>
-                                </tr>
-                                <tr style="border: 1px solid #ddd; background: #f8f9fa;">
-                                    <td style="padding: 8px; font-weight: bold; color: #000; border: 1px solid #ddd;">초미세먼지(PM2.5)</td>
-                                    <td style="padding: 8px; color: #333; text-align: center; border: 1px solid #ddd;">50 이하</td>
-                                    <td style="padding: 8px; color: #000; text-align: center; border: 1px solid #ddd;">㎍/m³</td>
-                                    <td style="padding: 8px; color: #000; font-size: 11px; border: 1px solid #ddd;">폐포까지 침투, 전신 영향</td>
-                                </tr>
-                                <tr style="border: 1px solid #ddd; background: #f8f9fa;">
-                                    <td style="padding: 8px; font-weight: bold; color: #000; border: 1px solid #ddd;">이산화탄소(CO₂)</td>
-                                    <td style="padding: 8px; color: #333; text-align: center; border: 1px solid #ddd;">1,000 이하</td>
-                                    <td style="padding: 8px; color: #000; text-align: center; border: 1px solid #ddd;">ppm</td>
-                                    <td style="padding: 8px; color: #000; font-size: 11px; border: 1px solid #ddd;">집중력 저하, 졸음, 두통</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                        <div style="background: #ffebee; padding: 10px; margin-top: 12px; border-radius: 4px; border: 1px solid #e74c3c;">
-                            <p style="margin: 0; color: #000; font-size: 11px; line-height: 1.6;">
-                                <strong>⚠️ 중요:</strong> 신축 공동주택 3개 항목(라돈, 포름알데히드, TVOCs)은 <strong>법적 권고기준</strong>입니다.<br>
-                                입주 전 반드시 측정하고 기준 초과 시 개선 조치가 필요합니다.
-                            </p>
-                        </div>
-                    }
+                                    <td style="padding: 8px; font-weight: bold; color: #000; border: 1px solid #ddd;">포름알데히드</td>
+                                    <td style="padding: 8px; color: #000; text-align: center; border: 1px solid #ddd;">210 μg/m³ 이하</td>
                                     <td style="padding: 8px; color: #000; font-size: 11px; border: 1px solid #ddd;">합판, 접착제, 벽지</td>
                                 </tr>
                                 <tr style="border: 1px solid #ddd;">
@@ -7671,56 +7630,17 @@ window.createSummaryFirstPage = function() {
                                     <td style="padding: 8px; color: #000; font-size: 11px; border: 1px solid #ddd;">페인트, 접착제, 방향제</td>
                                 </tr>
                             </tbody>
-                        </div>
-                    </div>
-
-                    <div style="border: 2px solid #f39c12; border-radius: 8px; padding: 15px; margin-bottom: 15px; background: white;">
-                        <div style="background: #fff3e0; color: #000; border-bottom: 2px solid #f39c12; padding: 10px 15px; margin: -15px -15px 15px -15px; border-radius: 6px 6px 0 0; font-size: 15px; font-weight: bold;">
-                            4. 오염물질별 대처방법
-                        </div>
-                        <div style="margin-bottom: 12px;">
-                            <div style="background: #ffebee; padding: 10px; border-radius: 4px; margin-bottom: 8px;">
-                                <strong style="color: #e74c3c;">라돈 저감 방법</strong>
-                                <ul style="margin: 5px 0 0 20px; padding: 0; font-size: 11px; color: #000; line-height: 1.6;">
-                                    <li>매일 30분 이상 환기 (특히 지하층, 1층)</li>
-                                    <li>균열 부위 실란트로 밀봉</li>
-                                    <li>환기시설 가동 시간 증대</li>
-                                    <li>라돈저감시공 전문업체 상담</li>
-                                </ul>
-                            </div>
-                            <div style="background: #fff3e0; padding: 10px; border-radius: 4px; margin-bottom: 8px;">
-                                <strong style="color: #f39c12;">포름알데히드 제거 방법</strong>
-                                <ul style="margin: 5px 0 0 20px; padding: 0; font-size: 11px; color: #000; line-height: 1.6;">
-                                    <li>베이크아웃 실시 (30~35도, 6시간)</li>
-                                    <li>활성탄, 숯 배치</li>
-                                    <li>광촉매 코팅 시공</li>
-                                    <li>포름알데히드 흡착 식물 배치</li>
-                                </ul>
-                            </div>
-                            <div style="background: #e3f2fd; padding: 10px; border-radius: 4px;">
-                                <strong style="color: #3498db;">VOCs 저감 방법</strong>
-                                <ul style="margin: 5px 0 0 20px; padding: 0; font-size: 11px; color: #000; line-height: 1.6;">
-                                    <li>친환경 페인트, 접착제 사용</li>
-                                    <li>새 가구 구입 시 통풍 후 사용</li>
-                                    <li>공기청정기 가동 (활성탄 필터)</li>
-                                    <li>정기적인 환기 (하루 3회 이상)</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div style="border: 2px solid #e74c3c; border-radius: 8px; padding: 15px; background: #ffebee;">
-                        <h3 style="margin: 0 0 10px 0; color: #e74c3c; font-size: 14px;">⚠️ 즉시 조치가 필요한 경우</h3>
-                        <div style="font-size: 12px; color: #000; line-height: 1.8;">
-                            • 라돈 농도 <strong>200 Bq/m³ 초과</strong> → 즉시 전문업체 상담<br>
-                            • 포름알데히드 <strong>0.3 mg/m³ 초과</strong> → 거주 자제, 집중 환기<br>
-                            • VOCs <strong>1.0 mg/m³ 초과</strong> → 임시 거처 고려, 전문 시공<br>
-                            • 어린이, 노약자, 임산부 거주 시 → 기준치의 80% 초과 시 조치
-                        </div>
+                        </table>
+                        <p style="margin: 10px 0 0 0; font-size: 11px; color: #000; line-height: 1.6;">
+                            ※ 「다중이용시설 등의 실내공기질관리법」 신축 공동주택 권고기준<br>
+                            ※ 기준 초과 시 환기 및 재측정 필요
+                        </p>
                     </div>
 
                     <div style="position: absolute; bottom: 20px; left: 30px; right: 30px; padding-top: 15px; border-top: 1px solid #ddd; font-size: 11px; color: #000; text-align: center;">
                         <div>더홈점검 | 전화: 070-8019-1456 / 010-9985-0128</div>
+                    </div>
+
                     </div>
                 </div>
             `;
