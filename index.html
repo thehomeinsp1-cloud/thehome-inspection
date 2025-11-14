@@ -4732,15 +4732,21 @@
                         
                         // 드래그가 아닌 경우만 마커 추가 (이동 거리 10px 미만)
                         if (moveX < 10 && moveY < 10) {
-                            const rect = video.getBoundingClientRect();
-                            const x = touch.clientX - rect.left;
-                            const y = touch.clientY - rect.top;
-                            
-                            // 마커 추가 (최대 10개까지)
-                            if (markers.length < 10) {
-                                markers.push({ x, y });
-                                drawMarker(x, y);
+                            // ==================== 확대 시 마커 비활성화 ====================
+                            // 줌 1.0 (확대 없음)일 때만 마커 추가
+                            if (currentZoom === 1.0) {
+                                const rect = video.getBoundingClientRect();
+                                const x = touch.clientX - rect.left;
+                                const y = touch.clientY - rect.top;
+                                
+                                // 마커 추가 (최대 10개까지)
+                                if (markers.length < 10) {
+                                    markers.push({ x, y });
+                                    drawMarker(x, y);
+                                }
                             }
+                            // 확대 중일 때는 마커 추가 안 함 (위치 어긋남 방지)
+                            // ==================== 확대 시 마커 비활성화 끝 ====================
                         }
                     }
                     // ==================== 터치 포인트 마커 추가 끝 ====================
