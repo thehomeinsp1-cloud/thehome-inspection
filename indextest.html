@@ -4565,18 +4565,24 @@
                 
                 // ==================== requestAnimationFrame 줌 최적화 ====================
                 let zoomAnimationFrameId = null;
+                let isZoomPending = false;
+                let pendingZoomValue = 1.0;
                 
-                // 줌 적용 함수 (requestAnimationFrame 적용)
+                // 줌 적용 함수 (requestAnimationFrame + throttling 적용)
                 const applyZoom = (zoom) => {
-                    currentZoom = Math.max(1.0, Math.min(zoom, 5.0));
+                    pendingZoomValue = Math.max(1.0, Math.min(zoom, 5.0));
                     
-                    // 이전 애니메이션 프레임 취소
-                    if (zoomAnimationFrameId) {
-                        cancelAnimationFrame(zoomAnimationFrameId);
+                    // 이미 대기 중인 줌이 있으면 값만 업데이트하고 리턴
+                    if (isZoomPending) {
+                        return;
                     }
+                    
+                    isZoomPending = true;
                     
                     // requestAnimationFrame으로 부드러운 렌더링
                     zoomAnimationFrameId = requestAnimationFrame(() => {
+                        currentZoom = pendingZoomValue;
+                        
                         if (capabilities.zoom) {
                             // 하드웨어 줌 지원
                             const zoomValue = capabilities.zoom.min + 
@@ -4593,7 +4599,7 @@
                         }
                         
                         updateZoomDisplay();
-                        zoomAnimationFrameId = null;
+                        isZoomPending = false;
                     });
                 };
                 // ==================== requestAnimationFrame 줌 최적화 끝 ====================
