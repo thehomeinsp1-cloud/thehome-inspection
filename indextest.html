@@ -4563,27 +4563,40 @@
                     document.getElementById('zoomLevel').textContent = `줌: ${currentZoom.toFixed(1)}x`;
                 };
                 
-                // 줌 적용 함수
+                // ==================== requestAnimationFrame 줌 최적화 ====================
+                let zoomAnimationFrameId = null;
+                
+                // 줌 적용 함수 (requestAnimationFrame 적용)
                 const applyZoom = (zoom) => {
                     currentZoom = Math.max(1.0, Math.min(zoom, 5.0));
                     
-                    if (capabilities.zoom) {
-                        // 하드웨어 줌 지원
-                        const zoomValue = capabilities.zoom.min + 
-                            (currentZoom - 1.0) * (capabilities.zoom.max - capabilities.zoom.min) / 4.0;
-                        videoTrack.applyConstraints({
-                            advanced: [{ zoom: Math.min(zoomValue, capabilities.zoom.max) }]
-                        }).catch(() => {
-                            // 실패 시 CSS 줌
-                            video.style.transform = `scale(${currentZoom})`;
-                        });
-                    } else {
-                        // CSS 줌
-                        video.style.transform = `scale(${currentZoom})`;
+                    // 이전 애니메이션 프레임 취소
+                    if (zoomAnimationFrameId) {
+                        cancelAnimationFrame(zoomAnimationFrameId);
                     }
                     
-                    updateZoomDisplay();
+                    // requestAnimationFrame으로 부드러운 렌더링
+                    zoomAnimationFrameId = requestAnimationFrame(() => {
+                        if (capabilities.zoom) {
+                            // 하드웨어 줌 지원
+                            const zoomValue = capabilities.zoom.min + 
+                                (currentZoom - 1.0) * (capabilities.zoom.max - capabilities.zoom.min) / 4.0;
+                            videoTrack.applyConstraints({
+                                advanced: [{ zoom: Math.min(zoomValue, capabilities.zoom.max) }]
+                            }).catch(() => {
+                                // 실패 시 CSS 줌
+                                video.style.transform = `scale(${currentZoom})`;
+                            });
+                        } else {
+                            // CSS 줌
+                            video.style.transform = `scale(${currentZoom})`;
+                        }
+                        
+                        updateZoomDisplay();
+                        zoomAnimationFrameId = null;
+                    });
                 };
+                // ==================== requestAnimationFrame 줌 최적화 끝 ====================
                 
                 // 두 터치 포인트 간 거리 계산
                 const getDistance = (touch1, touch2) => {
