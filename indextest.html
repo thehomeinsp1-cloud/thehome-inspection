@@ -4553,6 +4553,7 @@
                 
                 // 핀치줌 변수 추가
                 let currentZoom = 1.0;
+                window.currentZoom = 1.0; // 전역 변수로도 설정 (capturePhoto에서 접근)
                 let initialDistance = 0;
                 let initialZoom = 1.0;
                 const videoTrack = cameraStream.getVideoTracks()[0];
@@ -4567,6 +4568,7 @@
                 // 하드웨어 줌 제거 - 비동기 처리로 인한 떨림 문제 해결
                 const applyZoom = (zoom) => {
                     currentZoom = Math.max(1.0, Math.min(zoom, 5.0));
+                    window.currentZoom = currentZoom; // 전역 변수 동기화
                     
                     // CSS 줌만 사용 (동기식, 안정적)
                     video.style.transform = `scale(${currentZoom})`;
@@ -5010,13 +5012,40 @@
             
             const video = document.getElementById('cameraPreview');
             const canvas = document.createElement('canvas');
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
             
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(video, 0, 0);
+            // ==================== 줌 적용된 영역 크롭 ====================
+            // currentZoom 값 가져오기 (카메라 모달에서 설정된 값)
+            const zoomLevel = window.currentZoom || 1.0;
+            
+            if (zoomLevel > 1.0) {
+                // 줌이 적용된 경우: 중앙 영역만 크롭
+                const cropWidth = video.videoWidth / zoomLevel;
+                const cropHeight = video.videoHeight / zoomLevel;
+                const cropX = (video.videoWidth - cropWidth) / 2;
+                const cropY = (video.videoHeight - cropHeight) / 2;
+                
+                // 캔버스 크기는 원본 크기로 설정 (화질 유지)
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                
+                const ctx = canvas.getContext('2d');
+                // 크롭된 영역을 전체 캔버스에 확대하여 그리기
+                ctx.drawImage(
+                    video,
+                    cropX, cropY, cropWidth, cropHeight, // 소스 영역 (크롭)
+                    0, 0, canvas.width, canvas.height     // 목적지 영역 (전체)
+                );
+            } else {
+                // 줌이 없는 경우: 전체 영역 캡처
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(video, 0, 0);
+            }
+            // ==================== 줌 적용된 영역 크롭 끝 ====================
             
             // ==================== 마커 오버레이 그리기 ====================
+            const ctx = canvas.getContext('2d');
             const markerCanvas = document.getElementById('markerCanvas');
             const markers = window.getMarkers ? window.getMarkers() : [];
             
