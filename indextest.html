@@ -4148,7 +4148,7 @@
                     <div class="form-field">
                         <label class="form-label">점검결과</label>
                         <div class="touch-button-grid" style="margin-bottom: 10px;">
-                            ${['벽체 수직도 및 바닥 평활도 양호','배수경사(구배)상태 양호','벽체수직 및 바닥수평 / 단열시공 양호','바닥 난방 열화상 결과 온도 분포 양호','바닥물고임 확인','이상없음'].map(result => {
+                            ${['벽체 수직도 및 바닥 평활도 양호','배수경사(구배)상태 양호','벽체수직 및 바닥수평 / 단열시공 양호','바닥 난방 열화상 결과 온도 분포 양호','바닥물고임 확인/이상없음'].map(result => {
                                 const escaped = result.replace(/'/g, '&apos;');
                                 return `
                                 <button type="button" class="touch-btn ${item.inspection === result ? 'selected' : ''}" 
