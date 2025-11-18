@@ -3775,24 +3775,28 @@
                             `).join('')}
                         </div>
                         
-                        <!-- 커스텀 공간 입력 -->
-                        <div style="margin-top: 12px; display: flex; gap: 8px;">
-                            <input type="text" 
-                                   id="customSpace${defect.id}" 
-                                   class="form-input" 
-                                   placeholder="직접 입력 (예: 서재, 다용도실)" 
-                                   style="flex: 1; font-size: 14px;"
-                                   onkeypress="if(event.key==='Enter'){event.preventDefault();addCustomSpace(${defect.id});}">
-                            <button type="button" 
-                                    class="btn btn-secondary" 
-                                    onclick="addCustomSpace(${defect.id})"
-                                    style="padding: 8px 16px; white-space: nowrap; font-size: 14px;">
-                                + 추가
-                            </button>
-                        </div>
-                        <div style="font-size: 11px; color: var(--text-secondary); margin-top: 6px;">
-                            💡 한번 추가한 공간은 localStorage에 저장되어 다음에도 사용 가능합니다
-                        </div>
+                        <!-- 커스텀 공간 입력 (숨김 처리) -->
+                        <details style="margin-top: 8px;">
+                            <summary style="cursor: pointer; font-size: 13px; color: var(--text-secondary); padding: 6px 0;">
+                                + 직접 입력
+                            </summary>
+                            <div style="margin-top: 8px; display: flex; gap: 8px;">
+                                <input type="text" 
+                                       id="customSpace${defect.id}" 
+                                       class="form-input" 
+                                       placeholder="예: 서재, 다용도실" 
+                                       style="flex: 1; font-size: 14px;"
+                                       oninput="updateCustomSpacePreview(${defect.id}, this.value)"
+                                       onkeypress="if(event.key==='Enter'){event.preventDefault();addCustomSpace(${defect.id});}">
+                                <button type="button" 
+                                        class="btn btn-secondary" 
+                                        onclick="addCustomSpace(${defect.id})"
+                                        style="padding: 8px 16px; white-space: nowrap; font-size: 14px;">
+                                    + 추가
+                                </button>
+                            </div>
+                            <div id="customSpacePreview${defect.id}" style="font-size: 12px; color: var(--text-secondary); margin-top: 4px; min-height: 18px;"></div>
+                        </details>
                     </div>
 
                     <div class="form-field">
@@ -5162,8 +5166,25 @@
         // ==================== 커스텀 공간 관리 ====================
         function getSpaceButtons() {
             const defaultSpaces = ['현관','안방','침실1','침실2','침실3','침실4','복도','거실','주방','팬트리','외부','알파룸','발코니','대피공간','실외기실','파우더룸','드레스룸','공용욕실','부부욕실'];
-            const customSpaces = JSON.parse(localStorage.getItem('customSpaces') || '[]');
-            return [...defaultSpaces, ...customSpaces];
+            
+            // 프로젝트별 커스텀 공간 가져오기
+            if (!projectData.customSpaces) {
+                projectData.customSpaces = [];
+            }
+            
+            return [...defaultSpaces, ...projectData.customSpaces];
+        }
+
+        window.updateCustomSpacePreview = function(defectId, value) {
+            const preview = document.getElementById(`customSpacePreview${defectId}`);
+            if (preview) {
+                if (value.trim()) {
+                    preview.textContent = `입력 중: ${value}`;
+                    preview.style.color = 'var(--primary)';
+                } else {
+                    preview.textContent = '';
+                }
+            }
         }
 
         window.addCustomSpace = function(defectId) {
@@ -5175,6 +5196,11 @@
                 return;
             }
             
+            // 프로젝트에 customSpaces 배열 초기화
+            if (!projectData.customSpaces) {
+                projectData.customSpaces = [];
+            }
+            
             // 기존 공간 목록 가져오기
             const allSpaces = getSpaceButtons();
             
@@ -5182,26 +5208,32 @@
             if (allSpaces.includes(spaceName)) {
                 showToast('이미 존재하는 공간입니다');
                 input.value = '';
+                const preview = document.getElementById(`customSpacePreview${defectId}`);
+                if (preview) preview.textContent = '';
                 return;
             }
             
-            // localStorage에 저장
-            const customSpaces = JSON.parse(localStorage.getItem('customSpaces') || '[]');
-            customSpaces.push(spaceName);
-            localStorage.setItem('customSpaces', JSON.stringify(customSpaces));
+            // 프로젝트에 커스텀 공간 저장
+            projectData.customSpaces.push(spaceName);
             
             // 현재 하자에 자동 선택
             const defect = projectData.defects.find(d => d.id === defectId);
             if (defect && defect.spaces.length < 4) {
                 defect.spaces.push(spaceName);
                 generateAutoDescription(defectId);
-                saveWithDebounce();
+            } else if (defect && defect.spaces.length >= 4) {
+                showToast('⚠️ 공간은 최대 4개까지만 선택 가능합니다');
             }
+            
+            saveImmediately();
             
             // 입력 필드 초기화 및 재렌더링
             input.value = '';
+            const preview = document.getElementById(`customSpacePreview${defectId}`);
+            if (preview) preview.textContent = '';
+            
             renderDefects();
-            showToast(`✅ "${spaceName}" 공간이 추가되었습니다`);
+            showToast(`✅ "${spaceName}" 공간 추가됨`);
         }
 
         function generateAutoDescription(id) {
