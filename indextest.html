@@ -3780,18 +3780,18 @@
                             <summary style="cursor: pointer; font-size: 13px; color: var(--text-secondary); padding: 6px 0;">
                                 + 직접 입력
                             </summary>
-                            <div style="margin-top: 8px; display: flex; gap: 8px;">
+                            <div style="margin-top: 8px;">
                                 <input type="text" 
                                        id="customSpace${defect.id}" 
                                        class="form-input" 
-                                       placeholder="예: 서재, 다용도실" 
-                                       style="flex: 1; font-size: 14px;">
-                                <button type="button" 
-                                        class="btn btn-secondary" 
-                                        onclick="addCustomSpace(${defect.id})"
-                                        style="padding: 8px 16px; white-space: nowrap; font-size: 14px;">
-                                    + 추가
-                                </button>
+                                       value=""
+                                       placeholder="예: 서재, 다용도실 입력 후 엔터" 
+                                       style="width: 100%; font-size: 14px; margin-bottom: 4px;"
+                                       onkeydown="if(event.key==='Enter' && !event.isComposing){event.preventDefault();addCustomSpace(${defect.id});}"
+                                       onchange="addCustomSpace(${defect.id})">
+                                <div style="font-size: 11px; color: var(--text-secondary);">
+                                    💡 입력 후 엔터 또는 다른 곳 클릭
+                                </div>
                             </div>
                         </details>
                     </div>
