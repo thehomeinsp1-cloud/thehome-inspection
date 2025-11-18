@@ -3785,9 +3785,7 @@
                                        id="customSpace${defect.id}" 
                                        class="form-input" 
                                        placeholder="예: 서재, 다용도실" 
-                                       style="flex: 1; font-size: 14px;"
-                                       oninput="updateCustomSpacePreview(${defect.id}, this.value)"
-                                       onkeypress="if(event.key==='Enter'){event.preventDefault();addCustomSpace(${defect.id});}">
+                                       style="flex: 1; font-size: 14px;">
                                 <button type="button" 
                                         class="btn btn-secondary" 
                                         onclick="addCustomSpace(${defect.id})"
@@ -3795,7 +3793,6 @@
                                     + 추가
                                 </button>
                             </div>
-                            <div id="customSpacePreview${defect.id}" style="font-size: 12px; color: var(--text-secondary); margin-top: 4px; min-height: 18px;"></div>
                         </details>
                     </div>
 
@@ -5175,18 +5172,6 @@
             return [...defaultSpaces, ...projectData.customSpaces];
         }
 
-        window.updateCustomSpacePreview = function(defectId, value) {
-            const preview = document.getElementById(`customSpacePreview${defectId}`);
-            if (preview) {
-                if (value.trim()) {
-                    preview.textContent = `입력 중: ${value}`;
-                    preview.style.color = 'var(--primary)';
-                } else {
-                    preview.textContent = '';
-                }
-            }
-        }
-
         window.addCustomSpace = function(defectId) {
             const input = document.getElementById(`customSpace${defectId}`);
             const spaceName = input.value.trim();
@@ -5208,8 +5193,6 @@
             if (allSpaces.includes(spaceName)) {
                 showToast('이미 존재하는 공간입니다');
                 input.value = '';
-                const preview = document.getElementById(`customSpacePreview${defectId}`);
-                if (preview) preview.textContent = '';
                 return;
             }
             
@@ -5229,9 +5212,6 @@
             
             // 입력 필드 초기화 및 재렌더링
             input.value = '';
-            const preview = document.getElementById(`customSpacePreview${defectId}`);
-            if (preview) preview.textContent = '';
-            
             renderDefects();
             showToast(`✅ "${spaceName}" 공간 추가됨`);
         }
