@@ -3766,13 +3766,32 @@
                         <label class="form-label">공간 선택 (최대 4개)</label>
                         <div class="selected-count">${defect.spaces.length}/4 선택됨</div>
                         <div class="touch-button-grid">
-                            ${['현관','안방','침실1','침실2','침실3','침실4','복도','거실','주방','팬트리','외부','알파룸','발코니','대피공간','실외기실','파우더룸','드레스룸','공용욕실','부부욕실'].map(space => `
+                            ${getSpaceButtons().map(space => `
                                 <button type="button" class="touch-btn ${defect.spaces.includes(space) ? 'selected' : ''}" 
                                         ${defect.spaces.length >= 4 && !defect.spaces.includes(space) ? 'disabled' : ''}
                                         onclick="toggleDefectSelection(${defect.id}, 'spaces', '${space}')">
                                     ${space}
                                 </button>
                             `).join('')}
+                        </div>
+                        
+                        <!-- 커스텀 공간 입력 -->
+                        <div style="margin-top: 12px; display: flex; gap: 8px;">
+                            <input type="text" 
+                                   id="customSpace${defect.id}" 
+                                   class="form-input" 
+                                   placeholder="직접 입력 (예: 서재, 다용도실)" 
+                                   style="flex: 1; font-size: 14px;"
+                                   onkeypress="if(event.key==='Enter'){event.preventDefault();addCustomSpace(${defect.id});}">
+                            <button type="button" 
+                                    class="btn btn-secondary" 
+                                    onclick="addCustomSpace(${defect.id})"
+                                    style="padding: 8px 16px; white-space: nowrap; font-size: 14px;">
+                                + 추가
+                            </button>
+                        </div>
+                        <div style="font-size: 11px; color: var(--text-secondary); margin-top: 6px;">
+                            💡 한번 추가한 공간은 localStorage에 저장되어 다음에도 사용 가능합니다
                         </div>
                     </div>
 
@@ -5138,6 +5157,51 @@
             
             renderDefects();
             saveWithDebounce(); // ✅ 체크박스: 지연 저장
+        }
+
+        // ==================== 커스텀 공간 관리 ====================
+        function getSpaceButtons() {
+            const defaultSpaces = ['현관','안방','침실1','침실2','침실3','침실4','복도','거실','주방','팬트리','외부','알파룸','발코니','대피공간','실외기실','파우더룸','드레스룸','공용욕실','부부욕실'];
+            const customSpaces = JSON.parse(localStorage.getItem('customSpaces') || '[]');
+            return [...defaultSpaces, ...customSpaces];
+        }
+
+        window.addCustomSpace = function(defectId) {
+            const input = document.getElementById(`customSpace${defectId}`);
+            const spaceName = input.value.trim();
+            
+            if (!spaceName) {
+                showToast('공간 이름을 입력해주세요');
+                return;
+            }
+            
+            // 기존 공간 목록 가져오기
+            const allSpaces = getSpaceButtons();
+            
+            // 중복 체크
+            if (allSpaces.includes(spaceName)) {
+                showToast('이미 존재하는 공간입니다');
+                input.value = '';
+                return;
+            }
+            
+            // localStorage에 저장
+            const customSpaces = JSON.parse(localStorage.getItem('customSpaces') || '[]');
+            customSpaces.push(spaceName);
+            localStorage.setItem('customSpaces', JSON.stringify(customSpaces));
+            
+            // 현재 하자에 자동 선택
+            const defect = projectData.defects.find(d => d.id === defectId);
+            if (defect && defect.spaces.length < 4) {
+                defect.spaces.push(spaceName);
+                generateAutoDescription(defectId);
+                saveWithDebounce();
+            }
+            
+            // 입력 필드 초기화 및 재렌더링
+            input.value = '';
+            renderDefects();
+            showToast(`✅ "${spaceName}" 공간이 추가되었습니다`);
         }
 
         function generateAutoDescription(id) {
