@@ -244,11 +244,19 @@
             font-weight: bold;
             font-size: 16px;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.15s ease;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+
+        .btn:active {
+            transform: scale(0.97);
+            opacity: 0.9;
         }
 
         .btn-primary {
@@ -258,7 +266,8 @@
         }
 
         .btn-primary:active {
-            transform: scale(0.98);
+            transform: scale(0.97);
+            box-shadow: 0 2px 10px rgba(16, 185, 129, 0.6);
         }
 
         .btn-secondary {
@@ -630,7 +639,7 @@
 
         .camera-controls {
             position: absolute;
-            bottom: 40px;
+            bottom: 80px;
             left: 50%;
             transform: translateX(-50%);
             display: flex;
@@ -638,18 +647,24 @@
         }
 
         .camera-btn {
-            width: 70px;
-            height: 70px;
+            width: 90px;
+            height: 90px;
             border-radius: 50%;
             border: 4px solid white;
             background: var(--primary);
             color: white;
-            font-size: 24px;
+            font-size: 28px;
             cursor: pointer;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
             touch-action: manipulation;
             -webkit-tap-highlight-color: transparent;
             user-select: none;
+            transition: all 0.1s ease;
+        }
+
+        .camera-btn:active {
+            transform: scale(0.9);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
         }
 
         .camera-btn.close {
@@ -672,7 +687,7 @@
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
         }
 
-        /* 줌 컨트롤 버튼 제거됨 - 핀치줌만 사용 */
+        /* 줌 버튼 제거됨 - 핀치 줌만 사용 */
 
         /* 테마 토글 버튼 */
         .theme-toggle {
@@ -822,15 +837,19 @@
             font-size: 13px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.15s ease;
             text-align: center;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
         }
 
         .touch-btn:active {
             transform: scale(0.95);
+            opacity: 0.8;
         }
 
         .touch-btn.selected {
@@ -838,6 +857,11 @@
             border-color: var(--primary);
             color: white;
             box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+        }
+        
+        .touch-btn.selected:active {
+            transform: scale(0.95);
+            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.6);
         }
 
         .touch-btn:disabled {
@@ -1290,12 +1314,7 @@
             </div>
 
             <div class="card">
-                <h2 style="color: var(--primary); margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center;">
-                    <span>💾 다운로드 & 관리</span>
-                    <button onclick="toggleGoogleDrive()" class="btn" style="background: rgba(66, 133, 244, 0.1); color: #4285f4; padding: 8px 16px; font-size: 13px;">
-                        ☁️ 팀 공유 기능
-                    </button>
-                </h2>
+                <h2 style="color: var(--primary); margin-bottom: 15px;">💾 다운로드 & 관리</h2>
                 
                 <button class="btn btn-primary" onclick="generatePDF()">📄 PDF 보고서 생성</button>
                 
@@ -1328,6 +1347,12 @@
                             💡 <strong>자동 저장:</strong> 데이터는 입력과 동시에 자동으로 저장됩니다.<br>
                             💡 <strong>데이터 삭제:</strong> 브라우저 데이터를 완전히 지우고 싶을 때만 사용하세요.
                         </p>
+                        
+                        <!-- 팀 공유 기능 버튼 -->
+                        <button onclick="toggleGoogleDrive()" class="btn" style="width: 100%; background: rgba(66, 133, 244, 0.1); color: #4285f4; margin-bottom: 10px; font-weight: bold;">
+                            ☁️ 팀 공유 기능 (Google Drive 연동)
+                        </button>
+                        
                         <button class="btn btn-secondary" onclick="saveCurrentData()" style="width: 100%; margin-bottom: 10px;">
                             💾 수동 저장 (자동 저장되므로 불필요)
                         </button>
@@ -1358,11 +1383,9 @@
         <!-- 줌 레벨 표시 -->
         <div class="zoom-level" id="zoomLevel">줌: 1.0x</div>
         
-        <!-- 줌 컨트롤 버튼 제거 - 핀치줌만 사용 -->
-        
         <div class="camera-controls">
-            <button class="camera-btn" onclick="capturePhoto()" ontouchstart="">📸</button>
-            <button class="camera-btn close" onclick="closeCameraModal()" ontouchstart="">✕</button>
+            <button class="camera-btn" onclick="capturePhoto()" ontouchend="capturePhoto()">📸</button>
+            <button class="camera-btn close" onclick="closeCameraModal()" ontouchend="closeCameraModal()">✕</button>
         </div>
     </div>
 
@@ -1776,6 +1799,57 @@
             checkLoginStatus();
         });
         // ==================== 로그인 시스템 끝 ====================
+
+        // ==================== 비활성 시 자동 로그아웃 ====================
+        async function checkEmployeeStatus() {
+            const loginData = localStorage.getItem('dhLoginData');
+            if (!loginData) return;
+            
+            try {
+                const data = JSON.parse(loginData);
+                
+                // Google Sheets에서 직원 상태 확인
+                const response = await fetch(GOOGLE_SHEETS_CSV_URL);
+                if (!response.ok) return;
+                
+                const csvText = await response.text();
+                const rows = csvText.split('\n').slice(1); // 헤더 제외
+                
+                // 현재 로그인한 직원 찾기
+                let isActive = false;
+                for (const row of rows) {
+                    const cols = row.split(',').map(col => col.trim().replace(/"/g, ''));
+                    if (cols.length >= 5) {
+                        const [accessCode, name, team, status, storedPin] = cols;
+                        
+                        // 코드와 PIN이 일치하는 직원 찾기
+                        if (accessCode === data.code && storedPin === data.pin) {
+                            if (status === '활성') {
+                                isActive = true;
+                            }
+                            break;
+                        }
+                    }
+                }
+                
+                // 비활성 상태면 강제 로그아웃
+                if (!isActive) {
+                    localStorage.removeItem('dhLoginData');
+                    showLoginScreen();
+                    showToast('⚠️ 계정이 비활성화되어 로그아웃되었습니다', 'warning');
+                }
+                
+            } catch (error) {
+                console.error('직원 상태 확인 실패:', error);
+            }
+        }
+        
+        // 앱 시작 시 & 30초마다 상태 체크
+        document.addEventListener('DOMContentLoaded', () => {
+            checkEmployeeStatus();
+            setInterval(checkEmployeeStatus, 30000); // 30초마다
+        });
+        // ==================== 비활성 시 자동 로그아웃 끝 ====================
 
         // ==================== 전역 에러 핸들러 (크로스 플랫폼 안정성) ====================
         window.addEventListener('error', (event) => {
@@ -3767,7 +3841,7 @@
                         <label class="form-label">공간 선택 (최대 4개)</label>
                         <div class="selected-count">${defect.spaces.length}/4 선택됨</div>
                         <div class="touch-button-grid">
-                            ${['현관','안방','침실1','침실2','침실3','침실4','복도','거실','주방','팬트리','외부','알파룸','발코니','대피공간','실외기실','파우더룸','드레스룸','공용욕실','부부욕실'].map(space => `
+                            ${getSpaceButtons().map(space => `
                                 <button type="button" class="touch-btn ${defect.spaces.includes(space) ? 'selected' : ''}" 
                                         ${defect.spaces.length >= 4 && !defect.spaces.includes(space) ? 'disabled' : ''}
                                         onclick="toggleDefectSelection(${defect.id}, 'spaces', '${space}')">
@@ -3775,6 +3849,26 @@
                                 </button>
                             `).join('')}
                         </div>
+                        
+                        <!-- 커스텀 공간 입력 (숨김 처리) -->
+                        <details style="margin-top: 8px;">
+                            <summary style="cursor: pointer; font-size: 13px; color: var(--text-secondary); padding: 6px 0;">
+                                + 직접 입력
+                            </summary>
+                            <div style="margin-top: 8px;">
+                                <input type="text" 
+                                       id="customSpace${defect.id}" 
+                                       class="form-input" 
+                                       value=""
+                                       placeholder="예: 서재, 다용도실 입력 후 엔터" 
+                                       style="width: 100%; font-size: 14px; margin-bottom: 4px;"
+                                       onkeydown="if(event.key==='Enter' && !event.isComposing){event.preventDefault();addCustomSpace(${defect.id});}"
+                                       onchange="addCustomSpace(${defect.id})">
+                                <div style="font-size: 11px; color: var(--text-secondary);">
+                                    💡 입력 후 엔터 또는 다른 곳 클릭
+                                </div>
+                            </div>
+                        </details>
                     </div>
 
                     <div class="form-field">
@@ -3947,12 +4041,6 @@
                     if (defect) {
                         defect.photos.push(compressed);
                         
-                        if (step === 'far') {
-                            showToast('✓ 멀리서 사진 추가 완료! 이제 가까이서 촬영/첨부해주세요.');
-                        } else if (step === 'close') {
-                            showToast('✓ 가까이서 사진 추가 완료! 하자 사진이 모두 등록되었습니다.');
-                        }
-                        
                         renderDefects();
                         saveProjectsToLocalStorage();
                         updateProgress();
@@ -3980,7 +4068,7 @@
             
             const newEquipment = {
                 id: project.lastEquipmentId,
-                space: '',       // 단일 공간
+                spaces: [],      // 공간 배열로 변경 (최대 2개)
                 inspection: '',  // 빈 값으로 시작
                 photos: {        // 위치별 사진 객체
                     '좌측': null,
@@ -4017,6 +4105,14 @@
             }
 
             container.innerHTML = projectData.equipment.map((item, index) => {
+                // 하위 호환성: 기존 space를 spaces 배열로 변환
+                if (!item.spaces && item.space) {
+                    item.spaces = [item.space];
+                    delete item.space;
+                } else if (!item.spaces) {
+                    item.spaces = [];
+                }
+                
                 // 하위 호환성: 기존 4개 구조를 4개로 변환
                 if (!item.photos || item.photos['좌측상단']) {
                     item.photos = {
@@ -4056,21 +4152,27 @@
                     </div>
 
                     <div class="form-field">
-                        <label class="form-label">공간 선택</label>
+                        <label class="form-label">공간 선택 (최대 2개)</label>
+                        <div class="selected-count">${(item.spaces || []).length}/2 선택됨</div>
                         <div class="touch-button-grid">
-                            ${['현관','안방','침실1','침실2','침실3','침실4','복도','거실','주방','팬트리','외부','알파룸','발코니','대피공간','실외기실','파우더룸','드레스룸','공용욕실','부부욕실'].map(space => `
-                                <button type="button" class="touch-btn ${item.space === space ? 'selected' : ''}" 
-                                        onclick="updateEquipmentSpace(${item.id}, '${space}')">
+                            ${['현관','안방','침실1','침실2','침실3','침실4','복도','거실','주방','팬트리','외부','알파룸','발코니','대피공간','실외기실','파우더룸','드레스룸','공용욕실','부부욕실'].map(space => {
+                                const spaces = item.spaces || [];
+                                const isSelected = spaces.includes(space);
+                                const isDisabled = spaces.length >= 2 && !isSelected;
+                                return `
+                                <button type="button" class="touch-btn ${isSelected ? 'selected' : ''}" 
+                                        ${isDisabled ? 'disabled' : ''}
+                                        onclick="toggleEquipmentSpace(${item.id}, '${space}')">
                                     ${space}
                                 </button>
-                            `).join('')}
+                            `}).join('')}
                         </div>
                     </div>
 
                     <div class="form-field">
                         <label class="form-label">점검결과</label>
                         <div class="touch-button-grid" style="margin-bottom: 10px;">
-                            ${['벽체 수직도 및 바닥 평활도 양호','배수경사(구배)상태 양호','벽체수직 및 바닥수평 / 단열시공 양호','바닥 난방 열화상 결과 온도 분포 양호'].map(result => {
+                            ${['벽체 수직도 및 바닥 평활도 양호','배수경사(구배)상태 양호','벽체수직 및 바닥수평 / 단열시공 양호','바닥 난방 열화상 결과 온도 분포 양호','바닥물고임 확인/이상없음'].map(result => {
                                 const escaped = result.replace(/'/g, '&apos;');
                                 return `
                                 <button type="button" class="touch-btn ${item.inspection === result ? 'selected' : ''}" 
@@ -4180,13 +4282,32 @@
             }
         }
 
-        window.updateEquipmentSpace = function(id, space) {
+        window.toggleEquipmentSpace = function(id, space) {
             const item = projectData.equipment.find(e => e.id === id);
-            if (item) {
-                item.space = space;
-                renderEquipment();
-                saveWithDebounce(); // ✅ 선택: 지연 저장
+            if (!item) return;
+            
+            // spaces 배열 초기화 (하위 호환성)
+            if (!item.spaces) {
+                item.spaces = item.space ? [item.space] : [];
+                delete item.space; // 기존 단일 space 필드 제거
             }
+            
+            const index = item.spaces.indexOf(space);
+            if (index > -1) {
+                // 이미 선택되어 있으면 제거
+                item.spaces.splice(index, 1);
+            } else {
+                // 선택되어 있지 않으면 추가 (최대 2개까지)
+                if (item.spaces.length < 2) {
+                    item.spaces.push(space);
+                } else {
+                    showToast('최대 2개까지만 선택할 수 있습니다');
+                    return;
+                }
+            }
+            
+            renderEquipment();
+            saveWithDebounce(); // ✅ 선택: 지연 저장
         }
 
         window.openEquipmentLocationCamera = function(id, location) {
@@ -4549,7 +4670,10 @@
                     return Math.sqrt(dx * dx + dy * dy);
                 };
                 
-                // 핀치줌 버튼 제거됨 (핀치줌만 사용)
+                // 핀치줌 버튼 추가
+                window.adjustZoom = (delta) => {
+                    applyZoom(currentZoom + delta);
+                };
                 
                 // 줌 초기화 함수 (사진 촬영 후 호출)
                 window.resetZoom = () => {
@@ -4694,21 +4818,15 @@
                         
                         // 드래그가 아닌 경우만 마커 추가 (이동 거리 10px 미만)
                         if (moveX < 10 && moveY < 10) {
-                            // ==================== 확대 시 마커 비활성화 ====================
-                            // 줌 1.0 (확대 없음)일 때만 마커 추가
-                            if (currentZoom === 1.0) {
-                                const rect = video.getBoundingClientRect();
-                                const x = touch.clientX - rect.left;
-                                const y = touch.clientY - rect.top;
-                                
-                                // 마커 추가 (최대 10개까지)
-                                if (markers.length < 10) {
-                                    markers.push({ x, y });
-                                    drawMarker(x, y);
-                                }
+                            const rect = video.getBoundingClientRect();
+                            const x = touch.clientX - rect.left;
+                            const y = touch.clientY - rect.top;
+                            
+                            // 마커 추가 (최대 10개까지)
+                            if (markers.length < 10) {
+                                markers.push({ x, y });
+                                drawMarker(x, y);
                             }
-                            // 확대 중일 때는 마커 추가 안 함 (위치 어긋남 방지)
-                            // ==================== 확대 시 마커 비활성화 끝 ====================
                         }
                     }
                     // ==================== 터치 포인트 마커 추가 끝 ====================
@@ -4742,8 +4860,7 @@
                 // 모달 표시
                 document.getElementById('cameraModal').classList.add('active');
                 
-                // 성공 메시지
-                showToast('📸 카메라 준비 완료!');
+                // 성공 시 메시지 없음
                 
             } catch (error) {
                 console.error('카메라 오류:', error);
@@ -5069,12 +5186,6 @@
                         } else {
                             // 일반 촬영 (새로 추가)
                             defect.photos.push(imageData);
-                            
-                            if (currentPhotoTarget.step === 'far') {
-                                showToast('✓ 멀리서 촬영 완료! 이제 가까이서 촬영해주세요.');
-                            } else if (currentPhotoTarget.step === 'close') {
-                                showToast('✓ 가까이서 촬영 완료! 하자 사진이 모두 등록되었습니다.');
-                            }
                         }
                         
                         renderDefects();
@@ -5094,11 +5205,9 @@
                                 };
                             }
                             equipment.photos[currentPhotoTarget.location] = imageData;
-                            showToast(`✓ ${currentPhotoTarget.location} 사진이 등록되었습니다.`);
                         } else {
                             // 구 버전 호환성
                             equipment.photo = imageData;
-                            showToast('✓ 사진이 등록되었습니다.');
                         }
                         renderEquipment();
                     }
@@ -5157,6 +5266,62 @@
             
             renderDefects();
             saveWithDebounce(); // ✅ 체크박스: 지연 저장
+        }
+
+        // ==================== 커스텀 공간 관리 ====================
+        function getSpaceButtons() {
+            const defaultSpaces = ['현관','안방','침실1','침실2','침실3','침실4','복도','거실','주방','팬트리','외부','알파룸','발코니','대피공간','실외기실','파우더룸','드레스룸','공용욕실','부부욕실'];
+            
+            // 프로젝트별 커스텀 공간 가져오기
+            if (!projectData.customSpaces) {
+                projectData.customSpaces = [];
+            }
+            
+            return [...defaultSpaces, ...projectData.customSpaces];
+        }
+
+        window.addCustomSpace = function(defectId) {
+            const input = document.getElementById(`customSpace${defectId}`);
+            const spaceName = input.value.trim();
+            
+            if (!spaceName) {
+                showToast('공간 이름을 입력해주세요');
+                return;
+            }
+            
+            // 프로젝트에 customSpaces 배열 초기화
+            if (!projectData.customSpaces) {
+                projectData.customSpaces = [];
+            }
+            
+            // 기존 공간 목록 가져오기
+            const allSpaces = getSpaceButtons();
+            
+            // 중복 체크
+            if (allSpaces.includes(spaceName)) {
+                showToast('이미 존재하는 공간입니다');
+                input.value = '';
+                return;
+            }
+            
+            // 프로젝트에 커스텀 공간 저장
+            projectData.customSpaces.push(spaceName);
+            
+            // 현재 하자에 자동 선택
+            const defect = projectData.defects.find(d => d.id === defectId);
+            if (defect && defect.spaces.length < 4) {
+                defect.spaces.push(spaceName);
+                generateAutoDescription(defectId);
+            } else if (defect && defect.spaces.length >= 4) {
+                showToast('⚠️ 공간은 최대 4개까지만 선택 가능합니다');
+            }
+            
+            saveImmediately();
+            
+            // 입력 필드 초기화 및 재렌더링
+            input.value = '';
+            renderDefects();
+            showToast(`✅ "${spaceName}" 공간 추가됨`);
         }
 
         function generateAutoDescription(id) {
@@ -5315,9 +5480,9 @@
                 const firstPageHTML = window.createSummaryFirstPage();
                 await window.addHTMLPageToPDF(doc, firstPageHTML, pageWidth, pageHeight);
 
-                // 2페이지~: 하자 목록만 (20개씩)
+                // 2페이지~: 하자 목록만 (18개씩으로 조정)
                 if (projectData.defects.length > 15) {
-                    const itemsPerPage = 20;
+                    const itemsPerPage = 18;
                     for (let i = 15; i < projectData.defects.length; i += itemsPerPage) {
                         doc.addPage();
                         const listPageHTML = window.createDefectListPage(i, itemsPerPage);
@@ -6367,9 +6532,9 @@
                 const firstPageHTML = window.createSummaryFirstPage();
                 await window.addHTMLPageToPDF(doc, firstPageHTML, pageWidth, pageHeight);
 
-                // 2페이지~: 하자 목록만 (20개씩)
+                // 2페이지~: 하자 목록만 (18개씩으로 조정)
                 if (projectData.defects.length > 15) {
-                    const itemsPerPage = 20;
+                    const itemsPerPage = 18;
                     for (let i = 15; i < projectData.defects.length; i += itemsPerPage) {
                         doc.addPage();
                         const listPageHTML = window.createDefectListPage(i, itemsPerPage);
@@ -6890,23 +7055,9 @@ window.createSummaryFirstPage = function() {
                     </tr>
                 `;
             });
-            
-            // 15개 미만일 때 빈 행 추가하여 테이블 높이 유지
-            const emptyRowCount = Math.max(0, 15 - displayDefects.length);
-            for (let i = 0; i < emptyRowCount; i++) {
-                defectRows += `
-                    <tr style="border-bottom: 1px solid #ddd;">
-                        <td style="padding: 8px 3px; height: 32px; border-right: 1px solid #e0e0e0;">&nbsp;</td>
-                        <td style="padding: 8px 3px; height: 32px; border-right: 1px solid #e0e0e0;">&nbsp;</td>
-                        <td style="padding: 8px 3px; height: 32px; border-right: 1px solid #e0e0e0;">&nbsp;</td>
-                        <td style="padding: 8px 3px; height: 32px; border-right: 1px solid #e0e0e0;">&nbsp;</td>
-                        <td style="padding: 8px 4px; height: 32px;">&nbsp;</td>
-                    </tr>
-                `;
-            }
 
             return `
-                <div style="width: 794px; height: 1123px; background: white; font-family: 'Malgun Gothic', sans-serif; padding: 35px; position: relative; box-sizing: border-box;">
+                <div style="width: 794px; min-height: 1123px; max-height: 1123px; background: white; font-family: 'Malgun Gothic', sans-serif; padding: 35px; position: relative; box-sizing: border-box; overflow: hidden;">
                     <!-- 헤더 개선 -->
                     <div style="text-align: center; margin-bottom: 25px;">
                         <h1 style="margin: 0 0 12px 0; font-size: 30px; color: #000; font-weight: bold;">사전점검 보고서</h1>
@@ -6951,7 +7102,7 @@ window.createSummaryFirstPage = function() {
                     <!-- 하자 목록 테이블 (컴팩트하게) -->
                     <h3 style="margin: 0 0 8px 0; font-size: 15px; color: #000; border-bottom: 2px solid #e74c3c; padding-bottom: 5px;">📋 하자점검 목록 (총 ${projectData.defects.length}건)</h3>
                     ${projectData.defects.length > 0 || true ? `
-                        <table style="width: 100%; border-collapse: collapse; border: 1px solid #ddd; font-size: 12px; table-layout: fixed;">
+                        <table style="width: 100%; border-collapse: collapse; border: 1px solid #ddd; font-size: 12px; table-layout: fixed; margin-bottom: 60px;">
                             <thead>
                                 <tr style="background: #f8f9fa; border-bottom: 2px solid #666;">
                                     <th style="padding: 8px 3px; width: 5%; color: #000; font-size: 12px; font-weight: bold; border-right: 1px solid #e0e0e0;">No</th>
@@ -6974,7 +7125,7 @@ window.createSummaryFirstPage = function() {
         }
 
         // 나머지 페이지: 하자 목록만 (20개씩)
-        window.createDefectListPage = function(startIndex, itemsPerPage = 20) {
+        window.createDefectListPage = function(startIndex, itemsPerPage = 18) {
             let defectRows = '';
             const endIndex = Math.min(startIndex + itemsPerPage, projectData.defects.length);
             const defectsToDisplay = projectData.defects.slice(startIndex, endIndex);
@@ -7002,13 +7153,13 @@ window.createSummaryFirstPage = function() {
             const pageIndicator = ` (${currentPage}/${totalPages} 페이지)`;
 
             return `
-                <div style="width: 794px; height: 1123px; background: white; font-family: 'Malgun Gothic', sans-serif; padding: 35px; position: relative; box-sizing: border-box;">
+                <div style="width: 794px; min-height: 1123px; max-height: 1123px; background: white; font-family: 'Malgun Gothic', sans-serif; padding: 35px; position: relative; box-sizing: border-box; overflow: hidden;">
                     <div style="margin-bottom: 20px;">
                         <h3 style="margin: 0 0 12px 0; font-size: 16px; color: #000; border-bottom: 2px solid #e74c3c; padding-bottom: 6px;">📋 하자점검 목록 (총 ${projectData.defects.length}건)${pageIndicator}</h3>
                         <p style="margin: 5px 0 12px 0; font-size: 12px; color: #333;">${projectData.apartmentName} ${projectData.dong}동 ${projectData.ho}호</p>
                     </div>
 
-                    <table style="width: 100%; border-collapse: collapse; border: 1px solid #ddd; font-size: 13px;">
+                    <table style="width: 100%; border-collapse: collapse; border: 1px solid #ddd; font-size: 13px; margin-bottom: 60px;">
                         <thead>
                             <tr style="background: #f8f9fa; border-bottom: 2px solid #999;">
                                 <th style="padding: 10px 4px; width: 5%; color: #000; font-size: 13px; font-weight: bold; border-right: 1px solid #e0e0e0;">No</th>
