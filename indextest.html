@@ -6947,23 +6947,9 @@ window.createSummaryFirstPage = function() {
                     </tr>
                 `;
             });
-            
-            // 15개 미만일 때 빈 행 추가하여 테이블 높이 유지
-            const emptyRowCount = Math.max(0, 15 - displayDefects.length);
-            for (let i = 0; i < emptyRowCount; i++) {
-                defectRows += `
-                    <tr style="border-bottom: 1px solid #ddd;">
-                        <td style="padding: 8px 3px; height: 32px; border-right: 1px solid #e0e0e0;">&nbsp;</td>
-                        <td style="padding: 8px 3px; height: 32px; border-right: 1px solid #e0e0e0;">&nbsp;</td>
-                        <td style="padding: 8px 3px; height: 32px; border-right: 1px solid #e0e0e0;">&nbsp;</td>
-                        <td style="padding: 8px 3px; height: 32px; border-right: 1px solid #e0e0e0;">&nbsp;</td>
-                        <td style="padding: 8px 4px; height: 32px;">&nbsp;</td>
-                    </tr>
-                `;
-            }
 
             return `
-                <div style="width: 794px; height: 1123px; background: white; font-family: 'Malgun Gothic', sans-serif; padding: 35px; position: relative; box-sizing: border-box;">
+                <div style="width: 794px; min-height: 1123px; max-height: 1123px; background: white; font-family: 'Malgun Gothic', sans-serif; padding: 35px; position: relative; box-sizing: border-box; overflow: hidden;">
                     <!-- 헤더 개선 -->
                     <div style="text-align: center; margin-bottom: 25px;">
                         <h1 style="margin: 0 0 12px 0; font-size: 30px; color: #000; font-weight: bold;">사전점검 보고서</h1>
@@ -7008,7 +6994,7 @@ window.createSummaryFirstPage = function() {
                     <!-- 하자 목록 테이블 (컴팩트하게) -->
                     <h3 style="margin: 0 0 8px 0; font-size: 15px; color: #000; border-bottom: 2px solid #e74c3c; padding-bottom: 5px;">📋 하자점검 목록 (총 ${projectData.defects.length}건)</h3>
                     ${projectData.defects.length > 0 || true ? `
-                        <table style="width: 100%; border-collapse: collapse; border: 1px solid #ddd; font-size: 12px; table-layout: fixed;">
+                        <table style="width: 100%; border-collapse: collapse; border: 1px solid #ddd; font-size: 12px; table-layout: fixed; margin-bottom: 60px;">
                             <thead>
                                 <tr style="background: #f8f9fa; border-bottom: 2px solid #666;">
                                     <th style="padding: 8px 3px; width: 5%; color: #000; font-size: 12px; font-weight: bold; border-right: 1px solid #e0e0e0;">No</th>
