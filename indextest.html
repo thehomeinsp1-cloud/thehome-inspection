@@ -630,7 +630,7 @@
 
         .camera-controls {
             position: absolute;
-            bottom: 40px;
+            bottom: 80px;
             left: 50%;
             transform: translateX(-50%);
             display: flex;
@@ -638,13 +638,13 @@
         }
 
         .camera-btn {
-            width: 70px;
-            height: 70px;
+            width: 90px;
+            height: 90px;
             border-radius: 50%;
             border: 4px solid white;
             background: var(--primary);
             color: white;
-            font-size: 24px;
+            font-size: 28px;
             cursor: pointer;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
             touch-action: manipulation;
@@ -672,38 +672,7 @@
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
         }
 
-        .zoom-controls {
-            position: absolute;
-            right: 20px;
-            top: 50%;
-            transform: translateY(-50%);
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            z-index: 1001;
-        }
-
-        .zoom-btn {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.3);
-            border: 2px solid white;
-            color: white;
-            font-size: 24px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            backdrop-filter: blur(10px);
-            transition: all 0.3s ease;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        .zoom-btn:active {
-            background: rgba(255, 255, 255, 0.5);
-            transform: scale(0.95);
-        }
+        /* 줌 버튼 제거됨 - 핀치 줌만 사용 */
 
         /* 테마 토글 버튼 */
         .theme-toggle {
@@ -1321,12 +1290,7 @@
             </div>
 
             <div class="card">
-                <h2 style="color: var(--primary); margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center;">
-                    <span>💾 다운로드 & 관리</span>
-                    <button onclick="toggleGoogleDrive()" class="btn" style="background: rgba(66, 133, 244, 0.1); color: #4285f4; padding: 8px 16px; font-size: 13px;">
-                        ☁️ 팀 공유 기능
-                    </button>
-                </h2>
+                <h2 style="color: var(--primary); margin-bottom: 15px;">💾 다운로드 & 관리</h2>
                 
                 <button class="btn btn-primary" onclick="generatePDF()">📄 PDF 보고서 생성</button>
                 
@@ -1359,6 +1323,12 @@
                             💡 <strong>자동 저장:</strong> 데이터는 입력과 동시에 자동으로 저장됩니다.<br>
                             💡 <strong>데이터 삭제:</strong> 브라우저 데이터를 완전히 지우고 싶을 때만 사용하세요.
                         </p>
+                        
+                        <!-- 팀 공유 기능 버튼 -->
+                        <button onclick="toggleGoogleDrive()" class="btn" style="width: 100%; background: rgba(66, 133, 244, 0.1); color: #4285f4; margin-bottom: 10px; font-weight: bold;">
+                            ☁️ 팀 공유 기능 (Google Drive 연동)
+                        </button>
+                        
                         <button class="btn btn-secondary" onclick="saveCurrentData()" style="width: 100%; margin-bottom: 10px;">
                             💾 수동 저장 (자동 저장되므로 불필요)
                         </button>
@@ -1388,12 +1358,6 @@
         
         <!-- 줌 레벨 표시 -->
         <div class="zoom-level" id="zoomLevel">줌: 1.0x</div>
-        
-        <!-- 줌 컨트롤 버튼 -->
-        <div class="zoom-controls">
-            <button class="zoom-btn" onclick="adjustZoom(0.1)">+</button>
-            <button class="zoom-btn" onclick="adjustZoom(-0.1)">−</button>
-        </div>
         
         <div class="camera-controls">
             <button class="camera-btn" onclick="capturePhoto()" ontouchstart="">📸</button>
@@ -3982,12 +3946,6 @@
                     if (defect) {
                         defect.photos.push(compressed);
                         
-                        if (step === 'far') {
-                            showToast('✓ 멀리서 사진 추가 완료! 이제 가까이서 촬영/첨부해주세요.');
-                        } else if (step === 'close') {
-                            showToast('✓ 가까이서 사진 추가 완료! 하자 사진이 모두 등록되었습니다.');
-                        }
-                        
                         renderDefects();
                         saveProjectsToLocalStorage();
                         updateProgress();
@@ -4553,6 +4511,7 @@
                 
                 // 핀치줌 변수 추가
                 let currentZoom = 1.0;
+                window.currentZoom = 1.0; // 전역 변수로도 설정 (capturePhoto에서 접근)
                 let initialDistance = 0;
                 let initialZoom = 1.0;
                 const videoTrack = cameraStream.getVideoTracks()[0];
@@ -4563,46 +4522,18 @@
                     document.getElementById('zoomLevel').textContent = `줌: ${currentZoom.toFixed(1)}x`;
                 };
                 
-                // ==================== requestAnimationFrame 줌 최적화 ====================
-                let zoomAnimationFrameId = null;
-                let isZoomPending = false;
-                let pendingZoomValue = 1.0;
-                
-                // 줌 적용 함수 (requestAnimationFrame + throttling 적용)
+                // ==================== 줌 적용 함수 (CSS 줌만 사용) ====================
+                // 하드웨어 줌 제거 - 비동기 처리로 인한 떨림 문제 해결
                 const applyZoom = (zoom) => {
-                    pendingZoomValue = Math.max(1.0, Math.min(zoom, 5.0));
+                    currentZoom = Math.max(1.0, Math.min(zoom, 5.0));
+                    window.currentZoom = currentZoom; // 전역 변수 동기화
                     
-                    // 이미 대기 중인 줌이 있으면 값만 업데이트하고 리턴
-                    if (isZoomPending) {
-                        return;
-                    }
+                    // CSS 줌만 사용 (동기식, 안정적)
+                    video.style.transform = `scale(${currentZoom})`;
                     
-                    isZoomPending = true;
-                    
-                    // requestAnimationFrame으로 부드러운 렌더링
-                    zoomAnimationFrameId = requestAnimationFrame(() => {
-                        currentZoom = pendingZoomValue;
-                        
-                        if (capabilities.zoom) {
-                            // 하드웨어 줌 지원
-                            const zoomValue = capabilities.zoom.min + 
-                                (currentZoom - 1.0) * (capabilities.zoom.max - capabilities.zoom.min) / 4.0;
-                            videoTrack.applyConstraints({
-                                advanced: [{ zoom: Math.min(zoomValue, capabilities.zoom.max) }]
-                            }).catch(() => {
-                                // 실패 시 CSS 줌
-                                video.style.transform = `scale(${currentZoom})`;
-                            });
-                        } else {
-                            // CSS 줌
-                            video.style.transform = `scale(${currentZoom})`;
-                        }
-                        
-                        updateZoomDisplay();
-                        isZoomPending = false;
-                    });
+                    updateZoomDisplay();
                 };
-                // ==================== requestAnimationFrame 줌 최적화 끝 ====================
+                // ==================== 줌 적용 함수 끝 ====================
                 
                 // 두 터치 포인트 간 거리 계산
                 const getDistance = (touch1, touch2) => {
@@ -4679,6 +4610,12 @@
                 window.addEventListener('resize', resizeMarkerCanvas);
                 // ==================== 터치 포인트 마커 기능 끝 ====================
                 
+                // ==================== 핀치줌 throttling 변수 ====================
+                let lastZoomTime = 0;
+                const ZOOM_THROTTLE_MS = 16; // 약 60fps (1000ms / 60 = 16.67ms)
+                let baseZoom = 1.0; // 핀치 시작 시점의 줌 (절대값 기준)
+                // ==================== 핀치줌 throttling 변수 끝 ====================
+                
                 video.addEventListener('touchstart', (e) => {
                     touchStartTime = Date.now();
                     
@@ -4686,7 +4623,7 @@
                         // 핀치줌 시작
                         e.preventDefault();
                         initialDistance = getDistance(e.touches[0], e.touches[1]);
-                        initialZoom = currentZoom;
+                        baseZoom = currentZoom; // 현재 줌을 base로 저장
                     } else if (e.touches.length === 1) {
                         touchStartX = e.touches[0].clientX;
                         touchStartY = e.touches[0].clientY;
@@ -4697,9 +4634,31 @@
                     if (e.touches.length === 2) {
                         // 핀치줌 동작
                         e.preventDefault();
+                        
+                        // ==================== throttling 적용 ====================
+                        const now = Date.now();
+                        if (now - lastZoomTime < ZOOM_THROTTLE_MS) {
+                            return; // 너무 빠른 호출은 무시
+                        }
+                        lastZoomTime = now;
+                        // ==================== throttling 끝 ====================
+                        
                         const currentDistance = getDistance(e.touches[0], e.touches[1]);
                         const scale = currentDistance / initialDistance;
-                        applyZoom(initialZoom * scale);
+                        
+                        // ==================== 미세 변화 필터링 ====================
+                        // scale 변화가 3% 미만이면 무시 (떨림 방지)
+                        const changePercent = Math.abs(scale - 1.0);
+                        if (changePercent < 0.03) {
+                            return; // 너무 작은 변화는 무시
+                        }
+                        // ==================== 미세 변화 필터링 끝 ====================
+                        
+                        // ==================== 절대값 기준 줌 계산 ====================
+                        // baseZoom(고정) * scale(변화율) = 정확한 목표 줌
+                        const targetZoom = baseZoom * scale;
+                        applyZoom(targetZoom);
+                        // ==================== 절대값 기준 줌 끝 ====================
                     } else if (e.touches.length === 1) {
                         // 드래그/스크롤 차단
                         const moveX = Math.abs(e.touches[0].clientX - touchStartX);
@@ -4773,8 +4732,7 @@
                 // 모달 표시
                 document.getElementById('cameraModal').classList.add('active');
                 
-                // 성공 메시지
-                showToast('📸 카메라 준비 완료!');
+                // 성공 시 메시지 없음
                 
             } catch (error) {
                 console.error('카메라 오류:', error);
@@ -5011,13 +4969,40 @@
             
             const video = document.getElementById('cameraPreview');
             const canvas = document.createElement('canvas');
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
             
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(video, 0, 0);
+            // ==================== 줌 적용된 영역 크롭 ====================
+            // currentZoom 값 가져오기 (카메라 모달에서 설정된 값)
+            const zoomLevel = window.currentZoom || 1.0;
+            
+            if (zoomLevel > 1.0) {
+                // 줌이 적용된 경우: 중앙 영역만 크롭
+                const cropWidth = video.videoWidth / zoomLevel;
+                const cropHeight = video.videoHeight / zoomLevel;
+                const cropX = (video.videoWidth - cropWidth) / 2;
+                const cropY = (video.videoHeight - cropHeight) / 2;
+                
+                // 캔버스 크기는 원본 크기로 설정 (화질 유지)
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                
+                const ctx = canvas.getContext('2d');
+                // 크롭된 영역을 전체 캔버스에 확대하여 그리기
+                ctx.drawImage(
+                    video,
+                    cropX, cropY, cropWidth, cropHeight, // 소스 영역 (크롭)
+                    0, 0, canvas.width, canvas.height     // 목적지 영역 (전체)
+                );
+            } else {
+                // 줌이 없는 경우: 전체 영역 캡처
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(video, 0, 0);
+            }
+            // ==================== 줌 적용된 영역 크롭 끝 ====================
             
             // ==================== 마커 오버레이 그리기 ====================
+            const ctx = canvas.getContext('2d');
             const markerCanvas = document.getElementById('markerCanvas');
             const markers = window.getMarkers ? window.getMarkers() : [];
             
@@ -5073,12 +5058,6 @@
                         } else {
                             // 일반 촬영 (새로 추가)
                             defect.photos.push(imageData);
-                            
-                            if (currentPhotoTarget.step === 'far') {
-                                showToast('✓ 멀리서 촬영 완료! 이제 가까이서 촬영해주세요.');
-                            } else if (currentPhotoTarget.step === 'close') {
-                                showToast('✓ 가까이서 촬영 완료! 하자 사진이 모두 등록되었습니다.');
-                            }
                         }
                         
                         renderDefects();
@@ -5098,11 +5077,9 @@
                                 };
                             }
                             equipment.photos[currentPhotoTarget.location] = imageData;
-                            showToast(`✓ ${currentPhotoTarget.location} 사진이 등록되었습니다.`);
                         } else {
                             // 구 버전 호환성
                             equipment.photo = imageData;
-                            showToast('✓ 사진이 등록되었습니다.');
                         }
                         renderEquipment();
                     }
@@ -6884,18 +6861,13 @@ window.createSummaryFirstPage = function() {
                 const types = defect.types ? defect.types.join(', ') : (defect.type || '-');
                 const description = defect.description || '';
                 
-                // 📏 상세설명 길이에 따라 글자 크기 자동 조정
-                let descFontSize = 11;
-                if (description.length > 50) descFontSize = 9;
-                else if (description.length > 35) descFontSize = 10;
-                
                 defectRows += `
                     <tr style="border-bottom: 1px solid #ddd;">
                         <td style="padding: 8px 3px; text-align: center; font-weight: bold; color: #000; font-size: 12px; vertical-align: middle; border-right: 1px solid #e0e0e0;">${index + 1}</td>
                         <td style="padding: 8px 3px; text-align: center; color: #000; font-weight: 600; font-size: 12px; vertical-align: middle; border-right: 1px solid #e0e0e0;">${spaces}</td>
                         <td style="padding: 8px 3px; text-align: center; color: #000; font-weight: 600; font-size: 12px; vertical-align: middle; border-right: 1px solid #e0e0e0;">${locations}</td>
                         <td style="padding: 8px 3px; color: #000; font-weight: 600; font-size: 12px; vertical-align: middle; border-right: 1px solid #e0e0e0;">${types}</td>
-                        <td style="padding: 8px 4px; color: #000; font-weight: 500; font-size: ${descFontSize}px; word-break: break-word; white-space: normal; line-height: 1.4; vertical-align: middle;">${description || '-'}</td>
+                        <td style="padding: 8px 4px; color: #000; font-weight: 500; font-size: 11px; word-break: break-word; white-space: normal; line-height: 1.4; vertical-align: middle;">${description || '-'}</td>
                     </tr>
                 `;
             });
@@ -6995,18 +6967,13 @@ window.createSummaryFirstPage = function() {
                 const types = defect.types ? defect.types.join(', ') : (defect.type || '-');
                 const description = defect.description || '';
                 
-                // 📏 상세설명 길이에 따라 글자 크기 자동 조정
-                let descFontSize = 12;
-                if (description.length > 50) descFontSize = 10;
-                else if (description.length > 35) descFontSize = 11;
-                
                 defectRows += `
                     <tr style="border-bottom: 1px solid #ddd;">
                         <td style="padding: 10px 4px; text-align: center; font-weight: bold; color: #000; font-size: 13px; vertical-align: middle; border-right: 1px solid #e0e0e0;">${globalIndex}</td>
                         <td style="padding: 10px 4px; text-align: center; color: #000; font-weight: 600; font-size: 13px; vertical-align: middle; border-right: 1px solid #e0e0e0;">${spaces}</td>
                         <td style="padding: 10px 4px; text-align: center; color: #000; font-weight: 600; font-size: 13px; vertical-align: middle; border-right: 1px solid #e0e0e0;">${locations}</td>
                         <td style="padding: 10px 4px; color: #000; font-weight: 600; font-size: 13px; vertical-align: middle; border-right: 1px solid #e0e0e0;">${types}</td>
-                        <td style="padding: 10px 6px; color: #000; font-weight: 500; font-size: ${descFontSize}px; word-break: break-word; white-space: normal; line-height: 1.5; vertical-align: middle;">${description || '-'}</td>
+                        <td style="padding: 10px 6px; color: #000; font-weight: 500; font-size: 12px; word-break: break-word; white-space: normal; line-height: 1.5; vertical-align: middle;">${description || '-'}</td>
                     </tr>
                 `;
             });
