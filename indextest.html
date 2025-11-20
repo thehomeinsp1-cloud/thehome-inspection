@@ -9315,21 +9315,21 @@ window.createSummaryFirstPage = function() {
             if (photos.length === 0) {
                 photoGridHtml = `<div style="text-align:center; padding:30px; color:#ccc;">사진 없음</div>`;
             } else if (photos.length === 1) {
-                // 1장: 중앙 정렬
+                // 1장: 중앙 정렬 (최대 크기)
                 photoGridHtml = `
                     <div style="display: flex; justify-content: center;">
-                        <div style="flex: 1; background: white; position: relative; max-width: 450px; height: 300px;">
+                        <div style="flex: 1; background: white; position: relative; max-width: 550px; height: 400px;">
                             <img src="${photos[0].src}" style="width: 100%; height: 100%; object-fit: contain;" />
                             <div style="position: absolute; bottom: 8px; left: 8px; background: rgba(44, 62, 80, 0.85); color: white; font-size: 11px; padding: 3px 8px; border-radius: 4px; font-weight: 700;">${photos[0].label}</div>
                         </div>
                     </div>
                 `;
             } else if (photos.length === 2) {
-                // 2장: 나란히
+                // 2장: 나란히 (최대 크기)
                 photoGridHtml = `
                     <div style="display: flex; gap: 2px; background: ${R_THEME.border};">
                         ${photos.map((p, i) => `
-                            <div style="flex: 1; background: white; position: relative; height: 250px;">
+                            <div style="flex: 1; background: white; position: relative; height: 350px;">
                                 <img src="${p.src}" style="width: 100%; height: 100%; object-fit: contain;" />
                                 <div style="position: absolute; bottom: 8px; left: 8px; background: ${i === 0 ? 'rgba(44, 62, 80, 0.85)' : R_THEME.equipment}; color: white; font-size: 11px; padding: 3px 8px; border-radius: 4px; font-weight: 700;">${p.label}</div>
                             </div>
@@ -9337,11 +9337,11 @@ window.createSummaryFirstPage = function() {
                     </div>
                 `;
             } else {
-                // 3~4장: 2x2 격자
+                // 3~4장: 2x2 격자 (최대 크기)
                 photoGridHtml = `
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2px; background: ${R_THEME.border};">
                         ${photos.map((p, i) => `
-                            <div style="background: white; position: relative; height: 220px;">
+                            <div style="background: white; position: relative; height: 280px;">
                                 <img src="${p.src}" style="width: 100%; height: 100%; object-fit: contain;" />
                                 <div style="position: absolute; bottom: 6px; left: 6px; background: ${i % 2 === 0 ? 'rgba(44, 62, 80, 0.85)' : R_THEME.equipment}; color: white; font-size: 10px; padding: 2px 6px; border-radius: 3px; font-weight: 700;">${p.label}</div>
                             </div>
@@ -9479,38 +9479,16 @@ window.createSummaryFirstPage = function() {
                 await window.addHTMLPageToPDF(doc, await window.createDefectDetailPage(defectsWithPhotos.slice(i, i+3), i), W, H);
             }
 
-            // 4. 장비 점검 (⚠️스마트 합치기: 사진 갯수 파악 후 페이지 배분)
+            // 4. 장비 점검 (1페이지에 1개 항목씩)
             const equipmentWithPhotos = projectData.equipment.filter(e => (e.photos && Object.values(e.photos).some(p=>p)) || e.photo);
             
             // 인덱스 부여 (표시용)
             equipmentWithPhotos.forEach((item, i) => item._originalIndex = i + 1);
             
-            let i = 0;
-            while(i < equipmentWithPhotos.length) {
+            // 각 장비를 독립적인 페이지에 표시
+            for (let i = 0; i < equipmentWithPhotos.length; i++) {
                 doc.addPage();
-                let batch = [];
-                let currentItem = equipmentWithPhotos[i];
-                
-                // 사진 갯수 계산
-                let photoCount = 0;
-                if(currentItem.photos) photoCount = Object.values(currentItem.photos).filter(p=>p).length;
-                
-                batch.push(currentItem);
-                
-                // 사진이 2장 이하고, 다음 항목도 2장 이하면 합치기
-                if (photoCount <= 2 && (i + 1) < equipmentWithPhotos.length) {
-                    let nextItem = equipmentWithPhotos[i+1];
-                    let nextPhotoCount = 0;
-                    if(nextItem.photos) nextPhotoCount = Object.values(nextItem.photos).filter(p=>p).length;
-                    
-                    if(nextPhotoCount <= 2) {
-                        batch.push(nextItem);
-                        i++; // 다음 항목 건너뛰기
-                    }
-                }
-                
-                await window.addHTMLPageToPDF(doc, window.createEquipmentPage(batch), W, H);
-                i++;
+                await window.addHTMLPageToPDF(doc, window.createEquipmentPage([equipmentWithPhotos[i]]), W, H);
             }
 
             // 4-1. 공기질 측정 페이지 추가
