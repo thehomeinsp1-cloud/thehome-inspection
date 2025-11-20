@@ -6770,11 +6770,12 @@
                 
                 await window.addHTMLPageToPDF(doc, coverHTML, pageWidth, pageHeight);
 
-                // 장비점검 페이지 (2개씩)
-                for (let i = 0; i < equipmentWithPhotos.length; i += 2) {
+                // 장비점검 페이지 (1페이지에 1개씩)
+                equipmentWithPhotos.forEach((item, i) => item._originalIndex = i + 1);
+                
+                for (let i = 0; i < equipmentWithPhotos.length; i++) {
                     doc.addPage();
-                    const batch = equipmentWithPhotos.slice(i, i + 2);
-                    const equipmentHTML = await window.createEquipmentPage(batch, i);
+                    const equipmentHTML = window.createEquipmentPage([equipmentWithPhotos[i]]);
                     await window.addHTMLPageToPDF(doc, equipmentHTML, pageWidth, pageHeight);
                 }
 
