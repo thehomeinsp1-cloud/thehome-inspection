@@ -9117,9 +9117,9 @@ window.createSummaryFirstPage = function() {
             }
         }
 // ==========================================================================
-    // [더홈점검] 최종 수정 패치 v4.6 (장비점검 원상복구 + 통합 디자인)
-    // - 장비점검: 초기 안(1페이지 2개 항목, 2x2 사진 배열)으로 리셋
-    // - 나머지: 100억 로고, 세로줄, 로그인 기능 유지
+    // [더홈점검] 최종 확정 패치 v5.0 (장비점검 초안 레이아웃 리셋)
+    // - 장비점검: 1페이지 2항목, 사진 2x2 정직한 격자 배열 (기교 삭제)
+    // - 하자점검: 100억 로고, 세로줄 디자인 유지
     // ==========================================================================
 
     // 1. [로그인 시스템]
@@ -9152,8 +9152,8 @@ window.createSummaryFirstPage = function() {
 
     // 2. [디자인 테마]
     const R_THEME = {
-        primary: "#10b981",      
-        equipment: "#1e40af",    // 장비점검 (구분을 위해 네이비 유지, 원하시면 변경 가능)
+        primary: "#10b981",      // 하자점검 (녹색)
+        equipment: "#1e40af",    // 장비점검 (네이비)
         dark: "#1f2937",
         light: "#6b7280",
         border: "#e5e7eb",
@@ -9161,7 +9161,7 @@ window.createSummaryFirstPage = function() {
         contact: "문의: 070-8019-1456 / 010-9985-0128"
     };
 
-    // [로고]
+    // [로고] 100억 스타일 (SVG)
     function getPremiumLogo() {
         return `
             <div style="display: flex; align-items: center; gap: 10px;">
@@ -9184,7 +9184,7 @@ window.createSummaryFirstPage = function() {
         `;
     }
 
-    // 3. [하자점검] 표지
+    // 3. [하자점검] 표지 (12개 제한 + 세로줄)
     window.createSummaryFirstPage = function() {
         let defectRows = '';
         const displayDefects = projectData.defects.slice(0, 12);
@@ -9251,7 +9251,9 @@ window.createSummaryFirstPage = function() {
                                 <th style="padding: 10px; text-align: left; font-weight: 800; color: ${R_THEME.dark}; padding-left: 12px;">상세 내용</th>
                             </tr>
                         </thead>
-                        <tbody>${defectRows || `<tr><td colspan="5" style="padding: 30px; text-align: center; color: ${R_THEME.light};">등록된 하자 내역이 없습니다.</td></tr>`}</tbody>
+                        <tbody>
+                            ${defectRows || `<tr><td colspan="5" style="padding: 30px; text-align: center; color: ${R_THEME.light};">등록된 하자 내역이 없습니다.</td></tr>`}
+                        </tbody>
                     </table>
                 </div>
                 <div style="position: absolute; bottom: 40px; left: 45px; right: 45px; padding-top: 15px; border-top: 1px solid ${R_THEME.border}; display: flex; justify-content: space-between; align-items: center; color: ${R_THEME.light}; font-size: 11px;">
@@ -9263,7 +9265,7 @@ window.createSummaryFirstPage = function() {
         `;
     }
 
-    // 4. [하자점검] 리스트
+    // 4. [하자점검] 리스트 (세로줄)
     window.createDefectListPage = function(startIndex, itemsPerPage = 18) {
         let defectRows = '';
         const defectsToDisplay = projectData.defects.slice(startIndex, startIndex + itemsPerPage);
@@ -9314,7 +9316,7 @@ window.createSummaryFirstPage = function() {
         `;
     }
 
-    // 5. [하자점검] 상세 사진
+    // 5. [하자점검] 상세 사진 (구분선 | 포함)
     window.createDefectDetailPage = async function(defects, startIndex) {
         let contentHTML = '';
         for (let idx = 0; idx < defects.length; idx++) {
@@ -9362,7 +9364,7 @@ window.createSummaryFirstPage = function() {
         `;
     }
 
-    // 6. [장비 점검 페이지] (⚠️초기 안으로 복구: 2개 항목/페이지, 2x2 사진)
+    // 6. [장비 점검] (⚠️초안 스타일 복구: 2x2 격자, 사진 작게, 2개/페이지)
     window.createEquipmentPage = function(equipmentList, startIndex) {
         let contentHTML = '';
         
@@ -9371,50 +9373,39 @@ window.createSummaryFirstPage = function() {
             const space = item.space || (item.spaces ? item.spaces.join(', ') : '-');
             const rawPhotos = item.photos || {};
             
-            // 사진 렌더링 (2x2 격자)
-            let photosHtml = '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">';
-            
+            // 사진 4장 2x2 격자 (정직한 배열)
             const locations = [
-                { key: '좌측', color: '#3b82f6' },
-                { key: '우측', color: '#ef4444' },
-                { key: '바닥1', color: '#f59e0b' },
-                { key: '바닥2', color: '#f59e0b' }
+                { key: '좌측', color: '#3b82f6' }, { key: '우측', color: '#ef4444' },
+                { key: '바닥1', color: '#f59e0b' }, { key: '바닥2', color: '#f59e0b' }
             ];
 
+            let photosHtml = `<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">`;
+            
             locations.forEach(loc => {
                 const p = rawPhotos[loc.key];
-                if (p) {
-                    photosHtml += `
-                        <div style="border: 1px solid #eee; border-radius: 4px; overflow: hidden;">
-                            <div style="background: ${loc.color}15; color: ${loc.color}; font-size: 11px; font-weight: 800; text-align: center; padding: 4px; border-bottom: 1px solid ${loc.color}30;">${loc.key}</div>
-                            <div style="height: 140px; background: #fff; display: flex; align-items: center; justify-content: center;">
-                                <img src="${p}" style="width: 100%; height: 100%; object-fit: cover;" />
-                            </div>
+                photosHtml += `
+                    <div style="border: 1px solid #eee; border-radius: 4px; overflow: hidden;">
+                        <div style="background: ${loc.color}15; color: ${loc.color}; font-size: 11px; font-weight: 800; text-align: center; padding: 4px; border-bottom: 1px solid ${loc.color}30;">${loc.key}</div>
+                        <div style="height: 140px; background: #fff; display: flex; align-items: center; justify-content: center;">
+                            ${p ? `<img src="${p}" style="width: 100%; height: 100%; object-fit: cover;" />` : `<span style="font-size:10px; color:#ccc;">미촬영</span>`}
                         </div>
-                    `;
-                } else {
-                     // 사진 없으면 빈칸 (레이아웃 유지)
-                     photosHtml += `
-                        <div style="border: 1px solid #eee; border-radius: 4px; height: 165px; background: #fafafa; display: flex; align-items: center; justify-content: center;">
-                             <span style="font-size: 11px; color: #ccc;">${loc.key} 없음</span>
-                        </div>
-                     `;
-                }
+                    </div>
+                `;
             });
             photosHtml += '</div>';
 
             contentHTML += `
-                 <div style="margin-bottom: 30px; break-inside: avoid; border: 1px solid ${R_THEME.border}; border-radius: 8px; overflow: hidden;">
-                    <div style="background: ${R_THEME.bg}; padding: 8px 15px; border-bottom: 1px solid ${R_THEME.border}; display: flex; justify-content: space-between; align-items: center;">
-                        <div style="font-weight: 800; color: ${R_THEME.dark}; font-size: 14px;">
-                            <span style="color: ${R_THEME.equipment}; margin-right: 8px;">#${String(globalIndex).padStart(2, '0')}</span>
+                 <div style="margin-bottom: 25px; break-inside: avoid; border: 1px solid ${R_THEME.border}; border-radius: 8px; overflow: hidden; background: white;">
+                    <div style="background: ${R_THEME.equipment}; color: white; padding: 8px 15px; display: flex; justify-content: space-between; align-items: center;">
+                        <div style="font-size: 14px; font-weight: 700;">
+                            <span style="background: rgba(255,255,255,0.2); padding: 2px 8px; border-radius: 4px; margin-right: 8px;">#${String(globalIndex).padStart(2, '0')}</span>
                             ${space}
                         </div>
-                        <div style="font-size: 11px; color: ${R_THEME.equipment}; border: 1px solid ${R_THEME.equipment}; padding: 2px 6px; border-radius: 4px; font-weight: 700;">장비 점검</div>
+                        <div style="font-size: 11px; font-weight: 600; opacity: 0.9;">장비 점검</div>
                     </div>
-                    <div style="padding: 10px 15px; border-bottom: 1px solid ${R_THEME.border};">
-                        <div style="font-size: 11px; color: ${R_THEME.light}; margin-bottom: 4px; font-weight: 700;">점검 결과</div>
-                        <div style="font-size: 13px; color: ${R_THEME.dark}; font-weight: 600;">${item.inspection || '특이사항 없음'}</div>
+                    <div style="padding: 10px 15px; border-bottom: 1px solid #e5e7eb; background: #f8fafc;">
+                        <div style="font-size: 11px; color: #64748b; font-weight: 700; margin-bottom: 2px;">점검 결과</div>
+                        <div style="font-size: 13px; color: #1e293b; font-weight: 600;">${item.inspection || '특이사항 없음'}</div>
                     </div>
                     <div style="padding: 10px;">
                          ${photosHtml}
@@ -9427,8 +9418,11 @@ window.createSummaryFirstPage = function() {
             <div style="width: 794px; min-height: 1123px; background: white; font-family: 'Malgun Gothic', sans-serif; padding: 45px; box-sizing: border-box; position: relative;">
                 <div style="border-bottom: 2px solid ${R_THEME.equipment}; padding-bottom: 15px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: flex-end;">
                      <div style="display: flex; align-items: center; gap: 10px;">
-                        <div style="font-size: 22px; font-weight: 900; color: ${R_THEME.dark};">장비 점검 리포트</div>
+                        ${getPremiumLogo()}
+                        <div style="height: 24px; width: 2px; background: #e5e7eb;"></div>
+                        <div style="font-size: 22px; font-weight: 800; color: ${R_THEME.equipment};">장비 점검 리포트</div>
                     </div>
+                    <div style="font-size: 12px; font-weight: 600; color: ${R_THEME.light};">${projectData.apartmentName}</div>
                 </div>
 
                 ${contentHTML}
@@ -9441,7 +9435,7 @@ window.createSummaryFirstPage = function() {
         `;
     }
 
-    // 7. [PDF 생성 로직] (장비점검 2개씩 배치로 복구)
+    // 7. [PDF 생성] (장비점검 2개씩 묶기 복구)
     window.generatePDF = async function() {
         if (!projectData.apartmentName || !projectData.dong || !projectData.ho) return alert('프로젝트 정보를 입력해주세요');
         document.getElementById('loading').classList.add('active');
@@ -9469,7 +9463,7 @@ window.createSummaryFirstPage = function() {
                 await window.addHTMLPageToPDF(doc, await window.createDefectDetailPage(defectsWithPhotos.slice(i, i+3), i), W, H);
             }
 
-            // 4. 장비 점검 (⚠️ 2개씩 루프 = 1페이지 2항목)
+            // 4. 장비 점검 (⚠️ 2개씩 묶어서 출력)
             const equipmentWithPhotos = projectData.equipment.filter(e => (e.photos && Object.values(e.photos).some(p=>p)) || e.photo);
             for (let i = 0; i < equipmentWithPhotos.length; i += 2) {
                 doc.addPage();
