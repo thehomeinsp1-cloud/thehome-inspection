@@ -1590,9 +1590,9 @@
     </div>
 
     <script>
-        // ==================== 로그인 시스템 ====================
-        // Google Sheets 공개 URL (CSV 형식)
-        // 사용 방법: Google Sheets → 파일 → 공유 → 웹에 게시 → CSV 형식 선택
+// ==================== 로그인 시스템 (원본 복구) ====================
+        
+        // ⚠️ 사용자님의 고유 Google Sheets 주소입니다. (지우지 마세요)
         const GOOGLE_SHEETS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS4Tz0-NgXyWR36c9hkZ4ko0ll4g-oj5YGHZysuH0c1Mngr4Ev9-VgiryTHHcMd2Zq5NuOmOI6dMZeh/pub?output=csv';
         
         // 로그인 확인
@@ -1625,15 +1625,22 @@
         
         // 로그인 화면 표시
         function showLoginScreen() {
-            document.getElementById('loginOverlay').classList.remove('hidden');
-            document.getElementById('logoutBtn').style.display = 'none';
-            document.getElementById('accessCodeInput').focus();
+            const overlay = document.getElementById('loginOverlay');
+            const logoutBtn = document.getElementById('logoutBtn');
+            const codeInput = document.getElementById('accessCodeInput');
+            
+            if (overlay) overlay.classList.remove('hidden');
+            if (logoutBtn) logoutBtn.style.display = 'none';
+            if (codeInput) codeInput.focus();
         }
         
         // 로그인 화면 숨김
         function hideLoginScreen() {
-            document.getElementById('loginOverlay').classList.add('hidden');
-            document.getElementById('logoutBtn').style.display = 'block';
+            const overlay = document.getElementById('loginOverlay');
+            const logoutBtn = document.getElementById('logoutBtn');
+            
+            if (overlay) overlay.classList.add('hidden');
+            if (logoutBtn) logoutBtn.style.display = 'block';
         }
         
         // Google Sheets에서 액세스 코드 및 PIN 확인
@@ -1656,16 +1663,22 @@
                     
                     // CSV 형식: 액세스코드,이름,소속,상태,PIN
                     const columns = line.split(',');
-                    const accessCode = columns[0]?.trim();
-                    const status = columns[3]?.trim();
-                    const storedPin = columns[4]?.trim();
+                    // 따옴표 제거 및 공백 제거
+                    const accessCode = columns[0]?.replace(/"/g, '').trim();
+                    const name = columns[1]?.replace(/"/g, '').trim();
+                    const team = columns[2]?.replace(/"/g, '').trim();
+                    const status = columns[3]?.replace(/"/g, '').trim();
+                    const storedPin = columns[4]?.replace(/"/g, '').trim();
                     
+                    // 디버깅용 (콘솔에서 확인 가능)
+                    console.log('Checking:', accessCode, status, storedPin);
+
                     // 코드 일치 및 활성 상태 및 PIN 확인
                     if (accessCode === code && status === '활성' && storedPin === pin) {
                         return {
                             success: true,
-                            name: columns[1]?.trim(),
-                            team: columns[2]?.trim()
+                            name: name,
+                            team: team
                         };
                     }
                 }
@@ -1673,9 +1686,9 @@
                 return { success: false, message: '이름 또는 PIN이 올바르지 않습니다' };
                 
             } catch (error) {
-                console.error('액세스 코드 확인 오류:', error);
+                console.error('로그인 확인 오류:', error);
                 
-                // 오프라인이거나 시트 접근 불가 시 - 마지막 로그인 정보 확인
+                // 오프라인이거나 시트 접근 불가 시 - 마지막 로그인 정보 확인 (오프라인 모드)
                 const lastLogin = localStorage.getItem('dhLoginData');
                 if (lastLogin) {
                     try {
@@ -1704,32 +1717,29 @@
             const pinInput = document.getElementById('pinInput');
             const errorDiv = document.getElementById('loginError');
             const loginBtn = document.getElementById('loginBtn');
+            
+            if (!codeInput || !pinInput) return;
+
             const code = codeInput.value.trim();
             const pin = pinInput.value.trim();
             
             // 입력값 확인
             if (!code) {
-                errorDiv.textContent = '이름을 입력하세요';
-                errorDiv.classList.add('show');
+                if(errorDiv) { errorDiv.textContent = '이름을 입력하세요'; errorDiv.classList.add('show'); }
                 return;
             }
             
             if (!pin) {
-                errorDiv.textContent = 'PIN을 입력하세요';
-                errorDiv.classList.add('show');
-                return;
-            }
-            
-            if (pin.length !== 4) {
-                errorDiv.textContent = 'PIN은 4자리 숫자입니다';
-                errorDiv.classList.add('show');
+                if(errorDiv) { errorDiv.textContent = 'PIN을 입력하세요'; errorDiv.classList.add('show'); }
                 return;
             }
             
             // 로딩 상태
-            loginBtn.disabled = true;
-            loginBtn.textContent = '확인 중...';
-            errorDiv.classList.remove('show');
+            if(loginBtn) {
+                loginBtn.disabled = true;
+                loginBtn.textContent = '확인 중...';
+            }
+            if(errorDiv) errorDiv.classList.remove('show');
             
             // 액세스 코드 및 PIN 확인
             const result = await verifyAccessCode(code, pin);
@@ -1745,11 +1755,11 @@
                 };
                 localStorage.setItem('dhLoginData', JSON.stringify(loginData));
                 
-                // 로그인 성공
-                if (result.offline) {
-                    showToast('✓ 오프라인 모드로 로그인되었습니다', 'info');
+                // 로그인 성공 알림
+                if (typeof showToast === 'function') {
+                    showToast(result.offline ? '✓ 오프라인 모드로 로그인되었습니다' : '✓ 로그인되었습니다');
                 } else {
-                    showToast('✓ 로그인되었습니다', 'success');
+                    alert('로그인되었습니다.');
                 }
                 
                 hideLoginScreen();
@@ -1758,8 +1768,15 @@
                 
             } else {
                 // 로그인 실패
-                errorDiv.textContent = result.message;
-                errorDiv.classList.add('show');
+                if(errorDiv) {
+                    errorDiv.textContent = result.message;
+                    errorDiv.classList.add('show');
+                } else {
+                    alert(result.message);
+                }
+            }
+
+            if(loginBtn) {
                 loginBtn.disabled = false;
                 loginBtn.textContent = '로그인';
             }
@@ -1770,28 +1787,24 @@
             if (confirm('로그아웃하시겠습니까?')) {
                 localStorage.removeItem('dhLoginData');
                 showLoginScreen();
-                showToast('로그아웃되었습니다', 'info');
+                if (typeof showToast === 'function') showToast('로그아웃되었습니다');
             }
         }
         
-        // Enter 키로 로그인
+        // Enter 키 이벤트 연결
         document.addEventListener('DOMContentLoaded', () => {
             const codeInput = document.getElementById('accessCodeInput');
             const pinInput = document.getElementById('pinInput');
             
             if (codeInput) {
                 codeInput.addEventListener('keypress', (e) => {
-                    if (e.key === 'Enter') {
-                        pinInput.focus(); // PIN 입력 필드로 이동
-                    }
+                    if (e.key === 'Enter') pinInput.focus();
                 });
             }
             
             if (pinInput) {
                 pinInput.addEventListener('keypress', (e) => {
-                    if (e.key === 'Enter') {
-                        handleLogin();
-                    }
+                    if (e.key === 'Enter') handleLogin();
                 });
             }
             
