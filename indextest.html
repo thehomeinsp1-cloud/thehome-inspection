@@ -9117,10 +9117,9 @@ window.createSummaryFirstPage = function() {
             }
         }
 // ==========================================================================
-    // [더홈점검] 최종 해결 패치 v4.4 (장비점검: 1페이지 1항목 + 사진 자동 확대)
-    // - 1페이지에 무조건 장비 1개만 출력 (최대 4장 제한)
-    // - 사진이 2장이면 위아래로 꽉 차게 확대
-    // - 사진이 1장이면 중앙에 초대형 확대
+    // [더홈점검] 최종 완결 패치 v4.5 (장비점검 리포트: 1페이지 꽉 찬 4장 레이아웃)
+    // - 핵심: 1페이지 1개 항목 고정 / 사진 크기 대폭 확대 / 정사각형 비율 유지
+    // - 사진 왜곡(찌그러짐) 방지 및 가독성 극대화
     // ==========================================================================
 
     // 1. [로그인 시스템]
@@ -9162,7 +9161,7 @@ window.createSummaryFirstPage = function() {
         contact: "문의: 070-8019-1456 / 010-9985-0128"
     };
 
-    // [로고] 100억 스타일
+    // [로고]
     function getPremiumLogo() {
         return `
             <div style="display: flex; align-items: center; gap: 10px;">
@@ -9185,264 +9184,97 @@ window.createSummaryFirstPage = function() {
         `;
     }
 
-    // 3. [하자점검] 표지 (기존 유지)
-    window.createSummaryFirstPage = function() {
-        let defectRows = '';
-        const displayDefects = projectData.defects.slice(0, 12);
-        
-        displayDefects.forEach((defect, index) => {
-            const spaces = defect.spaces ? defect.spaces.join(', ') : '-';
-            const locations = defect.locations ? defect.locations.join(', ') : '-';
-            const types = defect.types ? defect.types.join(', ') : '-';
-            const description = defect.description || '-';
-            
-            defectRows += `
-                <tr style="border-bottom: 1px solid ${R_THEME.border};">
-                    <td style="padding: 9px; text-align: center; font-weight: 800; color: ${R_THEME.primary}; border-right: 1px solid ${R_THEME.border}; font-size: 11px;">${String(index + 1).padStart(2, '0')}</td>
-                    <td style="padding: 9px; text-align: center; font-weight: 700; color: ${R_THEME.dark}; border-right: 1px solid ${R_THEME.border}; font-size: 11px;">${spaces}</td>
-                    <td style="padding: 9px; text-align: center; font-weight: 600; color: ${R_THEME.dark}; border-right: 1px solid ${R_THEME.border}; font-size: 11px;">${locations}</td>
-                    <td style="padding: 9px; text-align: center; font-weight: 600; color: ${R_THEME.dark}; border-right: 1px solid ${R_THEME.border}; font-size: 11px;">${types}</td>
-                    <td style="padding: 9px 12px; color: #4b5563; font-weight: 500; font-size: 11px; text-align: left;">${description}</td>
-                </tr>
-            `;
-        });
-        const today = new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
-        return `
-            <div style="width: 794px; min-height: 1123px; background: white; font-family: 'Malgun Gothic', sans-serif; padding: 45px; box-sizing: border-box; position: relative;">
-                <div style="display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 2px solid ${R_THEME.primary}; padding-bottom: 20px; margin-bottom: 35px;">
-                    <div>${getPremiumLogo()}</div>
-                    <div style="text-align: right;">
-                        <div style="font-size: 11px; color: ${R_THEME.primary}; font-weight: 800; margin-bottom: 5px; letter-spacing: 2px;">PRE-INSPECTION REPORT</div>
-                        <div style="font-size: 28px; color: ${R_THEME.dark}; font-weight: 900; letter-spacing: -1px;">사전점검 결과보고서</div>
-                    </div>
-                </div>
-                <div style="display: flex; gap: 20px; margin-bottom: 35px; height: 280px;">
-                    <div style="flex: 1; background: ${R_THEME.bg}; border: 1px solid ${R_THEME.border}; border-radius: 8px; padding: 25px;">
-                        <h3 style="margin: 0 0 20px 0; font-size: 14px; color: ${R_THEME.primary}; font-weight: 800; border-bottom: 1px solid ${R_THEME.border}; padding-bottom: 10px;">PROJECT INFORMATION</h3>
-                        <table style="width: 100%; font-size: 13px; border-collapse: collapse;">
-                            <tr><td style="padding: 8px 0; color: ${R_THEME.light}; font-weight: 600; width: 70px;">아파트명</td><td style="font-weight: 800; color: ${R_THEME.dark}; text-align: right;">${projectData.apartmentName}</td></tr>
-                            <tr><td style="padding: 8px 0; color: ${R_THEME.light}; font-weight: 600;">동 / 호수</td><td style="font-weight: 800; color: ${R_THEME.dark}; text-align: right;">${projectData.dong}동 ${projectData.ho}호</td></tr>
-                            <tr><td style="padding: 8px 0; color: ${R_THEME.light}; font-weight: 600;">점검일자</td><td style="font-weight: 800; color: ${R_THEME.dark}; text-align: right;">${projectData.inspectionDate}</td></tr>
-                            <tr><td style="padding: 8px 0; color: ${R_THEME.light}; font-weight: 600;">고객명</td><td style="font-weight: 800; color: ${R_THEME.dark}; text-align: right;">${projectData.customerName}</td></tr>
-                            <tr><td style="padding: 15px 0 0 0; color: ${R_THEME.light}; font-weight: 600;">총 하자</td><td style="padding: 15px 0 0 0; font-weight: 900; color: #ef4444; font-size: 20px; text-align: right;">${projectData.defects.length} 건</td></tr>
-                        </table>
-                    </div>
-                    <div style="flex: 1.4; background: white; border: 1px solid ${R_THEME.border}; border-radius: 8px; overflow: hidden; position: relative; display: flex; align-items: center; justify-content: center;">
-                         ${projectData.floorplan 
-                            ? `<img src="${projectData.floorplan}" style="max-width: 95%; max-height: 95%; object-fit: contain;" />` 
-                            : `<div style="color: #9ca3af; font-weight: 600; font-size: 13px;">평면도 미등록</div>`
-                        }
-                        <div style="position: absolute; top: 12px; left: 12px; background: rgba(255,255,255,0.9); padding: 4px 8px; border: 1px solid ${R_THEME.border}; border-radius: 4px; font-size: 10px; font-weight: 800; color: ${R_THEME.light};">FLOOR PLAN</div>
-                    </div>
-                </div>
-                <div style="flex: 1;">
-                    <div style="display: flex; align-items: center; margin-bottom: 10px;">
-                        <div style="width: 4px; height: 18px; background: ${R_THEME.primary}; margin-right: 8px;"></div>
-                        <h3 style="margin: 0; font-size: 16px; color: ${R_THEME.dark}; font-weight: 800;">주요 하자 내역</h3>
-                    </div>
-                    <table style="width: 100%; border-collapse: collapse; font-size: 11px; table-layout: fixed; border: 1px solid ${R_THEME.border};">
-                        <thead>
-                            <tr style="background: ${R_THEME.bg}; border-bottom: 1px solid ${R_THEME.border};">
-                                <th style="padding: 10px; width: 45px; font-weight: 800; color: ${R_THEME.dark}; border-right: 1px solid ${R_THEME.border};">NO</th>
-                                <th style="padding: 10px; width: 80px; font-weight: 800; color: ${R_THEME.dark}; border-right: 1px solid ${R_THEME.border};">공간</th>
-                                <th style="padding: 10px; width: 80px; font-weight: 800; color: ${R_THEME.dark}; border-right: 1px solid ${R_THEME.border};">위치</th>
-                                <th style="padding: 10px; width: 100px; font-weight: 800; color: ${R_THEME.dark}; border-right: 1px solid ${R_THEME.border};">유형</th>
-                                <th style="padding: 10px; text-align: left; font-weight: 800; color: ${R_THEME.dark}; padding-left: 12px;">상세 내용</th>
-                            </tr>
-                        </thead>
-                        <tbody>${defectRows || `<tr><td colspan="5" style="padding: 30px; text-align: center; color: ${R_THEME.light};">등록된 하자 내역이 없습니다.</td></tr>`}</tbody>
-                    </table>
-                </div>
-                <div style="position: absolute; bottom: 40px; left: 45px; right: 45px; padding-top: 15px; border-top: 1px solid ${R_THEME.border}; display: flex; justify-content: space-between; align-items: center; color: ${R_THEME.light}; font-size: 11px;">
-                    <div style="font-weight: 800; color: ${R_THEME.dark};">THE HOME INSPECTION</div>
-                    <div style="font-weight: 800; color: ${R_THEME.dark};">${R_THEME.contact}</div>
-                    <div style="font-weight: 600;">${today}</div>
-                </div>
-            </div>
-        `;
-    }
-
-    // 4. [하자점검] 리스트 (기존 유지)
-    window.createDefectListPage = function(startIndex, itemsPerPage = 18) {
-        let defectRows = '';
-        const defectsToDisplay = projectData.defects.slice(startIndex, startIndex + itemsPerPage);
-        
-        defectsToDisplay.forEach((defect, index) => {
-            const globalIndex = startIndex + index + 1;
-            defectRows += `
-                <tr style="border-bottom: 1px solid ${R_THEME.border};">
-                    <td style="padding: 11px; text-align: center; font-weight: 800; color: ${R_THEME.primary}; border-right: 1px solid ${R_THEME.border};">${String(globalIndex).padStart(2, '0')}</td>
-                    <td style="padding: 11px; text-align: center; font-weight: 700; color: ${R_THEME.dark}; border-right: 1px solid ${R_THEME.border};">${defect.spaces || '-'}</td>
-                    <td style="padding: 11px; text-align: center; font-weight: 600; color: ${R_THEME.dark}; border-right: 1px solid ${R_THEME.border};">${defect.locations || '-'}</td>
-                    <td style="padding: 11px; text-align: center; font-weight: 600; color: ${R_THEME.dark}; border-right: 1px solid ${R_THEME.border};">${defect.types || '-'}</td>
-                    <td style="padding: 11px 15px; color: #4b5563; font-weight: 500;">${defect.description || '-'}</td>
-                </tr>
-            `;
-        });
-        const totalPages = Math.ceil((projectData.defects.length - 12) / 18) + 1;
-        const currentPage = Math.floor((startIndex - 12) / 18) + 2;
-
-        return `
-            <div style="width: 794px; min-height: 1123px; background: white; font-family: 'Malgun Gothic', sans-serif; padding: 45px; box-sizing: border-box; position: relative;">
-                <div style="border-bottom: 2px solid ${R_THEME.bg}; padding-bottom: 15px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center;">
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <div style="font-size: 20px; font-weight: 800; color: ${R_THEME.primary};">더홈점검</div>
-                        <div style="height: 14px; width: 1px; background: ${R_THEME.border};"></div>
-                        <div style="font-size: 16px; font-weight: 700; color: ${R_THEME.dark};">하자 점검 내역 상세</div>
-                    </div>
-                    <div style="font-size: 12px; font-weight: 600; color: ${R_THEME.light};">${projectData.apartmentName}</div>
-                </div>
-                <table style="width: 100%; border-collapse: collapse; font-size: 12px; table-layout: fixed; border: 1px solid ${R_THEME.border};">
-                    <thead>
-                        <tr style="background: ${R_THEME.bg}; border-bottom: 1px solid ${R_THEME.border};">
-                            <th style="padding: 12px; width: 50px; font-weight: 800; color: ${R_THEME.dark}; border-right: 1px solid ${R_THEME.border};">NO</th>
-                            <th style="padding: 12px; width: 100px; font-weight: 800; color: ${R_THEME.dark}; border-right: 1px solid ${R_THEME.border};">공간</th>
-                            <th style="padding: 12px; width: 100px; font-weight: 800; color: ${R_THEME.dark}; border-right: 1px solid ${R_THEME.border};">위치</th>
-                            <th style="padding: 12px; width: 120px; font-weight: 800; color: ${R_THEME.dark}; border-right: 1px solid ${R_THEME.border};">유형</th>
-                            <th style="padding: 12px; text-align: left; font-weight: 800; color: ${R_THEME.dark}; padding-left: 15px;">상세 내용</th>
-                        </tr>
-                    </thead>
-                    <tbody>${defectRows}</tbody>
-                </table>
-                <div style="position: absolute; bottom: 40px; left: 45px; right: 45px; padding-top: 15px; border-top: 1px solid ${R_THEME.border}; display: flex; justify-content: space-between; align-items: center; color: ${R_THEME.light}; font-size: 11px;">
-                    <div style="font-weight: 800;">THE HOME INSPECTION</div>
-                    <div style="font-weight: 800;">${R_THEME.contact}</div>
-                    <div style="font-weight: 700;">Page ${currentPage} / ${totalPages}</div>
-                </div>
-            </div>
-        `;
-    }
-
-    // 5. [하자점검] 상세 사진 (기존 유지)
-    window.createDefectDetailPage = async function(defects, startIndex) {
-        let contentHTML = '';
-        for (let idx = 0; idx < defects.length; idx++) {
-            const defect = defects[idx];
-            const globalIndex = startIndex + idx + 1;
-            const dongHo = `${projectData.dong}동${projectData.ho}호`;
-            const farPhoto = defect.photos && defect.photos[0] ? await window.addWatermarkToPhoto(defect.photos[0], `${dongHo}_${globalIndex}`) : '';
-            const closePhoto = defect.photos && defect.photos[1] ? await window.addWatermarkToPhoto(defect.photos[1], `${dongHo}_${globalIndex}-1`) : '';
-            const spaces = defect.spaces ? defect.spaces.join(', ') : '-';
-            const description = defect.description || '-';
-            
-            contentHTML += `
-                <div style="margin-bottom: 25px; break-inside: avoid; background: white; border: 1px solid ${R_THEME.border}; border-radius: 8px; overflow: hidden;">
-                    <div style="display: flex; align-items: center; padding: 10px 15px; background: ${R_THEME.bg}; border-bottom: 1px solid ${R_THEME.border};">
-                        <div style="background: ${R_THEME.primary}; color: white; font-weight: 800; font-size: 12px; padding: 3px 10px; border-radius: 20px; margin-right: 15px;">#${String(globalIndex).padStart(2, '0')}</div>
-                        <div style="font-size: 15px; font-weight: 800; color: ${R_THEME.dark}; margin-right: 12px;">${spaces}</div>
-                        <div style="color: #cbd5e1; margin-right: 12px;">|</div>
-                        <div style="font-size: 13px; color: #4b5563; font-weight: 600; flex: 1;">${description}</div>
-                    </div>
-                    <div style="display: flex; gap: 2px; padding: 2px; background: ${R_THEME.border};">
-                        <div style="flex: 1; background: white; position: relative; height: 210px;">
-                            ${farPhoto ? `<img src="${farPhoto}" style="width: 100%; height: 100%; object-fit: contain;" />` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#ccc;font-size:12px;">사진 없음</div>`}
-                            <div style="position: absolute; bottom: 8px; left: 8px; background: rgba(0,0,0,0.7); color: white; font-size: 11px; padding: 3px 8px; border-radius: 4px; font-weight: 700;">원경</div>
-                        </div>
-                        <div style="flex: 1; background: white; position: relative; height: 210px;">
-                            ${closePhoto ? `<img src="${closePhoto}" style="width: 100%; height: 100%; object-fit: contain;" />` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#ccc;font-size:12px;">사진 없음</div>`}
-                            <div style="position: absolute; bottom: 8px; left: 8px; background: ${R_THEME.primary}; color: white; font-size: 11px; padding: 3px 8px; border-radius: 4px; font-weight: 700;">근경</div>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-        return `
-            <div style="width: 794px; min-height: 1123px; background: white; font-family: 'Malgun Gothic', sans-serif; padding: 45px; box-sizing: border-box; position: relative;">
-                <div style="border-bottom: 2px solid ${R_THEME.primary}; padding-bottom: 15px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: flex-end;">
-                    <div style="font-size: 22px; font-weight: 900; color: ${R_THEME.dark};">하자 상세 리포트 (사진)</div>
-                    <div style="font-size: 12px; font-weight: 700; color: ${R_THEME.light};">${projectData.apartmentName}</div>
-                </div>
-                ${contentHTML}
-                <div style="position: absolute; bottom: 40px; left: 45px; right: 45px; padding-top: 15px; border-top: 1px solid ${R_THEME.border}; display: flex; justify-content: space-between; align-items: center; color: ${R_THEME.light}; font-size: 11px;">
-                    <div style="font-weight: 800; color: ${R_THEME.dark};">THE HOME INSPECTION</div>
-                    <div style="font-weight: 800; color: ${R_THEME.dark};">${R_THEME.contact}</div>
-                </div>
-            </div>
-        `;
-    }
-
-    // 6. [장비 점검 페이지] (⚠️수정: 사진 2장일 때 꽉 채우기 / 1페이지 1항목 고정)
+    // 3. [장비 점검 페이지] (사진 4장 꽉 차게 수정됨)
     window.createEquipmentPage = function(equipmentList, startIndex) {
         let contentHTML = '';
         
-        // 무조건 1개의 장비 항목만 처리 (loop는 1회만 돔)
         equipmentList.forEach((item, idx) => {
             const globalIndex = startIndex + idx + 1;
             const space = item.space || (item.spaces ? item.spaces.join(', ') : '-');
             const rawPhotos = item.photos || {};
             
-            // 4장 데이터 추출
+            // 사진 데이터 추출
             let photos = [];
+            // 순서 보장: 좌측 -> 우측 -> 바닥1 -> 바닥2
             if(rawPhotos['좌측']) photos.push({label:'좌측', src:rawPhotos['좌측'], color:'#3b82f6'});
             if(rawPhotos['우측']) photos.push({label:'우측', src:rawPhotos['우측'], color:'#ef4444'});
             if(rawPhotos['바닥1']) photos.push({label:'바닥1', src:rawPhotos['바닥1'], color:'#f59e0b'});
             if(rawPhotos['바닥2']) photos.push({label:'바닥2', src:rawPhotos['바닥2'], color:'#f59e0b'});
 
-            // 사진 렌더링 로직 (자동 조절)
-            let photoHtml = '';
+            // 사진 렌더링 HTML 생성
+            let photoGridHtml = '';
             
             if (photos.length === 0) {
-                photoHtml = '<div style="text-align:center; padding:50px; color:#ccc;">사진 없음</div>';
-            } 
-            else if (photos.length === 1) {
-                // 1장: 중앙에 매우 크게 (높이 400px)
-                photoHtml = `
-                    <div style="display: flex; justify-content: center; margin-top: 30px;">
-                        <div style="border: 1px solid #e5e7eb; border-radius: 6px; overflow: hidden; width: 80%;">
-                            <div style="background: ${photos[0].color}15; color: ${photos[0].color}; font-size: 14px; font-weight: 800; text-align: center; padding: 8px; border-bottom: 1px solid ${photos[0].color}30;">${photos[0].label}</div>
-                            <div style="height: 400px; display: flex; align-items: center; justify-content: center; background: white;">
+                photoGridHtml = `
+                    <div style="height: 600px; display: flex; align-items: center; justify-content: center; border: 2px dashed #ddd; border-radius: 8px; color: #aaa;">
+                        사진이 없습니다
+                    </div>
+                `;
+            } else if (photos.length === 4 || photos.length === 3) {
+                // ⚠️ 4장일 때: 2x2 초대형 그리드 (페이지 꽉 채움)
+                photoGridHtml = `
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; height: 800px;">
+                        ${photos.map(p => `
+                            <div style="border: 1px solid #ddd; border-radius: 8px; overflow: hidden; display: flex; flex-direction: column;">
+                                <div style="background: ${p.color}; color: white; text-align: center; padding: 6px; font-weight: bold; font-size: 14px;">
+                                    ${p.label}
+                                </div>
+                                <div style="flex: 1; position: relative; background: #f0f0f0;">
+                                    <img src="${p.src}" style="width: 100%; height: 100%; object-fit: cover;" />
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            } else if (photos.length === 2) {
+                // ⚠️ 2장일 때: 위아래로 꽉 차게 (각 높이 약 400px)
+                photoGridHtml = `
+                    <div style="display: flex; flex-direction: column; gap: 20px; height: 800px;">
+                        ${photos.map(p => `
+                            <div style="flex: 1; border: 1px solid #ddd; border-radius: 8px; overflow: hidden; display: flex; flex-direction: column;">
+                                <div style="background: ${p.color}; color: white; text-align: center; padding: 8px; font-weight: bold; font-size: 15px;">
+                                    ${p.label}
+                                </div>
+                                <div style="flex: 1; position: relative; background: #f0f0f0;">
+                                    <img src="${p.src}" style="width: 100%; height: 100%; object-fit: cover;" />
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            } else {
+                // ⚠️ 1장일 때: 중앙 초대형
+                photoGridHtml = `
+                    <div style="height: 800px; display: flex; justify-content: center; align-items: center;">
+                        <div style="width: 100%; height: 600px; border: 1px solid #ddd; border-radius: 8px; overflow: hidden; display: flex; flex-direction: column;">
+                            <div style="background: ${photos[0].color}; color: white; text-align: center; padding: 10px; font-weight: bold; font-size: 16px;">
+                                ${photos[0].label}
+                            </div>
+                            <div style="flex: 1; position: relative; background: #f0f0f0;">
                                 <img src="${photos[0].src}" style="width: 100%; height: 100%; object-fit: contain;" />
                             </div>
                         </div>
                     </div>
                 `;
-            } 
-            else if (photos.length === 2) {
-                // 2장: 위/아래로 배치하여 페이지 꽉 채우기 (각 높이 350px)
-                photoHtml = `
-                    <div style="display: flex; flex-direction: column; gap: 20px; margin-top: 20px;">
-                        ${photos.map(p => `
-                            <div style="border: 1px solid #e5e7eb; border-radius: 6px; overflow: hidden;">
-                                <div style="background: ${p.color}15; color: ${p.color}; font-size: 13px; font-weight: 800; text-align: center; padding: 8px; border-bottom: 1px solid ${p.color}30;">${p.label}</div>
-                                <div style="height: 350px; display: flex; align-items: center; justify-content: center; background: white;">
-                                    <img src="${p.src}" style="width: 100%; height: 100%; object-fit: contain;" />
-                                </div>
-                            </div>
-                        `).join('')}
-                    </div>
-                `;
-            } 
-            else {
-                // 3~4장: 2x2 격자 (기본)
-                photoHtml = `
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px;">
-                        ${photos.map(p => `
-                            <div style="border: 1px solid #e5e7eb; border-radius: 6px; overflow: hidden;">
-                                <div style="background: ${p.color}15; color: ${p.color}; font-size: 12px; font-weight: 800; text-align: center; padding: 6px; border-bottom: 1px solid ${p.color}30;">${p.label}</div>
-                                <div style="height: 240px; display: flex; align-items: center; justify-content: center; background: white;">
-                                    <img src="${p.src}" style="width: 100%; height: 100%; object-fit: contain;" />
-                                </div>
-                            </div>
-                        `).join('')}
-                    </div>
-                `;
             }
 
             contentHTML += `
-                <div style="margin-bottom: 30px; border: 2px solid ${R_THEME.equipment}; border-radius: 12px; overflow: hidden; background: white; min-height: 850px;">
+                <div style="border: 2px solid ${R_THEME.equipment}; border-radius: 12px; overflow: hidden; background: white; height: 1000px;">
                     <div style="background: ${R_THEME.equipment}; color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center;">
                         <div style="font-size: 18px; font-weight: 700;">
-                            <span style="background: rgba(255,255,255,0.2); padding: 2px 10px; border-radius: 6px; margin-right: 10px;">#${String(globalIndex).padStart(2, '0')}</span>
+                            <span style="background: rgba(255,255,255,0.2); padding: 2px 12px; border-radius: 20px; margin-right: 10px;">#${String(globalIndex).padStart(2, '0')}</span>
                             ${space}
                         </div>
                         <div style="font-size: 14px; font-weight: 600; opacity: 0.9;">장비 점검</div>
                     </div>
-                    <div style="padding: 20px; border-bottom: 1px solid #e5e7eb; background: #f8fafc;">
+                    
+                    <div style="padding: 15px 20px; border-bottom: 1px solid #e5e7eb; background: #f8fafc;">
                         <div style="font-size: 12px; color: #64748b; font-weight: 700; margin-bottom: 5px;">점검 결과</div>
-                        <div style="font-size: 16px; color: #1e293b; font-weight: 600;">${item.inspection || '특이사항 없음'}</div>
+                        <div style="font-size: 15px; color: #1e293b; font-weight: 600;">${item.inspection || '특이사항 없음'}</div>
                     </div>
-                    <div style="padding: 20px;">
-                         ${photoHtml}
+
+                    <div style="padding: 20px; height: 820px;">
+                         ${photoGridHtml}
                     </div>
                 </div>
             `;
@@ -9451,9 +9283,12 @@ window.createSummaryFirstPage = function() {
         return `
             <div style="width: 794px; min-height: 1123px; background: white; font-family: 'Malgun Gothic', sans-serif; padding: 45px; box-sizing: border-box; position: relative;">
                 <div style="border-bottom: 2px solid ${R_THEME.equipment}; padding-bottom: 15px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: flex-end;">
-                     <div style="display: flex; align-items: center; gap: 10px;">
-                        <div style="font-size: 22px; font-weight: 900; color: ${R_THEME.dark};">장비 점검 리포트</div>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        ${getPremiumLogo()}
+                        <div style="height: 24px; width: 2px; background: #e5e7eb;"></div>
+                        <div style="font-size: 22px; font-weight: 800; color: ${R_THEME.equipment};">장비 점검 리포트</div>
                     </div>
+                    <div style="font-size: 12px; font-weight: 600; color: #6b7280;">${projectData.apartmentName}</div>
                 </div>
 
                 ${contentHTML}
@@ -9466,7 +9301,7 @@ window.createSummaryFirstPage = function() {
         `;
     }
 
-    // 7. [PDF 생성 로직] (1페이지 1장비 강제)
+    // 4. [PDF 생성 로직] (1페이지 1장비 강제)
     window.generatePDF = async function() {
         if (!projectData.apartmentName || !projectData.dong || !projectData.ho) return alert('프로젝트 정보를 입력해주세요');
         document.getElementById('loading').classList.add('active');
@@ -9476,7 +9311,7 @@ window.createSummaryFirstPage = function() {
             const doc = new jsPDF('p', 'mm', 'a4');
             const W = 210, H = 297;
 
-            // 1. 표지
+            // 1. 표지 (하자점검)
             await window.addHTMLPageToPDF(doc, window.createSummaryFirstPage(), W, H);
 
             // 2. 하자 목록
@@ -9494,14 +9329,13 @@ window.createSummaryFirstPage = function() {
                 await window.addHTMLPageToPDF(doc, await window.createDefectDetailPage(defectsWithPhotos.slice(i, i+3), i), W, H);
             }
 
-            // 4. 장비 점검 (⚠️ 1개씩 출력하여 최대 4장 제한 및 페이지 꽉 채우기)
+            // 4. 장비 점검 (⚠️ 1페이지당 1개 항목 출력 - 사진 4장 확보)
             const equipmentWithPhotos = projectData.equipment.filter(e => (e.photos && Object.values(e.photos).some(p=>p)) || e.photo);
             for (let i = 0; i < equipmentWithPhotos.length; i += 1) {
                 doc.addPage();
                 await window.addHTMLPageToPDF(doc, window.createEquipmentPage(equipmentWithPhotos.slice(i, i+1), i), W, H);
             }
 
-            // 다운로드
             const filename = `더홈점검_${projectData.apartmentName}_${projectData.dong}${projectData.ho}.pdf`;
             doc.save(filename);
             
@@ -9511,6 +9345,56 @@ window.createSummaryFirstPage = function() {
         } finally {
             document.getElementById('loading').classList.remove('active');
         }
+    }
+
+    // [나머지 유지되어야 하는 함수들 (로고, 표지 등)은 위에서 정의한 것 사용]
+    // 편의상 위 코드 블록에 모두 통합되어 있으므로 그대로 사용하시면 됩니다.
+    // (createSummaryFirstPage, createDefectListPage, createDefectDetailPage 함수는
+    //  이전 대화의 v4.3 버전과 동일하게 유지되며 이 블록 안에 포함되어야 작동합니다.
+    //  길이 제한으로 생략되었으나, 꼭 이전 코드의 해당 함수들을 함께 넣어주세요.)
+    
+    // ↓↓↓↓↓ 아래에 누락된 함수들(표지, 하자목록, 하자사진)을 꼭 같이 넣어주세요 ↓↓↓↓↓
+    
+    window.createSummaryFirstPage = function() {
+        // ... (이전 v4.3 코드의 createSummaryFirstPage 내용)
+        let defectRows = '';
+        const displayDefects = projectData.defects.slice(0, 12);
+        displayDefects.forEach((defect, index) => {
+            const spaces = defect.spaces ? defect.spaces.join(', ') : '-';
+            const locations = defect.locations ? defect.locations.join(', ') : '-';
+            const types = defect.types ? defect.types.join(', ') : '-';
+            const description = defect.description || '-';
+            defectRows += `<tr style="border-bottom: 1px solid ${R_THEME.border};"><td style="padding:9px;text-align:center;font-weight:800;color:${R_THEME.primary};border-right:1px solid ${R_THEME.border};font-size:11px;">${String(index+1).padStart(2,'0')}</td><td style="padding:9px;text-align:center;font-weight:700;color:${R_THEME.dark};border-right:1px solid ${R_THEME.border};font-size:11px;">${spaces}</td><td style="padding:9px;text-align:center;font-weight:600;color:${R_THEME.dark};border-right:1px solid ${R_THEME.border};font-size:11px;">${locations}</td><td style="padding:9px;text-align:center;font-weight:600;color:${R_THEME.dark};border-right:1px solid ${R_THEME.border};font-size:11px;">${types}</td><td style="padding:9px 12px;color:#4b5563;font-weight:500;font-size:11px;">${description}</td></tr>`;
+        });
+        const today = new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
+        return `<div style="width:794px;min-height:1123px;background:white;font-family:'Malgun Gothic',sans-serif;padding:45px;box-sizing:border-box;position:relative;"><div style="display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid ${R_THEME.primary};padding-bottom:20px;margin-bottom:35px;"><div>${getPremiumLogo()}</div><div style="text-align:right;"><div style="font-size:11px;color:${R_THEME.primary};font-weight:800;margin-bottom:5px;letter-spacing:2px;">PRE-INSPECTION REPORT</div><div style="font-size:28px;color:${R_THEME.dark};font-weight:900;letter-spacing:-1px;">사전점검 결과보고서</div></div></div><div style="display:flex;gap:20px;margin-bottom:35px;height:280px;"><div style="flex:1;background:${R_THEME.bg};border:1px solid ${R_THEME.border};border-radius:8px;padding:25px;"><h3 style="margin:0 0 20px 0;font-size:14px;color:${R_THEME.primary};font-weight:800;border-bottom:1px solid ${R_THEME.border};padding-bottom:10px;">PROJECT INFORMATION</h3><table style="width:100%;font-size:13px;border-collapse:collapse;"><tr><td style="padding:8px 0;color:${R_THEME.light};font-weight:600;width:70px;">아파트명</td><td style="font-weight:800;color:${R_THEME.dark};text-align:right;">${projectData.apartmentName}</td></tr><tr><td style="padding:8px 0;color:${R_THEME.light};font-weight:600;">동 / 호수</td><td style="font-weight:800;color:${R_THEME.dark};text-align:right;">${projectData.dong}동 ${projectData.ho}호</td></tr><tr><td style="padding:8px 0;color:${R_THEME.light};font-weight:600;">점검일자</td><td style="font-weight:800;color:${R_THEME.dark};text-align:right;">${projectData.inspectionDate}</td></tr><tr><td style="padding:8px 0;color:${R_THEME.light};font-weight:600;">고객명</td><td style="font-weight:800;color:${R_THEME.dark};text-align:right;">${projectData.customerName}</td></tr><tr><td style="padding:15px 0 0 0;color:${R_THEME.light};font-weight:600;">총 하자</td><td style="padding:15px 0 0 0;font-weight:900;color:#ef4444;font-size:20px;text-align:right;">${projectData.defects.length} 건</td></tr></table></div><div style="flex:1.4;background:white;border:1px solid ${R_THEME.border};border-radius:8px;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;">${projectData.floorplan?`<img src="${projectData.floorplan}" style="max-width:95%;max-height:95%;object-fit:contain;"/>`:`<div style="color:#9ca3af;font-weight:600;font-size:13px;">평면도 미등록</div>`}<div style="position:absolute;top:12px;left:12px;background:rgba(255,255,255,0.9);padding:4px 8px;border:1px solid ${R_THEME.border};border-radius:4px;font-size:10px;font-weight:800;color:${R_THEME.light};">FLOOR PLAN</div></div></div><div style="flex:1;"><div style="display:flex;align-items:center;margin-bottom:10px;"><div style="width:4px;height:18px;background:${R_THEME.primary};margin-right:8px;"></div><h3 style="margin:0;font-size:16px;color:${R_THEME.dark};font-weight:800;">주요 하자 내역</h3></div><table style="width:100%;border-collapse:collapse;font-size:11px;table-layout:fixed;border:1px solid ${R_THEME.border};"><thead><tr style="background:${R_THEME.bg};border-bottom:1px solid ${R_THEME.border};"><th style="padding:10px;width:45px;font-weight:800;color:${R_THEME.dark};border-right:1px solid ${R_THEME.border};">NO</th><th style="padding:10px;width:80px;font-weight:800;color:${R_THEME.dark};border-right:1px solid ${R_THEME.border};">공간</th><th style="padding:10px;width:80px;font-weight:800;color:${R_THEME.dark};border-right:1px solid ${R_THEME.border};">위치</th><th style="padding:10px;width:100px;font-weight:800;color:${R_THEME.dark};border-right:1px solid ${R_THEME.border};">유형</th><th style="padding:10px;text-align:left;font-weight:800;color:${R_THEME.dark};padding-left:12px;">상세 내용</th></tr></thead><tbody>${defectRows||`<tr><td colspan="5" style="padding:30px;text-align:center;color:${R_THEME.light};">등록된 하자 내역이 없습니다.</td></tr>`}</tbody></table></div><div style="position:absolute;bottom:40px;left:45px;right:45px;padding-top:15px;border-top:1px solid ${R_THEME.border};display:flex;justify-content:space-between;align-items:center;color:${R_THEME.light};font-size:11px;"><div style="font-weight:800;color:${R_THEME.dark};">THE HOME INSPECTION</div><div style="font-weight:800;color:${R_THEME.dark};">${R_THEME.contact}</div><div style="font-weight:600;">${today}</div></div></div>`;
+    }
+
+    window.createDefectListPage = function(startIndex, itemsPerPage=18) {
+        let defectRows = '';
+        const defectsToDisplay = projectData.defects.slice(startIndex, startIndex + itemsPerPage);
+        defectsToDisplay.forEach((defect, index) => {
+            const globalIndex = startIndex + index + 1;
+            defectRows += `<tr style="border-bottom:1px solid ${R_THEME.border};"><td style="padding:11px;text-align:center;font-weight:800;color:${R_THEME.primary};border-right:1px solid ${R_THEME.border};">${String(globalIndex).padStart(2,'0')}</td><td style="padding:11px;text-align:center;font-weight:700;color:${R_THEME.dark};border-right:1px solid ${R_THEME.border};">${defect.spaces||'-'}</td><td style="padding:11px;text-align:center;font-weight:600;color:${R_THEME.dark};border-right:1px solid ${R_THEME.border};">${defect.locations||'-'}</td><td style="padding:11px;text-align:center;font-weight:600;color:${R_THEME.dark};border-right:1px solid ${R_THEME.border};">${defect.types||'-'}</td><td style="padding:11px 15px;color:#4b5563;font-weight:500;">${defect.description||'-'}</td></tr>`;
+        });
+        const totalPages = Math.ceil((projectData.defects.length-12)/18)+1;
+        const currentPage = Math.floor((startIndex-12)/18)+2;
+        return `<div style="width:794px;min-height:1123px;background:white;font-family:'Malgun Gothic',sans-serif;padding:45px;box-sizing:border-box;position:relative;"><div style="border-bottom:2px solid ${R_THEME.bg};padding-bottom:15px;margin-bottom:25px;display:flex;justify-content:space-between;align-items:center;"><div style="display:flex;align-items:center;gap:10px;"><div style="font-size:20px;font-weight:800;color:${R_THEME.primary};">더홈점검</div><div style="height:14px;width:1px;background:${R_THEME.border};"></div><div style="font-size:16px;font-weight:700;color:${R_THEME.dark};">하자 점검 내역 상세</div></div><div style="font-size:12px;font-weight:600;color:${R_THEME.light};">${projectData.apartmentName}</div></div><table style="width:100%;border-collapse:collapse;font-size:12px;table-layout:fixed;border:1px solid ${R_THEME.border};"><thead><tr style="background:${R_THEME.bg};border-bottom:1px solid ${R_THEME.border};"><th style="padding:12px;width:50px;font-weight:800;color:${R_THEME.dark};border-right:1px solid ${R_THEME.border};">NO</th><th style="padding:12px;width:100px;font-weight:800;color:${R_THEME.dark};border-right:1px solid ${R_THEME.border};">공간</th><th style="padding:12px;width:100px;font-weight:800;color:${R_THEME.dark};border-right:1px solid ${R_THEME.border};">위치</th><th style="padding:12px;width:120px;font-weight:800;color:${R_THEME.dark};border-right:1px solid ${R_THEME.border};">유형</th><th style="padding:12px;text-align:left;font-weight:800;color:${R_THEME.dark};padding-left:15px;">상세 내용</th></tr></thead><tbody>${defectRows}</tbody></table><div style="position:absolute;bottom:40px;left:45px;right:45px;padding-top:15px;border-top:1px solid ${R_THEME.border};display:flex;justify-content:space-between;align-items:center;color:${R_THEME.light};font-size:11px;"><div style="font-weight:800;">THE HOME INSPECTION</div><div style="font-weight:800;">${R_THEME.contact}</div><div style="font-weight:700;">Page ${currentPage} / ${totalPages}</div></div></div>`;
+    }
+
+    window.createDefectDetailPage = async function(defects, startIndex) {
+        let contentHTML = '';
+        for (let idx = 0; idx < defects.length; idx++) {
+            const defect = defects[idx];
+            const globalIndex = startIndex + idx + 1;
+            const dongHo = `${projectData.dong}동${projectData.ho}호`;
+            const farPhoto = defect.photos && defect.photos[0] ? await window.addWatermarkToPhoto(defect.photos[0], `${dongHo}_${globalIndex}`) : '';
+            const closePhoto = defect.photos && defect.photos[1] ? await window.addWatermarkToPhoto(defect.photos[1], `${dongHo}_${globalIndex}-1`) : '';
+            const spaces = defect.spaces ? defect.spaces.join(', ') : '-';
+            const description = defect.description || '-';
+            contentHTML += `<div style="margin-bottom:25px;break-inside:avoid;background:white;border:1px solid ${R_THEME.border};border-radius:8px;overflow:hidden;"><div style="display:flex;align-items:center;padding:10px 15px;background:${R_THEME.bg};border-bottom:1px solid ${R_THEME.border};"><div style="background:${R_THEME.primary};color:white;font-weight:800;font-size:12px;padding:3px 10px;border-radius:20px;margin-right:15px;">#${String(globalIndex).padStart(2,'0')}</div><div style="font-size:15px;font-weight:800;color:${R_THEME.dark};margin-right:12px;">${spaces}</div><div style="color:#cbd5e1;margin-right:12px;">|</div><div style="font-size:13px;color:#4b5563;font-weight:600;flex:1;">${description}</div></div><div style="display:flex;gap:2px;padding:2px;background:${R_THEME.border};"><div style="flex:1;background:white;position:relative;height:210px;">${farPhoto?`<img src="${farPhoto}" style="width:100%;height:100%;object-fit:contain;"/>`:`<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#ccc;font-size:12px;">사진 없음</div>`}<div style="position:absolute;bottom:8px;left:8px;background:rgba(0,0,0,0.7);color:white;font-size:11px;padding:3px 8px;border-radius:4px;font-weight:700;">원경</div></div><div style="flex:1;background:white;position:relative;height:210px;">${closePhoto?`<img src="${closePhoto}" style="width:100%;height:100%;object-fit:contain;"/>`:`<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#ccc;font-size:12px;">사진 없음</div>`}<div style="position:absolute;bottom:8px;left:8px;background:${R_THEME.primary};color:white;font-size:11px;padding:3px 8px;border-radius:4px;font-weight:700;">근경</div></div></div></div>`;
+        }
+        return `<div style="width:794px;min-height:1123px;background:white;font-family:'Malgun Gothic',sans-serif;padding:45px;box-sizing:border-box;position:relative;"><div style="border-bottom:2px solid ${R_THEME.primary};padding-bottom:15px;margin-bottom:30px;display:flex;justify-content:space-between;align-items:flex-end;"><div style="font-size:22px;font-weight:900;color:${R_THEME.dark};">하자 상세 리포트 (사진)</div><div style="font-size:12px;font-weight:700;color:${R_THEME.light};">${projectData.apartmentName}</div></div>${contentHTML}<div style="position:absolute;bottom:40px;left:45px;right:45px;padding-top:15px;border-top:1px solid ${R_THEME.border};display:flex;justify-content:space-between;align-items:center;color:${R_THEME.light};font-size:11px;"><div style="font-weight:800;color:${R_THEME.dark};">THE HOME INSPECTION</div><div style="font-weight:800;color:${R_THEME.dark};">${R_THEME.contact}</div></div></div>`;
     }
     </script>
 </body>
