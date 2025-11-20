@@ -9483,6 +9483,16 @@ window.createSummaryFirstPage = function() {
                 i++;
             }
 
+            // 4-1. 공기질 측정 페이지 추가
+            const airQualityWithData = projectData.airQuality.filter(room => 
+                room.radon || room.formaldehyde || room.vocs
+            );
+            if (airQualityWithData.length > 0) {
+                doc.addPage();
+                const airQualityHTML = window.createAirQualityDetailPage();
+                await window.addHTMLPageToPDF(doc, airQualityHTML, W, H);
+            }
+
             // 5. 가이드 페이지 추가
             doc.addPage(); await window.addHTMLPageToPDF(doc, window.createWarrantyGuidePage1(), W, H);
             doc.addPage(); await window.addHTMLPageToPDF(doc, window.createAirQualityManagementGuidePage(), W, H);
@@ -9561,7 +9571,7 @@ window.createSummaryFirstPage = function() {
                     </div>
                     
                     <!-- 하자 요약 -->
-                    <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 20px 25px;">
+                    <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 20px 25px; margin-bottom: 25px;">
                         <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 10px;">
                             <div style="width: 22px; height: 22px; background: #e74c3c; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 13px;">!</div>
                             <span style="color: #991b1b; font-size: 15px; font-weight: 700;">입주 전 사전점검 완료</span>
@@ -9578,6 +9588,22 @@ window.createSummaryFirstPage = function() {
                                 <div style="color: #6b7280; font-size: 11px; margin-bottom: 4px; font-weight: 600;">증빙 사진</div>
                                 <div style="color: #dc2626; font-size: 26px; font-weight: 800;">${projectData.defects.filter(d => d.photos && d.photos.length > 0).reduce((sum, d) => sum + d.photos.length, 0)}</div>
                             </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 점검 항목 -->
+                    <div style="padding: 18px 0; border-top: 2px solid #e5e7eb; border-bottom: 2px solid #e5e7eb;">
+                        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                            <div style="width: 6px; height: 6px; background: #e74c3c; border-radius: 50%;"></div>
+                            <span style="color: #374151; font-size: 13px; font-weight: 600;">벽체 수직 및 바닥 수평 점검</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                            <div style="width: 6px; height: 6px; background: #e74c3c; border-radius: 50%;"></div>
+                            <span style="color: #374151; font-size: 13px; font-weight: 600;">실내 공기질 측정</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <div style="width: 6px; height: 6px; background: #e74c3c; border-radius: 50%;"></div>
+                            <span style="color: #374151; font-size: 13px; font-weight: 600;">마감 품질 및 시공 상태 점검</span>
                         </div>
                     </div>
                     
