@@ -9116,8 +9116,6 @@ window.createSummaryFirstPage = function() {
                 themeToggle.textContent = '🌙';
             }
         }
-
-    </script>
 // ==========================================================================
     // [더홈점검] 최종 완결 패치 v5.2 (장비점검 스마트 합치기 + 가이드 리뉴얼 복구)
     // - 장비점검: 사진 수(1~2장)에 따라 1페이지에 2개 항목 자동 배치
@@ -9482,5 +9480,280 @@ window.createSummaryFirstPage = function() {
         }
         return `<div style="width:794px;min-height:1123px;background:white;font-family:'Malgun Gothic',sans-serif;padding:45px;box-sizing:border-box;position:relative;"><div style="border-bottom:2px solid ${R_THEME.primary};padding-bottom:15px;margin-bottom:30px;display:flex;justify-content:space-between;align-items:flex-end;"><div style="font-size:22px;font-weight:900;color:${R_THEME.dark};">하자 상세 리포트 (사진)</div><div style="font-size:12px;font-weight:700;color:${R_THEME.light};">${projectData.apartmentName}</div></div>${contentHTML}<div style="position:absolute;bottom:40px;left:45px;right:45px;padding-top:15px;border-top:1px solid ${R_THEME.border};display:flex;justify-content:space-between;align-items:center;color:${R_THEME.light};font-size:11px;"><div style="font-weight:800;color:${R_THEME.dark};">THE HOME INSPECTION</div><div style="font-weight:800;color:${R_THEME.dark};">${R_THEME.contact}</div></div></div>`;
     }
+// ==========================================================================
+    // [더홈점검] 추가 패치 v5.3 (가이드북 디자인 리뉴얼)
+    // - 텍스트 위주의 가이드를 이미지/아이콘이 포함된 전문 브로슈어 스타일로 변경
+    // - SVG 일러스트를 사용하여 별도 이미지 파일 없이도 고화질 출력 지원
+    // ==========================================================================
+
+    // [공통] 가이드 헤더 생성 함수
+    function getGuideHeaderHTML(title, iconPath, color) {
+        return `
+            <div style="display: flex; align-items: center; margin-bottom: 30px; border-bottom: 3px solid ${color}; padding-bottom: 15px;">
+                <div style="width: 50px; height: 50px; background: ${color}; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-right: 15px; color: white;">
+                    <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        ${iconPath}
+                    </svg>
+                </div>
+                <div>
+                    <div style="font-size: 12px; color: ${color}; font-weight: 800; letter-spacing: 1px;">THE HOME GUIDE</div>
+                    <div style="font-size: 24px; font-weight: 900; color: #1f2937;">${title}</div>
+                </div>
+            </div>
+        `;
+    }
+
+    // 1. [하자보수 가이드] (절차 + 기간 통합 디자인)
+    window.createWarrantyGuidePage1 = function() {
+        const header = getGuideHeaderHTML("하자보수 청구 & 담보책임 가이드", "M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z", "#ef4444");
+        
+        return `
+            <div style="width: 794px; min-height: 1123px; background: white; font-family: 'Malgun Gothic', sans-serif; padding: 45px; box-sizing: border-box; position: relative;">
+                ${header}
+
+                <div style="margin-bottom: 35px;">
+                    <h3 style="margin: 0 0 15px 0; font-size: 18px; color: #111827; font-weight: 800;">📌 하자보수 청구 절차 (3 Step)</h3>
+                    
+                    <div style="display: flex; gap: 15px;">
+                        <div style="flex: 1; background: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 20px; position: relative;">
+                            <div style="position: absolute; top: -10px; left: 15px; background: #ef4444; color: white; font-size: 12px; font-weight: bold; padding: 4px 10px; border-radius: 20px;">STEP 01</div>
+                            <div style="font-size: 16px; font-weight: 800; color: #b91c1c; margin-top: 5px; margin-bottom: 10px;">기록 및 촬영</div>
+                            <div style="font-size: 12px; color: #4b5563; line-height: 1.6;">
+                                📸 <strong>사진 촬영 필수</strong><br>
+                                - 원경(위치확인) + 근경(하자식별)<br>
+                                - 자/볼펜 등으로 크기 비교<br>
+                                📝 <strong>내용 기록</strong><br>
+                                - 발견 날짜, 위치, 현상 메모
+                            </div>
+                        </div>
+
+                        <div style="flex: 1; background: #fff7ed; border: 1px solid #fed7aa; border-radius: 12px; padding: 20px; position: relative;">
+                            <div style="position: absolute; top: -10px; left: 15px; background: #f97316; color: white; font-size: 12px; font-weight: bold; padding: 4px 10px; border-radius: 20px;">STEP 02</div>
+                            <div style="font-size: 16px; font-weight: 800; color: #c2410c; margin-top: 5px; margin-bottom: 10px;">접수 및 신청</div>
+                            <div style="font-size: 12px; color: #4b5563; line-height: 1.6;">
+                                🏢 <strong>접수처</strong><br>
+                                - 입주지원센터 / 관리사무소<br>
+                                - 시공사 모바일 앱<br>
+                                📂 <strong>제출 서류</strong><br>
+                                - 하자보수 신청서, 사진자료
+                            </div>
+                        </div>
+
+                        <div style="flex: 1; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 20px; position: relative;">
+                            <div style="position: absolute; top: -10px; left: 15px; background: #22c55e; color: white; font-size: 12px; font-weight: bold; padding: 4px 10px; border-radius: 20px;">STEP 03</div>
+                            <div style="font-size: 16px; font-weight: 800; color: #15803d; margin-top: 5px; margin-bottom: 10px;">보수 및 확인</div>
+                            <div style="font-size: 12px; color: #4b5563; line-height: 1.6;">
+                                🛠️ <strong>보수 공사</strong><br>
+                                - 시공사 방문 일정 협의<br>
+                                - 보수 작업 진행<br>
+                                ✅ <strong>최종 확인</strong><br>
+                                - 보수 완료 확인서 서명
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="background: #f9fafb; border-radius: 16px; padding: 25px; border: 1px solid #e5e7eb;">
+                    <h3 style="margin: 0 0 20px 0; font-size: 18px; color: #111827; font-weight: 800;">⏰ 주요 하자 담보책임 기간 (공동주택관리법)</h3>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
+                        <div style="background: white; border-radius: 10px; padding: 15px; text-align: center; border: 1px solid #e5e7eb; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                            <div style="font-size: 32px; font-weight: 900; color: #3b82f6; margin-bottom: 5px;">2<span style="font-size: 16px;">년</span></div>
+                            <div style="font-size: 14px; font-weight: 800; color: #1f2937; margin-bottom: 8px;">마감 공사</div>
+                            <div style="font-size: 11px; color: #6b7280; line-height: 1.4;">
+                                도배, 타일, 주방가구,<br>수전, 창호, 도장 등<br><strong>(눈에 보이는 마감재)</strong>
+                            </div>
+                        </div>
+
+                        <div style="background: white; border-radius: 10px; padding: 15px; text-align: center; border: 1px solid #e5e7eb; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                            <div style="font-size: 32px; font-weight: 900; color: #f59e0b; margin-bottom: 5px;">3<span style="font-size: 16px;">년</span></div>
+                            <div style="font-size: 14px; font-weight: 800; color: #1f2937; margin-bottom: 8px;">기능 설비</div>
+                            <div style="font-size: 11px; color: #6b7280; line-height: 1.4;">
+                                난방, 가스, 전기, 배관,<br>소방, 환기 설비 등<br><strong>(기능적 중요 설비)</strong>
+                            </div>
+                        </div>
+
+                         <div style="background: white; border-radius: 10px; padding: 15px; text-align: center; border: 1px solid #e5e7eb; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                            <div style="font-size: 32px; font-weight: 900; color: #ef4444; margin-bottom: 5px;">5<span style="font-size: 16px;">년~</span></div>
+                            <div style="font-size: 14px; font-weight: 800; color: #1f2937; margin-bottom: 8px;">구조 안전</div>
+                            <div style="font-size: 11px; color: #6b7280; line-height: 1.4;">
+                                철근, 콘크리트, 지붕,<br>방수, 조적 등<br><strong>(건물 구조 안전)</strong>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top: 15px; font-size: 11px; color: #6b7280; background: #e5e7eb; padding: 10px; border-radius: 6px;">
+                        💡 <strong>Tip:</strong> 입주 초기에 발견된 하자는 가능한 빨리 접수해야 분쟁을 피할 수 있습니다. 2년 차 하자는 기간 만료 전 일괄 접수하는 경우가 많습니다.
+                    </div>
+                </div>
+
+                <div style="position: absolute; bottom: 40px; left: 45px; right: 45px; border-top: 1px solid #e5e7eb; padding-top: 15px; display: flex; justify-content: space-between; align-items: center; font-size: 10px; color: #9ca3af;">
+                    <div style="font-weight: 700;">THE HOME INSPECTION GUIDE</div>
+                    <div>더홈점검</div>
+                </div>
+            </div>
+        `;
+    }
+
+    // 2. [실내공기질 가이드] (베이크아웃 인포그래픽)
+    window.createAirQualityManagementGuidePage = function() {
+        const header = getGuideHeaderHTML("새집증후군 & 공기질 관리", "M3.055 11H5a2 2 0 0 1 2 2v1a2 2 0 0 0 2 2 2 2 0 0 1 2 2v2.945M8 3.935V5.5A2.5 2.5 0 0 0 10.5 8h.5a2 2 0 0 1 2 2 2 2 0 0 0 2 2h.455M18 6a3 3 0 0 0-3-3H4a3 3 0 0 0-3 3v15a3 3 0 0 0 3 3h13a3 3 0 0 0 3-3V9a3 3 0 0 0-3-3z", "#10b981");
+
+        return `
+            <div style="width: 794px; min-height: 1123px; background: white; font-family: 'Malgun Gothic', sans-serif; padding: 45px; box-sizing: border-box; position: relative;">
+                ${header}
+
+                <div style="border: 2px solid #10b981; border-radius: 16px; padding: 0; overflow: hidden; margin-bottom: 30px;">
+                    <div style="background: #10b981; color: white; padding: 12px 20px; font-weight: 800; font-size: 16px;">
+                        🔥 베이크아웃 (Bake-Out) 표준 레시피
+                    </div>
+                    <div style="padding: 25px;">
+                        <div style="display: flex; align-items: center; margin-bottom: 20px;">
+                            <div style="font-size: 40px; margin-right: 20px;">🌡️</div>
+                            <div>
+                                <div style="font-weight: 800; font-size: 14px; color: #1f2937; margin-bottom: 5px;">실내 유해물질 제거의 핵심</div>
+                                <div style="font-size: 12px; color: #4b5563;">
+                                    난방을 통해 실내 온도를 높여 건축 자재 속의 유해물질(포름알데히드 등)을 강제로 배출시키는 방법입니다.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; justify-content: space-between; gap: 10px; text-align: center;">
+                            <div style="flex: 1; background: #f0fdf4; padding: 15px 10px; border-radius: 8px;">
+                                <div style="font-size: 24px; margin-bottom: 10px;">🪟❌</div>
+                                <div style="font-weight: 800; font-size: 13px; color: #166534;">1. 밀폐</div>
+                                <div style="font-size: 11px; color: #166534; margin-top: 5px;">창문 모두 닫기<br>수납장 문 열기</div>
+                            </div>
+                            <div style="display: flex; align-items: center; color: #cbd5e1;">▶</div>
+                            <div style="flex: 1; background: #fef2f2; padding: 15px 10px; border-radius: 8px;">
+                                <div style="font-size: 24px; margin-bottom: 10px;">🔥📈</div>
+                                <div style="font-weight: 800; font-size: 13px; color: #991b1b;">2. 가열</div>
+                                <div style="font-size: 11px; color: #991b1b; margin-top: 5px;">35~40℃ 유지<br>6~10시간 지속</div>
+                            </div>
+                            <div style="display: flex; align-items: center; color: #cbd5e1;">▶</div>
+                            <div style="flex: 1; background: #eff6ff; padding: 15px 10px; border-radius: 8px;">
+                                <div style="font-size: 24px; margin-bottom: 10px;">🌬️✅</div>
+                                <div style="font-weight: 800; font-size: 13px; color: #1e40af;">3. 환기</div>
+                                <div style="font-size: 11px; color: #1e40af; margin-top: 5px;">모든 문 열기<br>1~2시간 환기</div>
+                            </div>
+                        </div>
+                        <div style="text-align: center; margin-top: 15px; font-size: 12px; font-weight: 700; color: #10b981; background: #ecfdf5; padding: 8px; border-radius: 20px;">
+                            🔄 위 과정을 최소 3회 이상 반복해주세요!
+                        </div>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 30px;">
+                    <h3 style="margin: 0 0 15px 0; font-size: 18px; color: #111827; font-weight: 800;">📊 실내공기질 관리법 권고기준 (신축 공동주택)</h3>
+                    <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                        <thead style="background: #1f2937; color: white;">
+                            <tr>
+                                <th style="padding: 12px; border-top-left-radius: 8px;">물질명</th>
+                                <th style="padding: 12px;">기준치</th>
+                                <th style="padding: 12px; border-top-right-radius: 8px;">인체 영향</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr style="border-bottom: 1px solid #e5e7eb;">
+                                <td style="padding: 12px; text-align: center; font-weight: 800; color: #374151;">라돈 (Rn)</td>
+                                <td style="padding: 12px; text-align: center; color: #ef4444; font-weight: 800;">148 Bq/m³ 이하</td>
+                                <td style="padding: 12px; color: #4b5563; font-size: 12px;">폐암 유발 (1급 발암물질)</td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid #e5e7eb; background: #f9fafb;">
+                                <td style="padding: 12px; text-align: center; font-weight: 800; color: #374151;">포름알데히드</td>
+                                <td style="padding: 12px; text-align: center; color: #ef4444; font-weight: 800;">0.21 mg/m³ 이하</td>
+                                <td style="padding: 12px; color: #4b5563; font-size: 12px;">눈/코/목 자극, 알레르기</td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid #e5e7eb;">
+                                <td style="padding: 12px; text-align: center; font-weight: 800; color: #374151;">총휘발성유기화합물</td>
+                                <td style="padding: 12px; text-align: center; color: #ef4444; font-weight: 800;">0.5 mg/m³ 이하</td>
+                                <td style="padding: 12px; color: #4b5563; font-size: 12px;">두통, 현기증, 피로감</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div style="position: absolute; bottom: 40px; left: 45px; right: 45px; border-top: 1px solid #e5e7eb; padding-top: 15px; display: flex; justify-content: space-between; align-items: center; font-size: 10px; color: #9ca3af;">
+                    <div style="font-weight: 700;">THE HOME INSPECTION GUIDE</div>
+                    <div>더홈점검</div>
+                </div>
+            </div>
+        `;
+    }
+
+    // 3. [결로 예방 가이드] (물방울 테마)
+    window.createCondensationGuidePage = function() {
+        const header = getGuideHeaderHTML("결로(이슬맺힘) 예방 가이드", "M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z", "#3b82f6");
+
+        return `
+             <div style="width: 794px; min-height: 1123px; background: white; font-family: 'Malgun Gothic', sans-serif; padding: 45px; box-sizing: border-box; position: relative;">
+                ${header}
+
+                <div style="background: #eff6ff; border-radius: 12px; padding: 25px; margin-bottom: 30px; border-left: 5px solid #3b82f6;">
+                    <h3 style="margin: 0 0 10px 0; font-size: 18px; color: #1e40af;">💧 결로란?</h3>
+                    <p style="margin: 0; font-size: 13px; color: #374151; line-height: 1.6;">
+                        실내외 온도 차이가 심할 때, 실내의 따뜻하고 습한 공기가 차가운 벽면이나 창문에 닿아 물방울로 변하는 현상입니다. 방치하면 <strong>곰팡이의 원인</strong>이 됩니다.
+                    </p>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px;">
+                    <div style="border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden;">
+                        <div style="background: #3b82f6; color: white; padding: 12px; font-weight: 800; text-align: center;">✅ 예방 생활 수칙</div>
+                        <div style="padding: 20px;">
+                            <ul style="margin: 0; padding-left: 20px; font-size: 13px; color: #374151; line-height: 2.2;">
+                                <li><strong>환기:</strong> 하루 2회 이상, 10분씩 창문 열기</li>
+                                <li><strong>빨래:</strong> 실내 건조 자제 (제습기 사용 권장)</li>
+                                <li><strong>가구:</strong> 외벽과 5cm 이상 띄워서 배치</li>
+                                <li><strong>요리/샤워:</strong> 환풍기 반드시 가동</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div style="border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden;">
+                        <div style="background: #60a5fa; color: white; padding: 12px; font-weight: 800; text-align: center;">🌡️ 적정 실내 환경</div>
+                        <div style="padding: 20px; display: flex; flex-direction: column; justify-content: center; height: 100%; box-sizing: border-box;">
+                            <div style="margin-bottom: 20px; text-align: center;">
+                                <div style="font-size: 30px;">🌡️</div>
+                                <div style="font-weight: 800; color: #1f2937;">온도: 20 ~ 22℃</div>
+                            </div>
+                            <div style="text-align: center;">
+                                <div style="font-size: 30px;">💧</div>
+                                <div style="font-weight: 800; color: #1f2937;">습도: 40 ~ 60%</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="background: #fff7ed; border: 1px solid #fdba74; border-radius: 12px; padding: 20px;">
+                    <h3 style="margin: 0 0 15px 0; font-size: 16px; color: #c2410c;">🚨 결로 발생 시 대처법</h3>
+                    <div style="display: flex; gap: 15px;">
+                        <div style="flex: 1; background: white; padding: 15px; border-radius: 8px; text-align: center; border: 1px solid #fed7aa;">
+                            <div style="font-weight: 800; color: #ea580c; margin-bottom: 5px;">1. 닦아내기</div>
+                            <div style="font-size: 11px; color: #4b5563;">마른 수건으로 물기 즉시 제거</div>
+                        </div>
+                        <div style="flex: 1; background: white; padding: 15px; border-radius: 8px; text-align: center; border: 1px solid #fed7aa;">
+                            <div style="font-weight: 800; color: #ea580c; margin-bottom: 5px;">2. 건조하기</div>
+                            <div style="font-size: 11px; color: #4b5563;">헤어드라이어, 선풍기로 말리기</div>
+                        </div>
+                        <div style="flex: 1; background: white; padding: 15px; border-radius: 8px; text-align: center; border: 1px solid #fed7aa;">
+                            <div style="font-weight: 800; color: #ea580c; margin-bottom: 5px;">3. 제거하기</div>
+                            <div style="font-size: 11px; color: #4b5563;">곰팡이는 알코올/락스로 닦기</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="position: absolute; bottom: 40px; left: 45px; right: 45px; border-top: 1px solid #e5e7eb; padding-top: 15px; display: flex; justify-content: space-between; align-items: center; font-size: 10px; color: #9ca3af;">
+                    <div style="font-weight: 700;">THE HOME INSPECTION GUIDE</div>
+                    <div>더홈점검</div>
+                </div>
+            </div>
+        `;
+    }
+
+    // [참고] createSummaryFirstPage, createDefectListPage, createDefectDetailPage, createEquipmentPage는 
+    // 이전 v5.1 패치에 있는 코드가 그대로 유지되어야 합니다.
+    // (이 코드 블록은 가이드 페이지 추가용이므로, 만약 앞선 v5.1 패치를 지우셨다면 
+    // v5.1 패치 코드 + 이 코드 내용을 합쳐서 넣으셔야 합니다.)
+    </script>
 </body>
 </html>
