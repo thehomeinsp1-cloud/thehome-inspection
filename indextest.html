@@ -9716,91 +9716,106 @@ window.createSummaryFirstPage = function() {
 
     // 1. [하자보수 가이드] (절차 + 기간 통합 디자인)
     window.createWarrantyGuidePage1 = function() {
-        const header = getGuideHeaderHTML("하자보수 청구 & 담보책임 가이드", "M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z", "#ef4444");
-        
         return `
             <div style="width: 794px; min-height: 1123px; background: white; font-family: 'Malgun Gothic', sans-serif; padding: 45px; box-sizing: border-box; position: relative;">
-                ${header}
+                <div style="border-bottom: 2px solid #e74c3c; padding-bottom: 15px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: flex-end;">
+                    <div style="font-size: 22px; font-weight: 900; color: ${R_THEME.dark};">하자보수 청구 가이드</div>
+                </div>
 
-                <div style="margin-bottom: 35px;">
-                    <h3 style="margin: 0 0 15px 0; font-size: 18px; color: #111827; font-weight: 800;">📌 하자보수 청구 절차 (3 Step)</h3>
-                    
-                    <div style="display: flex; gap: 15px;">
-                        <div style="flex: 1; background: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 20px; position: relative;">
-                            <div style="position: absolute; top: -10px; left: 15px; background: #ef4444; color: white; font-size: 12px; font-weight: bold; padding: 4px 10px; border-radius: 20px;">STEP 01</div>
-                            <div style="font-size: 16px; font-weight: 800; color: #b91c1c; margin-top: 5px; margin-bottom: 10px;">기록 및 촬영</div>
-                            <div style="font-size: 12px; color: #4b5563; line-height: 1.6;">
-                                📸 <strong>사진 촬영 필수</strong><br>
-                                - 원경(위치확인) + 근경(하자식별)<br>
-                                - 자/볼펜 등으로 크기 비교<br>
-                                📝 <strong>내용 기록</strong><br>
-                                - 발견 날짜, 위치, 현상 메모
-                            </div>
+                <div style="background: #ffebee; border-left: 4px solid #e74c3c; padding: 18px; margin-bottom: 25px; border-radius: 4px;">
+                    <p style="margin: 0; color: #000; font-size: 14px; line-height: 1.8; font-weight: 500;">
+                        하자 발견 시 하자담보책임 기간 내 적절한 절차로 보수 청구하면 무상 수리 가능합니다.
+                    </p>
+                </div>
+
+                <div style="margin-bottom: 25px; background: white; border: 1px solid ${R_THEME.border}; border-radius: 8px; overflow: hidden;">
+                    <div style="display: flex; align-items: center; padding: 12px 15px; background: ${R_THEME.bg}; border-bottom: 1px solid ${R_THEME.border};">
+                        <div style="background: #3498db; color: white; font-weight: 800; font-size: 12px; padding: 3px 10px; border-radius: 20px; margin-right: 15px;">1단계</div>
+                        <div style="font-size: 15px; font-weight: 800; color: ${R_THEME.dark};">하자 발견 즉시 사진 촬영</div>
+                    </div>
+                    <div style="padding: 15px;">
+                        <ul style="margin: 0; padding-left: 20px; font-size: 13px; color: #000; line-height: 2;">
+                            <li><strong>원경 사진:</strong> 하자 위치가 보이도록 전체 공간 촬영</li>
+                            <li><strong>근경 사진:</strong> 하자 부위를 확대하여 상세 촬영</li>
+                            <li><strong>기록 사항:</strong> 발견 날짜, 위치, 하자 내용 메모</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 25px; background: white; border: 1px solid ${R_THEME.border}; border-radius: 8px; overflow: hidden;">
+                    <div style="display: flex; align-items: center; padding: 12px 15px; background: ${R_THEME.bg}; border-bottom: 1px solid ${R_THEME.border};">
+                        <div style="background: #2ecc71; color: white; font-weight: 800; font-size: 12px; padding: 3px 10px; border-radius: 20px; margin-right: 15px;">2단계</div>
+                        <div style="font-size: 15px; font-weight: 800; color: ${R_THEME.dark};">하자보수 신청</div>
+                    </div>
+                    <div style="padding: 15px;">
+                        <div style="background: #fff3e0; padding: 12px; border-radius: 4px; border: 1px solid #f39c12; margin-bottom: 12px;">
+                            <p style="margin: 0; color: #000; font-size: 13px; line-height: 1.8;">
+                                <strong>신청 방법:</strong> ① 관리사무소 접수 (일반) ② 시공사 A/S센터 직접 접수 (긴급/대응 미흡 시)
+                            </p>
                         </div>
-
-                        <div style="flex: 1; background: #fff7ed; border: 1px solid #fed7aa; border-radius: 12px; padding: 20px; position: relative;">
-                            <div style="position: absolute; top: -10px; left: 15px; background: #f97316; color: white; font-size: 12px; font-weight: bold; padding: 4px 10px; border-radius: 20px;">STEP 02</div>
-                            <div style="font-size: 16px; font-weight: 800; color: #c2410c; margin-top: 5px; margin-bottom: 10px;">접수 및 신청</div>
-                            <div style="font-size: 12px; color: #4b5563; line-height: 1.6;">
-                                🏢 <strong>접수처</strong><br>
-                                - 입주지원센터 / 관리사무소<br>
-                                - 시공사 모바일 앱<br>
-                                📂 <strong>제출 서류</strong><br>
-                                - 하자보수 신청서, 사진자료
-                            </div>
-                        </div>
-
-                        <div style="flex: 1; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 20px; position: relative;">
-                            <div style="position: absolute; top: -10px; left: 15px; background: #22c55e; color: white; font-size: 12px; font-weight: bold; padding: 4px 10px; border-radius: 20px;">STEP 03</div>
-                            <div style="font-size: 16px; font-weight: 800; color: #15803d; margin-top: 5px; margin-bottom: 10px;">보수 및 확인</div>
-                            <div style="font-size: 12px; color: #4b5563; line-height: 1.6;">
-                                🛠️ <strong>보수 공사</strong><br>
-                                - 시공사 방문 일정 협의<br>
-                                - 보수 작업 진행<br>
-                                ✅ <strong>최종 확인</strong><br>
-                                - 보수 완료 확인서 서명
-                            </div>
+                        <div style="background: #e3f2fd; padding: 12px; border-radius: 4px; border: 1px solid #3498db;">
+                            <p style="margin: 0 0 8px 0; color: #000; font-size: 13px; font-weight: bold;">제출 서류</p>
+                            <ul style="margin: 0; padding-left: 20px; font-size: 13px; color: #000; line-height: 1.8;">
+                                <li>하자보수 신청서</li>
+                                <li>하자 사진 (원경, 근경)</li>
+                                <li>입주자 정보 (동/호수, 연락처)</li>
+                            </ul>
                         </div>
                     </div>
                 </div>
 
-                <div style="background: #f9fafb; border-radius: 16px; padding: 25px; border: 1px solid #e5e7eb;">
-                    <h3 style="margin: 0 0 20px 0; font-size: 18px; color: #111827; font-weight: 800;">⏰ 주요 하자 담보책임 기간 (공동주택관리법)</h3>
-                    
-                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
-                        <div style="background: white; border-radius: 10px; padding: 15px; text-align: center; border: 1px solid #e5e7eb; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-                            <div style="font-size: 32px; font-weight: 900; color: #3b82f6; margin-bottom: 5px;">2<span style="font-size: 16px;">년</span></div>
-                            <div style="font-size: 14px; font-weight: 800; color: #1f2937; margin-bottom: 8px;">마감 공사</div>
-                            <div style="font-size: 11px; color: #6b7280; line-height: 1.4;">
-                                도배, 타일, 주방가구,<br>수전, 창호, 도장 등<br><strong>(눈에 보이는 마감재)</strong>
-                            </div>
-                        </div>
-
-                        <div style="background: white; border-radius: 10px; padding: 15px; text-align: center; border: 1px solid #e5e7eb; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-                            <div style="font-size: 32px; font-weight: 900; color: #f59e0b; margin-bottom: 5px;">3<span style="font-size: 16px;">년</span></div>
-                            <div style="font-size: 14px; font-weight: 800; color: #1f2937; margin-bottom: 8px;">기능 설비</div>
-                            <div style="font-size: 11px; color: #6b7280; line-height: 1.4;">
-                                난방, 가스, 전기, 배관,<br>소방, 환기 설비 등<br><strong>(기능적 중요 설비)</strong>
-                            </div>
-                        </div>
-
-                         <div style="background: white; border-radius: 10px; padding: 15px; text-align: center; border: 1px solid #e5e7eb; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-                            <div style="font-size: 32px; font-weight: 900; color: #ef4444; margin-bottom: 5px;">5<span style="font-size: 16px;">년~</span></div>
-                            <div style="font-size: 14px; font-weight: 800; color: #1f2937; margin-bottom: 8px;">구조 안전</div>
-                            <div style="font-size: 11px; color: #6b7280; line-height: 1.4;">
-                                철근, 콘크리트, 지붕,<br>방수, 조적 등<br><strong>(건물 구조 안전)</strong>
-                            </div>
-                        </div>
+                <div style="margin-bottom: 25px; background: white; border: 1px solid ${R_THEME.border}; border-radius: 8px; overflow: hidden;">
+                    <div style="display: flex; align-items: center; padding: 12px 15px; background: ${R_THEME.bg}; border-bottom: 1px solid ${R_THEME.border};">
+                        <div style="background: #f39c12; color: white; font-weight: 800; font-size: 12px; padding: 3px 10px; border-radius: 20px; margin-right: 15px;">3단계</div>
+                        <div style="font-size: 15px; font-weight: 800; color: ${R_THEME.dark};">시공사 하자 확인 및 보수</div>
                     </div>
-                    
-                    <div style="margin-top: 15px; font-size: 11px; color: #6b7280; background: #e5e7eb; padding: 10px; border-radius: 6px;">
-                        💡 <strong>Tip:</strong> 입주 초기에 발견된 하자는 가능한 빨리 접수해야 분쟁을 피할 수 있습니다. 2년 차 하자는 기간 만료 전 일괄 접수하는 경우가 많습니다.
+                    <div style="padding: 15px;">
+                        <ul style="margin: 0; padding-left: 20px; font-size: 13px; color: #000; line-height: 2;">
+                            <li>시공사 하자 확인 방문 (일정 협의, 보통 1~2주 소요)</li>
+                            <li>하자 인정 시 보수 일정 협의 및 시행</li>
+                            <li>보수 완료 후 입주자 확인 및 서명</li>
+                            <li><strong>대응 지연 시:</strong> 시공사 본사 A/S센터, 한국소비자원(1372)</li>
+                        </ul>
                     </div>
                 </div>
 
-                <div style="position: absolute; bottom: 40px; left: 45px; right: 45px; border-top: 1px solid #e5e7eb; padding-top: 15px; display: flex; justify-content: space-between; align-items: center; font-size: 10px; color: #9ca3af;">
-                    <div style="font-weight: 700;">THE HOME INSPECTION GUIDE</div>
-                    <div>더홈점검</div>
+                <div style="margin-bottom: 80px; background: white; border: 1px solid ${R_THEME.border}; border-radius: 8px; overflow: hidden;">
+                    <div style="display: flex; align-items: center; padding: 12px 15px; background: #f9fafb; border-bottom: 1px solid ${R_THEME.border};">
+                        <div style="font-size: 15px; font-weight: 800; color: ${R_THEME.dark};">하자담보책임 기간</div>
+                    </div>
+                    <div style="padding: 15px;">
+                        <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                            <thead>
+                                <tr style="background: #f9fafb;">
+                                    <th style="padding: 12px; border: 1px solid ${R_THEME.border}; text-align: left; font-weight: 800; color: ${R_THEME.dark};">구분</th>
+                                    <th style="padding: 12px; border: 1px solid ${R_THEME.border}; text-align: center; font-weight: 800; color: ${R_THEME.dark};">기간</th>
+                                    <th style="padding: 12px; border: 1px solid ${R_THEME.border}; text-align: left; font-weight: 800; color: ${R_THEME.dark};">대상</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td style="padding: 10px; border: 1px solid ${R_THEME.border}; font-weight: bold;">마감재</td>
+                                    <td style="padding: 10px; border: 1px solid ${R_THEME.border}; text-align: center; color: #3498db; font-weight: bold;">2년</td>
+                                    <td style="padding: 10px; border: 1px solid ${R_THEME.border};">도배, 타일, 수전, 창호, 주방가구</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 10px; border: 1px solid ${R_THEME.border}; font-weight: bold;">주요 설비</td>
+                                    <td style="padding: 10px; border: 1px solid ${R_THEME.border}; text-align: center; color: #f39c12; font-weight: bold;">3년</td>
+                                    <td style="padding: 10px; border: 1px solid ${R_THEME.border};">난방, 급배수, 전기, 가스, 소방</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 10px; border: 1px solid ${R_THEME.border}; font-weight: bold;">내력구조부</td>
+                                    <td style="padding: 10px; border: 1px solid ${R_THEME.border}; text-align: center; color: #e74c3c; font-weight: bold;">10년</td>
+                                    <td style="padding: 10px; border: 1px solid ${R_THEME.border};">기둥, 보, 내력벽, 주계단, 지붕</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div style="position: absolute; bottom: 40px; left: 45px; right: 45px; padding-top: 15px; border-top: 1px solid ${R_THEME.border}; display: flex; justify-content: space-between; align-items: center; color: ${R_THEME.light}; font-size: 11px;">
+                    <div style="font-weight: 800; color: ${R_THEME.dark};">THE HOME INSPECTION</div>
+                    <div style="font-weight: 800; color: ${R_THEME.dark};">${R_THEME.contact}</div>
                 </div>
             </div>
         `;
