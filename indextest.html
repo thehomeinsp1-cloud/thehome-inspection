@@ -9117,9 +9117,10 @@ window.createSummaryFirstPage = function() {
             }
         }
 // ==========================================================================
-    // [더홈점검] 통합 최종 패치 v4.3 (하자점검 고급 디자인 + 장비점검 스마트 배치)
-    // - 하자점검: 100억 로고, 세로줄, 고급 레이아웃 복구 완료
-    // - 장비점검: 한 페이지에 2개 항목씩 배치 (공간 낭비 제거), 사진 자동 정렬
+    // [더홈점검] 최종 해결 패치 v4.4 (장비점검: 1페이지 1항목 + 사진 자동 확대)
+    // - 1페이지에 무조건 장비 1개만 출력 (최대 4장 제한)
+    // - 사진이 2장이면 위아래로 꽉 차게 확대
+    // - 사진이 1장이면 중앙에 초대형 확대
     // ==========================================================================
 
     // 1. [로그인 시스템]
@@ -9153,7 +9154,7 @@ window.createSummaryFirstPage = function() {
     // 2. [디자인 테마]
     const R_THEME = {
         primary: "#10b981",      // 하자점검 (녹색)
-        equipment: "#1e40af",    // 장비점검 (네이비)
+        equipment: "#1e40af",    // 장비점검 (네이비 블루)
         dark: "#1f2937",
         light: "#6b7280",
         border: "#e5e7eb",
@@ -9161,7 +9162,7 @@ window.createSummaryFirstPage = function() {
         contact: "문의: 070-8019-1456 / 010-9985-0128"
     };
 
-    // [로고] 100억 스타일 (SVG)
+    // [로고] 100억 스타일
     function getPremiumLogo() {
         return `
             <div style="display: flex; align-items: center; gap: 10px;">
@@ -9184,7 +9185,7 @@ window.createSummaryFirstPage = function() {
         `;
     }
 
-    // 3. [하자점검] 표지 (세로줄 + 레이아웃 복구)
+    // 3. [하자점검] 표지 (기존 유지)
     window.createSummaryFirstPage = function() {
         let defectRows = '';
         const displayDefects = projectData.defects.slice(0, 12);
@@ -9205,9 +9206,7 @@ window.createSummaryFirstPage = function() {
                 </tr>
             `;
         });
-
         const today = new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
-
         return `
             <div style="width: 794px; min-height: 1123px; background: white; font-family: 'Malgun Gothic', sans-serif; padding: 45px; box-sizing: border-box; position: relative;">
                 <div style="display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 2px solid ${R_THEME.primary}; padding-bottom: 20px; margin-bottom: 35px;">
@@ -9251,9 +9250,7 @@ window.createSummaryFirstPage = function() {
                                 <th style="padding: 10px; text-align: left; font-weight: 800; color: ${R_THEME.dark}; padding-left: 12px;">상세 내용</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            ${defectRows || `<tr><td colspan="5" style="padding: 30px; text-align: center; color: ${R_THEME.light};">등록된 하자 내역이 없습니다.</td></tr>`}
-                        </tbody>
+                        <tbody>${defectRows || `<tr><td colspan="5" style="padding: 30px; text-align: center; color: ${R_THEME.light};">등록된 하자 내역이 없습니다.</td></tr>`}</tbody>
                     </table>
                 </div>
                 <div style="position: absolute; bottom: 40px; left: 45px; right: 45px; padding-top: 15px; border-top: 1px solid ${R_THEME.border}; display: flex; justify-content: space-between; align-items: center; color: ${R_THEME.light}; font-size: 11px;">
@@ -9265,7 +9262,7 @@ window.createSummaryFirstPage = function() {
         `;
     }
 
-    // 4. [하자점검] 리스트 (세로줄 적용 복구)
+    // 4. [하자점검] 리스트 (기존 유지)
     window.createDefectListPage = function(startIndex, itemsPerPage = 18) {
         let defectRows = '';
         const defectsToDisplay = projectData.defects.slice(startIndex, startIndex + itemsPerPage);
@@ -9316,7 +9313,7 @@ window.createSummaryFirstPage = function() {
         `;
     }
 
-    // 5. [하자점검] 상세 사진 (구분선 | 복구)
+    // 5. [하자점검] 상세 사진 (기존 유지)
     window.createDefectDetailPage = async function(defects, startIndex) {
         let contentHTML = '';
         for (let idx = 0; idx < defects.length; idx++) {
@@ -9364,66 +9361,88 @@ window.createSummaryFirstPage = function() {
         `;
     }
 
-    // 6. [장비점검] (2개씩 배치 + 스마트 중앙 정렬)
+    // 6. [장비 점검 페이지] (⚠️수정: 사진 2장일 때 꽉 채우기 / 1페이지 1항목 고정)
     window.createEquipmentPage = function(equipmentList, startIndex) {
         let contentHTML = '';
         
+        // 무조건 1개의 장비 항목만 처리 (loop는 1회만 돔)
         equipmentList.forEach((item, idx) => {
             const globalIndex = startIndex + idx + 1;
             const space = item.space || (item.spaces ? item.spaces.join(', ') : '-');
-            
-            // 사진 데이터 추출 (최대 4장 고정)
             const rawPhotos = item.photos || {};
-            let wallPhotos = [];
-            if(rawPhotos['좌측']) wallPhotos.push({label:'좌측', src:rawPhotos['좌측'], color:'#3b82f6'});
-            if(rawPhotos['우측']) wallPhotos.push({label:'우측', src:rawPhotos['우측'], color:'#ef4444'});
             
-            let floorPhotos = [];
-            if(rawPhotos['바닥1']) floorPhotos.push({label:'바닥1', src:rawPhotos['바닥1'], color:'#f59e0b'});
-            if(rawPhotos['바닥2']) floorPhotos.push({label:'바닥2', src:rawPhotos['바닥2'], color:'#f59e0b'});
+            // 4장 데이터 추출
+            let photos = [];
+            if(rawPhotos['좌측']) photos.push({label:'좌측', src:rawPhotos['좌측'], color:'#3b82f6'});
+            if(rawPhotos['우측']) photos.push({label:'우측', src:rawPhotos['우측'], color:'#ef4444'});
+            if(rawPhotos['바닥1']) photos.push({label:'바닥1', src:rawPhotos['바닥1'], color:'#f59e0b'});
+            if(rawPhotos['바닥2']) photos.push({label:'바닥2', src:rawPhotos['바닥2'], color:'#f59e0b'});
 
-            // 행 렌더링 함수 (중앙 정렬, 퍼짐 방지)
-            const renderRow = (photos) => {
-                if(photos.length === 0) return '';
-                
-                const containerStyle = photos.length === 1 
-                    ? "display: flex; justify-content: center; margin-bottom: 10px;"
-                    : "display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;";
-                
-                // 1장일 때 크기 제한 (너무 커지지 않게)
-                const itemStyle = photos.length === 1 ? "width: 60%;" : "";
-
-                return `
-                    <div style="${containerStyle}">
+            // 사진 렌더링 로직 (자동 조절)
+            let photoHtml = '';
+            
+            if (photos.length === 0) {
+                photoHtml = '<div style="text-align:center; padding:50px; color:#ccc;">사진 없음</div>';
+            } 
+            else if (photos.length === 1) {
+                // 1장: 중앙에 매우 크게 (높이 400px)
+                photoHtml = `
+                    <div style="display: flex; justify-content: center; margin-top: 30px;">
+                        <div style="border: 1px solid #e5e7eb; border-radius: 6px; overflow: hidden; width: 80%;">
+                            <div style="background: ${photos[0].color}15; color: ${photos[0].color}; font-size: 14px; font-weight: 800; text-align: center; padding: 8px; border-bottom: 1px solid ${photos[0].color}30;">${photos[0].label}</div>
+                            <div style="height: 400px; display: flex; align-items: center; justify-content: center; background: white;">
+                                <img src="${photos[0].src}" style="width: 100%; height: 100%; object-fit: contain;" />
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } 
+            else if (photos.length === 2) {
+                // 2장: 위/아래로 배치하여 페이지 꽉 채우기 (각 높이 350px)
+                photoHtml = `
+                    <div style="display: flex; flex-direction: column; gap: 20px; margin-top: 20px;">
                         ${photos.map(p => `
-                            <div style="border: 1px solid #e5e7eb; border-radius: 4px; overflow: hidden; background: white; ${itemStyle}">
-                                <div style="background: ${p.color}15; color: ${p.color}; font-size: 11px; font-weight: 800; text-align: center; padding: 4px; border-bottom: 1px solid ${p.color}20;">${p.label}</div>
-                                <div style="height: 180px; display: flex; align-items: center; justify-content: center; background: #fff;">
-                                    <img src="${p.src}" style="width: 100%; height: 100%; object-fit: cover;" />
+                            <div style="border: 1px solid #e5e7eb; border-radius: 6px; overflow: hidden;">
+                                <div style="background: ${p.color}15; color: ${p.color}; font-size: 13px; font-weight: 800; text-align: center; padding: 8px; border-bottom: 1px solid ${p.color}30;">${p.label}</div>
+                                <div style="height: 350px; display: flex; align-items: center; justify-content: center; background: white;">
+                                    <img src="${p.src}" style="width: 100%; height: 100%; object-fit: contain;" />
                                 </div>
                             </div>
                         `).join('')}
                     </div>
                 `;
-            };
+            } 
+            else {
+                // 3~4장: 2x2 격자 (기본)
+                photoHtml = `
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px;">
+                        ${photos.map(p => `
+                            <div style="border: 1px solid #e5e7eb; border-radius: 6px; overflow: hidden;">
+                                <div style="background: ${p.color}15; color: ${p.color}; font-size: 12px; font-weight: 800; text-align: center; padding: 6px; border-bottom: 1px solid ${p.color}30;">${p.label}</div>
+                                <div style="height: 240px; display: flex; align-items: center; justify-content: center; background: white;">
+                                    <img src="${p.src}" style="width: 100%; height: 100%; object-fit: contain;" />
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }
 
             contentHTML += `
-                 <div style="margin-bottom: 20px; break-inside: avoid; border: 1px solid ${R_THEME.border}; border-radius: 8px; overflow: hidden; background: white;">
-                    <div style="background: ${R_THEME.equipment}; color: white; padding: 8px 15px; display: flex; justify-content: space-between; align-items: center;">
-                        <div style="font-size: 14px; font-weight: 700;">
-                            <span style="background: rgba(255,255,255,0.2); padding: 2px 8px; border-radius: 4px; margin-right: 8px;">#${String(globalIndex).padStart(2, '0')}</span>
+                <div style="margin-bottom: 30px; border: 2px solid ${R_THEME.equipment}; border-radius: 12px; overflow: hidden; background: white; min-height: 850px;">
+                    <div style="background: ${R_THEME.equipment}; color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center;">
+                        <div style="font-size: 18px; font-weight: 700;">
+                            <span style="background: rgba(255,255,255,0.2); padding: 2px 10px; border-radius: 6px; margin-right: 10px;">#${String(globalIndex).padStart(2, '0')}</span>
                             ${space}
                         </div>
-                        <div style="font-size: 11px; font-weight: 600; opacity: 0.9;">장비 점검</div>
+                        <div style="font-size: 14px; font-weight: 600; opacity: 0.9;">장비 점검</div>
                     </div>
-                    <div style="padding: 10px 15px; border-bottom: 1px solid #e5e7eb; background: #f8fafc;">
-                        <div style="font-size: 11px; color: #64748b; font-weight: 700; margin-bottom: 2px;">점검 결과</div>
-                        <div style="font-size: 13px; color: #1e293b; font-weight: 600;">${item.inspection || '특이사항 없음'}</div>
+                    <div style="padding: 20px; border-bottom: 1px solid #e5e7eb; background: #f8fafc;">
+                        <div style="font-size: 12px; color: #64748b; font-weight: 700; margin-bottom: 5px;">점검 결과</div>
+                        <div style="font-size: 16px; color: #1e293b; font-weight: 600;">${item.inspection || '특이사항 없음'}</div>
                     </div>
-                    <div style="padding: 12px;">
-                         ${renderRow(wallPhotos)}
-                         ${renderRow(floorPhotos)}
-                         ${(wallPhotos.length === 0 && floorPhotos.length === 0) ? '<div style="text-align:center; padding:20px; color:#9ca3af; font-size:12px;">사진 없음</div>' : ''}
+                    <div style="padding: 20px;">
+                         ${photoHtml}
                     </div>
                 </div>
             `;
@@ -9431,15 +9450,15 @@ window.createSummaryFirstPage = function() {
 
         return `
             <div style="width: 794px; min-height: 1123px; background: white; font-family: 'Malgun Gothic', sans-serif; padding: 45px; box-sizing: border-box; position: relative;">
-                <div style="border-bottom: 2px solid ${R_THEME.equipment}; padding-bottom: 15px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: flex-end;">
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                         <div style="font-size: 22px; font-weight: 900; color: ${R_THEME.dark};">장비 점검 리포트</div>
+                <div style="border-bottom: 2px solid ${R_THEME.equipment}; padding-bottom: 15px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: flex-end;">
+                     <div style="display: flex; align-items: center; gap: 10px;">
+                        <div style="font-size: 22px; font-weight: 900; color: ${R_THEME.dark};">장비 점검 리포트</div>
                     </div>
                 </div>
 
                 ${contentHTML}
 
-                <div style="position: absolute; bottom: 40px; left: 45px; right: 45px; padding-top: 15px; border-top: 1px solid ${R_THEME.border}; display: flex; justify-content: space-between; align-items: center; color: ${R_THEME.light}; font-size: 11px;">
+                <div style="position: absolute; bottom: 40px; left: 45px; right: 45px; padding-top: 15px; border-top: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center; color: ${R_THEME.light}; font-size: 11px;">
                     <div style="font-weight: 800; color: ${R_THEME.dark};">THE HOME INSPECTION</div>
                     <div style="font-weight: 800; color: ${R_THEME.dark};">${R_THEME.contact}</div>
                 </div>
@@ -9447,7 +9466,7 @@ window.createSummaryFirstPage = function() {
         `;
     }
 
-    // 7. [PDF 생성 로직] (장비점검 2개씩 배치)
+    // 7. [PDF 생성 로직] (1페이지 1장비 강제)
     window.generatePDF = async function() {
         if (!projectData.apartmentName || !projectData.dong || !projectData.ho) return alert('프로젝트 정보를 입력해주세요');
         document.getElementById('loading').classList.add('active');
@@ -9460,7 +9479,7 @@ window.createSummaryFirstPage = function() {
             // 1. 표지
             await window.addHTMLPageToPDF(doc, window.createSummaryFirstPage(), W, H);
 
-            // 2. 하자 목록 (12개씩)
+            // 2. 하자 목록
             if (projectData.defects.length > 12) {
                 for (let i = 12; i < projectData.defects.length; i += 18) {
                     doc.addPage();
@@ -9468,18 +9487,18 @@ window.createSummaryFirstPage = function() {
                 }
             }
 
-            // 3. 하자 사진 (3개씩)
+            // 3. 하자 사진
             const defectsWithPhotos = projectData.defects.filter(d => d.photos && d.photos.length > 0);
             for (let i = 0; i < defectsWithPhotos.length; i += 3) {
                 doc.addPage();
                 await window.addHTMLPageToPDF(doc, await window.createDefectDetailPage(defectsWithPhotos.slice(i, i+3), i), W, H);
             }
 
-            // 4. 장비 점검 (2개씩 배치하여 밑으로 이어지게)
+            // 4. 장비 점검 (⚠️ 1개씩 출력하여 최대 4장 제한 및 페이지 꽉 채우기)
             const equipmentWithPhotos = projectData.equipment.filter(e => (e.photos && Object.values(e.photos).some(p=>p)) || e.photo);
-            for (let i = 0; i < equipmentWithPhotos.length; i += 2) { // 2개씩 루프
+            for (let i = 0; i < equipmentWithPhotos.length; i += 1) {
                 doc.addPage();
-                await window.addHTMLPageToPDF(doc, window.createEquipmentPage(equipmentWithPhotos.slice(i, i+2), i), W, H);
+                await window.addHTMLPageToPDF(doc, window.createEquipmentPage(equipmentWithPhotos.slice(i, i+1), i), W, H);
             }
 
             // 다운로드
