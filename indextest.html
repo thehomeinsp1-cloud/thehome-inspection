@@ -9117,25 +9117,37 @@ window.createSummaryFirstPage = function() {
             }
         }
 // ============================================================
-    // [더홈점검] PDF 리포트 디자인 리뉴얼 패치 (v3.2)
+    // [더홈점검] PDF 리포트 디자인 최종 패치 (v3.3 - 로고 및 연락처 포함)
     // 기존 기능은 유지하고, 보고서 디자인만 엔지니어링 스타일로 변경합니다.
     // ============================================================
 
-    // 1. 로고 생성 헬퍼 (이미지 없이도 깨끗한 로고 생성)
-    function getReportLogoHtml() {
-        return `
-            <div style="display: flex; align-items: center; gap: 8px;">
-                <svg width="36" height="36" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M20 4L4 16H8V34H16V24H24V34H32V16H36L20 4Z" fill="#10b981" stroke="white" stroke-width="2" stroke-linejoin="round"/>
-                    <path d="M16 24C16 21.7909 17.7909 20 20 20C22.2091 20 24 21.7909 24 24V34H16V24Z" fill="#059669"/>
-                </svg>
-                <div style="display: flex; flex-direction: column; justify-content: center;">
-                    <div style="font-size: 24px; font-weight: 900; color: #1f2937; letter-spacing: -1px; line-height: 1; font-family: 'Malgun Gothic', sans-serif;">
+    // ⚠️ [중요] 여기에 PNG 로고 이미지를 Base64로 변환하여 넣으세요.
+    // 변환 사이트 예시: https://www.base64-image.de/
+    // 이미지 파일이 없을 경우 아래 기본 SVG 로고가 대신 사용됩니다.
+    const COMPANY_LOGO_BASE64 = ""; 
+    // 예: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA..."
+
+    // ⚠️ [중요] 여기에 회사 연락처를 입력하세요.
+    const COMPANY_CONTACT_INFO = "문의: 050-0000-0000"; // 예: "더홈점검 | T. 02-1234-5678 | F. 02-1234-5679"
+
+    // 1. 로고 생성 헬퍼 함수 (Base64 로고 또는 SVG 텍스트 로고)
+    function getReportLogoHtml(height = '40px') {
+        if (COMPANY_LOGO_BASE64) {
+            return `<img src="${COMPANY_LOGO_BASE64}" style="height: ${height}; object-fit: contain;" />`;
+        } else {
+            // 기본 SVG 로고 (이미지 없을 때 대체)
+            return `
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <svg width="36" height="36" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M20 4L4 16H8V34H16V24H24V34H32V16H36L20 4Z" fill="#10b981" stroke="white" stroke-width="2" stroke-linejoin="round"/>
+                        <path d="M16 24C16 21.7909 17.7909 20 20 20C22.2091 20 24 21.7909 24 24V34H16V24Z" fill="#059669"/>
+                    </svg>
+                    <div style="font-size: 24px; font-weight: 900; color: #1f2937; letter-spacing: -1px; font-family: 'Malgun Gothic', sans-serif;">
                         더홈점검
                     </div>
                 </div>
-            </div>
-        `;
+            `;
+        }
     }
 
     // 2. 표지 및 요약 페이지 (디자인 변경)
@@ -9165,7 +9177,7 @@ window.createSummaryFirstPage = function() {
         return `
             <div style="width: 794px; min-height: 1123px; background: white; font-family: 'Malgun Gothic', sans-serif; padding: 45px; box-sizing: border-box; position: relative;">
                 <div style="display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 3px solid #10b981; padding-bottom: 20px; margin-bottom: 35px;">
-                    <div>${getReportLogoHtml()}</div>
+                    <div>${getReportLogoHtml('50px')}</div>
                     <div style="text-align: right;">
                         <div style="font-size: 11px; color: #10b981; font-weight: 800; margin-bottom: 4px; letter-spacing: 2px; text-transform: uppercase;">Pre-Inspection Report</div>
                         <div style="font-size: 28px; color: #1f2937; font-weight: 900; letter-spacing: -0.5px;">사전점검 결과보고서</div>
@@ -9173,7 +9185,7 @@ window.createSummaryFirstPage = function() {
                 </div>
 
                 <div style="display: flex; gap: 20px; margin-bottom: 35px;">
-                    <div style="flex: 1; background: #f9fafb; border-radius: 12px; padding: 25px; border: 1px solid #e5e7eb;">
+                    <div style="flex: 1; background: #f9fafb; border-radius: 12px; padding: 25px; border: 1px solid #e5e7eb; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
                         <h3 style="margin: 0 0 20px 0; font-size: 14px; color: #10b981; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;">Project Info</h3>
                         <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
                             <tr><td style="padding: 8px 0; color: #9ca3af; width: 80px; font-weight: 600;">아파트명</td><td style="padding: 8px 0; color: #1f2937; font-weight: 700;">${projectData.apartmentName}</td></tr>
@@ -9184,7 +9196,7 @@ window.createSummaryFirstPage = function() {
                         </table>
                     </div>
 
-                    <div style="flex: 1.2; background: white; border-radius: 12px; border: 1px solid #e5e7eb; overflow: hidden; position: relative; display: flex; align-items: center; justify-content: center;">
+                    <div style="flex: 1.2; background: white; border-radius: 12px; border: 1px solid #e5e7eb; overflow: hidden; position: relative; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
                         ${projectData.floorplan 
                             ? `<img src="${projectData.floorplan}" style="max-width: 100%; max-height: 100%; object-fit: contain;" />` 
                             : `<div style="color: #d1d5db; font-size: 13px; text-align: center; display: flex; flex-direction: column; gap: 10px; align-items: center;"><span style="font-size: 24px;">📐</span><span>평면도가 등록되지 않았습니다</span></div>`
@@ -9216,6 +9228,7 @@ window.createSummaryFirstPage = function() {
 
                 <div style="position: absolute; bottom: 40px; left: 45px; right: 45px; border-top: 1px solid #e5e7eb; padding-top: 15px; display: flex; justify-content: space-between; align-items: center; font-size: 10px; color: #9ca3af;">
                     <div style="font-weight: 600;">THE HOME INSPECTION</div>
+                    <div style="font-weight: 700; color: #374151;">${COMPANY_CONTACT_INFO}</div>
                     <div>${today}</div>
                 </div>
             </div>
@@ -9253,7 +9266,7 @@ window.createSummaryFirstPage = function() {
             <div style="width: 794px; min-height: 1123px; background: white; font-family: 'Malgun Gothic', sans-serif; padding: 45px; box-sizing: border-box; position: relative;">
                 <div style="border-bottom: 2px solid #f3f4f6; padding-bottom: 15px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center;">
                     <div style="display: flex; align-items: center; gap: 12px;">
-                        ${getReportLogoHtml().replace('24px', '18px').replace('36', '24').replace('36', '24')}
+                        ${getReportLogoHtml('24px')}
                         <div style="height: 16px; width: 1px; background: #d1d5db;"></div>
                         <h2 style="margin: 0; font-size: 16px; color: #374151; font-weight: 700;">하자 점검 내역 상세</h2>
                     </div>
@@ -9277,6 +9290,7 @@ window.createSummaryFirstPage = function() {
 
                 <div style="position: absolute; bottom: 40px; left: 45px; right: 45px; border-top: 1px solid #e5e7eb; padding-top: 15px; display: flex; justify-content: space-between; align-items: center; font-size: 10px; color: #9ca3af;">
                     <div style="font-weight: 600;">THE HOME INSPECTION</div>
+                    <div style="font-weight: 700; color: #374151;">${COMPANY_CONTACT_INFO}</div>
                     <div>Page ${currentPage} / ${totalPages}</div>
                 </div>
             </div>
@@ -9343,6 +9357,7 @@ window.createSummaryFirstPage = function() {
                 ${contentHTML}
                 <div style="position: absolute; bottom: 40px; left: 45px; right: 45px; border-top: 1px solid #e5e7eb; padding-top: 15px; display: flex; justify-content: space-between; align-items: center; font-size: 10px; color: #9ca3af;">
                     <div style="font-weight: 600;">THE HOME INSPECTION</div>
+                    <div style="font-weight: 700; color: #374151;">${COMPANY_CONTACT_INFO}</div>
                     <div>${projectData.inspectionDate || '-'}</div>
                 </div>
             </div>
@@ -9409,11 +9424,13 @@ window.createSummaryFirstPage = function() {
                 ${contentHTML}
                 <div style="position: absolute; bottom: 40px; left: 45px; right: 45px; border-top: 1px solid #e5e7eb; padding-top: 15px; display: flex; justify-content: space-between; align-items: center; font-size: 10px; color: #9ca3af;">
                     <div style="font-weight: 600;">THE HOME INSPECTION</div>
+                    <div style="font-weight: 700; color: #374151;">${COMPANY_CONTACT_INFO}</div>
                     <div>${projectData.apartmentName}</div>
                 </div>
             </div>
         `;
     }
+```http://googleusercontent.com/image_generation_content/0
     </script>
 </body>
 </html>
