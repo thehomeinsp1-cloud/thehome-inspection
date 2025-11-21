@@ -4810,8 +4810,8 @@
                     }
                     
                     // ==================== 터치 포인트 마커 추가 ====================
-                    // 짧은 탭 + 싱글 터치 + 드래그 아님 = 마커 추가
-                    if (e.changedTouches.length === 1 && touchDuration < 500) {
+                    // 짧은 탭 + 싱글 터치 + 드래그 아님 + 줌 안함 = 마커 추가
+                    if (e.changedTouches.length === 1 && touchDuration < 500 && currentZoom === 1.0) {
                         const touch = e.changedTouches[0];
                         const moveX = Math.abs(touch.clientX - touchStartX);
                         const moveY = Math.abs(touch.clientY - touchStartY);
