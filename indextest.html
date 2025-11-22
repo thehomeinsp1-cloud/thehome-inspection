@@ -1019,6 +1019,55 @@
             border: 2px solid rgba(239, 68, 68, 0.3);
         }
         /* ==================== 로그인 화면 스타일 끝 ==================== */
+
+        /* ==================== 이미지 확대 모달 스타일 시작 ==================== */
+        .image-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 10000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .image-modal.active {
+            display: flex;
+        }
+
+        .image-modal img {
+            max-width: 95%;
+            max-height: 95%;
+            object-fit: contain;
+            touch-action: pinch-zoom;
+        }
+
+        .image-modal-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            color: white;
+            font-size: 30px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(10px);
+            z-index: 10001;
+        }
+
+        .image-modal-close:active {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        /* ==================== 이미지 확대 모달 스타일 끝 ==================== */
     </style>
 
 </head>
@@ -3736,7 +3785,7 @@
                         ` : defect.photos[0] && !defect.photos[1] ? `
                             <div style="margin-bottom: 10px;">
                                 <div style="position: relative; width: 100%;">
-                                    <img src="${defect.photos[0]}" alt="멀리서" style="width: 100%; height: 220px; object-fit: cover; border-radius: 8px; border: 2px solid var(--primary);">
+                                    <img src="${defect.photos[0]}" alt="멀리서" style="width: 100%; height: 220px; object-fit: cover; border-radius: 8px; border: 2px solid var(--primary); cursor: pointer;" onclick="openImageModal('${defect.photos[0]}')">
                                     <div style="position: absolute; bottom: 6px; left: 6px; background: rgba(16, 185, 129, 0.95); color: white; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: bold;">
                                         ✓ 원경 사진
                                     </div>
@@ -3762,7 +3811,7 @@
                                 <div>
                                     ${defect.photos[0] ? `
                                         <div style="position: relative; margin-bottom: 4px;">
-                                            <img src="${defect.photos[0]}" alt="멀리서" style="width: 100%; height: 200px; object-fit: cover; border-radius: 8px 8px 0 0; border: 2px solid var(--primary); border-bottom: none;">
+                                            <img src="${defect.photos[0]}" alt="멀리서" style="width: 100%; height: 200px; object-fit: cover; border-radius: 8px 8px 0 0; border: 2px solid var(--primary); border-bottom: none; cursor: pointer;" onclick="openImageModal('${defect.photos[0]}')">
                                             <div style="position: absolute; top: 6px; left: 6px; background: rgba(16, 185, 129, 0.95); color: white; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: bold;">
                                                 ✓ 원경 사진
                                             </div>
@@ -3800,7 +3849,7 @@
                                 <div>
                                     ${defect.photos[1] ? `
                                         <div style="position: relative; margin-bottom: 4px;">
-                                            <img src="${defect.photos[1]}" alt="가까이서" style="width: 100%; height: 200px; object-fit: cover; border-radius: 8px 8px 0 0; border: 2px solid var(--secondary); border-bottom: none;">
+                                            <img src="${defect.photos[1]}" alt="가까이서" style="width: 100%; height: 200px; object-fit: cover; border-radius: 8px 8px 0 0; border: 2px solid var(--secondary); border-bottom: none; cursor: pointer;" onclick="openImageModal('${defect.photos[1]}')">
                                             <div style="position: absolute; top: 6px; left: 6px; background: rgba(251, 191, 36, 0.95); color: white; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: bold;">
                                                 ✓ 근경 사진
                                             </div>
@@ -4195,7 +4244,7 @@
                                         ${locationIcons[location]} ${location}
                                     </div>
                                     ${item.photos[location] ? `
-                                        <img src="${item.photos[location]}" style="width: 100%; height: 220px; object-fit: cover;">
+                                        <img src="${item.photos[location]}" style="width: 100%; height: 220px; object-fit: cover; cursor: pointer;" onclick="openImageModal('${item.photos[location]}')">
                                         <div style="display: flex; border-top: 1px solid #ddd;">
                                             <button class="btn btn-secondary" onclick="openEquipmentLocationCamera(${item.id}, '${location}')" style="flex: 1; border-radius: 0; border: none; padding: 12px; font-size: 13px;">
                                                 🔄
@@ -4231,7 +4280,7 @@
                                         ${locationIcons[location]} ${location}
                                     </div>
                                     ${item.photos[location] ? `
-                                        <img src="${item.photos[location]}" style="width: 100%; height: 200px; object-fit: cover;">
+                                        <img src="${item.photos[location]}" style="width: 100%; height: 200px; object-fit: cover; cursor: pointer;" onclick="openImageModal('${item.photos[location]}')">
                                         <div style="display: flex; border-top: 1px solid #ddd;">
                                             <button class="btn btn-secondary" onclick="openEquipmentLocationCamera(${item.id}, '${location}')" style="flex: 1; border-radius: 0; border: none; padding: 10px; font-size: 12px;">
                                                 🔄
@@ -9965,6 +10014,26 @@ window.createSummaryFirstPage = function() {
     // 이전 v5.1 패치에 있는 코드가 그대로 유지되어야 합니다.
     // (이 코드 블록은 가이드 페이지 추가용이므로, 만약 앞선 v5.1 패치를 지우셨다면 
     // v5.1 패치 코드 + 이 코드 내용을 합쳐서 넣으셔야 합니다.)
+
+    // ==================== 이미지 확대 모달 기능 시작 ====================
+    function openImageModal(imgSrc) {
+        const modal = document.getElementById('imageModal');
+        const modalImg = document.getElementById('modalImage');
+        modalImg.src = imgSrc;
+        modal.classList.add('active');
+    }
+
+    function closeImageModal() {
+        const modal = document.getElementById('imageModal');
+        modal.classList.remove('active');
+    }
+    // ==================== 이미지 확대 모달 기능 끝 ====================
     </script>
+
+    <!-- 이미지 확대 모달 -->
+    <div id="imageModal" class="image-modal" onclick="closeImageModal()">
+        <button class="image-modal-close" onclick="closeImageModal()">×</button>
+        <img id="modalImage" src="" alt="확대 이미지" onclick="event.stopPropagation()">
+    </div>
 </body>
 </html>
