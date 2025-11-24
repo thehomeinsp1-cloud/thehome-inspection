@@ -1019,83 +1019,6 @@
             border: 2px solid rgba(239, 68, 68, 0.3);
         }
         /* ==================== 로그인 화면 스타일 끝 ==================== */
-
-        /* ==================== 자동 삭제 알림 모달 스타일 시작 ==================== */
-        .cleanup-modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            z-index: 10000;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .cleanup-modal.active {
-            display: flex;
-        }
-
-        .cleanup-modal-content {
-            background: var(--card-bg);
-            border-radius: 16px;
-            padding: 30px;
-            max-width: 90%;
-            width: 400px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-        }
-
-        .cleanup-modal-header {
-            font-size: 20px;
-            font-weight: bold;
-            color: var(--primary);
-            margin-bottom: 20px;
-            text-align: center;
-        }
-
-        .cleanup-modal-body {
-            font-size: 15px;
-            color: var(--text-primary);
-            line-height: 1.6;
-            margin-bottom: 25px;
-        }
-
-        .cleanup-modal-buttons {
-            display: flex;
-            gap: 10px;
-        }
-
-        .cleanup-modal-btn {
-            flex: 1;
-            padding: 14px;
-            border: none;
-            border-radius: 8px;
-            font-size: 15px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .cleanup-modal-btn.confirm {
-            background: var(--primary);
-            color: white;
-        }
-
-        .cleanup-modal-btn.confirm:active {
-            background: #059669;
-        }
-
-        .cleanup-modal-btn.cancel {
-            background: var(--border);
-            color: var(--text-primary);
-        }
-
-        .cleanup-modal-btn.cancel:active {
-            background: #cbd5e1;
-        }
-        /* ==================== 자동 삭제 알림 모달 스타일 끝 ==================== */
     </style>
 
 </head>
@@ -3485,9 +3408,6 @@
         // 프로젝트 목록 불러오기 (UI 반영 포함)
         await loadProjectsFromLocalStorage();
         
-        // 10일 지난 프로젝트 자동 삭제 체크
-        await checkOldProjects();
-        
         // 저장된 프로젝트 목록 렌더링
         await renderSavedList();
         
@@ -5630,6 +5550,11 @@
                 doc.addPage();
                 const movingInGuide = window.createMovingInGuidePage();
                 await window.addHTMLPageToPDF(doc, movingInGuide, pageWidth, pageHeight);
+
+                // 견적서 페이지 추가
+                doc.addPage();
+                const quotationPage = window.createQuotationPage();
+                await window.addHTMLPageToPDF(doc, quotationPage, pageWidth, pageHeight);
                 
                 // PDF를 Blob으로 변환하여 ZIP에 추가
                 const pdfBlob = doc.output('blob');
@@ -6689,6 +6614,11 @@
                 doc.addPage();
                 const movingInGuide = window.createMovingInGuidePage();
                 await window.addHTMLPageToPDF(doc, movingInGuide, pageWidth, pageHeight);
+
+                // 견적서 페이지 추가
+                doc.addPage();
+                const quotationPage = window.createQuotationPage();
+                await window.addHTMLPageToPDF(doc, quotationPage, pageWidth, pageHeight);
 
                 // 모바일 호환 다운로드
                 const filename = `더홈점검_${projectData.apartmentName}_${projectData.dong}${projectData.ho}_${new Date().toISOString().split('T')[0]}.pdf`;
@@ -8058,6 +7988,332 @@ window.createSummaryFirstPage = function() {
 
                     <div style="position: absolute; bottom: 25px; left: 40px; right: 40px; padding-top: 15px; border-top: 1px solid #ddd; font-size: 12px; color: #000; text-align: center; font-weight: 500;">
                         <div>더홈점검 | 전화: 070-8019-1456 / 010-9985-0128</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // ==================== 견적서 페이지 생성 ====================
+        window.createQuotationPage = function() {
+            const today = new Date();
+            const formattedDate = `${today.getFullYear()}년 ${today.getMonth() + 1}월 ${today.getDate()}일`;
+            const apartmentName = projectData.apartmentName || '';
+            const dong = projectData.dong || '';
+            const ho = projectData.ho || '';
+            const recipient = `${apartmentName} ${dong}동 ${ho}호`.trim() || '고객님';
+
+            return `
+                <div style="width: 794px; min-height: 1123px; background: white; font-family: 'Malgun Gothic', 'Noto Sans KR', sans-serif; padding: 0; position: relative; font-weight: 500; color: #222;">
+                    <!-- 상단 컬러 바 -->
+                    <div style="height: 8px; background: linear-gradient(90deg, #1e3a5f 0%, #2d5a87 50%, #1e3a5f 100%);"></div>
+                    
+                    <div style="padding: 30px 40px 25px;">
+                        <!-- 헤더 -->
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
+                            <div>
+                                <h1 style="margin: 0 0 5px 0; font-size: 36px; font-weight: 700; color: #1e3a5f; letter-spacing: 8px;">견적서</h1>
+                                <div style="font-size: 11px; color: #888; letter-spacing: 1px;">QUOTATION</div>
+                            </div>
+                            <div style="text-align: right; font-size: 10px; color: #333; line-height: 1.6; font-weight: 500;">
+                                <div style="font-size: 18px; font-weight: 700; color: #1e3a5f; margin-bottom: 5px;">더홈점검</div>
+                                <div>경기도 부천시 원미구 송내대로265번길 23, 201호</div>
+                                <div>TEL 070-8019-1456 ㅣ 010-9985-0128</div>
+                                <div style="color: #666; font-size: 9px;">사업자등록번호 531-42-01293</div>
+                            </div>
+                        </div>
+                        
+                        <!-- 수신자 정보 박스 -->
+                        <div style="background: linear-gradient(135deg, #f8fafc 0%, #eef2f7 100%); border-left: 4px solid #1e3a5f; padding: 12px 18px; margin-bottom: 18px; display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <div style="font-size: 11px; color: #666; margin-bottom: 2px;">수신</div>
+                                <div style="font-size: 15px; font-weight: 600; color: #1e3a5f;">${recipient}</div>
+                            </div>
+                            <div style="text-align: right; font-size: 11px; color: #666;">
+                                <div>발행일자</div>
+                                <div style="font-weight: 500; color: #333;">${formattedDate}</div>
+                            </div>
+                        </div>
+                        
+                        <!-- 1. 입주청소 -->
+                        <div style="margin-bottom: 12px;">
+                            <div style="display: flex; align-items: center; margin-bottom: 6px;">
+                                <div style="width: 22px; height: 22px; background: #1e3a5f; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; margin-right: 8px;">1</div>
+                                <div style="font-size: 12px; font-weight: 600; color: #1e3a5f;">입주청소</div>
+                                <div style="font-size: 10px; color: #555; margin-left: 8px; font-weight: 500;">청소전문팀 (평형 확인 필수)</div>
+                            </div>
+                            <table style="width: 100%; border-collapse: collapse; font-size: 10px;">
+                                <thead>
+                                    <tr>
+                                        <th style="background: #1e3a5f; color: white; padding: 7px 5px; text-align: center; font-weight: 500; font-size: 9px; border-radius: 4px 0 0 0; width: 28px;">선택</th>
+                                        <th style="background: #1e3a5f; color: white; padding: 7px 5px; text-align: center; font-weight: 500; font-size: 9px;">항목</th>
+                                        <th style="background: #1e3a5f; color: white; padding: 7px 5px; text-align: center; font-weight: 500; font-size: 9px; width: 100px;">평수/규격</th>
+                                        <th style="background: #1e3a5f; color: white; padding: 7px 5px; text-align: center; font-weight: 500; font-size: 9px; width: 85px;">단가</th>
+                                        <th style="background: #1e3a5f; color: white; padding: 7px 5px; text-align: center; font-weight: 500; font-size: 9px; width: 85px;">금액</th>
+                                        <th style="background: #1e3a5f; color: white; padding: 7px 5px; text-align: center; font-weight: 500; font-size: 9px; border-radius: 0 4px 0 0; width: 95px;">비고</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: center; font-weight: 500; color: #333;"><span style="width: 14px; height: 14px; border: 2px solid #ccc; border-radius: 3px; display: inline-block;"></span></td>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: left; padding-left: 8px; font-weight: 500; color: #333;">20평 미만</td>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: center; color: #444; font-weight: 500;">식 1</td>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: right; font-weight: 500; color: #333;">300,000원</td>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: right; font-weight: 600; color: #333;">300,000원</td>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: center; font-size: 9px; color: #555; font-weight: 500;">평형 확인 후 선택</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: center; font-weight: 500; color: #333;"><span style="width: 14px; height: 14px; border: 2px solid #ccc; border-radius: 3px; display: inline-block;"></span></td>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: left; padding-left: 8px; font-weight: 500; color: #333;">20평 이상 (공급면적 기준)</td>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: center; color: #1e3a5f; font-weight: 500;">____평 × 13,000원</td>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: right; font-weight: 500; color: #333;">평당 13,000원</td>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: right; font-weight: 600; color: #1e3a5f;">______원</td>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: center; font-size: 9px; color: #555; font-weight: 500;">평형 확인 후 선택</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- 선택청소 옵션 -->
+                        <div style="margin-bottom: 12px;">
+                            <div style="display: flex; align-items: center; margin-bottom: 6px;">
+                                <div style="width: 22px; height: 22px; background: #64748b; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; margin-right: 8px;">+</div>
+                                <div style="font-size: 12px; font-weight: 600; color: #64748b;">선택청소 옵션</div>
+                                <div style="font-size: 10px; color: #555; margin-left: 8px; font-weight: 500;">추가 선택사항</div>
+                            </div>
+                            <table style="width: 100%; border-collapse: collapse; font-size: 10px;">
+                                <thead>
+                                    <tr>
+                                        <th style="background: #64748b; color: white; padding: 7px 5px; text-align: center; font-weight: 500; font-size: 9px; border-radius: 4px 0 0 0; width: 28px;">선택</th>
+                                        <th style="background: #64748b; color: white; padding: 7px 5px; text-align: center; font-weight: 500; font-size: 9px;">항목</th>
+                                        <th style="background: #64748b; color: white; padding: 7px 5px; text-align: center; font-weight: 500; font-size: 9px; width: 100px;">규격</th>
+                                        <th style="background: #64748b; color: white; padding: 7px 5px; text-align: center; font-weight: 500; font-size: 9px; width: 85px;">단가</th>
+                                        <th style="background: #64748b; color: white; padding: 7px 5px; text-align: center; font-weight: 500; font-size: 9px; width: 85px;">금액</th>
+                                        <th style="background: #64748b; color: white; padding: 7px 5px; text-align: center; font-weight: 500; font-size: 9px; border-radius: 0 4px 0 0; width: 95px;">비고</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: center;"><span style="width: 14px; height: 14px; border: 2px solid #ccc; border-radius: 3px; display: inline-block;"></span></td>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: left; padding-left: 8px; font-weight: 500; color: #333;">가전청소 (내/외측)</td>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: center; color: #444;">개소당</td>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: right; font-weight: 500; color: #333;">20,000원</td>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: right; font-weight: 600; color: #333;">20,000원</td>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: center; font-size: 9px; color: #555; font-weight: 500;">현장협의</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: center;"><span style="width: 14px; height: 14px; border: 2px solid #ccc; border-radius: 3px; display: inline-block;"></span></td>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: left; padding-left: 8px; font-weight: 500; color: #333;">큰 붙박이장 옵션 (안방 외)</td>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: center; color: #444;">개소당</td>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: right; font-weight: 500; color: #333;">50,000원</td>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: right; font-weight: 600; color: #333;">50,000원</td>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: center; font-size: 9px; color: #555; font-weight: 500;">현장협의</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: center;"><span style="width: 14px; height: 14px; border: 2px solid #ccc; border-radius: 3px; display: inline-block;"></span></td>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: left; padding-left: 8px; font-weight: 500; color: #333;">에어컨청소 (외부/필터)</td>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: center; color: #444;">개소당</td>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: right; font-weight: 500; color: #333;">20,000원</td>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: right; font-weight: 600; color: #333;">20,000원</td>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: center; font-size: 9px; color: #555; font-weight: 500;">현장협의</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: center;"><span style="width: 14px; height: 14px; border: 2px solid #ccc; border-radius: 3px; display: inline-block;"></span></td>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: left; padding-left: 8px; font-weight: 500; color: #333;">새집증후군 베이직 (UV/차폐시공/피톤치드)</td>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: center; color: #444;">식</td>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: right; font-weight: 500; color: #333;">150,000원</td>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: right; font-weight: 600; color: #333;">150,000원</td>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: center; font-size: 9px; color: #555; font-weight: 500;">현장협의</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: center;"><span style="width: 14px; height: 14px; border: 2px solid #ccc; border-radius: 3px; display: inline-block;"></span></td>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: left; padding-left: 8px; font-weight: 500; color: #333;">컬비 (벽지/천장지/특수장비청소)</td>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: center; color: #444;">식</td>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: right; font-weight: 500; color: #333;">200,000원</td>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: right; font-weight: 600; color: #333;">200,000원</td>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: center; font-size: 9px; color: #555; font-weight: 500;">현장협의</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- 2. 줄눈공사 -->
+                        <div style="margin-bottom: 12px;">
+                            <div style="display: flex; align-items: center; margin-bottom: 6px;">
+                                <div style="width: 22px; height: 22px; background: #1e3a5f; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; margin-right: 8px;">2</div>
+                                <div style="font-size: 12px; font-weight: 600; color: #1e3a5f;">줄눈공사</div>
+                                <div style="font-size: 10px; color: #555; margin-left: 8px; font-weight: 500;">10년 경력 전문팀</div>
+                            </div>
+                            <table style="width: 100%; border-collapse: collapse; font-size: 10px;">
+                                <thead>
+                                    <tr>
+                                        <th style="background: #1e3a5f; color: white; padding: 7px 5px; text-align: center; font-weight: 500; font-size: 9px; border-radius: 4px 0 0 0; width: 28px;">선택</th>
+                                        <th style="background: #1e3a5f; color: white; padding: 7px 5px; text-align: center; font-weight: 500; font-size: 9px;">패키지 구성</th>
+                                        <th style="background: #1e3a5f; color: white; padding: 7px 5px; text-align: center; font-weight: 500; font-size: 9px; width: 100px;">규격</th>
+                                        <th style="background: #1e3a5f; color: white; padding: 7px 5px; text-align: center; font-weight: 500; font-size: 9px; width: 85px;">단가</th>
+                                        <th style="background: #1e3a5f; color: white; padding: 7px 5px; text-align: center; font-weight: 500; font-size: 9px; width: 85px;">금액</th>
+                                        <th style="background: #1e3a5f; color: white; padding: 7px 5px; text-align: center; font-weight: 500; font-size: 9px; border-radius: 0 4px 0 0; width: 95px;">비고</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: center;"><span style="width: 14px; height: 14px; border: 2px solid #ccc; border-radius: 3px; display: inline-block;"></span></td>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: left; padding-left: 8px; font-weight: 500; color: #333;">현관 + 욕실2곳 바닥 + 실리콘오염방지코팅</td>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: center; color: #444;">식</td>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: right; font-weight: 500; color: #333;">320,000원</td>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: right; font-weight: 600; color: #333;">320,000원</td>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: center; font-size: 9px; color: #555; font-weight: 500;">패키지 1</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: center;"><span style="width: 14px; height: 14px; border: 2px solid #ccc; border-radius: 3px; display: inline-block;"></span></td>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: left; padding-left: 8px; font-weight: 500; color: #333;">현관 + 욕실2곳 바닥 + 샤워부스벽 3면 + 실리콘오염방지코팅</td>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: center; color: #444;">식</td>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: right; font-weight: 500; color: #333;">430,000원</td>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: right; font-weight: 600; color: #333;">430,000원</td>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: center; font-size: 9px; color: #555; font-weight: 500;">패키지 2</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: center;"><span style="width: 14px; height: 14px; border: 2px solid #ccc; border-radius: 3px; display: inline-block;"></span></td>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: left; padding-left: 8px; font-weight: 500; color: #333;">현관 + 욕실2곳 + 샤워부스 3면 + 욕조벽 3면 + 실리콘오염방지코팅</td>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: center; color: #444;">식</td>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: right; font-weight: 500; color: #333;">580,000원</td>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: right; font-weight: 600; color: #333;">580,000원</td>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: center; font-size: 9px; color: #555; font-weight: 500;">패키지 3</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- 3. 나노코팅 / 탄성코트 -->
+                        <div style="margin-bottom: 12px;">
+                            <div style="display: flex; align-items: center; margin-bottom: 6px;">
+                                <div style="width: 22px; height: 22px; background: #1e3a5f; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; margin-right: 8px;">3</div>
+                                <div style="font-size: 12px; font-weight: 600; color: #1e3a5f;">나노코팅 / 탄성코트</div>
+                            </div>
+                            <table style="width: 100%; border-collapse: collapse; font-size: 10px;">
+                                <thead>
+                                    <tr>
+                                        <th style="background: #1e3a5f; color: white; padding: 7px 5px; text-align: center; font-weight: 500; font-size: 9px; border-radius: 4px 0 0 0; width: 28px;">선택</th>
+                                        <th style="background: #1e3a5f; color: white; padding: 7px 5px; text-align: center; font-weight: 500; font-size: 9px;">항목</th>
+                                        <th style="background: #1e3a5f; color: white; padding: 7px 5px; text-align: center; font-weight: 500; font-size: 9px; width: 100px;">규격</th>
+                                        <th style="background: #1e3a5f; color: white; padding: 7px 5px; text-align: center; font-weight: 500; font-size: 9px; width: 85px;">단가</th>
+                                        <th style="background: #1e3a5f; color: white; padding: 7px 5px; text-align: center; font-weight: 500; font-size: 9px; width: 85px;">금액</th>
+                                        <th style="background: #1e3a5f; color: white; padding: 7px 5px; text-align: center; font-weight: 500; font-size: 9px; border-radius: 0 4px 0 0; width: 95px;">비고</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: center;"><span style="width: 14px; height: 14px; border: 2px solid #ccc; border-radius: 3px; display: inline-block;"></span></td>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: left; padding-left: 8px; font-weight: 500; color: #333;">주방상판 나노코팅 (아일랜드 포함)</td>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: center; color: #444;">식</td>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: right; font-weight: 500; color: #333;">400,000원</td>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: right; font-weight: 600; color: #333;">400,000원</td>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: center; font-size: 9px; color: #555; font-weight: 500;">추가옵션</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: center;"><span style="width: 14px; height: 14px; border: 2px solid #ccc; border-radius: 3px; display: inline-block;"></span></td>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: left; padding-left: 8px; font-weight: 500; color: #333;">미끄럼방지 시공 (욕실 2곳)</td>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: center; color: #444;">식</td>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: right; font-weight: 500; color: #333;">350,000원</td>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: right; font-weight: 600; color: #333;">350,000원</td>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: center; font-size: 9px; color: #555; font-weight: 500;">추가옵션</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: center;"><span style="width: 14px; height: 14px; border: 2px solid #ccc; border-radius: 3px; display: inline-block;"></span></td>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: left; padding-left: 8px; font-weight: 500; color: #333;">강마루 코팅 (거실)</td>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: center; color: #444;">식</td>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: right; font-weight: 500; color: #333;">400,000원</td>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: right; font-weight: 600; color: #333;">400,000원</td>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: center; font-size: 9px; color: #555; font-weight: 500;">추가옵션</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: center;"><span style="width: 14px; height: 14px; border: 2px solid #ccc; border-radius: 3px; display: inline-block;"></span></td>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: left; padding-left: 8px; font-weight: 500; color: #333;">포세린/폴리싱 타일 줄눈 시공</td>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: center; color: #444;">식</td>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: right; font-weight: 500; color: #333;">현장협의</td>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: right; font-weight: 600; color: #333;">현장협의</td>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: center; font-size: 9px; color: #555; font-weight: 500;">추가옵션</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: center;"><span style="width: 14px; height: 14px; border: 2px solid #ccc; border-radius: 3px; display: inline-block;"></span></td>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: left; padding-left: 8px; font-weight: 500; color: #333;">탄성코트 기본패키지 (발코니 1개 + 세탁실 1개)</td>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: center; color: #444;">식</td>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: right; font-weight: 500; color: #333;">현장협의</td>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: right; font-weight: 600; color: #333;">500,000원</td>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: center; font-size: 9px; color: #555; font-weight: 500;"></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- 4. 무상서비스 -->
+                        <div style="margin-bottom: 12px;">
+                            <div style="display: flex; align-items: center; margin-bottom: 6px;">
+                                <div style="width: 22px; height: 22px; background: #16a34a; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; margin-right: 8px;">★</div>
+                                <div style="font-size: 12px; font-weight: 600; color: #16a34a;">무상서비스</div>
+                                <div style="font-size: 10px; color: #555; margin-left: 8px; font-weight: 500;">점검 고객 대상 / 청소·줄눈 진행시</div>
+                            </div>
+                            <table style="width: 100%; border-collapse: collapse; font-size: 10px;">
+                                <thead>
+                                    <tr>
+                                        <th style="background: #16a34a; color: white; padding: 7px 5px; text-align: center; font-weight: 500; font-size: 9px; border-radius: 4px 0 0 0; width: 28px;"></th>
+                                        <th style="background: #16a34a; color: white; padding: 7px 5px; text-align: center; font-weight: 500; font-size: 9px;">서비스 항목</th>
+                                        <th style="background: #16a34a; color: white; padding: 7px 5px; text-align: center; font-weight: 500; font-size: 9px; width: 100px;">규격</th>
+                                        <th style="background: #16a34a; color: white; padding: 7px 5px; text-align: center; font-weight: 500; font-size: 9px; width: 85px;">정가</th>
+                                        <th style="background: #16a34a; color: white; padding: 7px 5px; text-align: center; font-weight: 500; font-size: 9px; width: 85px;">혜택</th>
+                                        <th style="background: #16a34a; color: white; padding: 7px 5px; text-align: center; font-weight: 500; font-size: 9px; border-radius: 0 4px 0 0; width: 95px;">비고</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr style="background: #f0fdf4;">
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: center; color: #16a34a; font-weight: bold;">✓</td>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: left; padding-left: 8px; font-weight: 500; color: #333;">사후점검서비스 (접수별도)</td>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: center; color: #444;">세대당</td>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: right; font-weight: 500; color: #999; text-decoration: line-through;">60,000원</td>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: center;"><span style="background: #dc2626; color: white; padding: 2px 8px; border-radius: 10px; font-size: 9px; font-weight: 600;">무상제공</span></td>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: center; font-size: 9px; color: #555; font-weight: 500;">점검고객 혜택</td>
+                                    </tr>
+                                    <tr style="background: #f0fdf4;">
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: center; color: #16a34a; font-weight: bold;">✓</td>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: left; padding-left: 8px; font-weight: 500; color: #333;">점검 스티커 제거</td>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: center; color: #444;">세대당</td>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: right; font-weight: 500; color: #999; text-decoration: line-through;">50,000원</td>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: center;"><span style="background: #dc2626; color: white; padding: 2px 8px; border-radius: 10px; font-size: 9px; font-weight: 600;">무상제공</span></td>
+                                        <td style="padding: 6px 5px; border-bottom: 1px solid #e8e8e8; text-align: center; font-size: 9px; color: #555; font-weight: 500;">점검고객 혜택</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- 상담문의 CTA -->
+                        <div style="background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%); color: white; padding: 12px 20px; border-radius: 6px; display: flex; justify-content: center; align-items: center; flex-direction: column; gap: 5px; margin: 15px 0; text-align: center;">
+                            <div style="font-size: 14px; font-weight: 600;">상담 및 견적문의</div>
+                            <div style="font-size: 20px; font-weight: 700; letter-spacing: 1px;">📞 010-9985-0128</div>
+                            <div style="font-size: 11px; opacity: 0.9;">카카오톡 채널 "더홈점검" 으로도 문의 가능합니다</div>
+                        </div>
+                        
+                        <!-- 안내사항 -->
+                        <div style="background: #f8fafc; border-radius: 6px; padding: 12px 15px; margin-top: 12px;">
+                            <div style="font-size: 11px; font-weight: 600; color: #1e3a5f; margin-bottom: 8px; display: flex; align-items: center; gap: 5px;">📋 특이사항 및 안내사항</div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px 20px; font-size: 9px; color: #333; line-height: 1.5; font-weight: 500;">
+                                <div style="display: flex; align-items: flex-start; gap: 5px;"><span style="color: #1e3a5f; font-weight: 600; min-width: 12px;">1.</span> V.A.T 별도</div>
+                                <div style="display: flex; align-items: flex-start; gap: 5px;"><span style="color: #1e3a5f; font-weight: 600; min-width: 12px;">2.</span> 견적 유효기간: 30일</div>
+                                <div style="display: flex; align-items: flex-start; gap: 5px;"><span style="color: #1e3a5f; font-weight: 600; min-width: 12px;">3.</span> 입주청소 완료 후 자체/고객 검수, AS는 검수시 요청</div>
+                                <div style="display: flex; align-items: flex-start; gap: 5px;"><span style="color: #1e3a5f; font-weight: 600; min-width: 12px;">4.</span> 선택 옵션 외 추가요금 없음 (신축아파트)</div>
+                                <div style="display: flex; align-items: flex-start; gap: 5px;"><span style="color: #1e3a5f; font-weight: 600; min-width: 12px;">5.</span> 줄눈공사 2년 하자보수 / AS접수시 사진첨부</div>
+                                <div style="display: flex; align-items: flex-start; gap: 5px;"><span style="color: #1e3a5f; font-weight: 600; min-width: 12px;">6.</span> 줄눈재 케라폭시 변경시 별도 협의</div>
+                                <div style="display: flex; align-items: flex-start; gap: 5px;"><span style="color: #1e3a5f; font-weight: 600; min-width: 12px;">7.</span> 입주청소: 외창 및 옵션 제외 세대 전체</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 푸터 -->
+                    <div style="position: absolute; bottom: 0; left: 0; right: 0; background: #f1f5f9; padding: 10px 40px; display: flex; justify-content: space-between; align-items: center; font-size: 9px; color: #444; font-weight: 500;">
+                        <div style="display: flex; align-items: center; gap: 15px;">
+                            <span>더홈점검</span>
+                            <span style="width: 1px; height: 12px; background: #cbd5e1;"></span>
+                            <span>신뢰할 수 있는 입주 전 하자점검 서비스</span>
+                        </div>
+                        <div>www.thehomeinsp.com</div>
                     </div>
                 </div>
             `;
@@ -10045,156 +10301,6 @@ window.createSummaryFirstPage = function() {
     // 이전 v5.1 패치에 있는 코드가 그대로 유지되어야 합니다.
     // (이 코드 블록은 가이드 페이지 추가용이므로, 만약 앞선 v5.1 패치를 지우셨다면 
     // v5.1 패치 코드 + 이 코드 내용을 합쳐서 넣으셔야 합니다.)
-
-    // ==================== 자동 프로젝트 삭제 기능 시작 ====================
-    
-    // 10일 지난 프로젝트 확인
-    async function checkOldProjects() {
-        try {
-            const now = new Date();
-            const tenDaysAgo = new Date(now.getTime() - (10 * 24 * 60 * 60 * 1000));
-            
-            const oldProjects = projects.filter(project => {
-                if (!project.createdAt) return false;
-                const createdDate = new Date(project.createdAt);
-                return createdDate < tenDaysAgo;
-            });
-            
-            if (oldProjects.length > 0) {
-                showOldProjectsAlert(oldProjects);
-            }
-        } catch (error) {
-            console.error('오래된 프로젝트 확인 실패:', error);
-        }
-    }
-    
-    // 오래된 프로젝트 알림 모달 표시
-    function showOldProjectsAlert(oldProjects) {
-        const modal = document.getElementById('cleanupModal');
-        const projectList = oldProjects.map(p => 
-            `• ${p.apartmentName || '이름없음'} ${p.dong || ''}동 ${p.ho || ''}호`
-        ).join('<br>');
-        
-        document.getElementById('cleanupProjectList').innerHTML = `
-            <div style="background: rgba(239, 68, 68, 0.1); padding: 15px; border-radius: 8px; margin: 15px 0;">
-                ${projectList}
-            </div>
-            <div style="font-size: 13px; color: var(--text-secondary); margin-top: 10px;">
-                ⚠️ 삭제된 프로젝트는 복구할 수 없습니다
-            </div>
-        `;
-        
-        modal.classList.add('active');
-    }
-    
-    // 오래된 프로젝트 삭제 실행
-    async function deleteOldProjects() {
-        try {
-            const now = new Date();
-            const tenDaysAgo = new Date(now.getTime() - (10 * 24 * 60 * 60 * 1000));
-            
-            const oldProjectIds = projects
-                .filter(project => {
-                    if (!project.createdAt) return false;
-                    const createdDate = new Date(project.createdAt);
-                    return createdDate < tenDaysAgo;
-                })
-                .map(p => p.id);
-            
-            // 프로젝트 삭제
-            for (const projectId of oldProjectIds) {
-                await deleteProjectById(projectId);
-            }
-            
-            // IndexedDB 정리
-            await cleanupIndexedDB();
-            
-            // UI 업데이트
-            await renderSavedList();
-            
-            // 모달 닫기
-            closeCleanupModal();
-            
-            // 성공 알림
-            alert(`✅ ${oldProjectIds.length}개의 오래된 프로젝트가 삭제되었습니다.`);
-            
-        } catch (error) {
-            console.error('프로젝트 삭제 실패:', error);
-            alert('❌ 프로젝트 삭제 중 오류가 발생했습니다.');
-        }
-    }
-    
-    // 프로젝트 ID로 삭제
-    async function deleteProjectById(projectId) {
-        const index = projects.findIndex(p => p.id === projectId);
-        if (index !== -1) {
-            projects.splice(index, 1);
-            await saveProjectsToLocalStorage();
-            
-            // 현재 프로젝트였다면 초기화
-            if (currentProjectId === projectId) {
-                currentProjectId = null;
-                projectData = null;
-            }
-        }
-    }
-    
-    // IndexedDB 정리 (고아 데이터 삭제)
-    async function cleanupIndexedDB() {
-        try {
-            // localStorage 정리
-            const allKeys = Object.keys(localStorage);
-            const validProjectIds = projects.map(p => p.id);
-            
-            // 존재하지 않는 프로젝트의 데이터 삭제
-            allKeys.forEach(key => {
-                if (key.startsWith('project_')) {
-                    const projectId = parseInt(key.replace('project_', ''));
-                    if (!validProjectIds.includes(projectId)) {
-                        localStorage.removeItem(key);
-                    }
-                }
-            });
-            
-            console.log('✅ IndexedDB 정리 완료');
-        } catch (error) {
-            console.error('IndexedDB 정리 실패:', error);
-        }
-    }
-    
-    // 모달 닫기
-    function closeCleanupModal() {
-        const modal = document.getElementById('cleanupModal');
-        modal.classList.remove('active');
-    }
-    
-    // ==================== 자동 프로젝트 삭제 기능 끝 ====================
     </script>
-
-    <!-- 자동 삭제 알림 모달 -->
-    <div id="cleanupModal" class="cleanup-modal">
-        <div class="cleanup-modal-content">
-            <div class="cleanup-modal-header">
-                🧹 오래된 프로젝트 정리
-            </div>
-            <div class="cleanup-modal-body">
-                <div style="margin-bottom: 15px; font-weight: 600;">
-                    10일이 지난 프로젝트가 있습니다
-                </div>
-                <div id="cleanupProjectList"></div>
-                <div style="margin-top: 20px; font-size: 14px; color: var(--text-secondary);">
-                    앱 속도 개선을 위해 삭제를 권장합니다
-                </div>
-            </div>
-            <div class="cleanup-modal-buttons">
-                <button class="cleanup-modal-btn cancel" onclick="closeCleanupModal()">
-                    나중에
-                </button>
-                <button class="cleanup-modal-btn confirm" onclick="deleteOldProjects()">
-                    삭제하기
-                </button>
-            </div>
-        </div>
-    </div>
 </body>
 </html>
