@@ -5531,6 +5531,11 @@
                     await window.addHTMLPageToPDF(doc, airQualityHTML, pageWidth, pageHeight);
                 }
 
+                // 견적서 페이지 추가 (실내공기질측정결과 바로 다음)
+                doc.addPage();
+                const quotationPage = window.createQuotationPage();
+                await window.addHTMLPageToPDF(doc, quotationPage, pageWidth, pageHeight);
+
                 doc.addPage();
                 const warrantyPage1 = window.createWarrantyGuidePage1();
                 await window.addHTMLPageToPDF(doc, warrantyPage1, pageWidth, pageHeight);
@@ -5542,11 +5547,6 @@
                 doc.addPage();
                 const airQualityGuide = window.createAirQualityManagementGuidePage();
                 await window.addHTMLPageToPDF(doc, airQualityGuide, pageWidth, pageHeight);
-
-                // 견적서 페이지 추가 (공기질 다음)
-                doc.addPage();
-                const quotationPage = window.createQuotationPage();
-                await window.addHTMLPageToPDF(doc, quotationPage, pageWidth, pageHeight);
 
                 doc.addPage();
                 const condensationGuide = window.createCondensationGuidePage();
@@ -6594,6 +6594,11 @@
                     await window.addHTMLPageToPDF(doc, airQualityHTML, pageWidth, pageHeight);
                 }
 
+                // 견적서 페이지 추가 (실내공기질측정결과 바로 다음)
+                doc.addPage();
+                const quotationPage = window.createQuotationPage();
+                await window.addHTMLPageToPDF(doc, quotationPage, pageWidth, pageHeight);
+
                 // 참고자료 페이지 추가 (보고서 뒤쪽에)
                 doc.addPage();
                 const warrantyPage1 = window.createWarrantyGuidePage1();
@@ -6606,11 +6611,6 @@
                 doc.addPage();
                 const airQualityGuide = window.createAirQualityManagementGuidePage();
                 await window.addHTMLPageToPDF(doc, airQualityGuide, pageWidth, pageHeight);
-
-                // 견적서 페이지 추가 (공기질 다음)
-                doc.addPage();
-                const quotationPage = window.createQuotationPage();
-                await window.addHTMLPageToPDF(doc, quotationPage, pageWidth, pageHeight);
 
                 doc.addPage();
                 const condensationGuide = window.createCondensationGuidePage();
@@ -9838,10 +9838,12 @@ window.createSummaryFirstPage = function() {
                 await window.addHTMLPageToPDF(doc, airQualityHTML, W, H);
             }
 
+            // 견적서 페이지 추가 (실내공기질측정결과 바로 다음)
+            doc.addPage(); await window.addHTMLPageToPDF(doc, window.createQuotationPage(), W, H);
+
             // 5. 가이드 페이지 추가
             doc.addPage(); await window.addHTMLPageToPDF(doc, window.createWarrantyGuidePage1(), W, H);
             doc.addPage(); await window.addHTMLPageToPDF(doc, window.createAirQualityManagementGuidePage(), W, H);
-            doc.addPage(); await window.addHTMLPageToPDF(doc, window.createQuotationPage(), W, H);
             doc.addPage(); await window.addHTMLPageToPDF(doc, window.createCondensationGuidePage(), W, H);
 
             const filename = `더홈점검_${projectData.apartmentName}_${projectData.dong}${projectData.ho}.pdf`;
