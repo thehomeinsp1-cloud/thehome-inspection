@@ -3561,7 +3561,10 @@
             input.onchange = async (e) => {
                 const file = e.target.files[0];
                 if (file) {
-                    const compressed = await compressImage(file);
+                    // 평면도는 더 높은 해상도 사용 (글씨 선명도 개선)
+                    const maxWidth = deviceInfo.isIOS ? 1920 : 2560;
+                    const quality = 0.9;
+                    const compressed = await compressImage(file, maxWidth, quality);
                     const project = getCurrentProject(); // ✅ 현재 프로젝트 가져오기
                     
                     console.log('🔵 평면도 저장 전:', {
@@ -5165,8 +5168,17 @@
             // 원본 이미지
             const originalImage = canvas.toDataURL('image/jpeg', 0.95);
             
-            // 이미지 압축 (1920px, 품질 85%)
-            const imageData = await compressImage(originalImage, 1920, 0.85);
+            // 이미지 압축 (평면도는 더 높은 해상도 사용)
+            let imageData;
+            if (currentPhotoTarget === 'floorplan') {
+                // 평면도: 더 높은 해상도로 글씨 선명도 개선
+                const maxWidth = deviceInfo.isIOS ? 1920 : 2560;
+                const quality = 0.9;
+                imageData = await compressImage(originalImage, maxWidth, quality);
+            } else {
+                // 일반 사진: 기본 설정
+                imageData = await compressImage(originalImage, 1920, 0.85);
+            }
             
             if (currentPhotoTarget === 'floorplan') {
                 const project = getCurrentProject(); // ✅ 현재 프로젝트 가져오기
