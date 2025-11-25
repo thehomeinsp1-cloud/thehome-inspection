@@ -5533,7 +5533,7 @@
 
                 // 견적서 페이지 추가 (실내공기질측정결과 바로 다음)
                 doc.addPage();
-                const quotationPage = window.createQuotationPage();
+                const quotationPage = window.createQuotationPage(projectData.apartmentName, projectData.dong, projectData.ho, projectData.inspectionDate || new Date().toLocaleDateString('ko-KR'));
                 await window.addHTMLPageToPDF(doc, quotationPage, pageWidth, pageHeight);
 
                 doc.addPage();
@@ -6600,7 +6600,7 @@
 
                 // 견적서 페이지 추가 (실내공기질측정결과 바로 다음)
                 doc.addPage();
-                const quotationPage = window.createQuotationPage();
+                const quotationPage = window.createQuotationPage(projectData.apartmentName, projectData.dong, projectData.ho, projectData.inspectionDate || new Date().toLocaleDateString('ko-KR'));
                 await window.addHTMLPageToPDF(doc, quotationPage, pageWidth, pageHeight);
 
                 // 시공안내 페이지 추가 (견적서 다음)
@@ -9920,7 +9920,7 @@ window.createSummaryFirstPage = function() {
             }
 
             // 견적서 페이지 추가 (실내공기질측정결과 바로 다음)
-            doc.addPage(); await window.addHTMLPageToPDF(doc, window.createQuotationPage(), W, H);
+            doc.addPage(); await window.addHTMLPageToPDF(doc, window.createQuotationPage(projectData.apartmentName, projectData.dong, projectData.ho, projectData.inspectionDate || new Date().toLocaleDateString('ko-KR')), W, H);
 
             // 시공안내 페이지 추가 (견적서 다음)
             doc.addPage(); await window.addHTMLPageToPDF(doc, window.createServiceGuidePage(), W, H);
