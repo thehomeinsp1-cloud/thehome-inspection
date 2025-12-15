@@ -1124,6 +1124,7 @@
                 <div class="form-field">
                     <label class="form-label">아파트명</label>
                     <input type="text" class="form-input" id="apartmentName" placeholder="예: 래미안 아파트" oninput="autoSaveProjectData()">
+                    <div id="recentApartmentBtn" style="margin-top: 8px;"></div>
                 </div>
 
                 <div class="grid-2">
@@ -3144,6 +3145,9 @@
             document.getElementById('customerPhone').value = project.customerPhone || '';
             document.getElementById('author').value = project.author || ''; // ✅ 작성자 로드
             
+            // ==================== 최근 아파트명 버튼 렌더링 ====================
+            renderRecentApartmentBtn();
+            
             // 평면도 표시 - displayFloorplan() 함수 사용
             displayFloorplan();
             
@@ -3151,6 +3155,38 @@
             renderDefects();
             renderEquipment();
             renderAirQuality();
+        }
+        
+        // ==================== 최근 아파트명 버튼 ====================
+        function renderRecentApartmentBtn() {
+            const container = document.getElementById('recentApartmentBtn');
+            if (!container) return;
+            
+            // 현재 프로젝트 제외하고 가장 최근 아파트명 찾기
+            const currentProject = getCurrentProject();
+            const otherProjects = projects.filter(p => p.id !== currentProject.id && p.apartmentName);
+            
+            if (otherProjects.length === 0) {
+                container.innerHTML = '';
+                return;
+            }
+            
+            // 가장 최근 프로젝트의 아파트명
+            const recentApartment = otherProjects[otherProjects.length - 1].apartmentName;
+            
+            container.innerHTML = `
+                <button type="button" class="btn btn-secondary" 
+                        onclick="applyRecentApartment('${recentApartment.replace(/'/g, "\\'")}')"
+                        style="padding: 8px 12px; font-size: 13px;">
+                    📍 ${recentApartment}
+                </button>
+            `;
+        }
+        
+        function applyRecentApartment(name) {
+            document.getElementById('apartmentName').value = name;
+            autoSaveProjectData();
+            showToast('아파트명이 입력되었습니다');
         }
 
         // ==================== 자동 저장 최적화 ====================
@@ -3927,7 +3963,7 @@
                                 상태 / 정도
                             </div>
                             <div class="touch-button-grid">
-                                ${['전체','다수','작동','불량','미시공','오시공'].map(type => `
+                                ${['전체','다수','작동','돌출','불량','누락'].map(type => `
                                     <button type="button" class="touch-btn ${defect.types.includes(type) ? 'selected' : ''}" 
                                             ${defect.types.length >= 4 && !defect.types.includes(type) ? 'disabled' : ''}
                                             onclick="toggleDefectSelection(${defect.id}, 'types', '${type}')">
