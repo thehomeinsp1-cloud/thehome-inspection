@@ -5577,6 +5577,9 @@
                     });
                     
                     if (equipmentWithPhotos.length > 0) {
+                        // _originalIndex 설정 (장비점검 번호 표시용)
+                        equipmentWithPhotos.forEach((item, i) => item._originalIndex = i + 1);
+                        
                         for (let i = 0; i < equipmentWithPhotos.length; i += 2) {
                             doc.addPage();
                             const batch = equipmentWithPhotos.slice(i, i + 2);
@@ -6642,6 +6645,9 @@
                     });
                     
                     if (equipmentWithPhotos.length > 0) {
+                        // _originalIndex 설정 (장비점검 번호 표시용)
+                        equipmentWithPhotos.forEach((item, i) => item._originalIndex = i + 1);
+                        
                         // 2개씩 페이지에 표시 (여유롭고 가독성 좋게)
                         for (let i = 0; i < equipmentWithPhotos.length; i += 2) {
                             doc.addPage();
