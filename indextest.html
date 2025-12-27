@@ -5612,20 +5612,12 @@
                 await window.addHTMLPageToPDF(doc, warrantyPage1, pageWidth, pageHeight);
 
                 doc.addPage();
-                const warrantyPage2 = window.createWarrantyGuidePage2();
-                await window.addHTMLPageToPDF(doc, warrantyPage2, pageWidth, pageHeight);
-
-                doc.addPage();
                 const airQualityGuide = window.createAirQualityManagementGuidePage();
                 await window.addHTMLPageToPDF(doc, airQualityGuide, pageWidth, pageHeight);
 
                 doc.addPage();
                 const condensationGuide = window.createCondensationGuidePage();
                 await window.addHTMLPageToPDF(doc, condensationGuide, pageWidth, pageHeight);
-
-                doc.addPage();
-                const movingInGuide = window.createMovingInGuidePage();
-                await window.addHTMLPageToPDF(doc, movingInGuide, pageWidth, pageHeight);
                 
                 // PDF를 Blob으로 변환하여 ZIP에 추가
                 const pdfBlob = doc.output('blob');
