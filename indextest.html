@@ -5577,6 +5577,9 @@
                     });
                     
                     if (equipmentWithPhotos.length > 0) {
+                        // _originalIndex 설정 (장비점검 번호 표시용)
+                        equipmentWithPhotos.forEach((item, i) => item._originalIndex = i + 1);
+                        
                         for (let i = 0; i < equipmentWithPhotos.length; i += 2) {
                             doc.addPage();
                             const batch = equipmentWithPhotos.slice(i, i + 2);
@@ -6642,6 +6645,9 @@
                     });
                     
                     if (equipmentWithPhotos.length > 0) {
+                        // _originalIndex 설정 (장비점검 번호 표시용)
+                        equipmentWithPhotos.forEach((item, i) => item._originalIndex = i + 1);
+                        
                         // 2개씩 페이지에 표시 (여유롭고 가독성 좋게)
                         for (let i = 0; i < equipmentWithPhotos.length; i += 2) {
                             doc.addPage();
@@ -10116,25 +10122,60 @@ window.createSummaryFirstPage = function() {
                     `}
                     
                     <!-- 하자 요약 -->
+                    ${(() => {
+                        // 하자 유형별 분류
+                        const criticalTypes = ['누수']; // 중대하자
+                        const finishTypes = ['유격', '틈새', '단차', '파손', '긁힘', '찍힘', '들뜸', '오염', '마감', '고정', '돌출', '불량', '누락', '수평/수직']; // 마감하자
+                        const functionTypes = ['작동']; // 기능하자
+                        
+                        let criticalCount = 0;
+                        let finishCount = 0;
+                        let functionCount = 0;
+                        
+                        projectData.defects.forEach(defect => {
+                            const types = defect.types || [];
+                            if (types.some(t => criticalTypes.includes(t))) criticalCount++;
+                            else if (types.some(t => functionTypes.includes(t))) functionCount++;
+                            else finishCount++;
+                        });
+                        
+                        const totalPhotos = projectData.defects.filter(d => d.photos && d.photos.length > 0).reduce((sum, d) => sum + d.photos.length, 0);
+                        
+                        return `
                     <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 18px 22px; margin-bottom: 20px;">
-                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
                             <div style="width: 20px; height: 20px; background: #e74c3c; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 12px;">!</div>
                             <span style="color: #991b1b; font-size: 14px; font-weight: 700;">입주 전 사전점검 완료</span>
                         </div>
-                        <p style="color: #b91c1c; font-size: 11px; margin: 0 0 10px 0; line-height: 1.4; padding-left: 30px;">
-                            전문 장비를 활용한 꼼꼼한 하자 점검으로 안심하고 입주하실 수 있도록 도와드립니다.
-                        </p>
-                        <div style="display: flex; justify-content: space-around; padding: 10px 0; border-top: 1px solid #fecaca;">
-                            <div style="text-align: center;">
-                                <div style="color: #6b7280; font-size: 10px; margin-bottom: 3px; font-weight: 600;">총 하자</div>
-                                <div style="color: #e74c3c; font-size: 24px; font-weight: 800;">${projectData.defects.length}</div>
+                        
+                        <div style="display: flex; justify-content: space-between; padding: 12px 8px; background: white; border-radius: 8px; margin-bottom: 10px;">
+                            <div style="text-align: center; flex: 1; border-right: 1px solid #fee2e2;">
+                                <div style="color: #dc2626; font-size: 9px; font-weight: 700; margin-bottom: 3px;">🚨 중대하자</div>
+                                <div style="color: #dc2626; font-size: 22px; font-weight: 800;">${criticalCount}</div>
+                                <div style="color: #9ca3af; font-size: 8px;">누수</div>
                             </div>
-                            <div style="text-align: center;">
-                                <div style="color: #6b7280; font-size: 10px; margin-bottom: 3px; font-weight: 600;">증빙 사진</div>
-                                <div style="color: #dc2626; font-size: 24px; font-weight: 800;">${projectData.defects.filter(d => d.photos && d.photos.length > 0).reduce((sum, d) => sum + d.photos.length, 0)}</div>
+                            <div style="text-align: center; flex: 1; border-right: 1px solid #fee2e2;">
+                                <div style="color: #f59e0b; font-size: 9px; font-weight: 700; margin-bottom: 3px;">🔧 마감하자</div>
+                                <div style="color: #f59e0b; font-size: 22px; font-weight: 800;">${finishCount}</div>
+                                <div style="color: #9ca3af; font-size: 8px;">파손·긁힘 등</div>
+                            </div>
+                            <div style="text-align: center; flex: 1; border-right: 1px solid #fee2e2;">
+                                <div style="color: #3b82f6; font-size: 9px; font-weight: 700; margin-bottom: 3px;">⚙️ 기능하자</div>
+                                <div style="color: #3b82f6; font-size: 22px; font-weight: 800;">${functionCount}</div>
+                                <div style="color: #9ca3af; font-size: 8px;">작동·개폐</div>
+                            </div>
+                            <div style="text-align: center; flex: 1;">
+                                <div style="color: #374151; font-size: 9px; font-weight: 700; margin-bottom: 3px;">📋 총합</div>
+                                <div style="color: #e74c3c; font-size: 22px; font-weight: 800;">${projectData.defects.length}</div>
+                                <div style="color: #9ca3af; font-size: 8px;">사진 ${totalPhotos}장</div>
                             </div>
                         </div>
-                    </div>
+                        
+                        <p style="color: #b91c1c; font-size: 10px; margin: 0; line-height: 1.4; text-align: center;">
+                            전문 장비를 활용한 꼼꼼한 하자 점검으로 안심하고 입주하실 수 있도록 도와드립니다.
+                        </p>
+                    </div>`;
+                    })()}
                     
                     <!-- 점검 항목 -->
                     <div style="padding: 15px 0; border-top: 2px solid #e5e7eb; border-bottom: 2px solid #e5e7eb; margin-bottom: 20px;">
@@ -10185,15 +10226,18 @@ window.createSummaryFirstPage = function() {
     }
 
     window.createDefectListPage = function(startIndex, itemsPerPage=18) {
-        // ... (기존 코드와 동일)
         let defectRows = '';
         const defectsToDisplay = projectData.defects.slice(startIndex, startIndex + itemsPerPage);
         defectsToDisplay.forEach((defect, index) => {
             const globalIndex = startIndex + index + 1;
-            defectRows += `<tr style="border-bottom:1px solid ${R_THEME.border};"><td style="padding:11px;text-align:center;font-weight:800;color:${R_THEME.primary};border-right:1px solid ${R_THEME.border};">${String(globalIndex).padStart(2,'0')}</td><td style="padding:11px;text-align:center;font-weight:700;color:${R_THEME.dark};border-right:1px solid ${R_THEME.border};">${defect.spaces||'-'}</td><td style="padding:11px;text-align:center;font-weight:600;color:${R_THEME.dark};border-right:1px solid ${R_THEME.border};">${defect.locations||'-'}</td><td style="padding:11px;text-align:center;font-weight:600;color:${R_THEME.dark};border-right:1px solid ${R_THEME.border};">${defect.types||'-'}</td><td style="padding:11px 15px;color:#4b5563;font-weight:500;">${defect.description||'-'}</td></tr>`;
+            const spaces = defect.spaces ? defect.spaces.join(', ') : (defect.space || '-');
+            const locations = defect.locations ? defect.locations.join(', ') : (defect.location || '-');
+            const types = defect.types ? defect.types.join(', ') : (defect.type || '-');
+            const description = defect.description || '-';
+            defectRows += `<tr style="border-bottom:1px solid ${R_THEME.border};"><td style="padding:11px;text-align:center;font-weight:800;color:${R_THEME.primary};border-right:1px solid ${R_THEME.border};">${String(globalIndex).padStart(2,'0')}</td><td style="padding:11px;text-align:center;font-weight:700;color:${R_THEME.dark};border-right:1px solid ${R_THEME.border};">${spaces}</td><td style="padding:11px;text-align:center;font-weight:600;color:${R_THEME.dark};border-right:1px solid ${R_THEME.border};">${locations}</td><td style="padding:11px;text-align:center;font-weight:600;color:${R_THEME.dark};border-right:1px solid ${R_THEME.border};">${types}</td><td style="padding:11px 15px;color:#4b5563;font-weight:500;">${description}</td></tr>`;
         });
-        const totalPages = Math.ceil((projectData.defects.length-12)/18)+1;
-        const currentPage = Math.floor((startIndex-12)/18)+2;
+        const totalPages = Math.ceil(projectData.defects.length / itemsPerPage);
+        const currentPage = Math.floor(startIndex / itemsPerPage) + 1;
         return `<div style="width:794px;min-height:1123px;background:white;font-family:'Malgun Gothic',sans-serif;padding:45px;box-sizing:border-box;position:relative;"><div style="border-bottom:2px solid ${R_THEME.bg};padding-bottom:15px;margin-bottom:25px;display:flex;justify-content:space-between;align-items:center;"><div style="display:flex;align-items:center;gap:10px;"><div style="font-size:20px;font-weight:800;color:${R_THEME.primary};">더홈점검</div><div style="height:14px;width:1px;background:${R_THEME.border};"></div><div style="font-size:16px;font-weight:700;color:${R_THEME.dark};">하자 점검 내역 상세</div></div><div style="font-size:12px;font-weight:600;color:${R_THEME.light};">${projectData.apartmentName}</div></div><table style="width:100%;border-collapse:collapse;font-size:12px;table-layout:fixed;border:1px solid ${R_THEME.border};"><thead><tr style="background:${R_THEME.bg};border-bottom:1px solid ${R_THEME.border};"><th style="padding:12px;width:50px;font-weight:800;color:${R_THEME.dark};border-right:1px solid ${R_THEME.border};">NO</th><th style="padding:12px;width:100px;font-weight:800;color:${R_THEME.dark};border-right:1px solid ${R_THEME.border};">공간</th><th style="padding:12px;width:100px;font-weight:800;color:${R_THEME.dark};border-right:1px solid ${R_THEME.border};">위치</th><th style="padding:12px;width:120px;font-weight:800;color:${R_THEME.dark};border-right:1px solid ${R_THEME.border};">유형</th><th style="padding:12px;text-align:left;font-weight:800;color:${R_THEME.dark};padding-left:15px;">상세 내용</th></tr></thead><tbody>${defectRows}</tbody></table><div style="position:absolute;bottom:40px;left:45px;right:45px;padding-top:15px;border-top:1px solid ${R_THEME.border};display:flex;justify-content:space-between;align-items:center;color:${R_THEME.light};font-size:11px;"><div style="font-weight:800;">THE HOME INSPECTION</div><div style="font-weight:800;">${R_THEME.contact}</div><div style="font-weight:700;">Page ${currentPage} / ${totalPages}</div></div></div>`;
     }
 
@@ -10208,7 +10252,7 @@ window.createSummaryFirstPage = function() {
             const closePhoto = defect.photos && defect.photos[1] ? await window.addWatermarkToPhoto(defect.photos[1], `${dongHo}_${globalIndex}-1`) : '';
             const spaces = defect.spaces ? defect.spaces.join(', ') : '-';
             const description = defect.description || '-';
-            contentHTML += `<div style="margin-bottom:25px;break-inside:avoid;background:white;border:1px solid ${R_THEME.border};border-radius:8px;overflow:hidden;"><div style="display:flex;align-items:center;padding:10px 15px;background:${R_THEME.bg};border-bottom:1px solid ${R_THEME.border};"><div style="background:${R_THEME.primary};color:white;font-weight:800;font-size:12px;padding:3px 10px;border-radius:20px;margin-right:15px;">#${String(globalIndex).padStart(2,'0')}</div><div style="font-size:15px;font-weight:800;color:${R_THEME.dark};margin-right:12px;">${spaces}</div><div style="color:#cbd5e1;margin-right:12px;">|</div><div style="font-size:13px;color:#4b5563;font-weight:600;flex:1;">${description}</div></div><div style="display:flex;gap:2px;padding:2px;background:${R_THEME.border};"><div style="flex:1;background:white;position:relative;height:210px;">${farPhoto?`<img src="${farPhoto}" style="width:100%;height:100%;object-fit:contain;"/>`:`<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#ccc;font-size:12px;">사진 없음</div>`}<div style="position:absolute;bottom:8px;left:8px;background:rgba(0,0,0,0.7);color:white;font-size:11px;padding:3px 8px;border-radius:4px;font-weight:700;">원경</div></div><div style="flex:1;background:white;position:relative;height:210px;">${closePhoto?`<img src="${closePhoto}" style="width:100%;height:100%;object-fit:contain;"/>`:`<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#ccc;font-size:12px;">사진 없음</div>`}<div style="position:absolute;bottom:8px;left:8px;background:${R_THEME.primary};color:white;font-size:11px;padding:3px 8px;border-radius:4px;font-weight:700;">근경</div></div></div></div>`;
+            contentHTML += `<div style="margin-bottom:25px;break-inside:avoid;background:white;border:1px solid ${R_THEME.border};border-radius:8px;overflow:hidden;"><div style="display:flex;align-items:center;padding:10px 15px;background:${R_THEME.bg};border-bottom:1px solid ${R_THEME.border};"><div style="background:${R_THEME.primary};color:white;font-weight:800;font-size:12px;padding:3px 10px;border-radius:20px;margin-right:15px;">#${String(globalIndex).padStart(2,'0')}</div><div style="font-size:15px;font-weight:800;color:${R_THEME.dark};margin-right:12px;">${spaces}</div><div style="color:#cbd5e1;margin-right:12px;">|</div><div style="font-size:13px;color:#4b5563;font-weight:600;flex:1;">${description}</div></div><div style="display:flex;gap:2px;padding:2px;background:${R_THEME.border};"><div style="flex:1;background:white;position:relative;height:280px;">${farPhoto?`<img src="${farPhoto}" style="width:100%;height:100%;object-fit:contain;"/>`:`<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#ccc;font-size:12px;">사진 없음</div>`}<div style="position:absolute;bottom:8px;left:8px;background:rgba(0,0,0,0.7);color:white;font-size:11px;padding:3px 8px;border-radius:4px;font-weight:700;">원경</div></div><div style="flex:1;background:white;position:relative;height:280px;">${closePhoto?`<img src="${closePhoto}" style="width:100%;height:100%;object-fit:contain;"/>`:`<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#ccc;font-size:12px;">사진 없음</div>`}<div style="position:absolute;bottom:8px;left:8px;background:${R_THEME.primary};color:white;font-size:11px;padding:3px 8px;border-radius:4px;font-weight:700;">근경</div></div></div></div>`;
         }
         return `<div style="width:794px;min-height:1123px;background:white;font-family:'Malgun Gothic',sans-serif;padding:45px;box-sizing:border-box;position:relative;"><div style="border-bottom:2px solid ${R_THEME.primary};padding-bottom:15px;margin-bottom:30px;display:flex;justify-content:space-between;align-items:flex-end;"><div style="font-size:22px;font-weight:900;color:${R_THEME.dark};">하자 상세 리포트 (사진)</div><div style="font-size:12px;font-weight:700;color:${R_THEME.light};">${projectData.apartmentName}</div></div>${contentHTML}<div style="position:absolute;bottom:40px;left:45px;right:45px;padding-top:15px;border-top:1px solid ${R_THEME.border};display:flex;justify-content:space-between;align-items:center;color:${R_THEME.light};font-size:11px;"><div style="font-weight:800;color:${R_THEME.dark};">THE HOME INSPECTION</div><div style="font-weight:800;color:${R_THEME.dark};">${R_THEME.contact}</div></div></div>`;
     }
