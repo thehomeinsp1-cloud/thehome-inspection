@@ -5544,10 +5544,10 @@
                 const firstPageHTML = window.createSummaryFirstPage();
                 await window.addHTMLPageToPDF(doc, firstPageHTML, pageWidth, pageHeight);
 
-                // 2페이지~: 하자 목록만 (18개씩으로 조정)
-                if (projectData.defects.length > 15) {
+                // 2페이지~: 하자 목록 (18개씩, 0번부터 시작)
+                if (projectData.defects.length > 0) {
                     const itemsPerPage = 18;
-                    for (let i = 15; i < projectData.defects.length; i += itemsPerPage) {
+                    for (let i = 0; i < projectData.defects.length; i += itemsPerPage) {
                         doc.addPage();
                         const listPageHTML = window.createDefectListPage(i, itemsPerPage);
                         await window.addHTMLPageToPDF(doc, listPageHTML, pageWidth, pageHeight);
@@ -5580,10 +5580,10 @@
                         // _originalIndex 설정 (장비점검 번호 표시용)
                         equipmentWithPhotos.forEach((item, i) => item._originalIndex = i + 1);
                         
-                        for (let i = 0; i < equipmentWithPhotos.length; i += 2) {
+                        // 1개씩 페이지에 표시 (PDF 보고서 생성과 동일)
+                        for (let i = 0; i < equipmentWithPhotos.length; i++) {
                             doc.addPage();
-                            const batch = equipmentWithPhotos.slice(i, i + 2);
-                            const equipmentHTML = await window.createEquipmentPage(batch, i);
+                            const equipmentHTML = await window.createEquipmentPage([equipmentWithPhotos[i]]);
                             await window.addHTMLPageToPDF(doc, equipmentHTML, pageWidth, pageHeight);
                         }
                     }
