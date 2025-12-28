@@ -5610,65 +5610,107 @@
             const checkedCount = Object.keys(getCurrentProject().checkedItems).filter(k => getCurrentProject().checkedItems[k]).length;
             const totalItems = Object.keys(CHECKLIST_DATA).reduce((sum, key) => sum + CHECKLIST_DATA[key].items.length, 0);
             
+            // 촬영된 사진 수 계산
+            const photoCount = getCurrentProject().defects.reduce((sum, defect) => {
+                return sum + (defect.photos ? defect.photos.filter(p => p).length : 0);
+            }, 0);
+            
             return `
-                <div style="width: 794px; height: 1123px; background: #ffffff; font-family: 'Malgun Gothic', sans-serif; position: relative; box-sizing: border-box;">
+                <div style="width: 794px; height: 1123px; background: #ffffff; font-family: 'Malgun Gothic', sans-serif; position: relative; box-sizing: border-box; overflow: hidden;">
+                    
+                    <!-- 상단 장식 바 -->
+                    <div style="height: 12px; background: linear-gradient(90deg, #00D4AA 0%, #00A080 50%, #00D4AA 100%);"></div>
                     
                     <!-- 메인 컨텐츠 -->
-                    <div style="padding: 80px 60px 50px 60px;">
+                    <div style="padding: 60px 60px 50px 60px;">
+                        
+                        <!-- 로고 영역 -->
+                        <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 50px;">
+                            <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #00D4AA, #00A080); border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0, 212, 170, 0.3);">
+                                <span style="font-size: 28px;">🏠</span>
+                            </div>
+                            <div>
+                                <div style="font-size: 22px; font-weight: 800; color: #333; letter-spacing: -0.5px;">입주 전 하자점검</div>
+                                <div style="font-size: 12px; color: #00D4AA; font-weight: 600; letter-spacing: 1px;">PRE-OCCUPANCY INSPECTION REPORT</div>
+                            </div>
+                        </div>
                         
                         <!-- 타이틀 -->
-                        <div style="margin-bottom: 60px;">
-                            <h1 style="font-size: 48px; font-weight: 800; color: #333; margin: 0 0 15px 0; line-height: 1.2;">
-                                하자 상세 리포트 (사진)
+                        <div style="margin-bottom: 45px; position: relative;">
+                            <div style="position: absolute; top: -10px; left: -20px; width: 140px; height: 140px; background: radial-gradient(circle, rgba(0, 212, 170, 0.08) 0%, transparent 70%); border-radius: 50%;"></div>
+                            <h1 style="font-size: 44px; font-weight: 800; color: #222; margin: 0 0 12px 0; line-height: 1.2; position: relative;">
+                                하자 상세 리포트
                             </h1>
-                            <div style="width: 60px; height: 4px; background: #00D4AA;"></div>
+                            <div style="width: 80px; height: 5px; background: #00D4AA; border-radius: 3px;"></div>
                         </div>
                         
                         <!-- 프로젝트 정보 -->
-                        <div style="border-top: 2px solid #333; border-bottom: 2px solid #333; padding: 30px 0; margin-bottom: 50px;">
-                            <div style="display: flex; flex-direction: column; gap: 18px;">
-                                <div style="display: flex;">
-                                    <span style="width: 120px; color: #666; font-size: 15px; font-weight: 500;">아파트명</span>
-                                    <span style="font-size: 17px; font-weight: 700; color: #333;">${projectInfo.apartmentName}</span>
+                        <div style="background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%); border: 2px solid #e0e0e0; border-radius: 12px; padding: 28px 30px; margin-bottom: 35px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);">
+                            <div style="font-size: 13px; color: #00D4AA; font-weight: 700; margin-bottom: 18px; letter-spacing: 0.5px;">📋 점검 대상 정보</div>
+                            <div style="display: flex; flex-direction: column; gap: 14px;">
+                                <div style="display: flex; padding-bottom: 12px; border-bottom: 1px solid #e8e8e8;">
+                                    <span style="width: 110px; color: #666; font-size: 14px; font-weight: 500;">아파트명</span>
+                                    <span style="font-size: 16px; font-weight: 700; color: #222;">${projectInfo.apartmentName}</span>
+                                </div>
+                                <div style="display: flex; padding-bottom: 12px; border-bottom: 1px solid #e8e8e8;">
+                                    <span style="width: 110px; color: #666; font-size: 14px; font-weight: 500;">동 / 호수</span>
+                                    <span style="font-size: 16px; font-weight: 700; color: #222;">${projectInfo.dong}동 ${projectInfo.ho}호</span>
                                 </div>
                                 <div style="display: flex;">
-                                    <span style="width: 120px; color: #666; font-size: 15px; font-weight: 500;">동/호수</span>
-                                    <span style="font-size: 17px; font-weight: 700; color: #333;">${projectInfo.dong}동 ${projectInfo.ho}호</span>
-                                </div>
-                                <div style="display: flex;">
-                                    <span style="width: 120px; color: #666; font-size: 15px; font-weight: 500;">점검일자</span>
-                                    <span style="font-size: 17px; font-weight: 700; color: #333;">${projectInfo.inspectionDate}</span>
+                                    <span style="width: 110px; color: #666; font-size: 14px; font-weight: 500;">점검일자</span>
+                                    <span style="font-size: 16px; font-weight: 700; color: #222;">${projectInfo.inspectionDate}</span>
                                 </div>
                             </div>
                         </div>
                         
-                        <!-- 점검 결과 요약 -->
-                        <div style="display: flex; gap: 25px; margin-bottom: 70px;">
-                            <div style="flex: 1; border: 2px solid #333; padding: 30px; text-align: center;">
-                                <div style="font-size: 56px; font-weight: 800; color: #333; margin-bottom: 8px;">${defectCount}</div>
-                                <div style="font-size: 15px; color: #666; font-weight: 600;">발견된 하자</div>
+                        <!-- 점검 결과 통계 (3개) -->
+                        <div style="display: flex; gap: 18px; margin-bottom: 35px;">
+                            <div style="flex: 1; background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%); border-radius: 12px; padding: 24px; text-align: center; box-shadow: 0 4px 12px rgba(255, 107, 107, 0.2);">
+                                <div style="font-size: 48px; font-weight: 800; color: white; margin-bottom: 6px;">${defectCount}</div>
+                                <div style="font-size: 13px; color: rgba(255,255,255,0.95); font-weight: 600;">발견된 하자</div>
                             </div>
-                            <div style="flex: 1; border: 2px solid #e0e0e0; padding: 30px; text-align: center;">
-                                <div style="font-size: 56px; font-weight: 800; color: #333; margin-bottom: 8px;">${checkedCount}</div>
-                                <div style="font-size: 15px; color: #666; font-weight: 600;">체크리스트 완료</div>
+                            <div style="flex: 1; background: linear-gradient(135deg, #00D4AA 0%, #00A080 100%); border-radius: 12px; padding: 24px; text-align: center; box-shadow: 0 4px 12px rgba(0, 212, 170, 0.2);">
+                                <div style="font-size: 48px; font-weight: 800; color: white; margin-bottom: 6px;">${photoCount}</div>
+                                <div style="font-size: 13px; color: rgba(255,255,255,0.95); font-weight: 600;">촬영된 사진</div>
+                            </div>
+                            <div style="flex: 1; background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%); border-radius: 12px; padding: 24px; text-align: center; box-shadow: 0 4px 12px rgba(74, 144, 226, 0.2);">
+                                <div style="font-size: 48px; font-weight: 800; color: white; margin-bottom: 6px;">${checkedCount}</div>
+                                <div style="font-size: 13px; color: rgba(255,255,255,0.95); font-weight: 600;">체크리스트</div>
                             </div>
                         </div>
                         
-                        <!-- 안내 문구 -->
-                        <div style="background: #f8f8f8; border-left: 4px solid #00D4AA; padding: 20px 25px;">
-                            <div style="font-size: 13px; color: #666; line-height: 1.7; font-weight: 500;">
-                                본 보고서는 뷰파인더 셀프점검 서비스를 통해 작성되었습니다.<br/>
+                        <!-- 중요 안내사항 -->
+                        <div style="background: #fff9e6; border: 2px solid #ffc107; border-radius: 12px; padding: 22px 25px; margin-bottom: 18px;">
+                            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+                                <div style="width: 28px; height: 28px; background: #ffc107; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px;">⚠️</div>
+                                <div style="font-size: 14px; color: #d97706; font-weight: 700;">중요 안내사항</div>
+                            </div>
+                            <div style="font-size: 13px; color: #555; line-height: 1.8; font-weight: 500;">
+                                • 본 보고서는 시공사 하자 접수 시 증빙자료로 활용하시기 바랍니다.<br/>
+                                • 하자담보책임기간 내 주기적인 점검과 관리가 필요합니다.<br/>
+                                • 발견된 하자는 빠른 시일 내에 시공사에 접수하시기 바랍니다.
+                            </div>
+                        </div>
+                        
+                        <!-- 서비스 안내 -->
+                        <div style="background: #f0f9ff; border-left: 4px solid #4a90e2; padding: 18px 22px; border-radius: 6px;">
+                            <div style="font-size: 12px; color: #666; line-height: 1.7; font-weight: 500;">
+                                💡 본 보고서는 뷰파인더 셀프점검 서비스를 통해 작성되었습니다.<br/>
                                 전문가 점검이 필요하시면 더홈점검 프로 서비스를 이용해주세요.
                             </div>
                         </div>
                     </div>
                     
                     <!-- 하단 푸터 -->
-                    <div style="position: absolute; bottom: 0; left: 0; right: 0; padding: 25px 60px; border-top: 1px solid #e0e0e0;">
+                    <div style="position: absolute; bottom: 0; left: 0; right: 0; padding: 20px 60px; background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%); border-top: 2px solid #e0e0e0;">
                         <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <div style="font-size: 16px; font-weight: 700; color: #333;">THE HOME INSPECTION</div>
-                            <div style="text-align: right; font-size: 12px; color: #999; font-weight: 500;">
-                                대표: 1668-5222 | 직통: 010-9985-0128
+                            <div>
+                                <div style="font-size: 18px; font-weight: 700; color: #222; margin-bottom: 3px;">THE HOME INSPECTION</div>
+                                <div style="font-size: 11px; color: #00D4AA; font-weight: 600;">스마트 홈체크 전문</div>
+                            </div>
+                            <div style="text-align: right; font-size: 12px; color: #666; font-weight: 500; line-height: 1.5;">
+                                대표: 1668-5222<br/>
+                                직통: 010-9985-0128
                             </div>
                         </div>
                     </div>
@@ -5734,36 +5776,36 @@
                 
                 contentHTML += `
                     <div style="margin-bottom: 30px; page-break-inside: avoid;">
-                        <!-- 하자 번호와 위치 -->
+                        <!-- 하자 번호, 공간, 내용 (한 줄 배치) -->
                         <div style="background: #f5f5f5; padding: 12px 15px; margin-bottom: 12px; border-left: 4px solid ${badgeColor};">
-                            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 5px;">
-                                <div style="background: ${badgeColor}; color: white; padding: 4px 12px; border-radius: 4px; font-size: 12px; font-weight: bold;">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div style="background: ${badgeColor}; color: white; padding: 4px 12px; border-radius: 4px; font-size: 12px; font-weight: bold; flex-shrink: 0;">
                                     #${String(globalIndex).padStart(2, '0')}
                                 </div>
-                                <div style="font-size: 15px; color: #333; font-weight: 700;">
+                                <div style="font-size: 14px; color: #333; font-weight: 700; flex-shrink: 0;">
                                     ${spaces}
                                 </div>
+                                ${description ? `
+                                    <div style="font-size: 14px; color: #000; font-weight: 700; flex: 1;">
+                                        ${description}
+                                    </div>
+                                ` : ''}
                             </div>
-                            ${description ? `
-                                <div style="font-size: 13px; color: #666; margin-left: 50px; line-height: 1.5;">
-                                    ${description}
-                                </div>
-                            ` : ''}
                         </div>
 
-                        <!-- 사진 가로 배치 (샘플과 동일) -->
+                        <!-- 사진 가로 배치 (크기 확대) -->
                         <div style="display: flex; gap: 12px;">
                             <!-- 원경 -->
                             <div style="flex: 1; position: relative;">
                                 ${farPhoto ? `
                                     <div style="position: relative; border: 1px solid #e0e0e0; border-radius: 4px; overflow: hidden; background: #fafafa;">
-                                        <img src="${farPhoto}" style="width: 100%; height: 280px; object-fit: cover; display: block;" />
+                                        <img src="${farPhoto}" style="width: 100%; height: 340px; object-fit: cover; display: block;" />
                                         <div style="position: absolute; bottom: 8px; left: 8px; background: #10B981; color: white; padding: 5px 12px; border-radius: 4px; font-size: 11px; font-weight: bold;">
                                             원경
                                         </div>
                                     </div>
                                 ` : `
-                                    <div style="width: 100%; height: 280px; background: #f5f5f5; border: 1px solid #e0e0e0; border-radius: 4px; display: flex; align-items: center; justify-content: center; color: #999; font-size: 12px;">
+                                    <div style="width: 100%; height: 340px; background: #f5f5f5; border: 1px solid #e0e0e0; border-radius: 4px; display: flex; align-items: center; justify-content: center; color: #999; font-size: 12px;">
                                         사진 없음
                                     </div>
                                 `}
@@ -5773,13 +5815,13 @@
                             <div style="flex: 1; position: relative;">
                                 ${nearPhoto ? `
                                     <div style="position: relative; border: 1px solid #e0e0e0; border-radius: 4px; overflow: hidden; background: #fafafa;">
-                                        <img src="${nearPhoto}" style="width: 100%; height: 280px; object-fit: cover; display: block;" />
+                                        <img src="${nearPhoto}" style="width: 100%; height: 340px; object-fit: cover; display: block;" />
                                         <div style="position: absolute; bottom: 8px; left: 8px; background: #10B981; color: white; padding: 5px 12px; border-radius: 4px; font-size: 11px; font-weight: bold;">
                                             근경
                                         </div>
                                     </div>
                                 ` : `
-                                    <div style="width: 100%; height: 280px; background: #f5f5f5; border: 1px solid #e0e0e0; border-radius: 4px; display: flex; align-items: center; justify-content: center; color: #999; font-size: 12px;">
+                                    <div style="width: 100%; height: 340px; background: #f5f5f5; border: 1px solid #e0e0e0; border-radius: 4px; display: flex; align-items: center; justify-content: center; color: #999; font-size: 12px;">
                                         사진 없음
                                     </div>
                                 `}
