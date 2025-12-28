@@ -4603,7 +4603,6 @@
                     showToast('이메일이 전송되었습니다! 📧');
                 } else {
                     // EmailJS 미설정 시 대체 방법 (mailto 링크)
-                    hideLoading();
                     
                     const subject = encodeURIComponent(`[뷰파인더] ${projectInfo.apartmentName} ${projectInfo.dong}동 ${projectInfo.ho}호 하자점검 보고서`);
                     const body = encodeURIComponent(
@@ -4619,20 +4618,33 @@
                         `--\n뷰파인더 | 스마트 셀프 홈체크`
                     );
                     
-                    // PDF 먼저 다운로드
-                    const link = document.createElement('a');
-                    link.href = URL.createObjectURL(pdfBlob);
-                    link.download = `${projectInfo.apartmentName}_${projectInfo.dong}동${projectInfo.ho}호_하자점검보고서.pdf`;
-                    link.click();
-                    URL.revokeObjectURL(link.href);
+                    const recipients = sendCopyToCompany ? `${recipientEmail},${COMPANY_EMAIL}` : recipientEmail;
+                    const mailtoUrl = `mailto:${recipients}?subject=${subject}&body=${body}`;
                     
-                    // 잠시 후 이메일 앱 열기
+                    // PDF 다운로드
+                    const pdfLink = document.createElement('a');
+                    pdfLink.href = URL.createObjectURL(pdfBlob);
+                    pdfLink.download = `${projectInfo.apartmentName}_${projectInfo.dong}동${projectInfo.ho}호_하자점검보고서.pdf`;
+                    document.body.appendChild(pdfLink);
+                    pdfLink.click();
+                    document.body.removeChild(pdfLink);
+                    
+                    hideLoading();
+                    
+                    // 안내 후 이메일 앱 열기
                     setTimeout(() => {
-                        const recipients = sendCopyToCompany ? `${recipientEmail},${COMPANY_EMAIL}` : recipientEmail;
-                        window.location.href = `mailto:${recipients}?subject=${subject}&body=${body}`;
-                        
-                        showToast('PDF가 다운로드되었습니다.\n이메일에 첨부해서 보내주세요!', 'info');
-                    }, 500);
+                        if (confirm('PDF가 다운로드되었습니다.\n\n이메일 앱을 열어서 PDF를 첨부하시겠습니까?')) {
+                            // 여러 방법 시도
+                            const mailWindow = window.open(mailtoUrl, '_blank');
+                            
+                            // window.open 실패 시 location.href 시도
+                            if (!mailWindow || mailWindow.closed) {
+                                window.location.href = mailtoUrl;
+                            }
+                        } else {
+                            showToast('다운로드된 PDF를 이메일에 첨부해서 보내주세요');
+                        }
+                    }, 300);
                 }
                 
             } catch (error) {
