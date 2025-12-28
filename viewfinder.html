@@ -1445,18 +1445,7 @@
             object-fit: cover;
         }
 
-        .camera-guide {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 80%;
-            max-width: 300px;
-            aspect-ratio: 4/3;
-            border: 2px dashed rgba(255, 255, 255, 0.5);
-            border-radius: 12px;
-            pointer-events: none;
-        }
+        /* 카메라 가이드 제거됨 */
 
         .camera-guide-text {
             position: absolute;
@@ -1542,34 +1531,7 @@
             font-size: 11px;
         }
 
-        /* 줌 컨트롤 */
-        .zoom-controls {
-            position: absolute;
-            right: 16px;
-            top: 50%;
-            transform: translateY(-50%);
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .zoom-btn {
-            width: 44px;
-            height: 44px;
-            background: rgba(0, 0, 0, 0.5);
-            border: none;
-            border-radius: 50%;
-            color: white;
-            font-size: 20px;
-            cursor: pointer;
-        }
-
-        .zoom-level {
-            text-align: center;
-            color: white;
-            font-size: 12px;
-            font-weight: 600;
-        }
+        /* 줌 컨트롤 제거됨 */
 
         /* 마커 캔버스 */
         .marker-canvas {
@@ -3480,14 +3442,7 @@
         <div class="camera-preview-container">
             <video id="cameraPreview" autoplay playsinline muted></video>
             <canvas id="markerCanvas" class="marker-canvas"></canvas>
-            <div class="camera-guide"></div>
             <div class="camera-guide-text" id="cameraGuideText">원경 촬영 - 멀리서 전체</div>
-            
-            <div class="zoom-controls">
-                <button class="zoom-btn" onclick="adjustZoom(0.5)">+</button>
-                <div class="zoom-level" id="zoomLevel">1.0x</div>
-                <button class="zoom-btn" onclick="adjustZoom(-0.5)">-</button>
-            </div>
             
             <div class="marker-hint" id="markerHint">터치하여 마커 표시</div>
         </div>
@@ -5204,24 +5159,34 @@
                     const x = marker.x * width;
                     const y = marker.y * height;
                     
-                    // 외곽 원
+                    // 외곽 원 (더 크게)
                     ctx.beginPath();
-                    ctx.arc(x, y, 25, 0, Math.PI * 2);
+                    ctx.arc(x, y, 40, 0, Math.PI * 2);
                     ctx.strokeStyle = '#FF0000';
-                    ctx.lineWidth = 4;
+                    ctx.lineWidth = 6;
                     ctx.stroke();
                     
-                    // 중앙 점
+                    // 중앙 점 (더 크게)
                     ctx.beginPath();
-                    ctx.arc(x, y, 5, 0, Math.PI * 2);
+                    ctx.arc(x, y, 8, 0, Math.PI * 2);
                     ctx.fillStyle = '#FF0000';
                     ctx.fill();
                     
-                    // 번호 텍스트
-                    ctx.font = 'bold 16px sans-serif';
+                    // 번호 배경 (흰색 원)
+                    ctx.beginPath();
+                    ctx.arc(x, y - 50, 20, 0, Math.PI * 2);
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+                    ctx.fill();
+                    ctx.strokeStyle = '#FF0000';
+                    ctx.lineWidth = 3;
+                    ctx.stroke();
+                    
+                    // 번호 텍스트 (더 크게)
+                    ctx.font = 'bold 24px sans-serif';
                     ctx.fillStyle = '#FF0000';
                     ctx.textAlign = 'center';
-                    ctx.fillText(idx + 1, x, y - 35);
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(idx + 1, x, y - 50);
                 });
             }
             
