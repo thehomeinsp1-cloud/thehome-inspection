@@ -2322,7 +2322,410 @@
             font-size: 14px;
         }
 
-        /* ==================== 튜토리얼 온보딩 ==================== */
+        /* ==================== 온보딩 랜딩 ==================== */
+        .onboarding-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--primary);
+            z-index: 9999;
+            transition: opacity 0.3s ease;
+        }
+
+        .onboarding-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .onboarding-scroll {
+            height: 100%;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* 히어로 섹션 */
+        .onboarding-hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 60px 24px;
+            position: relative;
+        }
+
+        .onboarding-badge {
+            display: inline-block;
+            background: rgba(0, 212, 170, 0.2);
+            color: var(--accent);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 24px;
+            border: 1px solid rgba(0, 212, 170, 0.3);
+        }
+
+        .onboarding-title {
+            font-size: 32px;
+            font-weight: 800;
+            line-height: 1.3;
+            margin-bottom: 20px;
+            color: var(--text);
+        }
+
+        .onboarding-title .highlight {
+            color: var(--accent);
+        }
+
+        .onboarding-desc {
+            font-size: 15px;
+            color: var(--text-muted);
+            line-height: 1.6;
+            max-width: 300px;
+        }
+
+        .onboarding-scroll-hint {
+            position: absolute;
+            bottom: 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .scroll-arrow {
+            font-size: 20px;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(8px); }
+        }
+
+        /* 섹션 공통 */
+        .onboarding-section {
+            padding: 60px 24px;
+            border-top: 1px solid var(--card-border);
+        }
+
+        .onboarding-section-title {
+            font-size: 24px;
+            font-weight: 800;
+            text-align: center;
+            margin-bottom: 32px;
+            color: var(--text);
+        }
+
+        /* 특징 그리드 */
+        .onboarding-features {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .onboarding-feature {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 20px 16px;
+            text-align: center;
+        }
+
+        .onboarding-feature-icon {
+            font-size: 36px;
+            margin-bottom: 12px;
+        }
+
+        .onboarding-feature-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 8px;
+        }
+
+        .onboarding-feature-desc {
+            font-size: 12px;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+
+        /* 단계 */
+        .onboarding-steps {
+            max-width: 350px;
+            margin: 0 auto;
+        }
+
+        .onboarding-step {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            margin-bottom: 24px;
+            position: relative;
+        }
+
+        .onboarding-step:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            left: 20px;
+            top: 48px;
+            width: 2px;
+            height: calc(100% - 10px);
+            background: linear-gradient(to bottom, var(--accent), transparent);
+        }
+
+        .onboarding-step-num {
+            width: 42px;
+            height: 42px;
+            background: linear-gradient(135deg, var(--accent), #00B894);
+            color: var(--primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: 800;
+            flex-shrink: 0;
+        }
+
+        .onboarding-step-content {
+            padding-top: 4px;
+        }
+
+        .onboarding-step-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 4px;
+        }
+
+        .onboarding-step-desc {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        /* 촬영 팁 카드 */
+        .onboarding-tip-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 24px;
+            max-width: 350px;
+            margin: 0 auto;
+        }
+
+        .onboarding-photo-guide {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .photo-guide-item {
+            text-align: center;
+        }
+
+        .photo-guide-icon {
+            font-size: 40px;
+            margin-bottom: 8px;
+        }
+
+        .photo-guide-label {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 4px;
+        }
+
+        .photo-guide-desc {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .photo-guide-plus {
+            font-size: 24px;
+            color: var(--text-muted);
+        }
+
+        .onboarding-tip-note {
+            background: rgba(0, 212, 170, 0.1);
+            border-radius: 10px;
+            padding: 12px;
+            font-size: 13px;
+            color: var(--text);
+            text-align: center;
+        }
+
+        /* 가격 */
+        .onboarding-pricing {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-width: 350px;
+            margin: 0 auto 24px;
+        }
+
+        .onboarding-price-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 14px;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            position: relative;
+        }
+
+        .onboarding-price-card.featured {
+            border-color: var(--accent);
+            background: rgba(0, 212, 170, 0.1);
+        }
+
+        .price-badge {
+            position: absolute;
+            top: -8px;
+            right: 16px;
+            background: var(--accent);
+            color: var(--primary);
+            padding: 3px 10px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 700;
+        }
+
+        .price-name {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text);
+            width: 70px;
+        }
+
+        .price-amount {
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--accent);
+        }
+
+        .price-amount span {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .price-desc {
+            flex: 1;
+            font-size: 12px;
+            color: var(--text-muted);
+            text-align: right;
+        }
+
+        /* 애드온 */
+        .onboarding-addon {
+            background: rgba(255, 184, 0, 0.1);
+            border: 2px dashed rgba(255, 184, 0, 0.5);
+            border-radius: 14px;
+            padding: 16px;
+            max-width: 350px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .addon-label {
+            display: inline-block;
+            background: #FFB800;
+            color: #000;
+            padding: 3px 10px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .addon-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #FFB800;
+            margin-bottom: 12px;
+        }
+
+        .addon-prices {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+        }
+
+        .addon-prices span {
+            background: var(--card-bg);
+            padding: 6px 10px;
+            border-radius: 8px;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .addon-prices b {
+            color: #FFB800;
+        }
+
+        /* CTA 섹션 */
+        .onboarding-cta {
+            background: linear-gradient(135deg, var(--accent), #00B894);
+            padding: 60px 24px;
+            text-align: center;
+        }
+
+        .onboarding-cta-title {
+            font-size: 26px;
+            font-weight: 800;
+            color: var(--primary);
+            margin-bottom: 12px;
+        }
+
+        .onboarding-cta-desc {
+            font-size: 14px;
+            color: rgba(0, 0, 0, 0.6);
+            margin-bottom: 28px;
+        }
+
+        .onboarding-start-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--primary);
+            color: var(--text);
+            padding: 18px 48px;
+            border-radius: 30px;
+            font-size: 18px;
+            font-weight: 700;
+            border: none;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .onboarding-start-btn:active {
+            transform: scale(0.95);
+        }
+
+        .onboarding-contact {
+            margin-top: 20px;
+            font-size: 14px;
+            color: rgba(0, 0, 0, 0.6);
+        }
+
+        .onboarding-contact a {
+            color: var(--primary);
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+        /* 레거시 튜토리얼 호환 */
         .tutorial-overlay {
             position: fixed;
             top: 0;
@@ -2629,6 +3032,35 @@
 
         .tutorial-start-item:last-child {
             border-bottom: none;
+        }
+
+        /* 튜토리얼 - 마커 데모 */
+        .tutorial-marker-demo {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin: 24px 0;
+        }
+
+        .tutorial-marker-demo .marker-circle {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--accent);
+            border-radius: 50%;
+            animation: markerPulse 1.5s ease-in-out infinite;
+        }
+
+        .tutorial-marker-demo .marker-circle:nth-child(2) {
+            animation-delay: 0.3s;
+        }
+
+        .tutorial-marker-demo .marker-circle:nth-child(3) {
+            animation-delay: 0.6s;
+        }
+
+        @keyframes markerPulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.2); opacity: 0.7; }
         }
 
         /* ==================== 퀵모드 ==================== */
@@ -3443,46 +3875,181 @@
     </style>
 </head>
 <body>
-    <!-- ==================== 튜토리얼 온보딩 ==================== -->
-    <div class="tutorial-overlay" id="tutorialOverlay">
+    <!-- ==================== 온보딩 랜딩 ==================== -->
+    <div class="onboarding-overlay" id="tutorialOverlay">
+        <div class="onboarding-scroll">
+            <!-- 히어로 섹션 -->
+            <section class="onboarding-hero">
+                <span class="onboarding-badge">✨ 셀프 하자점검 앱</span>
+                <h1 class="onboarding-title">
+                    신축 아파트 하자<br>
+                    <span class="highlight">직접 찾고 기록</span>하세요
+                </h1>
+                <p class="onboarding-desc">
+                    체계적인 하자 기록부터 PDF 보고서 생성,<br>
+                    하자접수 대행까지 한 번에
+                </p>
+                <div class="onboarding-scroll-hint">
+                    <span>아래로 스크롤</span>
+                    <span class="scroll-arrow">↓</span>
+                </div>
+            </section>
+
+            <!-- 특징 섹션 -->
+            <section class="onboarding-section">
+                <h2 class="onboarding-section-title">왜 뷰파인더인가요?</h2>
+                <div class="onboarding-features">
+                    <div class="onboarding-feature">
+                        <div class="onboarding-feature-icon">📸</div>
+                        <div class="onboarding-feature-title">원경 + 근경 촬영</div>
+                        <div class="onboarding-feature-desc">하자 위치와 상세 모습을 2장으로 체계적으로 기록</div>
+                    </div>
+                    <div class="onboarding-feature">
+                        <div class="onboarding-feature-icon">⚡</div>
+                        <div class="onboarding-feature-title">퀵모드</div>
+                        <div class="onboarding-feature-desc">발견 즉시 빠르게 촬영, 상세 정보는 나중에</div>
+                    </div>
+                    <div class="onboarding-feature">
+                        <div class="onboarding-feature-icon">📄</div>
+                        <div class="onboarding-feature-title">PDF 보고서</div>
+                        <div class="onboarding-feature-desc">전문적인 형식의 보고서, 시공사 제출용으로 완벽</div>
+                    </div>
+                    <div class="onboarding-feature">
+                        <div class="onboarding-feature-icon">📧</div>
+                        <div class="onboarding-feature-title">간편 전송</div>
+                        <div class="onboarding-feature-desc">이메일 한 번으로 전체 자료 전송</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 사용 방법 섹션 -->
+            <section class="onboarding-section">
+                <h2 class="onboarding-section-title">이렇게 사용하세요</h2>
+                <div class="onboarding-steps">
+                    <div class="onboarding-step">
+                        <div class="onboarding-step-num">1</div>
+                        <div class="onboarding-step-content">
+                            <div class="onboarding-step-title">정보 입력</div>
+                            <div class="onboarding-step-desc">아파트명, 동호수, 점검일 입력</div>
+                        </div>
+                    </div>
+                    <div class="onboarding-step">
+                        <div class="onboarding-step-num">2</div>
+                        <div class="onboarding-step-content">
+                            <div class="onboarding-step-title">하자 촬영</div>
+                            <div class="onboarding-step-desc">발견한 하자를 원경/근경으로 촬영</div>
+                        </div>
+                    </div>
+                    <div class="onboarding-step">
+                        <div class="onboarding-step-num">3</div>
+                        <div class="onboarding-step-content">
+                            <div class="onboarding-step-title">보고서 생성</div>
+                            <div class="onboarding-step-desc">버튼 하나로 PDF 보고서 완성</div>
+                        </div>
+                    </div>
+                    <div class="onboarding-step">
+                        <div class="onboarding-step-num">4</div>
+                        <div class="onboarding-step-content">
+                            <div class="onboarding-step-title">자료 전송</div>
+                            <div class="onboarding-step-desc">이메일로 간편하게 전송</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 촬영 팁 섹션 -->
+            <section class="onboarding-section">
+                <h2 class="onboarding-section-title">📸 촬영 팁</h2>
+                <div class="onboarding-tip-card">
+                    <div class="onboarding-photo-guide">
+                        <div class="photo-guide-item">
+                            <div class="photo-guide-icon">🖼️</div>
+                            <div class="photo-guide-label">원경</div>
+                            <div class="photo-guide-desc">전체 위치가 보이게</div>
+                        </div>
+                        <div class="photo-guide-plus">+</div>
+                        <div class="photo-guide-item">
+                            <div class="photo-guide-icon">🔍</div>
+                            <div class="photo-guide-label">근경</div>
+                            <div class="photo-guide-desc">하자 부위 가까이서</div>
+                        </div>
+                    </div>
+                    <div class="onboarding-tip-note">
+                        💡 촬영 중 화면 터치 → 하자 위치에 마커 표시
+                    </div>
+                </div>
+            </section>
+
+            <!-- 서비스 안내 섹션 -->
+            <section class="onboarding-section">
+                <h2 class="onboarding-section-title">서비스 안내</h2>
+                <div class="onboarding-pricing">
+                    <div class="onboarding-price-card featured">
+                        <div class="price-badge">추천</div>
+                        <div class="price-name">셀프</div>
+                        <div class="price-amount">3.9<span>만원</span></div>
+                        <div class="price-desc">PRO키트 대여 + 앱 이용권</div>
+                    </div>
+                    <div class="onboarding-price-card">
+                        <div class="price-name">어시스트</div>
+                        <div class="price-amount">6.9<span>만원</span></div>
+                        <div class="price-desc">+ 매니저 현장 보조</div>
+                    </div>
+                    <div class="onboarding-price-card">
+                        <div class="price-badge">인기</div>
+                        <div class="price-name">프로</div>
+                        <div class="price-amount">8.9<span>만원</span></div>
+                        <div class="price-desc">+ 건축전문가 동행</div>
+                    </div>
+                </div>
+                <div class="onboarding-addon">
+                    <div class="addon-label">ADD-ON</div>
+                    <div class="addon-title">하자접수 대행</div>
+                    <div class="addon-prices">
+                        <span>30건↓ <b>2만</b></span>
+                        <span>50건↓ <b>3만</b></span>
+                        <span>70건↓ <b>5만</b></span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- CTA 섹션 -->
+            <section class="onboarding-cta">
+                <h2 class="onboarding-cta-title">지금 바로 시작하세요</h2>
+                <p class="onboarding-cta-desc">입주 점검, 뷰파인더와 함께라면 어렵지 않아요</p>
+                <button class="onboarding-start-btn" onclick="showTutorial()">
+                    🚀 사용법 보기
+                </button>
+            </section>
+        </div>
+    </div>
+
+    <!-- ==================== 튜토리얼 (사용법) ==================== -->
+    <div class="tutorial-overlay" id="tutorialSlideOverlay">
         <div class="tutorial-slides" id="tutorialSlides">
             <!-- 슬라이드 1: 환영 -->
             <div class="tutorial-slide">
-                <div class="tutorial-icon">🏠</div>
-                <h2 class="tutorial-title">뷰파인더에<br>오신 것을 환영합니다</h2>
+                <div class="tutorial-icon">👋</div>
+                <h2 class="tutorial-title">사용법을<br>알려드릴게요</h2>
                 <p class="tutorial-desc">
-                    신축 아파트 입주 전<br>
-                    <span class="tutorial-highlight">셀프 하자점검</span>을 도와드려요
+                    간단한 사용법만 익히면<br>
+                    바로 점검을 시작할 수 있어요
                 </p>
-                <div class="tutorial-tip-box">
-                    <div class="tutorial-tip-title">💡 알고 계셨나요?</div>
-                    <div class="tutorial-tip-content">
-                        입주 지정 기간 내 발견한 하자는<br>
-                        시공사에서 무상으로 보수해줍니다
-                    </div>
-                </div>
             </div>
 
-            <!-- 슬라이드 2: 전체 흐름 -->
+            <!-- 슬라이드 2: 정보 입력 -->
             <div class="tutorial-slide">
-                <div class="tutorial-icon">📋</div>
-                <h2 class="tutorial-title">간단한 4단계로<br>점검 완료</h2>
-                <div class="tutorial-steps">
-                    <div class="tutorial-step">
-                        <span class="tutorial-step-num">1</span>
-                        <span class="tutorial-step-text">아파트 정보 입력</span>
-                    </div>
-                    <div class="tutorial-step">
-                        <span class="tutorial-step-num">2</span>
-                        <span class="tutorial-step-text">하자 발견 → 사진 촬영</span>
-                    </div>
-                    <div class="tutorial-step">
-                        <span class="tutorial-step-num">3</span>
-                        <span class="tutorial-step-text">PDF 보고서 생성</span>
-                    </div>
-                    <div class="tutorial-step">
-                        <span class="tutorial-step-num">4</span>
-                        <span class="tutorial-step-text">이메일로 자료 전송</span>
+                <div class="tutorial-icon">🏠</div>
+                <h2 class="tutorial-title">아파트 정보 입력</h2>
+                <p class="tutorial-desc">
+                    <span class="tutorial-highlight">홈</span> 탭에서<br>
+                    아파트명, 동호수, 점검일을 입력하세요
+                </p>
+                <div class="tutorial-tip-box">
+                    <div class="tutorial-tip-title">💡 팁</div>
+                    <div class="tutorial-tip-content">
+                        여러 세대를 점검할 땐<br>
+                        프로젝트를 추가로 만드세요
                     </div>
                 </div>
             </div>
@@ -3490,32 +4057,31 @@
             <!-- 슬라이드 3: 퀵모드 vs 상세입력 -->
             <div class="tutorial-slide">
                 <div class="tutorial-icon">⚡</div>
-                <h2 class="tutorial-title">두 가지 점검 모드</h2>
+                <h2 class="tutorial-title">두 가지 촬영 모드</h2>
                 <div class="tutorial-mode-box">
                     <div class="tutorial-mode">
                         <div class="tutorial-mode-icon">⚡</div>
                         <div class="tutorial-mode-name">퀵모드</div>
-                        <div class="tutorial-mode-desc">빠른 연속 촬영<br>사진 → 즉시 저장</div>
+                        <div class="tutorial-mode-desc">빠른 연속 촬영<br>나중에 정보 입력</div>
                     </div>
                     <div class="tutorial-mode">
                         <div class="tutorial-mode-icon">📝</div>
                         <div class="tutorial-mode-name">상세입력</div>
-                        <div class="tutorial-mode-desc">꼼꼼한 기록<br>공간/위치/유형 선택</div>
+                        <div class="tutorial-mode-desc">촬영하면서<br>바로 정보 입력</div>
                     </div>
                 </div>
                 <div class="tutorial-tip-box">
                     <div class="tutorial-tip-title">💡 추천</div>
                     <div class="tutorial-tip-content">
-                        처음엔 <b>퀵모드</b>로 빠르게 촬영하고<br>
-                        나중에 상세 정보를 추가하세요
+                        처음엔 <b>퀵모드</b>로 빠르게 촬영!
                     </div>
                 </div>
             </div>
 
-            <!-- 슬라이드 4: 사진 촬영 팁 -->
+            <!-- 슬라이드 4: 사진 2장 -->
             <div class="tutorial-slide">
                 <div class="tutorial-icon">📸</div>
-                <h2 class="tutorial-title">사진은 2장씩<br>촬영해주세요</h2>
+                <h2 class="tutorial-title">사진은 2장씩</h2>
                 <div class="tutorial-image-box">
                     <span class="far-label">📸 원경</span>
                     <span style="font-size: 40px; opacity: 0.3;">🖼️</span>
@@ -3525,50 +4091,40 @@
                     <span class="tutorial-highlight">원경</span>: 전체 위치가 보이게<br>
                     <span class="tutorial-highlight">근경</span>: 하자 부위 가까이서
                 </p>
+            </div>
+
+            <!-- 슬라이드 5: 마커 기능 -->
+            <div class="tutorial-slide">
+                <div class="tutorial-icon">👆</div>
+                <h2 class="tutorial-title">마커로 표시하세요</h2>
+                <p class="tutorial-desc">
+                    촬영 중 화면을 <span class="tutorial-highlight">터치</span>하면<br>
+                    하자 위치에 마커가 표시됩니다
+                </p>
+                <div class="tutorial-marker-demo">
+                    <div class="marker-circle"></div>
+                    <div class="marker-circle"></div>
+                    <div class="marker-circle"></div>
+                </div>
                 <div class="tutorial-tip-box">
-                    <div class="tutorial-tip-title">💡 마커 기능</div>
+                    <div class="tutorial-tip-title">💡 팁</div>
                     <div class="tutorial-tip-content">
-                        촬영 중 화면을 터치하면<br>
-                        하자 위치에 마커가 표시됩니다
+                        마커는 사진에 함께 저장돼요
                     </div>
                 </div>
             </div>
 
-            <!-- 슬라이드 5: 체크리스트 안내 -->
+            <!-- 슬라이드 6: 리포트 -->
             <div class="tutorial-slide">
-                <div class="tutorial-icon">✅</div>
-                <h2 class="tutorial-title">체크리스트로<br>놓치지 마세요</h2>
+                <div class="tutorial-icon">📄</div>
+                <h2 class="tutorial-title">보고서 생성 & 전송</h2>
                 <p class="tutorial-desc">
-                    공간별 점검 포인트를<br>
-                    <span class="tutorial-highlight">체크리스트</span>로 확인하세요
-                </p>
-                <div class="tutorial-checklist-preview">
-                    <div class="tutorial-checklist-item">🚪 현관 - 도어락, 신발장, 바닥</div>
-                    <div class="tutorial-checklist-item">🛋️ 거실 - 창문, 바닥, 벽면</div>
-                    <div class="tutorial-checklist-item">🍳 주방 - 싱크대, 후드, 수전</div>
-                    <div class="tutorial-checklist-item">🚿 욕실 - 타일, 변기, 환풍기</div>
-                </div>
-            </div>
-
-            <!-- 슬라이드 6: 리포트 & 전송 -->
-            <div class="tutorial-slide">
-                <div class="tutorial-icon">📊</div>
-                <h2 class="tutorial-title">리포트 생성 &<br>자료 전송</h2>
-                <p class="tutorial-desc">
-                    점검이 끝나면 <span class="tutorial-highlight">리포트</span> 탭에서<br>
-                    보고서를 생성하고 전송하세요
+                    점검이 끝나면 <span class="tutorial-highlight">리포트</span> 탭에서
                 </p>
                 <div class="tutorial-feature-list">
                     <div class="tutorial-feature">📄 PDF 보고서 생성</div>
-                    <div class="tutorial-feature">📦 전체 자료 다운로드 (ZIP)</div>
-                    <div class="tutorial-feature">📧 이메일로 자료 전송</div>
-                </div>
-                <div class="tutorial-tip-box">
-                    <div class="tutorial-tip-title">💡 하자접수 대행</div>
-                    <div class="tutorial-tip-content">
-                        이메일 전송 시 뷰파인더에도 전송하면<br>
-                        하자접수 대행 서비스를 받을 수 있어요
-                    </div>
+                    <div class="tutorial-feature">📦 전체 자료 다운로드</div>
+                    <div class="tutorial-feature">📧 이메일로 전송</div>
                 </div>
             </div>
 
@@ -3577,20 +4133,13 @@
                 <div class="tutorial-icon">🚀</div>
                 <h2 class="tutorial-title">준비 완료!</h2>
                 <p class="tutorial-desc">
-                    이제 <span class="tutorial-highlight">하자점검</span>을 시작해볼까요?
+                    이제 점검을 시작해볼까요?
                 </p>
                 <div class="tutorial-start-summary">
-                    <div class="tutorial-start-item">✓ 정보 입력 → 하자 촬영 → 리포트</div>
-                    <div class="tutorial-start-item">✓ 퀵모드로 빠르게, 상세입력으로 꼼꼼히</div>
-                    <div class="tutorial-start-item">✓ 사진 2장씩 (원경 + 근경)</div>
-                    <div class="tutorial-start-item">✓ 완료 후 이메일로 전송</div>
-                </div>
-                <div class="tutorial-tip-box">
-                    <div class="tutorial-tip-title">📞 도움이 필요하시면</div>
-                    <div class="tutorial-tip-content">
-                        010-9985-0128<br>
-                        언제든지 문의해주세요
-                    </div>
+                    <div class="tutorial-start-item">✓ 홈에서 정보 입력</div>
+                    <div class="tutorial-start-item">✓ 퀵모드로 빠르게 촬영</div>
+                    <div class="tutorial-start-item">✓ 사진 2장씩 (원경+근경)</div>
+                    <div class="tutorial-start-item">✓ 리포트에서 전송</div>
                 </div>
             </div>
         </div>
@@ -3784,10 +4333,6 @@
                         <span class="addon-price">150건↑ <b>7만</b></span>
                     </div>
                 </div>
-                
-                <div class="pricing-contact">
-                    업그레이드 문의 <a href="tel:010-9985-0128">010-9985-0128</a>
-                </div>
             </div>
         </section>
 
@@ -3831,7 +4376,7 @@
         <!-- ==================== 체크리스트 섹션 ==================== -->
         <section class="section" id="checklistSection">
             <h2 style="font-size: 20px; font-weight: 700; margin-bottom: 10px;">점검 참고용 체크리스트</h2>
-            <p style="font-size: 13px; color: #999; margin-bottom: 20px;">더홈점검에서 제공하는 무료 셀프점검 자료입니다.</p>
+            <p style="font-size: 13px; color: #999; margin-bottom: 20px;">뷰파인더에서 제공하는 셀프점검 자료입니다.</p>
             
             <div class="checklist-spaces" id="checklistSpaces">
                 <!-- 동적 생성 -->
@@ -4157,7 +4702,7 @@
             
             <div style="margin-top: 20px; padding: 16px; background: var(--card-bg); border-radius: var(--radius); text-align: center;">
                 <div style="font-size: 13px; color: var(--text-muted); margin-bottom: 8px;">뷰파인더 v2.0</div>
-                <div style="font-size: 12px; color: var(--text-muted);">© 2024 더홈점검</div>
+                <div style="font-size: 12px; color: var(--text-muted);">© 2024 뷰파인더</div>
             </div>
         </div>
     </div>
@@ -4568,7 +5113,7 @@
             }
         };
 
-        // 기본 공간 목록 (더홈점검 동일)
+        // 기본 공간 목록
         const DEFAULT_SPACES = [
             '현관', '안방', '침실1', '침실2', '침실3', '침실4', 
             '복도', '거실', '주방', '팬트리', '외부', '알파룸',
@@ -4583,7 +5128,7 @@
             photos: { far: null, near: null }
         };
 
-        // ==================== 카메라 관련 (더홈점검 동일) ====================
+        // ==================== 카메라 관련 ====================
         let cameraStream = null;
         let currentPhotoType = null; // 'far' or 'near'
         let currentZoom = 1.0;
@@ -4696,31 +5241,68 @@
         // 페이지 로드 시 테마 적용 (깜빡임 방지)
         initTheme();
 
-        // ==================== 튜토리얼 ====================
+        // ==================== 온보딩 & 튜토리얼 ====================
         let currentTutorialSlide = 0;
-        const totalTutorialSlides = 4;
+        const totalTutorialSlides = 7;
 
         function initTutorial() {
             // 이미 튜토리얼을 봤는지 확인
             const tutorialSeen = localStorage.getItem('viewfinder_tutorial_seen');
+            const landingOverlay = document.getElementById('tutorialOverlay');
+            const tutorialOverlay = document.getElementById('tutorialSlideOverlay');
+            
             if (tutorialSeen) {
-                document.getElementById('tutorialOverlay').classList.add('hidden');
+                // 둘 다 숨기기
+                landingOverlay.classList.add('hidden');
+                landingOverlay.style.display = 'none';
+                tutorialOverlay.classList.add('hidden');
+                tutorialOverlay.style.display = 'none';
                 return;
             }
             
+            // 랜딩 페이지 표시, 튜토리얼은 숨김
+            landingOverlay.classList.remove('hidden');
+            tutorialOverlay.classList.add('hidden');
+            tutorialOverlay.style.display = 'none';
+            
             // 튜토리얼 슬라이드 스크롤 이벤트
             const slides = document.getElementById('tutorialSlides');
-            slides.addEventListener('scroll', () => {
-                const slideWidth = slides.clientWidth;
-                const scrollLeft = slides.scrollLeft;
-                currentTutorialSlide = Math.round(scrollLeft / slideWidth);
-                updateTutorialDots();
-                updateTutorialButtons();
-            });
+            if (slides) {
+                slides.addEventListener('scroll', () => {
+                    const slideWidth = slides.clientWidth;
+                    const scrollLeft = slides.scrollLeft;
+                    currentTutorialSlide = Math.round(scrollLeft / slideWidth);
+                    updateTutorialDots();
+                    updateTutorialButtons();
+                });
+            }
+        }
+
+        // 랜딩에서 튜토리얼로 전환
+        function showTutorial() {
+            const landingOverlay = document.getElementById('tutorialOverlay');
+            const tutorialOverlay = document.getElementById('tutorialSlideOverlay');
+            
+            // 랜딩 숨기기
+            landingOverlay.classList.add('hidden');
+            landingOverlay.style.display = 'none';
+            
+            // 튜토리얼 표시
+            tutorialOverlay.style.display = 'flex';
+            tutorialOverlay.classList.remove('hidden');
+            
+            // 초기화
+            currentTutorialSlide = 0;
+            const slides = document.getElementById('tutorialSlides');
+            if (slides) {
+                slides.scrollTo({ left: 0, behavior: 'instant' });
+            }
+            updateTutorialDots();
+            updateTutorialButtons();
         }
 
         function updateTutorialDots() {
-            const dots = document.querySelectorAll('.tutorial-dot');
+            const dots = document.querySelectorAll('#tutorialSlideOverlay .tutorial-dot');
             dots.forEach((dot, index) => {
                 dot.classList.toggle('active', index === currentTutorialSlide);
             });
@@ -4757,12 +5339,17 @@
 
         function closeTutorial() {
             localStorage.setItem('viewfinder_tutorial_seen', 'true');
-            const overlay = document.getElementById('tutorialOverlay');
-            overlay.classList.add('hidden');
             
-            // 완전히 숨긴 후 DOM에서 제거 (성능)
+            // 랜딩 숨기기
+            const landingOverlay = document.getElementById('tutorialOverlay');
+            landingOverlay.classList.add('hidden');
+            landingOverlay.style.display = 'none';
+            
+            // 튜토리얼 숨기기
+            const tutorialOverlay = document.getElementById('tutorialSlideOverlay');
+            tutorialOverlay.classList.add('hidden');
             setTimeout(() => {
-                overlay.style.display = 'none';
+                tutorialOverlay.style.display = 'none';
             }, 300);
         }
 
@@ -4990,8 +5577,8 @@
             publicKey: 'YOUR_PUBLIC_KEY'       // EmailJS Public Key
         };
         
-        // 더홈점검 이메일
-        const COMPANY_EMAIL = 'thehomeinsp1@gmail.com';
+        // 뷰파인더 이메일
+        const COMPANY_EMAIL = 'viewfinder@example.com';
         
         // 이메일 준비 데이터 저장용
         let preparedEmailData = {
@@ -5121,7 +5708,7 @@
                 // mailto URL 생성
                 const subject = encodeURIComponent(`[하자접수대행 요청] ${projectInfo.apartmentName} ${projectInfo.dong}동 ${projectInfo.ho}호`);
                 const body = encodeURIComponent(
-                    `안녕하세요, 더홈점검입니다.\n\n` +
+                    `안녕하세요.\n\n` +
                     `하자접수 대행을 요청드립니다.\n\n` +
                     `■ 점검 정보\n` +
                     `- 아파트: ${projectInfo.apartmentName}\n` +
@@ -6326,7 +6913,7 @@
             const canvas = document.getElementById('photoCanvas');
             const ctx = canvas.getContext('2d', { alpha: false });
             
-            // 디바이스별 최적화 (더홈점검 동일)
+            // 디바이스별 최적화
             const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
             const maxSize = isIOS ? 1280 : 1920;
             const quality = isIOS ? 0.8 : 0.85;
@@ -6519,7 +7106,7 @@
             }
         }
 
-        // ==================== 이미지 압축 (더홈점검 동일) ====================
+        // ==================== 이미지 압축 ====================
         async function compressImage(input, maxWidth = 1920, quality = 0.85) {
             return new Promise((resolve, reject) => {
                 try {
@@ -7009,7 +7596,7 @@
             `;
         }
 
-        // 하자 상세 페이지 생성 (더홈점검 동일)
+        // 하자 상세 페이지 생성
         function createDefectDetailPage(defects, startIndex, projectInfo) {
             let contentHTML = '';
             
@@ -7092,7 +7679,7 @@
 
                     <!-- 하단 -->
                     <div style="position: absolute; bottom: 20px; left: 40px; right: 40px; padding-top: 12px; border-top: 1px solid #e0e0e0; font-size: 10px; color: #999; text-align: center;">
-                        <div>THE HOME INSPECTION | 대표: 1668-5222 | 직통: 010-9985-0128</div>
+                        <div>뷰파인더 | ViewFinder</div>
                     </div>
                 </div>
             `;
@@ -7111,13 +7698,11 @@
         }
 
         function showUpgradeModal() {
-            showToast('서비스 업그레이드 문의: 010-9985-0128');
+            showToast('서비스 업그레이드는 앱 내에서 확인하세요');
         }
 
         function requestAddon() {
-            if (confirm('하자 접수 대행 서비스를 신청하시겠습니까?\n\n전화 연결로 이동합니다.')) {
-                window.location.href = 'tel:010-9985-0128';
-            }
+            showToast('하자 접수 대행 서비스를 이용하려면 이메일로 자료를 전송해주세요');
         }
 
         // ==================== 토스트 ====================
