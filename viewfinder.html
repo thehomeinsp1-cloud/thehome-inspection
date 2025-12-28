@@ -4450,10 +4450,13 @@
                 showToast('저장 완료! 계속 촬영하세요');
                 resetQuickModeData();
                 
-                // 자동으로 원경 카메라 열기
+                // 사진 촬영 영역으로 스크롤
                 setTimeout(() => {
-                    openQuickCamera('far');
-                }, 300);
+                    const photoArea = document.getElementById('quickPhotoFar');
+                    if (photoArea) {
+                        photoArea.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                }, 100);
             }
         }
 
@@ -5805,16 +5808,24 @@
                 const coverHTML = createCoverPage(projectInfo);
                 await addHTMLPageToPDF(doc, coverHTML, pageWidth, pageHeight);
 
-                // 2페이지~: 하자 목록 (있는 경우)
+                // 2페이지~: 하자 목록 (있는 경우) - 페이지당 최대 15개
                 if (getCurrentProject().defects.length > 0) {
-                    doc.addPage();
-                    const listHTML = createDefectListPage(projectInfo);
-                    await addHTMLPageToPDF(doc, listHTML, pageWidth, pageHeight);
-
-                    // 하자 상세 페이지 (3개씩)
-                    for (let i = 0; i < getCurrentProject().defects.length; i += 3) {
+                    const defectsPerListPage = 15; // 페이지당 하자 개수
+                    const totalDefects = getCurrentProject().defects.length;
+                    const totalListPages = Math.ceil(totalDefects / defectsPerListPage);
+                    
+                    for (let page = 0; page < totalListPages; page++) {
                         doc.addPage();
-                        const batch = getCurrentProject().defects.slice(i, i + 3);
+                        const startIdx = page * defectsPerListPage;
+                        const endIdx = Math.min(startIdx + defectsPerListPage, totalDefects);
+                        const listHTML = createDefectListPage(projectInfo, startIdx, endIdx, page + 1, totalListPages);
+                        await addHTMLPageToPDF(doc, listHTML, pageWidth, pageHeight);
+                    }
+
+                    // 하자 상세 페이지 (2개씩)
+                    for (let i = 0; i < getCurrentProject().defects.length; i += 2) {
+                        doc.addPage();
+                        const batch = getCurrentProject().defects.slice(i, i + 2);
                         const detailHTML = createDefectDetailPage(batch, i, projectInfo);
                         await addHTMLPageToPDF(doc, detailHTML, pageWidth, pageHeight);
                     }
@@ -5966,35 +5977,40 @@
         }
 
         // 하자 목록 페이지 생성
-        function createDefectListPage(projectInfo) {
+        function createDefectListPage(projectInfo, startIdx = 0, endIdx = null, currentPage = 1, totalPages = 1) {
+            const defects = getCurrentProject().defects;
+            const end = endIdx || defects.length;
             let tableRows = '';
             
-            getCurrentProject().defects.forEach((defect, idx) => {
+            for (let idx = startIdx; idx < end; idx++) {
+                const defect = defects[idx];
                 const spaces = defect.spaces.join(', ') || '-';
                 const desc = defect.description || '-';
                 
                 tableRows += `
                     <tr style="border-bottom: 1px solid #ddd;">
-                        <td style="padding: 10px 4px; text-align: center; font-weight: bold; color: #000; font-size: 13px; vertical-align: middle; border-right: 1px solid #e0e0e0;">${idx + 1}</td>
-                        <td style="padding: 10px 8px; text-align: center; color: #000; font-weight: 600; font-size: 13px; vertical-align: middle; border-right: 1px solid #e0e0e0;">${spaces}</td>
-                        <td style="padding: 10px 8px; color: #000; font-weight: 500; font-size: 12px; word-break: break-word; white-space: normal; line-height: 1.5; vertical-align: middle;">${desc}</td>
+                        <td style="padding: 8px 4px; text-align: center; font-weight: bold; color: #000; font-size: 12px; vertical-align: middle; border-right: 1px solid #e0e0e0;">${idx + 1}</td>
+                        <td style="padding: 8px 6px; text-align: center; color: #000; font-weight: 600; font-size: 12px; vertical-align: middle; border-right: 1px solid #e0e0e0;">${spaces}</td>
+                        <td style="padding: 8px 6px; color: #000; font-weight: 500; font-size: 11px; word-break: break-word; white-space: normal; line-height: 1.4; vertical-align: middle;">${desc}</td>
                     </tr>
                 `;
-            });
+            }
+            
+            const pageIndicator = totalPages > 1 ? ` (${currentPage}/${totalPages})` : '';
             
             return `
-                <div style="width: 794px; min-height: 1123px; max-height: 1123px; background: white; font-family: 'Malgun Gothic', sans-serif; padding: 35px; position: relative; box-sizing: border-box; overflow: hidden;">
-                    <div style="margin-bottom: 20px;">
-                        <h3 style="margin: 0 0 12px 0; font-size: 18px; color: #000; border-bottom: 3px solid #00D4AA; padding-bottom: 8px; font-weight: 700;">📋 하자점검 목록 (총 ${getCurrentProject().defects.length}건)</h3>
-                        <p style="margin: 5px 0 12px 0; font-size: 13px; color: #333; font-weight: 500;">${projectInfo.apartmentName} ${projectInfo.dong}동 ${projectInfo.ho}호</p>
+                <div style="width: 794px; height: 1123px; background: white; font-family: 'Malgun Gothic', sans-serif; padding: 35px; position: relative; box-sizing: border-box; overflow: hidden;">
+                    <div style="margin-bottom: 15px;">
+                        <h3 style="margin: 0 0 10px 0; font-size: 17px; color: #000; border-bottom: 3px solid #00D4AA; padding-bottom: 8px; font-weight: 700;">📋 하자점검 목록 (총 ${defects.length}건)${pageIndicator}</h3>
+                        <p style="margin: 5px 0 10px 0; font-size: 12px; color: #333; font-weight: 500;">${projectInfo.apartmentName} ${projectInfo.dong}동 ${projectInfo.ho}호</p>
                     </div>
 
-                    <table style="width: 100%; border-collapse: collapse; border: 1px solid #ddd; font-size: 13px; margin-bottom: 60px;">
+                    <table style="width: 100%; border-collapse: collapse; border: 1px solid #ddd; font-size: 12px;">
                         <thead>
                             <tr style="background: #f8f9fa; border-bottom: 2px solid #999;">
-                                <th style="padding: 12px 4px; width: 8%; color: #000; font-size: 13px; font-weight: bold; border-right: 1px solid #e0e0e0;">No</th>
-                                <th style="padding: 12px 4px; width: 20%; color: #000; font-size: 13px; font-weight: bold; border-right: 1px solid #e0e0e0;">공간</th>
-                                <th style="padding: 12px 6px; width: 72%; color: #000; font-size: 13px; font-weight: bold;">하자 내용</th>
+                                <th style="padding: 10px 4px; width: 8%; color: #000; font-size: 12px; font-weight: bold; border-right: 1px solid #e0e0e0;">No</th>
+                                <th style="padding: 10px 4px; width: 18%; color: #000; font-size: 12px; font-weight: bold; border-right: 1px solid #e0e0e0;">공간</th>
+                                <th style="padding: 10px 6px; width: 74%; color: #000; font-size: 12px; font-weight: bold;">하자 내용</th>
                             </tr>
                         </thead>
                         <tbody>${tableRows}</tbody>
