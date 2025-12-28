@@ -1240,6 +1240,128 @@
             opacity: 0.8;
         }
 
+        /* ==================== 심플 사진 박스 (퀵모드 스타일) ==================== */
+        .photo-capture-area-simple {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .photo-box-simple {
+            flex: 1;
+            aspect-ratio: 4/3;
+            background: var(--card-bg);
+            border: 2px dashed var(--card-border);
+            border-radius: var(--radius);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .photo-box-simple:active {
+            transform: scale(0.98);
+        }
+
+        .photo-box-simple.far {
+            border-color: var(--accent);
+        }
+
+        .photo-box-simple.near {
+            border-color: #FFB800;
+        }
+
+        .photo-box-simple.has-photo {
+            border-style: solid;
+        }
+
+        .photo-box-simple.has-photo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .photo-box-icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+
+        .photo-box-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .photo-box-hint {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .photo-box-badge {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            padding: 4px 10px;
+            background: var(--accent);
+            color: var(--primary);
+            font-size: 11px;
+            font-weight: 600;
+            border-radius: 4px;
+        }
+
+        .photo-box-simple.near .photo-box-badge {
+            background: #FFB800;
+        }
+
+        .photo-box-delete {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 28px;
+            height: 28px;
+            background: rgba(255, 107, 107, 0.9);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 5;
+        }
+
+        .gallery-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .gallery-btn {
+            flex: 1;
+            padding: 12px;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius);
+            color: var(--text);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .gallery-btn:active {
+            background: var(--primary-light);
+            transform: scale(0.98);
+        }
+
         .photo-image-wrapper {
             position: relative;
             flex: 1;
@@ -1340,6 +1462,56 @@
         .touch-btn:disabled {
             opacity: 0.4;
             cursor: not-allowed;
+        }
+
+        /* 커스텀 공간 (삭제 가능) */
+        .touch-btn.custom {
+            position: relative;
+            padding-right: 28px;
+        }
+
+        .touch-btn.custom .delete-custom {
+            position: absolute;
+            right: 6px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 18px;
+            height: 18px;
+            background: rgba(255, 107, 107, 0.8);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            font-size: 11px;
+            line-height: 1;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .touch-btn.custom.selected .delete-custom {
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        /* 공간 추가 버튼 */
+        .add-space-btn {
+            width: 100%;
+            margin-top: 10px;
+            padding: 12px;
+            background: transparent;
+            border: 1px dashed var(--card-border);
+            border-radius: var(--radius);
+            color: var(--text-muted);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .add-space-btn:active {
+            background: var(--card-bg);
+            border-color: var(--accent);
+            color: var(--accent);
         }
 
         .selected-count {
@@ -3323,35 +3495,28 @@
         </div>
         
         <div class="defect-register-body">
-            <!-- 사진 촬영 -->
+            <!-- 사진 촬영 (퀵모드 스타일) -->
             <div class="form-section">
                 <div class="form-label">
                     사진 촬영
                     <span class="form-sublabel">필수 2장</span>
                 </div>
-                <div class="photo-capture-area">
-                    <div class="photo-capture-box far" id="photoBoxFar">
-                        <div class="photo-empty" onclick="openCamera('far')">
-                            <span class="photo-capture-icon">📸</span>
-                            <span class="photo-capture-label">원경</span>
-                            <span class="photo-capture-sublabel">멀리서 전체</span>
-                        </div>
-                        <div class="photo-buttons">
-                            <button class="photo-btn primary" onclick="openCamera('far')">촬영</button>
-                            <button class="photo-btn" onclick="openGallery('far')">갤러리</button>
-                        </div>
+                <div class="photo-capture-area-simple">
+                    <div class="photo-box-simple far" id="photoBoxFar" onclick="openCamera('far')">
+                        <span class="photo-box-icon">📸</span>
+                        <span class="photo-box-label">원경</span>
+                        <span class="photo-box-hint">멀리서 전체</span>
                     </div>
-                    <div class="photo-capture-box near" id="photoBoxNear">
-                        <div class="photo-empty" onclick="openCamera('near')">
-                            <span class="photo-capture-icon">🔍</span>
-                            <span class="photo-capture-label">근경</span>
-                            <span class="photo-capture-sublabel">가까이서 상세</span>
-                        </div>
-                        <div class="photo-buttons">
-                            <button class="photo-btn primary" onclick="openCamera('near')">촬영</button>
-                            <button class="photo-btn" onclick="openGallery('near')">갤러리</button>
-                        </div>
+                    <div class="photo-box-simple near" id="photoBoxNear" onclick="openCamera('near')">
+                        <span class="photo-box-icon">🔍</span>
+                        <span class="photo-box-label">근경</span>
+                        <span class="photo-box-hint">가까이서 상세</span>
                     </div>
+                </div>
+                <!-- 갤러리 버튼 -->
+                <div class="gallery-buttons">
+                    <button class="gallery-btn" onclick="openGallery('far')">🖼️ 원경 갤러리</button>
+                    <button class="gallery-btn" onclick="openGallery('near')">🖼️ 근경 갤러리</button>
                 </div>
             </div>
 
@@ -3364,6 +3529,7 @@
                 <div class="touch-btn-grid" id="spaceButtons">
                     <!-- 동적 생성 -->
                 </div>
+                <button class="add-space-btn" onclick="addCustomSpace()">+ 공간 추가</button>
             </div>
 
             <!-- 하자 내용 -->
@@ -3418,10 +3584,11 @@
             </div>
 
             <div class="quick-mode-space-select">
-                <div class="quick-mode-space-label">공간 선택 (선택사항)</div>
-                <div class="quick-mode-space-chips" id="quickSpaceChips">
+                <div class="quick-mode-space-label">공간 선택 <span id="quickSpaceCount" style="color: var(--accent);">0/4 선택</span></div>
+                <div class="touch-btn-grid" id="quickSpaceChips">
                     <!-- 동적 생성 -->
                 </div>
+                <button class="add-space-btn" onclick="addCustomSpace()">+ 공간 추가</button>
             </div>
 
             <textarea class="quick-mode-memo" id="quickModeMemo" placeholder="메모 (선택사항)&#10;예: 거실 창문 틀 스크래치"></textarea>
@@ -4160,28 +4327,45 @@
             nearBox.onclick = () => openQuickCamera('near');
             
             document.getElementById('quickModeMemo').value = '';
+            document.getElementById('quickSpaceCount').textContent = '0/4 선택';
+            renderQuickSpaceChips();
             updateQuickSaveButton();
         }
 
         function renderQuickSpaceChips() {
             const container = document.getElementById('quickSpaceChips');
-            const defaultSpaces = ['거실', '주방', '안방', '작은방1', '작은방2', '욕실1', '욕실2', '베란다', '현관'];
+            const customSpaces = getCurrentProject().customSpaces || [];
+            const allSpaces = [...DEFAULT_SPACES, ...customSpaces];
             
-            container.innerHTML = defaultSpaces.map(space => `
-                <div class="quick-mode-space-chip" onclick="toggleQuickSpace(this, '${space}')">${space}</div>
-            `).join('');
+            container.innerHTML = allSpaces.map(space => {
+                const isCustom = customSpaces.includes(space);
+                const isSelected = quickModeData.spaces.includes(space);
+                const isDisabled = quickModeData.spaces.length >= 4 && !isSelected;
+                
+                return `
+                    <button class="touch-btn ${isSelected ? 'selected' : ''} ${isCustom ? 'custom' : ''}"
+                            ${isDisabled ? 'disabled' : ''}
+                            onclick="toggleQuickSpace('${space}')">
+                        ${space}
+                        ${isCustom ? `<span class="delete-custom" onclick="event.stopPropagation(); deleteCustomSpace('${space}')">✕</span>` : ''}
+                    </button>
+                `;
+            }).join('');
         }
 
-        function toggleQuickSpace(el, space) {
-            el.classList.toggle('selected');
-            
-            if (el.classList.contains('selected')) {
-                if (!quickModeData.spaces.includes(space)) {
-                    quickModeData.spaces.push(space);
-                }
+        function toggleQuickSpace(space) {
+            const idx = quickModeData.spaces.indexOf(space);
+            if (idx > -1) {
+                quickModeData.spaces.splice(idx, 1);
             } else {
-                quickModeData.spaces = quickModeData.spaces.filter(s => s !== space);
+                if (quickModeData.spaces.length >= 4) {
+                    showToast('최대 4개까지 선택 가능합니다', 'error');
+                    return;
+                }
+                quickModeData.spaces.push(space);
             }
+            document.getElementById('quickSpaceCount').textContent = `${quickModeData.spaces.length}/4 선택`;
+            renderQuickSpaceChips();
         }
 
         function openQuickCamera(type) {
@@ -4813,15 +4997,23 @@
         // ==================== 공간 버튼 렌더링 ====================
         function renderSpaceButtons() {
             const container = document.getElementById('spaceButtons');
-            const allSpaces = [...DEFAULT_SPACES, ...getCurrentProject().customSpaces];
+            const customSpaces = getCurrentProject().customSpaces || [];
+            const allSpaces = [...DEFAULT_SPACES, ...customSpaces];
             
-            container.innerHTML = allSpaces.map(space => `
-                <button class="touch-btn ${currentDefect.spaces.includes(space) ? 'selected' : ''}"
-                        ${currentDefect.spaces.length >= 4 && !currentDefect.spaces.includes(space) ? 'disabled' : ''}
-                        onclick="toggleSpace('${space}')">
-                    ${space}
-                </button>
-            `).join('');
+            container.innerHTML = allSpaces.map(space => {
+                const isCustom = customSpaces.includes(space);
+                const isSelected = currentDefect.spaces.includes(space);
+                const isDisabled = currentDefect.spaces.length >= 4 && !isSelected;
+                
+                return `
+                    <button class="touch-btn ${isSelected ? 'selected' : ''} ${isCustom ? 'custom' : ''}"
+                            ${isDisabled ? 'disabled' : ''}
+                            onclick="toggleSpace('${space}')">
+                        ${space}
+                        ${isCustom ? `<span class="delete-custom" onclick="event.stopPropagation(); deleteCustomSpace('${space}')">✕</span>` : ''}
+                    </button>
+                `;
+            }).join('');
         }
 
         function toggleSpace(space) {
@@ -4839,36 +5031,73 @@
             renderSpaceButtons();
         }
 
+        // ==================== 커스텀 공간 추가/삭제 ====================
+        function addCustomSpace() {
+            const name = prompt('추가할 공간 이름을 입력하세요:');
+            if (!name || !name.trim()) return;
+            
+            const spaceName = name.trim();
+            const proj = getCurrentProject();
+            
+            // 중복 체크
+            if (DEFAULT_SPACES.includes(spaceName) || (proj.customSpaces && proj.customSpaces.includes(spaceName))) {
+                showToast('이미 존재하는 공간입니다', 'error');
+                return;
+            }
+            
+            // 프로젝트에 커스텀 공간 추가
+            if (!proj.customSpaces) proj.customSpaces = [];
+            proj.customSpaces.push(spaceName);
+            saveData();
+            
+            // 양쪽 UI 갱신
+            renderSpaceButtons();
+            renderQuickSpaceChips();
+            
+            showToast(`"${spaceName}" 공간이 추가되었습니다`);
+        }
+
+        function deleteCustomSpace(space) {
+            if (!confirm(`"${space}" 공간을 삭제하시겠습니까?`)) return;
+            
+            const proj = getCurrentProject();
+            proj.customSpaces = (proj.customSpaces || []).filter(s => s !== space);
+            
+            // 현재 선택에서도 제거
+            currentDefect.spaces = currentDefect.spaces.filter(s => s !== space);
+            quickModeData.spaces = quickModeData.spaces.filter(s => s !== space);
+            
+            saveData();
+            
+            // 양쪽 UI 갱신
+            renderSpaceButtons();
+            renderQuickSpaceChips();
+            document.getElementById('spaceCount').textContent = `${currentDefect.spaces.length}/4 선택`;
+            document.getElementById('quickSpaceCount').textContent = `${quickModeData.spaces.length}/4 선택`;
+            
+            showToast(`"${space}" 공간이 삭제되었습니다`);
+        }
+
         // ==================== 사진 박스 초기화 ====================
         function resetPhotoBoxes() {
             const farBox = document.getElementById('photoBoxFar');
             const nearBox = document.getElementById('photoBoxNear');
             
             farBox.innerHTML = `
-                <div class="photo-empty" onclick="openCamera('far')">
-                    <span class="photo-capture-icon">📸</span>
-                    <span class="photo-capture-label">원경</span>
-                    <span class="photo-capture-sublabel">멀리서 전체</span>
-                </div>
-                <div class="photo-buttons">
-                    <button class="photo-btn primary" onclick="openCamera('far')">촬영</button>
-                    <button class="photo-btn" onclick="openGallery('far')">갤러리</button>
-                </div>
+                <span class="photo-box-icon">📸</span>
+                <span class="photo-box-label">원경</span>
+                <span class="photo-box-hint">멀리서 전체</span>
             `;
             farBox.classList.remove('has-photo');
+            farBox.onclick = () => openCamera('far');
             
             nearBox.innerHTML = `
-                <div class="photo-empty" onclick="openCamera('near')">
-                    <span class="photo-capture-icon">🔍</span>
-                    <span class="photo-capture-label">근경</span>
-                    <span class="photo-capture-sublabel">가까이서 상세</span>
-                </div>
-                <div class="photo-buttons">
-                    <button class="photo-btn primary" onclick="openCamera('near')">촬영</button>
-                    <button class="photo-btn" onclick="openGallery('near')">갤러리</button>
-                </div>
+                <span class="photo-box-icon">🔍</span>
+                <span class="photo-box-label">근경</span>
+                <span class="photo-box-hint">가까이서 상세</span>
             `;
             nearBox.classList.remove('has-photo');
+            nearBox.onclick = () => openCamera('near');
         }
 
         // ==================== 카메라 ====================
@@ -5222,20 +5451,15 @@
 
         function updatePhotoBox(photoType, imageData) {
             const box = document.getElementById(photoType === 'far' ? 'photoBoxFar' : 'photoBoxNear');
-            const label = photoType === 'far' ? '✓ 원경' : '✓ 근경';
+            const label = photoType === 'far' ? '원경' : '근경';
             
             box.innerHTML = `
-                <div class="photo-image-wrapper">
-                    <img src="${imageData}" alt="${label}">
-                    <div class="photo-badge ${photoType}">${label}</div>
-                </div>
-                <div class="photo-actions">
-                    <button class="photo-action-btn" onclick="retakePhoto('${photoType}')">🔄 재촬영</button>
-                    <button class="photo-action-btn" onclick="reattachPhoto('${photoType}')">🖼️ 갤러리</button>
-                    <button class="photo-action-btn delete" onclick="deletePhoto('${photoType}')">🗑️ 삭제</button>
-                </div>
+                <img src="${imageData}" alt="${label}">
+                <span class="photo-box-badge">${label}</span>
+                <button class="photo-box-delete" onclick="event.stopPropagation(); deletePhoto('${photoType}')">✕</button>
             `;
             box.classList.add('has-photo');
+            box.onclick = () => openCamera(photoType);
         }
 
         function retakePhoto(photoType) {
@@ -5252,32 +5476,17 @@
             currentDefect.photos[photoType] = null;
             
             const box = document.getElementById(photoType === 'far' ? 'photoBoxFar' : 'photoBoxNear');
-            if (photoType === 'far') {
-                box.innerHTML = `
-                    <div class="photo-empty" onclick="openCamera('far')">
-                        <span class="photo-capture-icon">📸</span>
-                        <span class="photo-capture-label">원경</span>
-                        <span class="photo-capture-sublabel">멀리서 전체</span>
-                    </div>
-                    <div class="photo-buttons">
-                        <button class="photo-btn primary" onclick="openCamera('far')">촬영</button>
-                        <button class="photo-btn" onclick="openGallery('far')">갤러리</button>
-                    </div>
-                `;
-            } else {
-                box.innerHTML = `
-                    <div class="photo-empty" onclick="openCamera('near')">
-                        <span class="photo-capture-icon">🔍</span>
-                        <span class="photo-capture-label">근경</span>
-                        <span class="photo-capture-sublabel">가까이서 상세</span>
-                    </div>
-                    <div class="photo-buttons">
-                        <button class="photo-btn primary" onclick="openCamera('near')">촬영</button>
-                        <button class="photo-btn" onclick="openGallery('near')">갤러리</button>
-                    </div>
-                `;
-            }
+            const icon = photoType === 'far' ? '📸' : '🔍';
+            const label = photoType === 'far' ? '원경' : '근경';
+            const hint = photoType === 'far' ? '멀리서 전체' : '가까이서 상세';
+            
+            box.innerHTML = `
+                <span class="photo-box-icon">${icon}</span>
+                <span class="photo-box-label">${label}</span>
+                <span class="photo-box-hint">${hint}</span>
+            `;
             box.classList.remove('has-photo');
+            box.onclick = () => openCamera(photoType);
         }
 
         // 갤러리 폴백
