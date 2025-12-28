@@ -2541,6 +2541,96 @@
             line-height: 1.5;
         }
 
+        /* 튜토리얼 - 퀵모드 vs 상세입력 박스 */
+        .tutorial-mode-box {
+            display: flex;
+            gap: 12px;
+            margin: 20px 0;
+        }
+
+        .tutorial-mode {
+            flex: 1;
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 16px 12px;
+            text-align: center;
+            border: 1px solid var(--card-border);
+        }
+
+        .tutorial-mode-icon {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .tutorial-mode-name {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 6px;
+        }
+
+        .tutorial-mode-desc {
+            font-size: 11px;
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+
+        /* 튜토리얼 - 체크리스트 미리보기 */
+        .tutorial-checklist-preview {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 14px;
+            margin: 16px 0;
+        }
+
+        .tutorial-checklist-item {
+            font-size: 13px;
+            color: var(--text);
+            padding: 8px 0;
+            border-bottom: 1px solid var(--card-border);
+        }
+
+        .tutorial-checklist-item:last-child {
+            border-bottom: none;
+        }
+
+        /* 튜토리얼 - 기능 리스트 */
+        .tutorial-feature-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .tutorial-feature {
+            background: var(--card-bg);
+            border-radius: 10px;
+            padding: 14px 16px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text);
+            text-align: center;
+        }
+
+        /* 튜토리얼 - 시작 요약 */
+        .tutorial-start-summary {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 16px;
+            margin: 20px 0;
+        }
+
+        .tutorial-start-item {
+            font-size: 13px;
+            color: var(--text);
+            padding: 8px 0;
+            border-bottom: 1px solid var(--card-border);
+        }
+
+        .tutorial-start-item:last-child {
+            border-bottom: none;
+        }
+
         /* ==================== 퀵모드 ==================== */
         .quick-mode-overlay {
             position: fixed;
@@ -3373,10 +3463,10 @@
                 </div>
             </div>
 
-            <!-- 슬라이드 2: 사용 방법 -->
+            <!-- 슬라이드 2: 전체 흐름 -->
             <div class="tutorial-slide">
                 <div class="tutorial-icon">📋</div>
-                <h2 class="tutorial-title">간단한 3단계로<br>점검 완료</h2>
+                <h2 class="tutorial-title">간단한 4단계로<br>점검 완료</h2>
                 <div class="tutorial-steps">
                     <div class="tutorial-step">
                         <span class="tutorial-step-num">1</span>
@@ -3384,16 +3474,45 @@
                     </div>
                     <div class="tutorial-step">
                         <span class="tutorial-step-num">2</span>
-                        <span class="tutorial-step-text">하자 발견 시 사진 촬영</span>
+                        <span class="tutorial-step-text">하자 발견 → 사진 촬영</span>
                     </div>
                     <div class="tutorial-step">
                         <span class="tutorial-step-num">3</span>
-                        <span class="tutorial-step-text">PDF 보고서 생성 및 제출</span>
+                        <span class="tutorial-step-text">PDF 보고서 생성</span>
+                    </div>
+                    <div class="tutorial-step">
+                        <span class="tutorial-step-num">4</span>
+                        <span class="tutorial-step-text">이메일로 자료 전송</span>
                     </div>
                 </div>
             </div>
 
-            <!-- 슬라이드 3: 사진 촬영 팁 -->
+            <!-- 슬라이드 3: 퀵모드 vs 상세입력 -->
+            <div class="tutorial-slide">
+                <div class="tutorial-icon">⚡</div>
+                <h2 class="tutorial-title">두 가지 점검 모드</h2>
+                <div class="tutorial-mode-box">
+                    <div class="tutorial-mode">
+                        <div class="tutorial-mode-icon">⚡</div>
+                        <div class="tutorial-mode-name">퀵모드</div>
+                        <div class="tutorial-mode-desc">빠른 연속 촬영<br>사진 → 즉시 저장</div>
+                    </div>
+                    <div class="tutorial-mode">
+                        <div class="tutorial-mode-icon">📝</div>
+                        <div class="tutorial-mode-name">상세입력</div>
+                        <div class="tutorial-mode-desc">꼼꼼한 기록<br>공간/위치/유형 선택</div>
+                    </div>
+                </div>
+                <div class="tutorial-tip-box">
+                    <div class="tutorial-tip-title">💡 추천</div>
+                    <div class="tutorial-tip-content">
+                        처음엔 <b>퀵모드</b>로 빠르게 촬영하고<br>
+                        나중에 상세 정보를 추가하세요
+                    </div>
+                </div>
+            </div>
+
+            <!-- 슬라이드 4: 사진 촬영 팁 -->
             <div class="tutorial-slide">
                 <div class="tutorial-icon">📸</div>
                 <h2 class="tutorial-title">사진은 2장씩<br>촬영해주세요</h2>
@@ -3415,20 +3534,62 @@
                 </div>
             </div>
 
-            <!-- 슬라이드 4: 시작 -->
+            <!-- 슬라이드 5: 체크리스트 안내 -->
+            <div class="tutorial-slide">
+                <div class="tutorial-icon">✅</div>
+                <h2 class="tutorial-title">체크리스트로<br>놓치지 마세요</h2>
+                <p class="tutorial-desc">
+                    공간별 점검 포인트를<br>
+                    <span class="tutorial-highlight">체크리스트</span>로 확인하세요
+                </p>
+                <div class="tutorial-checklist-preview">
+                    <div class="tutorial-checklist-item">🚪 현관 - 도어락, 신발장, 바닥</div>
+                    <div class="tutorial-checklist-item">🛋️ 거실 - 창문, 바닥, 벽면</div>
+                    <div class="tutorial-checklist-item">🍳 주방 - 싱크대, 후드, 수전</div>
+                    <div class="tutorial-checklist-item">🚿 욕실 - 타일, 변기, 환풍기</div>
+                </div>
+            </div>
+
+            <!-- 슬라이드 6: 리포트 & 전송 -->
+            <div class="tutorial-slide">
+                <div class="tutorial-icon">📊</div>
+                <h2 class="tutorial-title">리포트 생성 &<br>자료 전송</h2>
+                <p class="tutorial-desc">
+                    점검이 끝나면 <span class="tutorial-highlight">리포트</span> 탭에서<br>
+                    보고서를 생성하고 전송하세요
+                </p>
+                <div class="tutorial-feature-list">
+                    <div class="tutorial-feature">📄 PDF 보고서 생성</div>
+                    <div class="tutorial-feature">📦 전체 자료 다운로드 (ZIP)</div>
+                    <div class="tutorial-feature">📧 이메일로 자료 전송</div>
+                </div>
+                <div class="tutorial-tip-box">
+                    <div class="tutorial-tip-title">💡 하자접수 대행</div>
+                    <div class="tutorial-tip-content">
+                        이메일 전송 시 뷰파인더에도 전송하면<br>
+                        하자접수 대행 서비스를 받을 수 있어요
+                    </div>
+                </div>
+            </div>
+
+            <!-- 슬라이드 7: 시작 -->
             <div class="tutorial-slide">
                 <div class="tutorial-icon">🚀</div>
                 <h2 class="tutorial-title">준비 완료!</h2>
                 <p class="tutorial-desc">
-                    이제 <span class="tutorial-highlight">하자점검</span>을 시작해볼까요?<br><br>
-                    발견된 하자는 사진과 함께 기록하고<br>
-                    PDF 보고서로 제출하세요
+                    이제 <span class="tutorial-highlight">하자점검</span>을 시작해볼까요?
                 </p>
+                <div class="tutorial-start-summary">
+                    <div class="tutorial-start-item">✓ 정보 입력 → 하자 촬영 → 리포트</div>
+                    <div class="tutorial-start-item">✓ 퀵모드로 빠르게, 상세입력으로 꼼꼼히</div>
+                    <div class="tutorial-start-item">✓ 사진 2장씩 (원경 + 근경)</div>
+                    <div class="tutorial-start-item">✓ 완료 후 이메일로 전송</div>
+                </div>
                 <div class="tutorial-tip-box">
-                    <div class="tutorial-tip-title">🎯 프로 점검 서비스</div>
+                    <div class="tutorial-tip-title">📞 도움이 필요하시면</div>
                     <div class="tutorial-tip-content">
-                        직접 점검이 어려우시다면<br>
-                        전문가 점검 서비스를 이용해보세요
+                        010-9985-0128<br>
+                        언제든지 문의해주세요
                     </div>
                 </div>
             </div>
@@ -3437,6 +3598,9 @@
         <div class="tutorial-bottom">
             <div class="tutorial-dots" id="tutorialDots">
                 <div class="tutorial-dot active"></div>
+                <div class="tutorial-dot"></div>
+                <div class="tutorial-dot"></div>
+                <div class="tutorial-dot"></div>
                 <div class="tutorial-dot"></div>
                 <div class="tutorial-dot"></div>
                 <div class="tutorial-dot"></div>
