@@ -3445,6 +3445,9 @@
             <div class="camera-guide-text" id="cameraGuideText">원경 촬영 - 멀리서 전체</div>
             
             <div class="marker-hint" id="markerHint">터치하여 마커 표시</div>
+            
+            <!-- 줌 레벨 표시 -->
+            <div id="zoomLevel" style="position: absolute; top: 60px; left: 50%; transform: translateX(-50%); padding: 6px 14px; background: rgba(0, 0, 0, 0.6); border-radius: 16px; color: white; font-size: 13px; font-weight: 600;">1.0x</div>
         </div>
         
         <div class="camera-controls">
@@ -4927,7 +4930,8 @@
                 
                 // 줌 초기화
                 video.style.transform = 'scale(1)';
-                document.getElementById('zoomLevel').textContent = '1.0x';
+                const zoomLabel = document.getElementById('zoomLevel');
+                if (zoomLabel) zoomLabel.textContent = '1.0x';
                 
                 // 마커 캔버스 초기화
                 markerCanvas = document.getElementById('markerCanvas');
@@ -5025,7 +5029,8 @@
             currentZoom = Math.max(1.0, Math.min(zoom, 5.0));
             const video = document.getElementById('cameraPreview');
             video.style.transform = `scale(${currentZoom})`;
-            document.getElementById('zoomLevel').textContent = `${currentZoom.toFixed(1)}x`;
+            const zoomLabel = document.getElementById('zoomLevel');
+            if (zoomLabel) zoomLabel.textContent = `${currentZoom.toFixed(1)}x`;
         }
 
         function resizeMarkerCanvas() {
