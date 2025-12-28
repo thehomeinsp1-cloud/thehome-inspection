@@ -5729,60 +5729,78 @@
                 const farPhoto = defect.photos[0] || '';
                 const nearPhoto = defect.photos[1] || '';
                 
+                // 배지 색상 (샘플과 동일)
+                const badgeColor = '#00D4AA';
+                
                 contentHTML += `
-                    <div style="page-break-after: always; min-height: 1050px;">
-                        <!-- 하자 번호 -->
-                        <div style="background: #00D4AA; color: white; padding: 10px 15px; margin-bottom: 15px; border-radius: 4px; display: inline-block;">
-                            <span style="font-size: 14px; font-weight: bold;">#${globalIndex}</span>
-                        </div>
-                        
-                        <!-- 위치 정보 -->
-                        <div style="font-size: 14px; color: #333; margin-bottom: 5px; font-weight: 600;">
-                            ${spaces}
-                        </div>
-                        
-                        <!-- 상세 설명 -->
-                        ${description ? `
-                            <div style="font-size: 12px; color: #666; margin-bottom: 20px; line-height: 1.6;">
-                                ${description}
-                            </div>
-                        ` : ''}
-
-                        <!-- 원경 사진 -->
-                        ${farPhoto ? `
-                            <div style="margin-bottom: 20px; position: relative;">
-                                <div style="background: #10B981; color: white; padding: 4px 10px; display: inline-block; font-size: 11px; font-weight: bold; margin-bottom: 8px; border-radius: 3px;">원경</div>
-                                <div style="border: 1px solid #e0e0e0; border-radius: 4px; overflow: hidden; background: #fafafa;">
-                                    <img src="${farPhoto}" style="width: 100%; height: auto; max-height: 450px; object-fit: contain; display: block;" />
+                    <div style="margin-bottom: 30px; page-break-inside: avoid;">
+                        <!-- 하자 번호와 위치 -->
+                        <div style="background: #f5f5f5; padding: 12px 15px; margin-bottom: 12px; border-left: 4px solid ${badgeColor};">
+                            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 5px;">
+                                <div style="background: ${badgeColor}; color: white; padding: 4px 12px; border-radius: 4px; font-size: 12px; font-weight: bold;">
+                                    #${String(globalIndex).padStart(2, '0')}
+                                </div>
+                                <div style="font-size: 15px; color: #333; font-weight: 700;">
+                                    ${spaces}
                                 </div>
                             </div>
-                        ` : ''}
-
-                        <!-- 근경 사진 -->
-                        ${nearPhoto ? `
-                            <div style="position: relative;">
-                                <div style="background: #F59E0B; color: white; padding: 4px 10px; display: inline-block; font-size: 11px; font-weight: bold; margin-bottom: 8px; border-radius: 3px;">근경</div>
-                                <div style="border: 1px solid #e0e0e0; border-radius: 4px; overflow: hidden; background: #fafafa;">
-                                    <img src="${nearPhoto}" style="width: 100%; height: auto; max-height: 450px; object-fit: contain; display: block;" />
+                            ${description ? `
+                                <div style="font-size: 13px; color: #666; margin-left: 50px; line-height: 1.5;">
+                                    ${description}
                                 </div>
+                            ` : ''}
+                        </div>
+
+                        <!-- 사진 가로 배치 (샘플과 동일) -->
+                        <div style="display: flex; gap: 12px;">
+                            <!-- 원경 -->
+                            <div style="flex: 1; position: relative;">
+                                ${farPhoto ? `
+                                    <div style="position: relative; border: 1px solid #e0e0e0; border-radius: 4px; overflow: hidden; background: #fafafa;">
+                                        <img src="${farPhoto}" style="width: 100%; height: 280px; object-fit: cover; display: block;" />
+                                        <div style="position: absolute; bottom: 8px; left: 8px; background: #10B981; color: white; padding: 5px 12px; border-radius: 4px; font-size: 11px; font-weight: bold;">
+                                            원경
+                                        </div>
+                                    </div>
+                                ` : `
+                                    <div style="width: 100%; height: 280px; background: #f5f5f5; border: 1px solid #e0e0e0; border-radius: 4px; display: flex; align-items: center; justify-content: center; color: #999; font-size: 12px;">
+                                        사진 없음
+                                    </div>
+                                `}
                             </div>
-                        ` : ''}
+
+                            <!-- 근경 -->
+                            <div style="flex: 1; position: relative;">
+                                ${nearPhoto ? `
+                                    <div style="position: relative; border: 1px solid #e0e0e0; border-radius: 4px; overflow: hidden; background: #fafafa;">
+                                        <img src="${nearPhoto}" style="width: 100%; height: 280px; object-fit: cover; display: block;" />
+                                        <div style="position: absolute; bottom: 8px; left: 8px; background: #10B981; color: white; padding: 5px 12px; border-radius: 4px; font-size: 11px; font-weight: bold;">
+                                            근경
+                                        </div>
+                                    </div>
+                                ` : `
+                                    <div style="width: 100%; height: 280px; background: #f5f5f5; border: 1px solid #e0e0e0; border-radius: 4px; display: flex; align-items: center; justify-content: center; color: #999; font-size: 12px;">
+                                        사진 없음
+                                    </div>
+                                `}
+                            </div>
+                        </div>
                     </div>
                 `;
             });
             
             return `
-                <div style="width: 794px; min-height: 1123px; background: white; font-family: 'Malgun Gothic', sans-serif; padding: 40px; box-sizing: border-box; position: relative;">
+                <div style="width: 794px; min-height: 1123px; background: white; font-family: 'Malgun Gothic', sans-serif; padding: 35px 40px 60px 40px; box-sizing: border-box; position: relative;">
                     <!-- 헤더 -->
-                    <div style="border-bottom: 2px solid #333; padding-bottom: 15px; margin-bottom: 25px;">
-                        <h2 style="margin: 0 0 8px 0; font-size: 18px; color: #333; font-weight: 700;">하자 상세 리포트 (사진)</h2>
-                        <p style="margin: 0; font-size: 12px; color: #666;">${projectInfo.apartmentName} ${projectInfo.dong}동 ${projectInfo.ho}호 | ${projectInfo.inspectionDate || ''}</p>
+                    <div style="border-bottom: 3px solid #00D4AA; padding-bottom: 15px; margin-bottom: 25px;">
+                        <h2 style="margin: 0 0 8px 0; font-size: 20px; color: #333; font-weight: 700;">하자 상세 리포트 (사진)</h2>
+                        <p style="margin: 0; font-size: 13px; color: #666;">${projectInfo.apartmentName} ${projectInfo.dong}동 ${projectInfo.ho}호</p>
                     </div>
 
                     ${contentHTML}
 
                     <!-- 하단 -->
-                    <div style="position: absolute; bottom: 25px; left: 40px; right: 40px; padding-top: 12px; border-top: 1px solid #e0e0e0; font-size: 10px; color: #999; text-align: center;">
+                    <div style="position: absolute; bottom: 20px; left: 40px; right: 40px; padding-top: 12px; border-top: 1px solid #e0e0e0; font-size: 10px; color: #999; text-align: center;">
                         <div>THE HOME INSPECTION | 대표: 1668-5222 | 직통: 010-9985-0128</div>
                     </div>
                 </div>
