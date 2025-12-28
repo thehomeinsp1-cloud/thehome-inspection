@@ -702,7 +702,7 @@
             box-sizing: border-box;
         }
 
-        /* ==================== 체크리스트 ==================== */
+        /* ==================== 체크리스트 (참고용) ==================== */
         .checklist-spaces {
             display: flex;
             flex-direction: column;
@@ -725,22 +725,6 @@
             transform: scale(0.98);
         }
 
-        .checklist-space-card.completed {
-            border-color: var(--accent);
-            opacity: 0.7;
-        }
-
-        .checklist-space-icon {
-            width: 44px;
-            height: 44px;
-            background: var(--primary-light);
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 22px;
-        }
-
         .checklist-space-info {
             flex: 1;
         }
@@ -748,12 +732,6 @@
         .checklist-space-name {
             font-size: 15px;
             font-weight: 600;
-            margin-bottom: 4px;
-        }
-
-        .checklist-space-status {
-            font-size: 12px;
-            color: var(--text-muted);
         }
 
         .checklist-space-arrow {
@@ -788,75 +766,30 @@
             justify-content: center;
         }
 
-        .checklist-progress {
-            padding: 6px 12px;
-            background: var(--accent);
-            border-radius: 12px;
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--primary);
+        /* 참고용 체크리스트 스타일 */
+        .checklist-reference-section {
+            margin-bottom: 24px;
         }
 
-        .checklist-item {
+        .checklist-position-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 10px;
+            padding: 8px 12px;
+            background: rgba(0, 212, 170, 0.1);
+            border-radius: 6px;
+        }
+
+        .checklist-reference-item {
+            font-size: 13px;
+            color: var(--text);
+            line-height: 1.7;
+            padding: 10px 12px;
             background: var(--card-bg);
             border: 1px solid var(--card-border);
             border-radius: var(--radius-sm);
-            padding: 14px;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: flex-start;
-            gap: 12px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .checklist-item.checked {
-            border-color: var(--accent);
-            opacity: 0.6;
-        }
-
-        .checklist-checkbox {
-            width: 24px;
-            height: 24px;
-            border: 2px solid var(--text-muted);
-            border-radius: 6px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            font-size: 14px;
-            transition: all 0.2s ease;
-        }
-
-        .checklist-item.checked .checklist-checkbox {
-            background: var(--accent);
-            border-color: var(--accent);
-            color: var(--primary);
-        }
-
-        .checklist-item-content {
-            flex: 1;
-        }
-
-        .checklist-item-title {
-            font-size: 14px;
-            font-weight: 600;
-            margin-bottom: 4px;
-        }
-
-        .checklist-item-desc {
-            font-size: 12px;
-            color: var(--text-muted);
-            line-height: 1.5;
-        }
-
-        .checklist-item-tip {
-            margin-top: 8px;
-            padding: 8px 10px;
-            background: rgba(0, 212, 170, 0.1);
-            border-radius: 6px;
-            font-size: 11px;
-            color: var(--accent);
+            margin-bottom: 8px;
         }
 
         /* ==================== 하자점검 시작 버튼 ==================== */
@@ -3304,7 +3237,8 @@
 
         <!-- ==================== 체크리스트 섹션 ==================== -->
         <section class="section" id="checklistSection">
-            <h2 style="font-size: 20px; font-weight: 700; margin-bottom: 20px;">공간별 체크리스트</h2>
+            <h2 style="font-size: 20px; font-weight: 700; margin-bottom: 10px;">점검 참고용 체크리스트</h2>
+            <p style="font-size: 13px; color: #999; margin-bottom: 20px;">더홈점검에서 제공하는 무료 셀프점검 자료입니다.</p>
             
             <div class="checklist-spaces" id="checklistSpaces">
                 <!-- 동적 생성 -->
@@ -3315,8 +3249,7 @@
         <section class="section" id="checklistDetailSection">
             <div class="checklist-detail-header">
                 <button class="back-btn" onclick="showSection('checklistSection')">←</button>
-                <h2 id="checklistDetailTitle">거실</h2>
-                <span class="checklist-progress" id="checklistProgress">0/0</span>
+                <h2 id="checklistDetailTitle" style="flex: 1;">거실</h2>
             </div>
             
             <div id="checklistItems">
@@ -3375,10 +3308,6 @@
                         <div class="report-summary-fill" id="reportProgressBar" style="width: 0%"></div>
                     </div>
                     <div class="report-summary-detail">
-                        <div class="report-stat">
-                            <span class="report-stat-value" id="reportCheckedCount">0</span>
-                            <span class="report-stat-label">체크리스트 완료</span>
-                        </div>
                         <div class="report-stat">
                             <span class="report-stat-value" id="reportPhotoCount">0</span>
                             <span class="report-stat-label">촬영 사진</span>
@@ -3692,69 +3621,219 @@
             };
         }
 
-        // 체크리스트 데이터
+        // 체크리스트 데이터 (참고용)
         const CHECKLIST_DATA = {
-            living: {
-                name: '거실',
-                icon: '🛋️',
-                items: [
-                    { id: 'l1', title: '바닥 스크래치', desc: '마루 전체를 비스듬한 빛으로 확인', tip: '💡 창문 쪽에서 빛을 받아 확인하면 잘 보여요' },
-                    { id: 'l2', title: '벽면 도배', desc: '이음새 벌어짐, 기포, 찢어짐 확인' },
-                    { id: 'l3', title: '창문 개폐', desc: '열림/닫힘, 잠금장치 작동 확인' },
-                    { id: 'l4', title: '콘센트 작동', desc: '충전기로 모든 콘센트 테스트' },
-                    { id: 'l5', title: '조명 스위치', desc: 'ON/OFF 작동 확인' },
-                    { id: 'l6', title: '천장 상태', desc: '균열, 얼룩 확인' }
-                ]
+            entrance: {
+                name: '현관/전실',
+                positions: {
+                    ceiling: [
+                        '전등/센서(화재감지기) - 정등불량, 부착상태, 파손',
+                        '도배/도장/몰딩 - 오염, 공팡이, 시공불량, 파손'
+                    ],
+                    wall: [
+                        '현관문/몰딩(점검창치) - 밀폐불량, 조립상태, 파손, 오염, 도어클로저 불량',
+                        '스위치/콘센트 - 점등불량, 부착상태, 파손'
+                    ],
+                    floor: [
+                        '타일 - 들뜸, 단차, 줄눈불량, 오염, 파손',
+                        '현관디딤석 - 부착상태, 파손, 오염'
+                    ]
+                }
             },
-            kitchen: {
-                name: '주방',
-                icon: '🍳',
-                items: [
-                    { id: 'k1', title: '싱크대 누수', desc: '물 틀고 하부장 누수 확인', tip: '💡 휴지를 배관에 감아두면 확인이 쉬워요' },
-                    { id: 'k2', title: '상하부장 개폐', desc: '모든 문짝/서랍 열림닫힘' },
-                    { id: 'k3', title: '가스레인지', desc: '점화 및 화력 조절 테스트' },
-                    { id: 'k4', title: '환풍기', desc: '레인지후드 흡입력 확인' },
-                    { id: 'k5', title: '수전 수압', desc: '온수/냉수 전환 테스트' }
-                ]
+            livingroom: {
+                name: '거실',
+                positions: {
+                    ceiling: [
+                        '전등/센서(화재감지기) - 정등불량, 부착상태, 파손',
+                        '도배/도장/몰딩 - 오염, 공팡이, 시공불량, 파손'
+                    ],
+                    wall: [
+                        '창호/유리(점금장치) - 고정상태, 파손, 오염, 개폐/점금기능 불량',
+                        '난간대 - 개폐/점금기능 불량',
+                        '아트월(타일/MDF) - 부착상태, 단차, 파손, 오염',
+                        '스위치/콘센트 - 점등불량, 부착상태, 파손(대기전력 스위치 작동상태)',
+                        '월패드/조절기(난방장치) - 부착상태, 파손, 작동상태, 화질불량, 연동불량',
+                        '도배 - 오염, 공팡이, 시공불량, 파손'
+                    ],
+                    floor: [
+                        '걸레받이 - 부착상태, 이음불량, 파손, 오염',
+                        '마감재(마루/타일) - 들뜸, 단차, 수평불량, 오염, 파손'
+                    ]
+                }
             },
             bedroom: {
                 name: '침실',
-                icon: '🛏️',
-                items: [
-                    { id: 'b1', title: '바닥 상태', desc: '마루 스크래치, 들뜸 확인' },
-                    { id: 'b2', title: '붙박이장', desc: '문짝, 서랍, 레일 상태' },
-                    { id: 'b3', title: '창문 결로', desc: '창틀 주변 결로 흔적', tip: '💡 열화상 카메라로 확인하세요' },
-                    { id: 'b4', title: '콘센트 위치', desc: '침대 헤드 쪽 확인' }
-                ]
+                positions: {
+                    ceiling: [
+                        '전등/센서(화재감지기) - 정등불량, 부착상태, 파손',
+                        '도배/도장/몰딩 - 오염, 공팡이, 시공불량, 파손'
+                    ],
+                    wall: [
+                        '출입문/몰딩(점금장치) - 고정상태, 파손, 오염, 개폐/점금기능 불량',
+                        '창호/유리(점금장치) - 고정상태, 파손, 오염, 개폐/점금기능 불량',
+                        '난간대 - 개폐/점금기능 불량',
+                        '스위치/콘센트 - 점등불량, 부착상태, 파손(대기전력 스위치 작동상태)',
+                        '가구류(붙박이장) - 부착상태, 파손, 오염, 개폐불량, 선반/부품 미시공',
+                        '도배 - 오염, 공팡이, 시공불량, 파손'
+                    ],
+                    floor: [
+                        '걸레받이 - 부착상태, 이음불량, 파손, 오염',
+                        '마감재(마루/타일) - 들뜸, 단차, 수평불량, 오염, 파손'
+                    ]
+                }
+            },
+            kitchen: {
+                name: '주방/식당',
+                positions: {
+                    ceiling: [
+                        '전등/스핑기구 - 정등불량, 부착상태, 파손',
+                        '확산소화기(조리시설 상부) - 설치상태, 파손',
+                        '도장 - 오염, 공팡이, 시공불량, 균열'
+                    ],
+                    wall: [
+                        '창호/유리(점금장치) - 고정상태, 파손, 오염, 개폐/점금기능 불량',
+                        '난간대 - 개폐/점금기능 불량',
+                        '스위치/콘센트 - 점등불량, 부착상태, 파손(대기전력 스위치 작동상태)',
+                        '가구류(붙박이장) - 부착상태, 파손, 오염, 개폐불량, 선반/부품 미시공',
+                        '조리기기류(콕탑, 후드) - 부착상태, 파손, 작동불량',
+                        '싱크대/상판 - 부착상태, 파손, 실리콘 상태',
+                        '수선류 - 급수, 누수, 배수상태',
+                        '도배 - 오염, 공팡이, 시공불량, 파손'
+                    ],
+                    floor: [
+                        '걸레받이 - 부착상태, 이음불량, 파손, 오염',
+                        '마감재(마루/타일) - 들뜸, 단차, 수평불량, 오염, 파손'
+                    ]
+                }
             },
             bathroom: {
-                name: '화장실',
-                icon: '🚿',
-                items: [
-                    { id: 'bt1', title: '세면대 배수', desc: '물 빠짐 속도 확인', tip: '💡 물을 가득 채운 후 한번에 빼보세요' },
-                    { id: 'bt2', title: '변기 물내림', desc: '플러시 강도 확인' },
-                    { id: 'bt3', title: '샤워기 수압', desc: '온수/냉수, 수압 테스트' },
-                    { id: 'bt4', title: '바닥 방수', desc: '타일 균열, 배수구 주변' },
-                    { id: 'bt5', title: '환풍기', desc: '흡입력 확인' }
-                ]
+                name: '욕실/화장실',
+                positions: {
+                    ceiling: [
+                        '전등 - 정등불량, 부착상태, 파손',
+                        '환풍기 - 작동상태, 부착상태, 파손',
+                        '전장재 - 부착상태, 단차, 파손, 오염',
+                        '점검구 내부(배관, 천정) - 누수, 시공상태, 오염'
+                    ],
+                    wall: [
+                        '출입문/몰딩/점금장치 - 고정상태, 파손, 오염, 개폐/점금기능 불량',
+                        '스위치/콘센트 - 점등불량, 부착상태, 파손',
+                        '가구류(욕실장, 거울) - 부착상태, 파손, 오염, 개폐불양, 고정불량, 작동불량',
+                        '변기 - 고정상태, 파손, 오염, 누수, 악취, 배수상태',
+                        '세면대/욕조/수전류/사워기 - 부착상태, 파손, 오염, 작동상태, 누수, 악취, 배수상태',
+                        '사워부스(설치시) - 고정상태, 파손, 오염, 개폐불량(유리문 설치시)',
+                        '수건/휴지걸이/코너선반 - 고정상태, 파손, 오염',
+                        '젠다이(석재선반) - 고정상태, 파손, 오염',
+                        '벽타일 - 들뜸, 단차, 줄눈불량, 오염, 파손'
+                    ],
+                    floor: [
+                        '바닥타일 - 들뜸, 단차, 줄눈불량, 오염, 파손',
+                        '배수구 - 물고임, 배수불량, 악취, 파손'
+                    ]
+                }
+            },
+            dressroom: {
+                name: '드레스룸/알파룸',
+                positions: {
+                    ceiling: [
+                        '전등/센서(화재감지기) - 정등불량, 부착상태, 파손',
+                        '도배/도장/몰딩 - 오염, 공팡이, 시공불량, 파손'
+                    ],
+                    wall: [
+                        '출입문/몰딩/점금장치 - 고정상태, 파손, 오염, 개폐/점금기능 불량',
+                        '창호/유리(점금장치) - 고정상태, 파손, 오염, 개폐/점금기능 불량',
+                        '난간대 - 개폐/점금기능 불량',
+                        '스위치/콘센트 - 점등불량, 부착상태, 파손',
+                        '가구류(선반, 수납장) - 부착상태, 파손, 오염, 개폐불량, 선반/부품 미시공',
+                        '도배 - 오염, 공팡이, 시공불량, 파손'
+                    ],
+                    floor: [
+                        '걸레받이 - 부착상태, 이음불량, 파손, 오염',
+                        '마감재(마루/타일) - 들뜸, 단차, 수평불량, 오염, 파손'
+                    ]
+                }
             },
             balcony: {
                 name: '발코니',
-                icon: '🌿',
-                items: [
-                    { id: 'bl1', title: '창호 기밀성', desc: '샷시 틈새, 바람 유입', tip: '💡 열화상 카메라로 외기 침투 확인' },
-                    { id: 'bl2', title: '배수구', desc: '막힘 및 기울기 확인' },
-                    { id: 'bl3', title: '바닥 타일', desc: '들뜸, 균열 확인' }
-                ]
+                positions: {
+                    ceiling: [
+                        '전등/스핑기구 - 정등불량, 부착상태, 파손',
+                        '도장 - 오염, 공팡이, 시공불량, 균열'
+                    ],
+                    wall: [
+                        '출입문/몰딩/유리(점금장치) - 고정상태, 파손, 오염, 개폐/점금기능 불량',
+                        '창호/유리(점금장치) - 고정상태, 파손, 오염, 개폐/점금기능 불량',
+                        '난간대 - 개폐/점금기능 불량',
+                        '스위치/콘센트 - 점등불량, 부착상태, 파손',
+                        '수전 - 급수, 누수, 배수상태',
+                        '도장 - 오염, 공팡이, 시공불량, 균열'
+                    ],
+                    floor: [
+                        '바닥타일 - 들뜸, 단차, 줄눈불량, 오염, 파손',
+                        '배수구(수전 있는경우) - 물고임, 배수불량, 악취, 파손'
+                    ]
+                }
             },
-            entrance: {
-                name: '현관',
-                icon: '🚪',
+            utility: {
+                name: '다용도실/보일러실',
+                positions: {
+                    ceiling: [
+                        '전등/스핑기구 - 정등불량, 부착상태, 파손',
+                        '도장 - 오염, 공팡이, 시공불량, 균열'
+                    ],
+                    wall: [
+                        '출입문/몰딩/유리(점금장치) - 고정상태, 파손, 오염, 개폐/점금기능 불량',
+                        '창호/유리(점금장치) - 고정상태, 파손, 오염, 개폐/점금기능 불량',
+                        '난간대 - 개폐/점금기능 불량',
+                        '스위치/콘센트 - 점등불량, 부착상태, 파손',
+                        '가구류(선반, 보조주방) - 부착상태, 파손, 오염, 개폐불양, 선반/부품 미시공',
+                        '수전 - 급수, 누수, 배수상태',
+                        '도장 - 오염, 공팡이, 시공불량, 균열'
+                    ],
+                    floor: [
+                        '바닥타일 - 들뜸, 단차, 줄눈불량, 오염, 파손',
+                        '배수구(수전 있는경우) - 물고임, 배수불량, 악취, 파손'
+                    ]
+                }
+            },
+            outdoor: {
+                name: '실외기실',
+                positions: {
+                    ceiling: [
+                        '전등/스핑기구 - 정등불량, 부착상태, 파손',
+                        '도장 - 오염, 공팡이, 시공불량, 균열'
+                    ],
+                    wall: [
+                        '출입문/몰딩/창호(배기창) - 고정상태, 파손, 오염, 개폐/점금기능 불량',
+                        '스위치/콘센트 - 점등불량, 부착상태, 파손',
+                        '도장 - 오염, 공팡이, 시공불량, 균열'
+                    ],
+                    floor: [
+                        '바닥타일 - 들뜸, 단차, 줄눈불량, 오염, 파손'
+                    ]
+                }
+            },
+            evacuation: {
+                name: '대피공간',
+                positions: {
+                    ceiling: [
+                        '전등 - 정등불량, 부착상태, 파손',
+                        '도장 - 오염, 공팡이, 시공불량, 균열'
+                    ],
+                    wall: [
+                        '출입문/몰딩/창호(점금장치) - 고정상태, 파손, 오염, 밀폐/개폐/점금기능 불량',
+                        '도장 - 오염, 공팡이, 시공불량, 균열'
+                    ],
+                    floor: [
+                        '바닥타일 - 들뜸, 단차, 줄눈불량, 오염, 파손'
+                    ]
+                }
+            },
+            etc: {
+                name: '기타사항',
                 items: [
-                    { id: 'e1', title: '현관문 개폐', desc: '열림/닫힘, 잠금장치' },
-                    { id: 'e2', title: '도어락', desc: '비밀번호, 지문, 카드 테스트' },
-                    { id: 'e3', title: '신발장', desc: '문짝, 서랍, 환기구' },
-                    { id: 'e4', title: '인터폰', desc: '영상/음성 통화 테스트' }
+                    { category: '설비', items: ['분전반/동신함 - 작동불량, 부착상태, 파손, 오염', '난방온수분배기 - 고정상태, 누수, 소음, 파손, 오염', '전열교환기(세대 환기장치) - 작동불량, 부착상태, 파손, 오염'] },
+                    { category: '공용부', items: ['주출입구, 계단실, 엘리베이터홀, 외벽, 주차장, 도로, 조경시설'] }
                 ]
             }
         };
@@ -3790,18 +3869,13 @@
             
             container.innerHTML = Object.keys(CHECKLIST_DATA).map(key => {
                 const space = CHECKLIST_DATA[key];
-                const checked = space.items.filter(item => getCurrentProject().checkedItems[item.id]).length;
-                const total = space.items.length;
-                const isCompleted = checked === total;
                 
                 return `
-                    <div class="checklist-space-card ${isCompleted ? 'completed' : ''}" onclick="openChecklistDetail('${key}')">
-                        <div class="checklist-space-icon">${space.icon}</div>
+                    <div class="checklist-space-card" onclick="openChecklistDetail('${key}')">
                         <div class="checklist-space-info">
                             <div class="checklist-space-name">${space.name}</div>
-                            <div class="checklist-space-status">${checked}/${total} 완료</div>
                         </div>
-                        <div class="checklist-space-arrow">${isCompleted ? '✓' : '→'}</div>
+                        <div class="checklist-space-arrow">→</div>
                     </div>
                 `;
             }).join('');
@@ -3818,31 +3892,51 @@
 
         function renderChecklistItems() {
             const space = CHECKLIST_DATA[currentChecklistSpace];
-            const checked = space.items.filter(item => getCurrentProject().checkedItems[item.id]).length;
-            
-            document.getElementById('checklistProgress').textContent = `${checked}/${space.items.length}`;
-            
             const container = document.getElementById('checklistItems');
-            container.innerHTML = space.items.map(item => {
-                const isChecked = getCurrentProject().checkedItems[item.id];
-                return `
-                    <div class="checklist-item ${isChecked ? 'checked' : ''}" onclick="toggleChecklistItem('${item.id}')">
-                        <div class="checklist-checkbox">${isChecked ? '✓' : ''}</div>
-                        <div class="checklist-item-content">
-                            <div class="checklist-item-title">${item.title}</div>
-                            <div class="checklist-item-desc">${item.desc}</div>
-                            ${item.tip ? `<div class="checklist-item-tip">${item.tip}</div>` : ''}
-                        </div>
+            
+            // 기타사항 처리
+            if (currentChecklistSpace === 'etc') {
+                container.innerHTML = space.items.map(section => `
+                    <div class="checklist-reference-section">
+                        <div class="checklist-position-title">${section.category}</div>
+                        ${section.items.map(item => `
+                            <div class="checklist-reference-item">${item}</div>
+                        `).join('')}
                     </div>
-                `;
-            }).join('');
-        }
-
-        function toggleChecklistItem(itemId) {
-            getCurrentProject().checkedItems[itemId] = !getCurrentProject().checkedItems[itemId];
-            saveData();
-            renderChecklistItems();
-            renderChecklistSpaces();
+                `).join('');
+                return;
+            }
+            
+            // 일반 공간 처리 (위치: 천장, 벽면, 바닥)
+            const positions = space.positions;
+            container.innerHTML = `
+                ${positions.ceiling ? `
+                    <div class="checklist-reference-section">
+                        <div class="checklist-position-title">천장</div>
+                        ${positions.ceiling.map(item => `
+                            <div class="checklist-reference-item">${item}</div>
+                        `).join('')}
+                    </div>
+                ` : ''}
+                
+                ${positions.wall ? `
+                    <div class="checklist-reference-section">
+                        <div class="checklist-position-title">벽면</div>
+                        ${positions.wall.map(item => `
+                            <div class="checklist-reference-item">${item}</div>
+                        `).join('')}
+                    </div>
+                ` : ''}
+                
+                ${positions.floor ? `
+                    <div class="checklist-reference-section">
+                        <div class="checklist-position-title">바닥</div>
+                        ${positions.floor.map(item => `
+                            <div class="checklist-reference-item">${item}</div>
+                        `).join('')}
+                    </div>
+                ` : ''}
+            `;
         }
 
         // ==================== 테마 (다크/라이트 모드) ====================
@@ -4666,11 +4760,6 @@
             document.getElementById('defectCountHome').textContent = `${count}건`;
             document.getElementById('reportDefectCount').textContent = `${count}건`;
             document.getElementById('inspectionCount').textContent = `${count}건`;
-            
-            // 체크리스트 완료 수
-            const checkedCount = Object.keys(getCurrentProject().checkedItems).filter(k => getCurrentProject().checkedItems[k]).length;
-            const reportChecked = document.getElementById('reportCheckedCount');
-            if (reportChecked) reportChecked.textContent = checkedCount;
             
             // 촬영 사진 수
             const photoCount = getCurrentProject().defects.reduce((sum, d) => {
@@ -5607,8 +5696,6 @@
         // 표지 페이지 생성
         function createCoverPage(projectInfo) {
             const defectCount = getCurrentProject().defects.length;
-            const checkedCount = Object.keys(getCurrentProject().checkedItems).filter(k => getCurrentProject().checkedItems[k]).length;
-            const totalItems = Object.keys(CHECKLIST_DATA).reduce((sum, key) => sum + CHECKLIST_DATA[key].items.length, 0);
             
             // 촬영된 사진 수 계산
             const photoCount = getCurrentProject().defects.reduce((sum, defect) => {
@@ -5616,76 +5703,54 @@
             }, 0);
             
             return `
-                <div style="width: 794px; height: 1123px; background: #ffffff; font-family: 'Malgun Gothic', sans-serif; position: relative; box-sizing: border-box; overflow: hidden;">
+                <div style="width: 794px; height: 1123px; background: #ffffff; font-family: 'Malgun Gothic', sans-serif; position: relative; box-sizing: border-box;">
                     
-                    <!-- 상단 장식 바 -->
-                    <div style="height: 12px; background: linear-gradient(90deg, #00D4AA 0%, #00A080 50%, #00D4AA 100%);"></div>
+                    <!-- 상단 라인 -->
+                    <div style="height: 4px; background: #2c5282;"></div>
                     
                     <!-- 메인 컨텐츠 -->
-                    <div style="padding: 60px 60px 50px 60px;">
-                        
-                        <!-- 로고 영역 -->
-                        <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 50px;">
-                            <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #00D4AA, #00A080); border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0, 212, 170, 0.3);">
-                                <span style="font-size: 28px;">🏠</span>
-                            </div>
-                            <div>
-                                <div style="font-size: 22px; font-weight: 800; color: #333; letter-spacing: -0.5px;">입주 전 하자점검</div>
-                                <div style="font-size: 12px; color: #00D4AA; font-weight: 600; letter-spacing: 1px;">PRE-OCCUPANCY INSPECTION REPORT</div>
-                            </div>
-                        </div>
+                    <div style="padding: 80px 60px 50px 60px;">
                         
                         <!-- 타이틀 -->
-                        <div style="margin-bottom: 45px; position: relative;">
-                            <div style="position: absolute; top: -10px; left: -20px; width: 140px; height: 140px; background: radial-gradient(circle, rgba(0, 212, 170, 0.08) 0%, transparent 70%); border-radius: 50%;"></div>
-                            <h1 style="font-size: 44px; font-weight: 800; color: #222; margin: 0 0 12px 0; line-height: 1.2; position: relative;">
-                                하자 상세 리포트
+                        <div style="text-align: center; margin-bottom: 60px;">
+                            <h1 style="font-size: 36px; font-weight: 700; color: #222; margin: 0 0 20px 0; line-height: 1.3;">
+                                입주 전 하자점검 보고서
                             </h1>
-                            <div style="width: 80px; height: 5px; background: #00D4AA; border-radius: 3px;"></div>
+                            <div style="font-size: 16px; color: #666; font-weight: 500;">
+                                ${projectInfo.apartmentName}
+                            </div>
                         </div>
                         
                         <!-- 프로젝트 정보 -->
-                        <div style="background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%); border: 2px solid #e0e0e0; border-radius: 12px; padding: 28px 30px; margin-bottom: 35px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);">
-                            <div style="font-size: 13px; color: #00D4AA; font-weight: 700; margin-bottom: 18px; letter-spacing: 0.5px;">📋 점검 대상 정보</div>
-                            <div style="display: flex; flex-direction: column; gap: 14px;">
-                                <div style="display: flex; padding-bottom: 12px; border-bottom: 1px solid #e8e8e8;">
-                                    <span style="width: 110px; color: #666; font-size: 14px; font-weight: 500;">아파트명</span>
-                                    <span style="font-size: 16px; font-weight: 700; color: #222;">${projectInfo.apartmentName}</span>
-                                </div>
-                                <div style="display: flex; padding-bottom: 12px; border-bottom: 1px solid #e8e8e8;">
-                                    <span style="width: 110px; color: #666; font-size: 14px; font-weight: 500;">동 / 호수</span>
-                                    <span style="font-size: 16px; font-weight: 700; color: #222;">${projectInfo.dong}동 ${projectInfo.ho}호</span>
+                        <div style="border-top: 2px solid #2c5282; border-bottom: 2px solid #2c5282; padding: 35px 0; margin-bottom: 50px;">
+                            <div style="display: flex; flex-direction: column; gap: 20px;">
+                                <div style="display: flex;">
+                                    <span style="width: 130px; color: #666; font-size: 15px; font-weight: 500;">동 / 호수</span>
+                                    <span style="font-size: 17px; font-weight: 700; color: #222;">${projectInfo.dong}동 ${projectInfo.ho}호</span>
                                 </div>
                                 <div style="display: flex;">
-                                    <span style="width: 110px; color: #666; font-size: 14px; font-weight: 500;">점검일자</span>
-                                    <span style="font-size: 16px; font-weight: 700; color: #222;">${projectInfo.inspectionDate}</span>
+                                    <span style="width: 130px; color: #666; font-size: 15px; font-weight: 500;">점검일자</span>
+                                    <span style="font-size: 17px; font-weight: 700; color: #222;">${projectInfo.inspectionDate}</span>
                                 </div>
                             </div>
                         </div>
                         
-                        <!-- 점검 결과 통계 (3개) -->
-                        <div style="display: flex; gap: 18px; margin-bottom: 35px;">
-                            <div style="flex: 1; background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%); border-radius: 12px; padding: 24px; text-align: center; box-shadow: 0 4px 12px rgba(255, 107, 107, 0.2);">
-                                <div style="font-size: 48px; font-weight: 800; color: white; margin-bottom: 6px;">${defectCount}</div>
-                                <div style="font-size: 13px; color: rgba(255,255,255,0.95); font-weight: 600;">발견된 하자</div>
+                        <!-- 점검 결과 통계 -->
+                        <div style="display: flex; gap: 20px; margin-bottom: 50px;">
+                            <div style="flex: 1; border: 2px solid #2c5282; padding: 30px; text-align: center;">
+                                <div style="font-size: 52px; font-weight: 800; color: #2c5282; margin-bottom: 10px;">${defectCount}</div>
+                                <div style="font-size: 15px; color: #555; font-weight: 600;">발견된 하자</div>
                             </div>
-                            <div style="flex: 1; background: linear-gradient(135deg, #00D4AA 0%, #00A080 100%); border-radius: 12px; padding: 24px; text-align: center; box-shadow: 0 4px 12px rgba(0, 212, 170, 0.2);">
-                                <div style="font-size: 48px; font-weight: 800; color: white; margin-bottom: 6px;">${photoCount}</div>
-                                <div style="font-size: 13px; color: rgba(255,255,255,0.95); font-weight: 600;">촬영된 사진</div>
-                            </div>
-                            <div style="flex: 1; background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%); border-radius: 12px; padding: 24px; text-align: center; box-shadow: 0 4px 12px rgba(74, 144, 226, 0.2);">
-                                <div style="font-size: 48px; font-weight: 800; color: white; margin-bottom: 6px;">${checkedCount}</div>
-                                <div style="font-size: 13px; color: rgba(255,255,255,0.95); font-weight: 600;">체크리스트</div>
+                            <div style="flex: 1; border: 2px solid #e0e0e0; padding: 30px; text-align: center;">
+                                <div style="font-size: 52px; font-weight: 800; color: #2c5282; margin-bottom: 10px;">${photoCount}</div>
+                                <div style="font-size: 15px; color: #555; font-weight: 600;">촬영된 사진</div>
                             </div>
                         </div>
                         
                         <!-- 중요 안내사항 -->
-                        <div style="background: #fff9e6; border: 2px solid #ffc107; border-radius: 12px; padding: 22px 25px; margin-bottom: 18px;">
-                            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
-                                <div style="width: 28px; height: 28px; background: #ffc107; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px;">⚠️</div>
-                                <div style="font-size: 14px; color: #d97706; font-weight: 700;">중요 안내사항</div>
-                            </div>
-                            <div style="font-size: 13px; color: #555; line-height: 1.8; font-weight: 500;">
+                        <div style="border: 2px solid #2c5282; padding: 25px; margin-bottom: 20px;">
+                            <div style="font-size: 15px; color: #2c5282; font-weight: 700; margin-bottom: 15px;">중요 안내사항</div>
+                            <div style="font-size: 13px; color: #444; line-height: 1.9; font-weight: 500;">
                                 • 본 보고서는 시공사 하자 접수 시 증빙자료로 활용하시기 바랍니다.<br/>
                                 • 하자담보책임기간 내 주기적인 점검과 관리가 필요합니다.<br/>
                                 • 발견된 하자는 빠른 시일 내에 시공사에 접수하시기 바랍니다.
@@ -5693,24 +5758,20 @@
                         </div>
                         
                         <!-- 서비스 안내 -->
-                        <div style="background: #f0f9ff; border-left: 4px solid #4a90e2; padding: 18px 22px; border-radius: 6px;">
+                        <div style="background: #f8f8f8; padding: 20px; border-left: 4px solid #2c5282;">
                             <div style="font-size: 12px; color: #666; line-height: 1.7; font-weight: 500;">
-                                💡 본 보고서는 뷰파인더 셀프점검 서비스를 통해 작성되었습니다.<br/>
+                                본 보고서는 더홈점검 셀프점검 서비스를 통해 작성되었습니다.<br/>
                                 전문가 점검이 필요하시면 더홈점검 프로 서비스를 이용해주세요.
                             </div>
                         </div>
                     </div>
                     
                     <!-- 하단 푸터 -->
-                    <div style="position: absolute; bottom: 0; left: 0; right: 0; padding: 20px 60px; background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%); border-top: 2px solid #e0e0e0;">
+                    <div style="position: absolute; bottom: 0; left: 0; right: 0; padding: 20px 60px; border-top: 1px solid #ddd;">
                         <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <div>
-                                <div style="font-size: 18px; font-weight: 700; color: #222; margin-bottom: 3px;">THE HOME INSPECTION</div>
-                                <div style="font-size: 11px; color: #00D4AA; font-weight: 600;">스마트 홈체크 전문</div>
-                            </div>
+                            <div style="font-size: 16px; font-weight: 700; color: #2c5282;">THE HOME INSPECTION</div>
                             <div style="text-align: right; font-size: 12px; color: #666; font-weight: 500; line-height: 1.5;">
-                                대표: 1668-5222<br/>
-                                직통: 010-9985-0128
+                                대표: 1668-5222 | 직통: 010-9985-0128
                             </div>
                         </div>
                     </div>
