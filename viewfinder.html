@@ -2108,6 +2108,55 @@
             cursor: not-allowed;
         }
 
+        /* ==================== 이메일 전송 섹션 ==================== */
+        .email-send-section {
+            margin-top: 20px;
+            padding: 20px;
+            background: linear-gradient(135deg, rgba(0, 212, 170, 0.1), rgba(0, 180, 148, 0.05));
+            border: 2px solid var(--accent);
+            border-radius: 16px;
+        }
+
+        .email-send-header {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 16px;
+        }
+
+        .email-send-icon {
+            font-size: 32px;
+        }
+
+        .email-send-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 4px;
+        }
+
+        .email-send-desc {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .email-send-btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, var(--accent), #00B894);
+            border: none;
+            border-radius: 12px;
+            color: #000;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .email-send-btn:active {
+            transform: scale(0.98);
+        }
+
         /* ==================== 로딩 오버레이 ==================== */
         .loading-overlay {
             position: fixed;
@@ -3530,8 +3579,22 @@
                     <button class="report-btn primary" onclick="generatePDF()">
                         PDF 보고서 생성
                     </button>
-                    <button class="report-btn secondary" onclick="shareReport()">
-                        공유하기
+                    <button class="report-btn secondary" onclick="downloadAllData()">
+                        📦 전체 다운로드
+                    </button>
+                </div>
+                
+                <!-- 이메일 전송 섹션 -->
+                <div class="email-send-section">
+                    <div class="email-send-header">
+                        <span class="email-send-icon">📧</span>
+                        <div>
+                            <div class="email-send-title">하자접수 대행 요청</div>
+                            <div class="email-send-desc">전체 자료를 이메일로 전송합니다</div>
+                        </div>
+                    </div>
+                    <button class="email-send-btn" onclick="openEmailSendModal()">
+                        이메일로 전송하기 →
                     </button>
                 </div>
             </div>
@@ -3755,22 +3818,6 @@
                 <div class="settings-item-content">
                     <div class="settings-item-title">튜토리얼 다시보기</div>
                     <div class="settings-item-desc">앱 사용법 가이드를 다시 볼 수 있어요</div>
-                </div>
-            </div>
-            
-            <div class="settings-item" onclick="downloadAllData()">
-                <span class="settings-item-icon">📦</span>
-                <div class="settings-item-content">
-                    <div class="settings-item-title">전체 자료 다운로드</div>
-                    <div class="settings-item-desc">PDF + 엑셀 + 사진을 ZIP으로 저장</div>
-                </div>
-            </div>
-            
-            <div class="settings-item" onclick="openEmailSendModal()">
-                <span class="settings-item-icon">📧</span>
-                <div class="settings-item-content">
-                    <div class="settings-item-title">이메일로 자료 전송</div>
-                    <div class="settings-item-desc">이메일 입력만 하면 자동 발송</div>
                 </div>
             </div>
             
