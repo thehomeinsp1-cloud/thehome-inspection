@@ -3800,7 +3800,7 @@
             <!-- Step 1: 이메일 입력 -->
             <div class="modal-body" style="padding: 20px;" id="emailStep1">
                 <p style="margin: 0 0 20px 0; font-size: 14px; color: var(--text-muted); line-height: 1.6;">
-                    이메일 주소를 입력하시면<br>점검 자료(PDF)를 전송할 수 있습니다.
+                    이메일 주소를 입력하시면<br>전체 자료(PDF+엑셀+사진)를 전송할 수 있습니다.
                 </p>
                 
                 <div style="margin-bottom: 16px;">
@@ -3811,19 +3811,19 @@
                 <div style="margin-bottom: 20px;">
                     <label class="checkbox-label">
                         <input type="checkbox" id="sendCopyToCompany" checked>
-                        <span class="checkbox-text">더홈점검에도 사본 전송</span>
+                        <span class="checkbox-text">뷰파인더에도 사본 전송</span>
                     </label>
                     <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px; margin-left: 24px;">
-                        전문 상담이 필요하시면 체크해주세요
+                        하자접수 대행이 필요하시면 체크해주세요
                     </div>
                 </div>
                 
                 <button class="send-email-btn" onclick="prepareEmailData()">
-                    <span>📄</span> PDF 생성하기
+                    <span>📦</span> 전체 자료 생성하기
                 </button>
                 
                 <div style="margin-top: 16px; padding: 12px; background: var(--card-bg); border-radius: 8px; font-size: 11px; color: var(--text-muted); line-height: 1.6;">
-                    💡 PDF 생성 후 다운로드 및 이메일 전송이 가능합니다
+                    💡 ZIP 파일 포함: PDF보고서 + 엑셀목록 + 원본사진
                 </div>
             </div>
             
@@ -3831,12 +3831,12 @@
             <div class="modal-body" style="padding: 20px; display: none;" id="emailStep2">
                 <div style="text-align: center; margin-bottom: 24px;">
                     <div style="font-size: 48px; margin-bottom: 12px;">✅</div>
-                    <div style="font-size: 18px; font-weight: 700; color: var(--text); margin-bottom: 8px;">PDF 생성 완료!</div>
+                    <div style="font-size: 18px; font-weight: 700; color: var(--text); margin-bottom: 8px;">전체 자료 생성 완료!</div>
                     <div style="font-size: 13px; color: var(--text-muted);">아래 버튼으로 다운로드하고 이메일을 보내세요</div>
                 </div>
                 
                 <button class="send-email-btn" onclick="downloadPreparedPDF()" style="margin-bottom: 12px; background: linear-gradient(135deg, #3B82F6, #2563EB);">
-                    <span>📄</span> PDF 다운로드
+                    <span>📦</span> ZIP 다운로드
                 </button>
                 
                 <button class="send-email-btn" onclick="openEmailApp()" style="background: linear-gradient(135deg, var(--accent), #00B894);">
@@ -3850,7 +3850,8 @@
                 
                 <div style="margin-top: 16px; padding: 12px; background: rgba(255, 184, 0, 0.1); border-radius: 8px; border-left: 3px solid #FFB800;">
                     <div style="font-size: 12px; color: var(--text); line-height: 1.6;">
-                        💡 이메일 앱이 열리면 다운로드한 PDF를 첨부해서 보내주세요
+                        💡 이메일 앱이 열리면 다운로드한 ZIP 파일을 첨부해서 보내주세요<br>
+                        <span style="font-size: 11px; color: var(--text-muted);">(PDF + 엑셀 + 사진 포함)</span>
                     </div>
                 </div>
             </div>
@@ -4580,16 +4581,16 @@
             const recipientEmail = document.getElementById('recipientEmail').value.trim();
             const sendCopyToCompany = document.getElementById('sendCopyToCompany').checked;
             
-            // 유효성 검사
-            if (!recipientEmail) {
-                showToast('이메일 주소를 입력해주세요', 'error');
+            // 유효성 검사 - 빈칸이면 뷰파인더에만 전송
+            if (recipientEmail && !isValidEmail(recipientEmail)) {
+                showToast('올바른 이메일 형식이 아닙니다', 'error');
                 document.getElementById('recipientEmail').focus();
                 return;
             }
             
-            if (!isValidEmail(recipientEmail)) {
-                showToast('올바른 이메일 형식이 아닙니다', 'error');
-                document.getElementById('recipientEmail').focus();
+            // 둘 다 없으면 에러
+            if (!recipientEmail && !sendCopyToCompany) {
+                showToast('이메일 주소를 입력하거나\n뷰파인더 전송을 체크해주세요', 'error');
                 return;
             }
             
@@ -4600,14 +4601,52 @@
                 ho: proj.ho || '',
                 inspectionDate: proj.inspectionDate || new Date().toISOString().split('T')[0]
             };
+            const folderName = `${projectInfo.apartmentName}_${projectInfo.dong}동${projectInfo.ho}호`;
             
             // 모달 숨기고 로딩 표시
             document.getElementById('emailSendModal').classList.remove('active');
-            showLoading('PDF 생성 중...');
+            showLoading('전체 자료 생성 중...');
             
             try {
-                // PDF 생성
+                const zip = new JSZip();
+                
+                // 1. PDF 생성
+                updateLoadingText('PDF 생성 중...');
                 const pdfBlob = await generatePDFBlob(projectInfo);
+                zip.file(`${folderName}_하자점검보고서.pdf`, pdfBlob);
+                
+                // 2. 엑셀 생성
+                updateLoadingText('엑셀 생성 중...');
+                const excelBlob = await generateExcelBlob(projectInfo);
+                zip.file(`${folderName}_하자목록.xlsx`, excelBlob);
+                
+                // 3. 사진 폴더 생성
+                updateLoadingText('사진 저장 중...');
+                const photosFolder = zip.folder('사진');
+                
+                for (let i = 0; i < proj.defects.length; i++) {
+                    const defect = proj.defects[i];
+                    const spaces = defect.spaces.join('_') || '미지정';
+                    const prefix = `${String(i + 1).padStart(2, '0')}_${spaces}`;
+                    
+                    if (defect.photos && defect.photos[0]) {
+                        const farData = defect.photos[0].split(',')[1];
+                        photosFolder.file(`${prefix}_원경.jpg`, farData, { base64: true });
+                    }
+                    
+                    if (defect.photos && defect.photos[1]) {
+                        const nearData = defect.photos[1].split(',')[1];
+                        photosFolder.file(`${prefix}_근경.jpg`, nearData, { base64: true });
+                    }
+                }
+                
+                // 4. ZIP 생성
+                updateLoadingText('ZIP 파일 생성 중...');
+                const zipBlob = await zip.generateAsync({ 
+                    type: 'blob',
+                    compression: 'DEFLATE',
+                    compressionOptions: { level: 6 }
+                });
                 
                 // 하자 요약 생성
                 const defectSummary = proj.defects.slice(0, 5).map((d, i) => 
@@ -4615,29 +4654,51 @@
                 ).join('\n');
                 const moreText = proj.defects.length > 5 ? `\n... 외 ${proj.defects.length - 5}건` : '';
                 
+                // 사진 수 계산
+                const photoCount = proj.defects.reduce((sum, d) => 
+                    sum + (d.photos ? d.photos.filter(p => p).length : 0), 0);
+                
                 // mailto URL 생성
-                const subject = encodeURIComponent(`[뷰파인더] ${projectInfo.apartmentName} ${projectInfo.dong}동 ${projectInfo.ho}호 하자점검 보고서`);
+                const subject = encodeURIComponent(`[하자접수대행 요청] ${projectInfo.apartmentName} ${projectInfo.dong}동 ${projectInfo.ho}호`);
                 const body = encodeURIComponent(
-                    `안녕하세요,\n\n` +
-                    `뷰파인더 하자점검 결과를 전달드립니다.\n\n` +
+                    `안녕하세요, 더홈점검입니다.\n\n` +
+                    `하자접수 대행을 요청드립니다.\n\n` +
                     `■ 점검 정보\n` +
                     `- 아파트: ${projectInfo.apartmentName}\n` +
                     `- 동/호수: ${projectInfo.dong}동 ${projectInfo.ho}호\n` +
                     `- 점검일: ${projectInfo.inspectionDate}\n` +
-                    `- 발견 하자: ${proj.defects.length}건\n\n` +
+                    `- 발견 하자: ${proj.defects.length}건\n` +
+                    `- 촬영 사진: ${photoCount}장\n\n` +
                     `■ 하자 요약\n${defectSummary}${moreText}\n\n` +
-                    `※ PDF 보고서는 별도 첨부해주세요.\n\n` +
+                    `※ 첨부파일: ZIP (PDF보고서 + 엑셀목록 + 원본사진)\n\n` +
                     `--\n뷰파인더 | 스마트 셀프 홈체크`
                 );
                 
                 const recipients = sendCopyToCompany ? `${recipientEmail},${COMPANY_EMAIL}` : recipientEmail;
                 
-                // 준비 데이터 저장
+                // 빈칸이면 뷰파인더에만, 아니면 조합
+                let finalRecipients = '';
+                let displayRecipients = '';
+                
+                if (recipientEmail && sendCopyToCompany) {
+                    finalRecipients = `${recipientEmail},${COMPANY_EMAIL}`;
+                    displayRecipients = `${recipientEmail}, ${COMPANY_EMAIL}`;
+                } else if (recipientEmail) {
+                    finalRecipients = recipientEmail;
+                    displayRecipients = recipientEmail;
+                } else if (sendCopyToCompany) {
+                    finalRecipients = COMPANY_EMAIL;
+                    displayRecipients = `${COMPANY_EMAIL} (뷰파인더)`;
+                }
+                
+                // 준비 데이터 저장 (ZIP으로 변경)
                 preparedEmailData = {
-                    pdfBlob: pdfBlob,
-                    pdfFilename: `${projectInfo.apartmentName}_${projectInfo.dong}동${projectInfo.ho}호_하자점검보고서.pdf`,
-                    mailtoUrl: `mailto:${recipients}?subject=${subject}&body=${body}`,
-                    recipientEmail: recipientEmail + (sendCopyToCompany ? `, ${COMPANY_EMAIL}` : '')
+                    zipBlob: zipBlob,
+                    zipFilename: `${folderName}_${projectInfo.inspectionDate}_전체자료.zip`,
+                    mailtoUrl: `mailto:${finalRecipients}?subject=${subject}&body=${body}`,
+                    recipientEmail: displayRecipients,
+                    defectCount: proj.defects.length,
+                    photoCount: photoCount
                 };
                 
                 hideLoading();
@@ -4645,34 +4706,34 @@
                 // Step 2로 전환
                 document.getElementById('emailStep1').style.display = 'none';
                 document.getElementById('emailStep2').style.display = 'block';
-                document.getElementById('emailModalTitle').textContent = '✅ PDF 생성 완료';
+                document.getElementById('emailModalTitle').textContent = '✅ 전체 자료 생성 완료';
                 document.getElementById('emailRecipientDisplay').textContent = preparedEmailData.recipientEmail;
                 
                 document.getElementById('emailSendModal').classList.add('active');
                 
             } catch (error) {
-                console.error('PDF 생성 오류:', error);
+                console.error('자료 생성 오류:', error);
                 hideLoading();
-                showToast('PDF 생성 중 오류가 발생했습니다', 'error');
+                showToast('자료 생성 중 오류가 발생했습니다', 'error');
                 document.getElementById('emailSendModal').classList.add('active');
             }
         }
         
-        // Step 2: PDF 다운로드 (사용자 직접 클릭)
+        // Step 2: ZIP 다운로드 (사용자 직접 클릭)
         function downloadPreparedPDF() {
-            if (!preparedEmailData.pdfBlob) {
-                showToast('PDF가 준비되지 않았습니다', 'error');
+            if (!preparedEmailData.zipBlob) {
+                showToast('자료가 준비되지 않았습니다', 'error');
                 return;
             }
             
             const link = document.createElement('a');
-            link.href = URL.createObjectURL(preparedEmailData.pdfBlob);
-            link.download = preparedEmailData.pdfFilename;
+            link.href = URL.createObjectURL(preparedEmailData.zipBlob);
+            link.download = preparedEmailData.zipFilename;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
             
-            showToast('PDF가 다운로드되었습니다!');
+            showToast('전체 자료가 다운로드되었습니다!');
         }
         
         // Step 2: 이메일 앱 열기 (사용자 직접 클릭 - 팝업 차단 우회)
