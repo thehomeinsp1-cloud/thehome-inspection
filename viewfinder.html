@@ -3793,12 +3793,14 @@
     <div class="modal-overlay" id="emailSendModal" onclick="closeEmailModal(event)">
         <div class="modal-content" style="max-width: 400px;">
             <div class="modal-header">
-                <h3 style="margin: 0; font-size: 18px;">📧 자료 전송하기</h3>
+                <h3 style="margin: 0; font-size: 18px;" id="emailModalTitle">📧 자료 전송하기</h3>
                 <button class="modal-close" onclick="closeEmailModal()">✕</button>
             </div>
-            <div class="modal-body" style="padding: 20px;">
+            
+            <!-- Step 1: 이메일 입력 -->
+            <div class="modal-body" style="padding: 20px;" id="emailStep1">
                 <p style="margin: 0 0 20px 0; font-size: 14px; color: var(--text-muted); line-height: 1.6;">
-                    이메일 주소를 입력하시면<br>점검 자료(PDF)가 자동으로 발송됩니다.
+                    이메일 주소를 입력하시면<br>점검 자료(PDF)를 전송할 수 있습니다.
                 </p>
                 
                 <div style="margin-bottom: 16px;">
@@ -3816,12 +3818,40 @@
                     </div>
                 </div>
                 
-                <button class="send-email-btn" onclick="sendEmailWithData()">
-                    <span>📤</span> 전송하기
+                <button class="send-email-btn" onclick="prepareEmailData()">
+                    <span>📄</span> PDF 생성하기
                 </button>
                 
                 <div style="margin-top: 16px; padding: 12px; background: var(--card-bg); border-radius: 8px; font-size: 11px; color: var(--text-muted); line-height: 1.6;">
-                    💡 전송되는 내용: 하자점검 보고서(PDF), 점검 요약 정보
+                    💡 PDF 생성 후 다운로드 및 이메일 전송이 가능합니다
+                </div>
+            </div>
+            
+            <!-- Step 2: 다운로드 및 이메일 열기 -->
+            <div class="modal-body" style="padding: 20px; display: none;" id="emailStep2">
+                <div style="text-align: center; margin-bottom: 24px;">
+                    <div style="font-size: 48px; margin-bottom: 12px;">✅</div>
+                    <div style="font-size: 18px; font-weight: 700; color: var(--text); margin-bottom: 8px;">PDF 생성 완료!</div>
+                    <div style="font-size: 13px; color: var(--text-muted);">아래 버튼으로 다운로드하고 이메일을 보내세요</div>
+                </div>
+                
+                <button class="send-email-btn" onclick="downloadPreparedPDF()" style="margin-bottom: 12px; background: linear-gradient(135deg, #3B82F6, #2563EB);">
+                    <span>📄</span> PDF 다운로드
+                </button>
+                
+                <button class="send-email-btn" onclick="openEmailApp()" style="background: linear-gradient(135deg, var(--accent), #00B894);">
+                    <span>📧</span> 이메일 앱 열기
+                </button>
+                
+                <div style="margin-top: 20px; padding: 14px; background: var(--card-bg); border-radius: 10px;">
+                    <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;">📮 받는 사람</div>
+                    <div style="font-size: 14px; color: var(--text); font-weight: 600;" id="emailRecipientDisplay">-</div>
+                </div>
+                
+                <div style="margin-top: 16px; padding: 12px; background: rgba(255, 184, 0, 0.1); border-radius: 8px; border-left: 3px solid #FFB800;">
+                    <div style="font-size: 12px; color: var(--text); line-height: 1.6;">
+                        💡 이메일 앱이 열리면 다운로드한 PDF를 첨부해서 보내주세요
+                    </div>
                 </div>
             </div>
         </div>
@@ -4502,6 +4532,14 @@
         // 더홈점검 이메일
         const COMPANY_EMAIL = 'thehomeinsp1@gmail.com';
         
+        // 이메일 준비 데이터 저장용
+        let preparedEmailData = {
+            pdfBlob: null,
+            pdfFilename: '',
+            mailtoUrl: '',
+            recipientEmail: ''
+        };
+        
         // 이메일 모달 열기
         function openEmailSendModal() {
             const proj = getCurrentProject();
@@ -4512,6 +4550,12 @@
             }
             
             closeSettings();
+            
+            // Step1 표시, Step2 숨기기
+            document.getElementById('emailStep1').style.display = 'block';
+            document.getElementById('emailStep2').style.display = 'none';
+            document.getElementById('emailModalTitle').textContent = '📧 자료 전송하기';
+            
             document.getElementById('emailSendModal').classList.add('active');
             document.getElementById('recipientEmail').focus();
         }
@@ -4521,6 +4565,9 @@
             if (e && e.target !== e.currentTarget) return;
             document.getElementById('emailSendModal').classList.remove('active');
             document.getElementById('recipientEmail').value = '';
+            
+            // 데이터 초기화
+            preparedEmailData = { pdfBlob: null, pdfFilename: '', mailtoUrl: '', recipientEmail: '' };
         }
         
         // 이메일 유효성 검사
@@ -4528,8 +4575,8 @@
             return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
         }
         
-        // 이메일로 자료 전송
-        async function sendEmailWithData() {
+        // Step 1: PDF 생성 준비
+        async function prepareEmailData() {
             const recipientEmail = document.getElementById('recipientEmail').value.trim();
             const sendCopyToCompany = document.getElementById('sendCopyToCompany').checked;
             
@@ -4554,104 +4601,88 @@
                 inspectionDate: proj.inspectionDate || new Date().toISOString().split('T')[0]
             };
             
-            closeEmailModal();
-            showLoading('이메일 전송 준비 중...');
+            // 모달 숨기고 로딩 표시
+            document.getElementById('emailSendModal').classList.remove('active');
+            showLoading('PDF 생성 중...');
             
             try {
                 // PDF 생성
-                updateLoadingText('PDF 생성 중...');
                 const pdfBlob = await generatePDFBlob(projectInfo);
-                const pdfBase64 = await blobToBase64(pdfBlob);
                 
                 // 하자 요약 생성
                 const defectSummary = proj.defects.slice(0, 5).map((d, i) => 
                     `${i + 1}. ${d.spaces.join(', ') || '미지정'}: ${d.description || '-'}`
                 ).join('\n');
-                
                 const moreText = proj.defects.length > 5 ? `\n... 외 ${proj.defects.length - 5}건` : '';
                 
-                // 이메일 내용 구성
-                const emailData = {
-                    to_email: recipientEmail,
-                    to_name: '고객님',
-                    apartment_name: projectInfo.apartmentName,
-                    dong_ho: `${projectInfo.dong}동 ${projectInfo.ho}호`,
-                    inspection_date: projectInfo.inspectionDate,
-                    defect_count: proj.defects.length,
-                    defect_summary: defectSummary + moreText,
-                    pdf_attachment: pdfBase64,
-                    pdf_filename: `${projectInfo.apartmentName}_${projectInfo.dong}동${projectInfo.ho}호_하자점검보고서.pdf`
+                // mailto URL 생성
+                const subject = encodeURIComponent(`[뷰파인더] ${projectInfo.apartmentName} ${projectInfo.dong}동 ${projectInfo.ho}호 하자점검 보고서`);
+                const body = encodeURIComponent(
+                    `안녕하세요,\n\n` +
+                    `뷰파인더 하자점검 결과를 전달드립니다.\n\n` +
+                    `■ 점검 정보\n` +
+                    `- 아파트: ${projectInfo.apartmentName}\n` +
+                    `- 동/호수: ${projectInfo.dong}동 ${projectInfo.ho}호\n` +
+                    `- 점검일: ${projectInfo.inspectionDate}\n` +
+                    `- 발견 하자: ${proj.defects.length}건\n\n` +
+                    `■ 하자 요약\n${defectSummary}${moreText}\n\n` +
+                    `※ PDF 보고서는 별도 첨부해주세요.\n\n` +
+                    `--\n뷰파인더 | 스마트 셀프 홈체크`
+                );
+                
+                const recipients = sendCopyToCompany ? `${recipientEmail},${COMPANY_EMAIL}` : recipientEmail;
+                
+                // 준비 데이터 저장
+                preparedEmailData = {
+                    pdfBlob: pdfBlob,
+                    pdfFilename: `${projectInfo.apartmentName}_${projectInfo.dong}동${projectInfo.ho}호_하자점검보고서.pdf`,
+                    mailtoUrl: `mailto:${recipients}?subject=${subject}&body=${body}`,
+                    recipientEmail: recipientEmail + (sendCopyToCompany ? `, ${COMPANY_EMAIL}` : '')
                 };
                 
-                updateLoadingText('이메일 전송 중...');
+                hideLoading();
                 
-                // EmailJS로 전송 (설정되어 있는 경우)
-                if (EMAILJS_CONFIG.publicKey !== 'YOUR_PUBLIC_KEY') {
-                    emailjs.init(EMAILJS_CONFIG.publicKey);
-                    
-                    // 고객에게 전송
-                    await emailjs.send(EMAILJS_CONFIG.serviceId, EMAILJS_CONFIG.templateId, emailData);
-                    
-                    // 더홈점검에도 전송
-                    if (sendCopyToCompany) {
-                        emailData.to_email = COMPANY_EMAIL;
-                        emailData.to_name = '더홈점검';
-                        await emailjs.send(EMAILJS_CONFIG.serviceId, EMAILJS_CONFIG.templateId, emailData);
-                    }
-                    
-                    hideLoading();
-                    showToast('이메일이 전송되었습니다! 📧');
-                } else {
-                    // EmailJS 미설정 시 대체 방법 (mailto 링크)
-                    
-                    const subject = encodeURIComponent(`[뷰파인더] ${projectInfo.apartmentName} ${projectInfo.dong}동 ${projectInfo.ho}호 하자점검 보고서`);
-                    const body = encodeURIComponent(
-                        `안녕하세요,\n\n` +
-                        `뷰파인더 하자점검 결과를 전달드립니다.\n\n` +
-                        `■ 점검 정보\n` +
-                        `- 아파트: ${projectInfo.apartmentName}\n` +
-                        `- 동/호수: ${projectInfo.dong}동 ${projectInfo.ho}호\n` +
-                        `- 점검일: ${projectInfo.inspectionDate}\n` +
-                        `- 발견 하자: ${proj.defects.length}건\n\n` +
-                        `■ 하자 요약\n${defectSummary}${moreText}\n\n` +
-                        `※ PDF 보고서는 별도 첨부해주세요.\n\n` +
-                        `--\n뷰파인더 | 스마트 셀프 홈체크`
-                    );
-                    
-                    const recipients = sendCopyToCompany ? `${recipientEmail},${COMPANY_EMAIL}` : recipientEmail;
-                    const mailtoUrl = `mailto:${recipients}?subject=${subject}&body=${body}`;
-                    
-                    // PDF 다운로드
-                    const pdfLink = document.createElement('a');
-                    pdfLink.href = URL.createObjectURL(pdfBlob);
-                    pdfLink.download = `${projectInfo.apartmentName}_${projectInfo.dong}동${projectInfo.ho}호_하자점검보고서.pdf`;
-                    document.body.appendChild(pdfLink);
-                    pdfLink.click();
-                    document.body.removeChild(pdfLink);
-                    
-                    hideLoading();
-                    
-                    // 안내 후 이메일 앱 열기
-                    setTimeout(() => {
-                        if (confirm('PDF가 다운로드되었습니다.\n\n이메일 앱을 열어서 PDF를 첨부하시겠습니까?')) {
-                            // 여러 방법 시도
-                            const mailWindow = window.open(mailtoUrl, '_blank');
-                            
-                            // window.open 실패 시 location.href 시도
-                            if (!mailWindow || mailWindow.closed) {
-                                window.location.href = mailtoUrl;
-                            }
-                        } else {
-                            showToast('다운로드된 PDF를 이메일에 첨부해서 보내주세요');
-                        }
-                    }, 300);
-                }
+                // Step 2로 전환
+                document.getElementById('emailStep1').style.display = 'none';
+                document.getElementById('emailStep2').style.display = 'block';
+                document.getElementById('emailModalTitle').textContent = '✅ PDF 생성 완료';
+                document.getElementById('emailRecipientDisplay').textContent = preparedEmailData.recipientEmail;
+                
+                document.getElementById('emailSendModal').classList.add('active');
                 
             } catch (error) {
-                console.error('이메일 전송 오류:', error);
+                console.error('PDF 생성 오류:', error);
                 hideLoading();
-                showToast('이메일 전송 중 오류가 발생했습니다', 'error');
+                showToast('PDF 생성 중 오류가 발생했습니다', 'error');
+                document.getElementById('emailSendModal').classList.add('active');
             }
+        }
+        
+        // Step 2: PDF 다운로드 (사용자 직접 클릭)
+        function downloadPreparedPDF() {
+            if (!preparedEmailData.pdfBlob) {
+                showToast('PDF가 준비되지 않았습니다', 'error');
+                return;
+            }
+            
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(preparedEmailData.pdfBlob);
+            link.download = preparedEmailData.pdfFilename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            showToast('PDF가 다운로드되었습니다!');
+        }
+        
+        // Step 2: 이메일 앱 열기 (사용자 직접 클릭 - 팝업 차단 우회)
+        function openEmailApp() {
+            if (!preparedEmailData.mailtoUrl) {
+                showToast('이메일 정보가 준비되지 않았습니다', 'error');
+                return;
+            }
+            
+            window.location.href = preparedEmailData.mailtoUrl;
         }
         
         // Blob을 Base64로 변환
