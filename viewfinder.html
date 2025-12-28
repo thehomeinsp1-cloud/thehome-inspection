@@ -16,6 +16,12 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     
+    <!-- JSZip for ZIP 다운로드 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    
+    <!-- ExcelJS for 엑셀 생성 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
+    
     <style>
         :root {
             /* 민트 그린 다크 테마 */
@@ -3682,19 +3688,11 @@
                 </div>
             </div>
             
-            <div class="settings-item" onclick="exportData()">
-                <span class="settings-item-icon">💾</span>
+            <div class="settings-item" onclick="downloadAllData()">
+                <span class="settings-item-icon">📦</span>
                 <div class="settings-item-content">
-                    <div class="settings-item-title">데이터 백업</div>
-                    <div class="settings-item-desc">현재 점검 데이터를 파일로 저장</div>
-                </div>
-            </div>
-            
-            <div class="settings-item" onclick="importData()">
-                <span class="settings-item-icon">📂</span>
-                <div class="settings-item-content">
-                    <div class="settings-item-title">데이터 복원</div>
-                    <div class="settings-item-desc">백업 파일에서 데이터 불러오기</div>
+                    <div class="settings-item-title">전체 자료 다운로드</div>
+                    <div class="settings-item-desc">PDF + 엑셀 + 사진을 ZIP으로 저장</div>
                 </div>
             </div>
             
@@ -4178,75 +4176,203 @@
             document.getElementById('settingsOverlay').classList.remove('active');
         }
 
-        // 데이터 백업
-        function exportData() {
-            const exportObj = {
-                version: '2.1',
-                exportDate: new Date().toISOString(),
-                currentProjectId: APP_DATA.currentProjectId,
-                projects: APP_DATA.projects
-            };
+        // 전체 자료 다운로드 (PDF + 엑셀 + 사진 ZIP)
+        async function downloadAllData() {
+            const proj = getCurrentProject();
             
-            const dataStr = JSON.stringify(exportObj, null, 2);
-            const blob = new Blob([dataStr], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
+            if (proj.defects.length === 0) {
+                showToast('다운로드할 하자 데이터가 없습니다', 'error');
+                return;
+            }
             
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `viewfinder_backup_${new Date().toISOString().split('T')[0]}.json`;
-            a.click();
-            
-            URL.revokeObjectURL(url);
-            showToast(`프로젝트 ${APP_DATA.projects.length}개가 백업됩니다`);
             closeSettings();
-        }
-
-        // 데이터 복원
-        function importData() {
-            const input = document.createElement('input');
-            input.type = 'file';
-            input.accept = '.json';
-            input.onchange = (e) => {
-                const file = e.target.files[0];
-                if (!file) return;
-                
-                const reader = new FileReader();
-                reader.onload = (event) => {
-                    try {
-                        const data = JSON.parse(event.target.result);
-                        
-                        // v2.1 프로젝트 배열 형식
-                        if (data.projects && Array.isArray(data.projects)) {
-                            if (confirm(`프로젝트 ${data.projects.length}개를 복원하시겠습니까?\n\n현재 데이터는 삭제됩니다.`)) {
-                                APP_DATA.projects = data.projects;
-                                APP_DATA.currentProjectId = data.currentProjectId || data.projects[0].id;
-                                saveData();
-                                loadCurrentProject();
-                                showToast('데이터가 복원되었습니다');
-                                closeSettings();
-                            }
-                        }
-                        // 구 버전 (단일 프로젝트)
-                        else if (data.defects) {
-                            if (confirm(`${data.defects.length}건의 하자 데이터를 현재 프로젝트에 복원하시겠습니까?`)) {
-                                const proj = getCurrentProject();
-                                proj.defects = data.defects;
-                                saveData();
-                                renderDefectList();
-                                loadCurrentProject();
-                                showToast('데이터가 복원되었습니다');
-                                closeSettings();
-                            }
-                        } else {
-                            showToast('유효하지 않은 백업 파일입니다', 'error');
-                        }
-                    } catch (err) {
-                        showToast('파일을 읽을 수 없습니다', 'error');
-                    }
+            showLoading('전체 자료 생성 중...');
+            
+            try {
+                const zip = new JSZip();
+                const projectInfo = {
+                    apartmentName: proj.apartmentName || '미입력',
+                    dong: proj.dong || '',
+                    ho: proj.ho || '',
+                    inspectionDate: proj.inspectionDate || new Date().toISOString().split('T')[0]
                 };
-                reader.readAsText(file);
-            };
-            input.click();
+                const folderName = `${projectInfo.apartmentName}_${projectInfo.dong}동${projectInfo.ho}호`;
+                
+                // 1. PDF 생성
+                updateLoadingText('PDF 생성 중...');
+                const pdfBlob = await generatePDFBlob(projectInfo);
+                zip.file(`${folderName}_하자점검보고서.pdf`, pdfBlob);
+                
+                // 2. 엑셀 생성
+                updateLoadingText('엑셀 생성 중...');
+                const excelBlob = await generateExcelBlob(projectInfo);
+                zip.file(`${folderName}_하자목록.xlsx`, excelBlob);
+                
+                // 3. 사진 폴더 생성
+                updateLoadingText('사진 저장 중...');
+                const photosFolder = zip.folder('사진');
+                
+                for (let i = 0; i < proj.defects.length; i++) {
+                    const defect = proj.defects[i];
+                    const spaces = defect.spaces.join('_') || '미지정';
+                    const prefix = `${String(i + 1).padStart(2, '0')}_${spaces}`;
+                    
+                    // 원경 사진
+                    if (defect.photos && defect.photos[0]) {
+                        const farData = defect.photos[0].split(',')[1];
+                        photosFolder.file(`${prefix}_원경.jpg`, farData, { base64: true });
+                    }
+                    
+                    // 근경 사진
+                    if (defect.photos && defect.photos[1]) {
+                        const nearData = defect.photos[1].split(',')[1];
+                        photosFolder.file(`${prefix}_근경.jpg`, nearData, { base64: true });
+                    }
+                }
+                
+                // 4. ZIP 다운로드
+                updateLoadingText('ZIP 파일 생성 중...');
+                const zipBlob = await zip.generateAsync({ 
+                    type: 'blob',
+                    compression: 'DEFLATE',
+                    compressionOptions: { level: 6 }
+                });
+                
+                const filename = `${folderName}_${projectInfo.inspectionDate}_전체자료.zip`;
+                
+                // 다운로드
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(zipBlob);
+                link.download = filename;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(link.href);
+                
+                hideLoading();
+                showToast('전체 자료가 다운로드되었습니다!');
+                
+            } catch (error) {
+                console.error('ZIP 생성 오류:', error);
+                hideLoading();
+                showToast('자료 생성 중 오류가 발생했습니다', 'error');
+            }
+        }
+        
+        // PDF Blob 생성 (ZIP용)
+        async function generatePDFBlob(projectInfo) {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({
+                orientation: 'portrait',
+                unit: 'mm',
+                format: 'a4'
+            });
+            
+            const pageWidth = 210;
+            const pageHeight = 297;
+            
+            // 표지
+            const coverHTML = createCoverPage(projectInfo);
+            await addHTMLPageToPDF(doc, coverHTML, pageWidth, pageHeight);
+            
+            // 하자 목록
+            if (getCurrentProject().defects.length > 0) {
+                const defectsPerListPage = 18;
+                const totalDefects = getCurrentProject().defects.length;
+                const totalListPages = Math.ceil(totalDefects / defectsPerListPage);
+                
+                for (let page = 0; page < totalListPages; page++) {
+                    doc.addPage();
+                    const startIdx = page * defectsPerListPage;
+                    const endIdx = Math.min(startIdx + defectsPerListPage, totalDefects);
+                    const listHTML = createDefectListPage(projectInfo, startIdx, endIdx, page + 1, totalListPages);
+                    await addHTMLPageToPDF(doc, listHTML, pageWidth, pageHeight);
+                }
+                
+                // 상세 페이지
+                for (let i = 0; i < getCurrentProject().defects.length; i += 2) {
+                    doc.addPage();
+                    const batch = getCurrentProject().defects.slice(i, i + 2);
+                    const detailHTML = createDefectDetailPage(batch, i, projectInfo);
+                    await addHTMLPageToPDF(doc, detailHTML, pageWidth, pageHeight);
+                }
+            }
+            
+            return doc.output('blob');
+        }
+        
+        // 엑셀 Blob 생성 (ZIP용)
+        async function generateExcelBlob(projectInfo) {
+            const workbook = new ExcelJS.Workbook();
+            const sheet = workbook.addWorksheet('하자목록');
+            
+            // 컬럼 설정
+            sheet.columns = [
+                { header: 'No', key: 'no', width: 8 },
+                { header: '공간', key: 'space', width: 20 },
+                { header: '하자내용', key: 'description', width: 50 },
+                { header: '사진수', key: 'photoCount', width: 10 }
+            ];
+            
+            // 헤더 스타일
+            const headerRow = sheet.getRow(1);
+            headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+            headerRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C5282' } };
+            headerRow.alignment = { horizontal: 'center', vertical: 'middle' };
+            headerRow.height = 25;
+            
+            // 데이터 추가
+            getCurrentProject().defects.forEach((defect, idx) => {
+                const photoCount = defect.photos ? defect.photos.filter(p => p).length : 0;
+                sheet.addRow({
+                    no: idx + 1,
+                    space: defect.spaces.join(', ') || '-',
+                    description: defect.description || '-',
+                    photoCount: photoCount
+                });
+            });
+            
+            // 데이터 행 스타일
+            for (let i = 2; i <= getCurrentProject().defects.length + 1; i++) {
+                const row = sheet.getRow(i);
+                row.alignment = { vertical: 'middle', wrapText: true };
+                row.height = 25;
+                
+                // 줄무늬
+                if (i % 2 === 0) {
+                    row.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF5F7FA' } };
+                }
+            }
+            
+            // 테두리
+            sheet.eachRow((row, rowNumber) => {
+                row.eachCell((cell) => {
+                    cell.border = {
+                        top: { style: 'thin' },
+                        left: { style: 'thin' },
+                        bottom: { style: 'thin' },
+                        right: { style: 'thin' }
+                    };
+                });
+            });
+            
+            // 프로젝트 정보 시트 추가
+            const infoSheet = workbook.addWorksheet('점검정보');
+            infoSheet.addRow(['아파트명', projectInfo.apartmentName]);
+            infoSheet.addRow(['동/호수', `${projectInfo.dong}동 ${projectInfo.ho}호`]);
+            infoSheet.addRow(['점검일자', projectInfo.inspectionDate]);
+            infoSheet.addRow(['총 하자수', getCurrentProject().defects.length]);
+            
+            infoSheet.getColumn(1).width = 15;
+            infoSheet.getColumn(2).width = 30;
+            
+            return await workbook.xlsx.writeBuffer();
+        }
+        
+        // 로딩 텍스트 업데이트
+        function updateLoadingText(text) {
+            const loadingText = document.getElementById('loadingText');
+            if (loadingText) loadingText.textContent = text;
         }
 
         // 전체 초기화
