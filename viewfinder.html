@@ -22,6 +22,9 @@
     <!-- ExcelJS for 엑셀 생성 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
     
+    <!-- EmailJS for 이메일 전송 -->
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+    
     <style>
         :root {
             /* 민트 그린 다크 테마 */
@@ -2779,6 +2782,73 @@
             color: var(--warning);
         }
 
+        /* ==================== 이메일 전송 모달 ==================== */
+        .email-input {
+            width: 100%;
+            padding: 14px 16px;
+            font-size: 16px;
+            border: 2px solid var(--card-border);
+            border-radius: 10px;
+            background: var(--card-bg);
+            color: var(--text);
+            box-sizing: border-box;
+            transition: border-color 0.2s;
+        }
+
+        .email-input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .email-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        .checkbox-label input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--accent);
+            cursor: pointer;
+        }
+
+        .checkbox-text {
+            font-size: 14px;
+            color: var(--text);
+        }
+
+        .send-email-btn {
+            width: 100%;
+            padding: 16px;
+            font-size: 16px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent), #00B894);
+            color: #000;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: transform 0.2s, opacity 0.2s;
+        }
+
+        .send-email-btn:active {
+            transform: scale(0.98);
+        }
+
+        .send-email-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
         /* ==================== 홈 퀵모드 버튼 ==================== */
         .home-mode-buttons {
             display: grid;
@@ -3696,6 +3766,14 @@
                 </div>
             </div>
             
+            <div class="settings-item" onclick="openEmailSendModal()">
+                <span class="settings-item-icon">📧</span>
+                <div class="settings-item-content">
+                    <div class="settings-item-title">이메일로 자료 전송</div>
+                    <div class="settings-item-desc">이메일 입력만 하면 자동 발송</div>
+                </div>
+            </div>
+            
             <div class="settings-item danger" onclick="resetAllData()">
                 <span class="settings-item-icon">🗑️</span>
                 <div class="settings-item-content">
@@ -3707,6 +3785,44 @@
             <div style="margin-top: 20px; padding: 16px; background: var(--card-bg); border-radius: var(--radius); text-align: center;">
                 <div style="font-size: 13px; color: var(--text-muted); margin-bottom: 8px;">뷰파인더 v2.0</div>
                 <div style="font-size: 12px; color: var(--text-muted);">© 2024 더홈점검</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== 이메일 전송 모달 ==================== -->
+    <div class="modal-overlay" id="emailSendModal" onclick="closeEmailModal(event)">
+        <div class="modal-content" style="max-width: 400px;">
+            <div class="modal-header">
+                <h3 style="margin: 0; font-size: 18px;">📧 자료 전송하기</h3>
+                <button class="modal-close" onclick="closeEmailModal()">✕</button>
+            </div>
+            <div class="modal-body" style="padding: 20px;">
+                <p style="margin: 0 0 20px 0; font-size: 14px; color: var(--text-muted); line-height: 1.6;">
+                    이메일 주소를 입력하시면<br>점검 자료(PDF)가 자동으로 발송됩니다.
+                </p>
+                
+                <div style="margin-bottom: 16px;">
+                    <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 8px; color: var(--text);">받는 사람 이메일</label>
+                    <input type="email" id="recipientEmail" class="email-input" placeholder="example@naver.com" autocomplete="email">
+                </div>
+                
+                <div style="margin-bottom: 20px;">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="sendCopyToCompany" checked>
+                        <span class="checkbox-text">더홈점검에도 사본 전송</span>
+                    </label>
+                    <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px; margin-left: 24px;">
+                        전문 상담이 필요하시면 체크해주세요
+                    </div>
+                </div>
+                
+                <button class="send-email-btn" onclick="sendEmailWithData()">
+                    <span>📤</span> 전송하기
+                </button>
+                
+                <div style="margin-top: 16px; padding: 12px; background: var(--card-bg); border-radius: 8px; font-size: 11px; color: var(--text-muted); line-height: 1.6;">
+                    💡 전송되는 내용: 하자점검 보고서(PDF), 점검 요약 정보
+                </div>
             </div>
         </div>
     </div>
@@ -4373,6 +4489,170 @@
         function updateLoadingText(text) {
             const loadingText = document.getElementById('loadingText');
             if (loadingText) loadingText.textContent = text;
+        }
+
+        // ==================== 이메일 전송 기능 ====================
+        // EmailJS 설정 (테스트용 - 실제 서비스 시 변경 필요)
+        const EMAILJS_CONFIG = {
+            serviceId: 'service_viewfinder',  // EmailJS 서비스 ID
+            templateId: 'template_viewfinder', // EmailJS 템플릿 ID
+            publicKey: 'YOUR_PUBLIC_KEY'       // EmailJS Public Key
+        };
+        
+        // 더홈점검 이메일
+        const COMPANY_EMAIL = 'thehomeinsp1@gmail.com';
+        
+        // 이메일 모달 열기
+        function openEmailSendModal() {
+            const proj = getCurrentProject();
+            
+            if (proj.defects.length === 0) {
+                showToast('전송할 하자 데이터가 없습니다', 'error');
+                return;
+            }
+            
+            closeSettings();
+            document.getElementById('emailSendModal').classList.add('active');
+            document.getElementById('recipientEmail').focus();
+        }
+        
+        // 이메일 모달 닫기
+        function closeEmailModal(e) {
+            if (e && e.target !== e.currentTarget) return;
+            document.getElementById('emailSendModal').classList.remove('active');
+            document.getElementById('recipientEmail').value = '';
+        }
+        
+        // 이메일 유효성 검사
+        function isValidEmail(email) {
+            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+        }
+        
+        // 이메일로 자료 전송
+        async function sendEmailWithData() {
+            const recipientEmail = document.getElementById('recipientEmail').value.trim();
+            const sendCopyToCompany = document.getElementById('sendCopyToCompany').checked;
+            
+            // 유효성 검사
+            if (!recipientEmail) {
+                showToast('이메일 주소를 입력해주세요', 'error');
+                document.getElementById('recipientEmail').focus();
+                return;
+            }
+            
+            if (!isValidEmail(recipientEmail)) {
+                showToast('올바른 이메일 형식이 아닙니다', 'error');
+                document.getElementById('recipientEmail').focus();
+                return;
+            }
+            
+            const proj = getCurrentProject();
+            const projectInfo = {
+                apartmentName: proj.apartmentName || '미입력',
+                dong: proj.dong || '',
+                ho: proj.ho || '',
+                inspectionDate: proj.inspectionDate || new Date().toISOString().split('T')[0]
+            };
+            
+            closeEmailModal();
+            showLoading('이메일 전송 준비 중...');
+            
+            try {
+                // PDF 생성
+                updateLoadingText('PDF 생성 중...');
+                const pdfBlob = await generatePDFBlob(projectInfo);
+                const pdfBase64 = await blobToBase64(pdfBlob);
+                
+                // 하자 요약 생성
+                const defectSummary = proj.defects.slice(0, 5).map((d, i) => 
+                    `${i + 1}. ${d.spaces.join(', ') || '미지정'}: ${d.description || '-'}`
+                ).join('\n');
+                
+                const moreText = proj.defects.length > 5 ? `\n... 외 ${proj.defects.length - 5}건` : '';
+                
+                // 이메일 내용 구성
+                const emailData = {
+                    to_email: recipientEmail,
+                    to_name: '고객님',
+                    apartment_name: projectInfo.apartmentName,
+                    dong_ho: `${projectInfo.dong}동 ${projectInfo.ho}호`,
+                    inspection_date: projectInfo.inspectionDate,
+                    defect_count: proj.defects.length,
+                    defect_summary: defectSummary + moreText,
+                    pdf_attachment: pdfBase64,
+                    pdf_filename: `${projectInfo.apartmentName}_${projectInfo.dong}동${projectInfo.ho}호_하자점검보고서.pdf`
+                };
+                
+                updateLoadingText('이메일 전송 중...');
+                
+                // EmailJS로 전송 (설정되어 있는 경우)
+                if (EMAILJS_CONFIG.publicKey !== 'YOUR_PUBLIC_KEY') {
+                    emailjs.init(EMAILJS_CONFIG.publicKey);
+                    
+                    // 고객에게 전송
+                    await emailjs.send(EMAILJS_CONFIG.serviceId, EMAILJS_CONFIG.templateId, emailData);
+                    
+                    // 더홈점검에도 전송
+                    if (sendCopyToCompany) {
+                        emailData.to_email = COMPANY_EMAIL;
+                        emailData.to_name = '더홈점검';
+                        await emailjs.send(EMAILJS_CONFIG.serviceId, EMAILJS_CONFIG.templateId, emailData);
+                    }
+                    
+                    hideLoading();
+                    showToast('이메일이 전송되었습니다! 📧');
+                } else {
+                    // EmailJS 미설정 시 대체 방법 (mailto 링크)
+                    hideLoading();
+                    
+                    const subject = encodeURIComponent(`[뷰파인더] ${projectInfo.apartmentName} ${projectInfo.dong}동 ${projectInfo.ho}호 하자점검 보고서`);
+                    const body = encodeURIComponent(
+                        `안녕하세요,\n\n` +
+                        `뷰파인더 하자점검 결과를 전달드립니다.\n\n` +
+                        `■ 점검 정보\n` +
+                        `- 아파트: ${projectInfo.apartmentName}\n` +
+                        `- 동/호수: ${projectInfo.dong}동 ${projectInfo.ho}호\n` +
+                        `- 점검일: ${projectInfo.inspectionDate}\n` +
+                        `- 발견 하자: ${proj.defects.length}건\n\n` +
+                        `■ 하자 요약\n${defectSummary}${moreText}\n\n` +
+                        `※ PDF 보고서는 별도 첨부해주세요.\n\n` +
+                        `--\n뷰파인더 | 스마트 셀프 홈체크`
+                    );
+                    
+                    // PDF 먼저 다운로드
+                    const link = document.createElement('a');
+                    link.href = URL.createObjectURL(pdfBlob);
+                    link.download = `${projectInfo.apartmentName}_${projectInfo.dong}동${projectInfo.ho}호_하자점검보고서.pdf`;
+                    link.click();
+                    URL.revokeObjectURL(link.href);
+                    
+                    // 잠시 후 이메일 앱 열기
+                    setTimeout(() => {
+                        const recipients = sendCopyToCompany ? `${recipientEmail},${COMPANY_EMAIL}` : recipientEmail;
+                        window.location.href = `mailto:${recipients}?subject=${subject}&body=${body}`;
+                        
+                        showToast('PDF가 다운로드되었습니다.\n이메일에 첨부해서 보내주세요!', 'info');
+                    }, 500);
+                }
+                
+            } catch (error) {
+                console.error('이메일 전송 오류:', error);
+                hideLoading();
+                showToast('이메일 전송 중 오류가 발생했습니다', 'error');
+            }
+        }
+        
+        // Blob을 Base64로 변환
+        function blobToBase64(blob) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    const base64 = reader.result.split(',')[1];
+                    resolve(base64);
+                };
+                reader.onerror = reject;
+                reader.readAsDataURL(blob);
+            });
         }
 
         // 전체 초기화
