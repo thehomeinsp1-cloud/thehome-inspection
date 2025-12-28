@@ -5810,7 +5810,7 @@
 
                 // 2페이지~: 하자 목록 (있는 경우) - 페이지당 최대 15개
                 if (getCurrentProject().defects.length > 0) {
-                    const defectsPerListPage = 20; // 페이지당 하자 개수
+                    const defectsPerListPage = 18; // 페이지당 하자 개수
                     const totalDefects = getCurrentProject().defects.length;
                     const totalListPages = Math.ceil(totalDefects / defectsPerListPage);
                     
@@ -5981,13 +5981,13 @@
                 const defect = defects[idx];
                 const spaces = defect.spaces.join(', ') || '-';
                 const desc = defect.description || '-';
-                const rowBg = idx % 2 === 0 ? '#ffffff' : '#f9fafb';
+                const rowBg = idx % 2 === 0 ? '#ffffff' : '#f5f7fa';
                 
                 tableRows += `
-                    <tr style="border-bottom: 1px solid #e0e0e0; background: ${rowBg};">
-                        <td style="padding: 14px 8px; text-align: center; font-weight: 700; color: #2c5282; font-size: 14px; vertical-align: middle; border-right: 1px solid #e0e0e0;">${idx + 1}</td>
-                        <td style="padding: 14px 10px; text-align: center; color: #333; font-weight: 600; font-size: 14px; vertical-align: middle; border-right: 1px solid #e0e0e0;">${spaces}</td>
-                        <td style="padding: 14px 12px; color: #222; font-weight: 500; font-size: 13px; word-break: break-word; white-space: normal; line-height: 1.5; vertical-align: middle;">${desc}</td>
+                    <tr style="border-bottom: 1px solid #d0d5dd; background: ${rowBg};">
+                        <td style="padding: 12px 8px; text-align: center; font-weight: 700; color: #2c5282; font-size: 14px; vertical-align: middle; border-right: 1px solid #d0d5dd;">${idx + 1}</td>
+                        <td style="padding: 12px 10px; text-align: center; color: #333; font-weight: 600; font-size: 13px; vertical-align: middle; border-right: 1px solid #d0d5dd;">${spaces}</td>
+                        <td style="padding: 12px 12px; color: #222; font-weight: 500; font-size: 13px; word-break: break-word; white-space: normal; line-height: 1.4; vertical-align: middle;">${desc}</td>
                     </tr>
                 `;
             }
@@ -5997,15 +5997,15 @@
             return `
                 <div style="width: 794px; height: 1123px; background: white; font-family: 'Malgun Gothic', sans-serif; padding: 30px 35px; position: relative; box-sizing: border-box; overflow: hidden;">
                     <!-- 헤더 -->
-                    <div style="margin-bottom: 20px; border-bottom: 4px solid #2c5282; padding-bottom: 15px;">
+                    <div style="margin-bottom: 15px; border-bottom: 4px solid #2c5282; padding-bottom: 12px;">
                         <div style="display: flex; justify-content: space-between; align-items: flex-end;">
                             <div>
-                                <h3 style="margin: 0 0 8px 0; font-size: 22px; color: #2c5282; font-weight: 700;">📋 하자점검 목록${pageIndicator}</h3>
-                                <p style="margin: 0; font-size: 14px; color: #555; font-weight: 500;">${projectInfo.apartmentName} ${projectInfo.dong}동 ${projectInfo.ho}호</p>
+                                <h3 style="margin: 0 0 6px 0; font-size: 20px; color: #2c5282; font-weight: 700;">📋 하자점검 목록${pageIndicator}</h3>
+                                <p style="margin: 0; font-size: 13px; color: #555; font-weight: 500;">${projectInfo.apartmentName} ${projectInfo.dong}동 ${projectInfo.ho}호</p>
                             </div>
                             <div style="text-align: right;">
-                                <div style="font-size: 13px; color: #888;">점검일자</div>
-                                <div style="font-size: 15px; color: #333; font-weight: 600;">${projectInfo.inspectionDate}</div>
+                                <div style="font-size: 12px; color: #888;">점검일자</div>
+                                <div style="font-size: 14px; color: #333; font-weight: 600;">${projectInfo.inspectionDate}</div>
                             </div>
                         </div>
                     </div>
@@ -6013,22 +6013,22 @@
                     <!-- 테이블 -->
                     <table style="width: 100%; border-collapse: collapse; border: 2px solid #2c5282;">
                         <thead>
-                            <tr style="background: #2c5282;">
-                                <th style="padding: 14px 8px; width: 8%; color: #fff; font-size: 14px; font-weight: 700; border-right: 1px solid rgba(255,255,255,0.3);">No</th>
-                                <th style="padding: 14px 8px; width: 18%; color: #fff; font-size: 14px; font-weight: 700; border-right: 1px solid rgba(255,255,255,0.3);">공간</th>
-                                <th style="padding: 14px 10px; width: 74%; color: #fff; font-size: 14px; font-weight: 700;">하자 내용</th>
+                            <tr style="background: #e8f4fc; border-bottom: 2px solid #2c5282;">
+                                <th style="padding: 12px 8px; width: 8%; color: #2c5282; font-size: 14px; font-weight: 700; border-right: 1px solid #2c5282;">No</th>
+                                <th style="padding: 12px 8px; width: 18%; color: #2c5282; font-size: 14px; font-weight: 700; border-right: 1px solid #2c5282;">공간</th>
+                                <th style="padding: 12px 10px; width: 74%; color: #2c5282; font-size: 14px; font-weight: 700;">하자 내용</th>
                             </tr>
                         </thead>
                         <tbody>${tableRows}</tbody>
                     </table>
                     
                     <!-- 총 건수 표시 -->
-                    <div style="margin-top: 15px; text-align: right; font-size: 13px; color: #666;">
+                    <div style="margin-top: 12px; text-align: right; font-size: 13px; color: #666;">
                         총 <span style="font-weight: 700; color: #2c5282;">${defects.length}</span>건
                     </div>
 
                     <!-- 하단 푸터 -->
-                    <div style="position: absolute; bottom: 20px; left: 35px; right: 35px; padding-top: 12px; border-top: 2px solid #e0e0e0; display: flex; justify-content: space-between; align-items: center;">
+                    <div style="position: absolute; bottom: 20px; left: 35px; right: 35px; padding-top: 10px; border-top: 2px solid #e0e0e0; display: flex; justify-content: space-between; align-items: center;">
                         <div style="font-size: 12px; font-weight: 600; color: #2c5282;">THE HOME INSPECTION</div>
                         <div style="font-size: 11px; color: #888;">뷰파인더 | 스마트 셀프 홈체크</div>
                     </div>
