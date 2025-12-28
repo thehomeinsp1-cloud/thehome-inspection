@@ -2158,6 +2158,133 @@
         }
 
         /* ==================== 로딩 오버레이 ==================== */
+
+        /* ==================== 카카오톡 인앱브라우저 감지 ==================== */
+        .inapp-browser-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(10, 22, 40, 0.95);
+            z-index: 9999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .inapp-browser-overlay.active {
+            display: flex;
+        }
+
+        .inapp-browser-popup {
+            background: var(--primary-light);
+            border-radius: 20px;
+            padding: 30px 24px;
+            max-width: 360px;
+            width: 100%;
+            text-align: center;
+            border: 2px solid var(--accent);
+        }
+
+        .inapp-browser-icon {
+            font-size: 56px;
+            margin-bottom: 16px;
+        }
+
+        .inapp-browser-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text);
+            margin: 0 0 12px 0;
+        }
+
+        .inapp-browser-desc {
+            font-size: 14px;
+            color: var(--text-muted);
+            line-height: 1.6;
+            margin: 0 0 24px 0;
+        }
+
+        .inapp-browser-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .inapp-browser-btn {
+            padding: 16px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            border: none;
+            transition: transform 0.2s;
+        }
+
+        .inapp-browser-btn:active {
+            transform: scale(0.98);
+        }
+
+        .inapp-browser-btn.primary {
+            background: linear-gradient(135deg, var(--accent), #00B894);
+            color: #000;
+        }
+
+        .inapp-browser-btn.secondary {
+            background: var(--card-bg);
+            color: var(--text-muted);
+            border: 1px solid var(--card-border);
+        }
+
+        .inapp-browser-manual {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: left;
+        }
+
+        .inapp-browser-manual-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 12px;
+        }
+
+        .inapp-browser-manual-step {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+
+        .inapp-browser-manual-step:last-child {
+            margin-bottom: 0;
+        }
+
+        .inapp-browser-manual-step .step-num {
+            width: 22px;
+            height: 22px;
+            background: var(--accent);
+            color: #000;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .inapp-browser-manual-step b {
+            color: var(--text);
+        }
+
+        /* ==================== 로딩 오버레이 본체 ==================== */
         .loading-overlay {
             position: fixed;
             top: 0;
@@ -3940,6 +4067,39 @@
         </div>
     </div>
 
+    <!-- ==================== 카카오톡 인앱브라우저 감지 팝업 ==================== -->
+    <div class="inapp-browser-overlay" id="inappBrowserOverlay">
+        <div class="inapp-browser-popup">
+            <div class="inapp-browser-icon">⚠️</div>
+            <h2 class="inapp-browser-title">외부 브라우저에서 열어주세요</h2>
+            <p class="inapp-browser-desc">
+                카카오톡 내에서는 카메라, 저장 등<br>
+                일부 기능이 제한됩니다.
+            </p>
+            
+            <div class="inapp-browser-buttons">
+                <button class="inapp-browser-btn primary" onclick="openInExternalBrowser()">
+                    🌐 외부 브라우저로 열기
+                </button>
+                <button class="inapp-browser-btn secondary" onclick="closeInappOverlay()">
+                    그냥 계속하기
+                </button>
+            </div>
+            
+            <div class="inapp-browser-manual">
+                <div class="inapp-browser-manual-title">버튼이 작동하지 않으면:</div>
+                <div class="inapp-browser-manual-step">
+                    <span class="step-num">1</span>
+                    <span>우측 상단 <b>⋮</b> 또는 <b>···</b> 메뉴 클릭</span>
+                </div>
+                <div class="inapp-browser-manual-step">
+                    <span class="step-num">2</span>
+                    <span><b>"다른 브라우저로 열기"</b> 선택</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- ==================== 로딩 오버레이 ==================== -->
     <div class="loading-overlay" id="loadingOverlay">
         <div class="loading-spinner"></div>
@@ -3950,6 +4110,60 @@
     <canvas id="photoCanvas" style="display: none;"></canvas>
 
     <script>
+        // ==================== 카카오톡 인앱브라우저 감지 ====================
+        function checkInAppBrowser() {
+            const ua = navigator.userAgent.toLowerCase();
+            
+            // 카카오톡, 네이버, 인스타그램, 페이스북 등 인앱브라우저 감지
+            const inAppBrowsers = [
+                'kakaotalk',    // 카카오톡
+                'naver',        // 네이버
+                'instagram',    // 인스타그램
+                'fbav',         // 페이스북
+                'fb_iab',       // 페이스북
+                'twitter',      // 트위터
+                'line'          // 라인
+            ];
+            
+            const isInApp = inAppBrowsers.some(browser => ua.includes(browser));
+            
+            // 이미 안내 받은 경우 다시 표시하지 않음
+            const alreadyWarned = sessionStorage.getItem('inappWarned');
+            
+            if (isInApp && !alreadyWarned) {
+                document.getElementById('inappBrowserOverlay').classList.add('active');
+            }
+        }
+        
+        // 외부 브라우저로 열기
+        function openInExternalBrowser() {
+            const currentUrl = window.location.href;
+            
+            // Android intent 방식 (Chrome)
+            const isAndroid = /android/i.test(navigator.userAgent);
+            const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+            
+            if (isAndroid) {
+                // Chrome으로 열기 시도
+                window.location.href = 'intent://' + currentUrl.replace(/https?:\/\//, '') + '#Intent;scheme=https;package=com.android.chrome;end';
+            } else if (isIOS) {
+                // Safari로 열기 (iOS에서는 제한적)
+                // x-web-search 또는 googlechrome 스킴 시도
+                window.location.href = 'x-safari-' + currentUrl;
+            }
+            
+            // 일정 시간 후에도 열리지 않으면 안내
+            setTimeout(() => {
+                alert('자동 열기가 안 될 경우:\n\n우측 상단 ⋮ 메뉴 → "다른 브라우저로 열기"를 선택해주세요.');
+            }, 1500);
+        }
+        
+        // 팝업 닫기
+        function closeInappOverlay() {
+            document.getElementById('inappBrowserOverlay').classList.remove('active');
+            sessionStorage.setItem('inappWarned', 'true');
+        }
+
         // ==================== 데이터 ====================
         // ==================== 데이터 구조 ====================
         const APP_DATA = {
@@ -5061,6 +5275,9 @@
 
         // ==================== 초기화 ====================
         document.addEventListener('DOMContentLoaded', () => {
+            // 카카오톡 인앱브라우저 감지
+            checkInAppBrowser();
+            
             // 튜토리얼 초기화
             initTutorial();
             
