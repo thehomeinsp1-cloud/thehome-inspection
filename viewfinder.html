@@ -3683,6 +3683,183 @@
             transform: scale(0.98);
         }
 
+        /* ==================== 메인 플로우 카드 ==================== */
+        .flow-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            margin-bottom: 16px;
+            overflow: hidden;
+        }
+
+        .flow-card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px;
+            border-bottom: 1px solid var(--card-border);
+        }
+
+        .flow-step-badge {
+            background: linear-gradient(135deg, var(--accent), #00B894);
+            color: var(--primary);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 800;
+        }
+
+        .flow-step-title {
+            flex: 1;
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .flow-step-status {
+            font-size: 13px;
+            color: var(--text-muted);
+            background: var(--primary-light);
+            padding: 4px 10px;
+            border-radius: 12px;
+        }
+
+        .flow-step-status.done {
+            background: rgba(0, 212, 170, 0.2);
+            color: var(--accent);
+        }
+
+        .flow-card-body {
+            padding: 16px;
+        }
+
+        .flow-action-btn {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 16px;
+            background: linear-gradient(135deg, rgba(0, 212, 170, 0.15), rgba(0, 184, 148, 0.1));
+            border: 2px solid var(--accent);
+            border-radius: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .flow-action-btn:active {
+            transform: scale(0.98);
+            background: rgba(0, 212, 170, 0.25);
+        }
+
+        .flow-action-icon {
+            font-size: 32px;
+        }
+
+        .flow-action-text {
+            flex: 1;
+            text-align: left;
+        }
+
+        .flow-action-text strong {
+            display: block;
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 2px;
+        }
+
+        .flow-action-text small {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .flow-action-arrow {
+            font-size: 20px;
+            color: var(--accent);
+            font-weight: 700;
+        }
+
+        .flow-defect-preview {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+        }
+
+        .flow-defect-preview:empty {
+            display: none;
+        }
+
+        .flow-defect-thumb {
+            width: 60px;
+            height: 60px;
+            border-radius: 8px;
+            object-fit: cover;
+            border: 2px solid var(--card-border);
+            flex-shrink: 0;
+        }
+
+        .flow-defect-more {
+            width: 60px;
+            height: 60px;
+            border-radius: 8px;
+            background: var(--primary-light);
+            border: 2px solid var(--card-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: var(--text-muted);
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        /* 보조 메뉴 섹션 */
+        .sub-menu-section {
+            margin: 24px 0;
+            padding-top: 20px;
+            border-top: 1px solid var(--card-border);
+        }
+
+        .sub-menu-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+        }
+
+        .sub-menu-buttons {
+            display: flex;
+            gap: 12px;
+        }
+
+        .sub-menu-btn {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 14px;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .sub-menu-btn:active {
+            transform: scale(0.98);
+            background: var(--primary-light);
+        }
+
+        .sub-menu-btn span {
+            font-size: 18px;
+        }
+
         /* ==================== 프로젝트 관리 ==================== */
         .project-selector {
             background: var(--card-bg);
@@ -4059,26 +4236,32 @@
                 </div>
             </div>
 
-            <!-- 슬라이드 3: 퀵모드 vs 상세입력 -->
+            <!-- 슬라이드 3: 촬영 방법 -->
             <div class="tutorial-slide">
-                <div class="tutorial-icon">⚡</div>
-                <h2 class="tutorial-title">두 가지 촬영 모드</h2>
-                <div class="tutorial-mode-box">
-                    <div class="tutorial-mode">
-                        <div class="tutorial-mode-icon">⚡</div>
-                        <div class="tutorial-mode-name">퀵모드</div>
-                        <div class="tutorial-mode-desc">빠른 연속 촬영<br>나중에 정보 입력</div>
+                <div class="tutorial-icon">📸</div>
+                <h2 class="tutorial-title">하자 촬영하기</h2>
+                <div class="tutorial-steps" style="text-align: left; margin-top: 20px;">
+                    <div class="tutorial-step">
+                        <span class="tutorial-step-num">1</span>
+                        <span class="tutorial-step-text">하자 발견 → 촬영 버튼</span>
                     </div>
-                    <div class="tutorial-mode">
-                        <div class="tutorial-mode-icon">📝</div>
-                        <div class="tutorial-mode-name">상세입력</div>
-                        <div class="tutorial-mode-desc">촬영하면서<br>바로 정보 입력</div>
+                    <div class="tutorial-step">
+                        <span class="tutorial-step-num">2</span>
+                        <span class="tutorial-step-text">원경 촬영 (전체 위치)</span>
+                    </div>
+                    <div class="tutorial-step">
+                        <span class="tutorial-step-num">3</span>
+                        <span class="tutorial-step-text">근경 촬영 (하자 부위)</span>
+                    </div>
+                    <div class="tutorial-step">
+                        <span class="tutorial-step-num">4</span>
+                        <span class="tutorial-step-text">저장 → 다음 하자로</span>
                     </div>
                 </div>
                 <div class="tutorial-tip-box">
-                    <div class="tutorial-tip-title">💡 추천</div>
+                    <div class="tutorial-tip-title">💡 팁</div>
                     <div class="tutorial-tip-content">
-                        처음엔 <b>퀵모드</b>로 빠르게 촬영!
+                        저장 후 자동으로 다음 촬영이 시작돼요
                     </div>
                 </div>
             </div>
@@ -4142,7 +4325,7 @@
                 </p>
                 <div class="tutorial-start-summary">
                     <div class="tutorial-start-item">✓ 홈에서 정보 입력</div>
-                    <div class="tutorial-start-item">✓ 퀵모드로 빠르게 촬영</div>
+                    <div class="tutorial-start-item">✓ 하자 발견 → 촬영 버튼</div>
                     <div class="tutorial-start-item">✓ 사진 2장씩 (원경+근경)</div>
                     <div class="tutorial-start-item">✓ 리포트에서 전송</div>
                 </div>
@@ -4197,45 +4380,16 @@
                 <div class="project-selector-icon">📁</div>
             </div>
 
-            <!-- 단계별 가이드 -->
-            <div class="step-guide">
-                <div class="step-guide-header">
-                    <span class="step-guide-title">진행 순서</span>
-                    <span class="step-guide-hint" id="stepHint">정보를 입력해주세요</span>
+            <!-- ========== 메인 플로우: 3단계 카드 ========== -->
+            
+            <!-- STEP 1: 점검 정보 -->
+            <div class="flow-card" id="flowCard1">
+                <div class="flow-card-header">
+                    <div class="flow-step-badge">STEP 1</div>
+                    <div class="flow-step-title">점검 정보</div>
+                    <div class="flow-step-status" id="flow1Status">⏳ 입력 필요</div>
                 </div>
-                <div class="step-cards">
-                    <div class="step-card current" id="step1" onclick="scrollToElement('projectInfoCard')">
-                        <div class="step-number">1</div>
-                        <div class="step-content">
-                            <div class="step-title">정보 입력</div>
-                            <div class="step-status" id="step1Status">시작</div>
-                        </div>
-                    </div>
-                    <div class="step-arrow">―</div>
-                    <div class="step-card locked" id="step2" onclick="showSection('defectSection')">
-                        <div class="step-number">2</div>
-                        <div class="step-content">
-                            <div class="step-title">하자 점검</div>
-                            <div class="step-status" id="step2Status">대기</div>
-                        </div>
-                    </div>
-                    <div class="step-arrow">―</div>
-                    <div class="step-card locked" id="step3" onclick="showSection('reportSection')">
-                        <div class="step-number">3</div>
-                        <div class="step-content">
-                            <div class="step-title">리포트</div>
-                            <div class="step-status" id="step3Status">대기</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 프로젝트 정보 입력 -->
-            <div class="project-info-card" id="projectInfoCard">
-                <div class="project-info-header">
-                    <span class="project-info-title">점검 정보</span>
-                </div>
-                <div class="project-info-form">
+                <div class="flow-card-body">
                     <input type="text" id="apartmentName" class="project-input full" placeholder="아파트명 (예: 래미안 퍼스트하임)" />
                     <div class="project-input-row">
                         <input type="text" id="dongNumber" class="project-input" placeholder="동 (예: 101)" />
@@ -4245,45 +4399,57 @@
                 </div>
             </div>
 
-            <div class="progress-section">
-                <div class="progress-header">
-                    <span class="progress-title">발견된 하자</span>
-                    <span class="progress-percent" id="defectCountHome">0건</span>
+            <!-- STEP 2: 하자 촬영 -->
+            <div class="flow-card" id="flowCard2">
+                <div class="flow-card-header">
+                    <div class="flow-step-badge">STEP 2</div>
+                    <div class="flow-step-title">하자 촬영</div>
+                    <div class="flow-step-status" id="flow2Status">0건</div>
                 </div>
-                <div class="progress-bar">
-                    <div class="progress-fill" id="totalProgressBar" style="width: 0%"></div>
+                <div class="flow-card-body">
+                    <button class="flow-action-btn" onclick="openQuickMode()">
+                        <span class="flow-action-icon">📸</span>
+                        <span class="flow-action-text">
+                            <strong>촬영 시작</strong>
+                            <small>원경 + 근경 사진 촬영</small>
+                        </span>
+                        <span class="flow-action-arrow">→</span>
+                    </button>
+                    <div class="flow-defect-preview" id="defectPreview">
+                        <!-- 최근 하자 미리보기 -->
+                    </div>
                 </div>
             </div>
 
-            <!-- 점검 모드 선택 버튼 (홈) -->
-            <div class="home-mode-buttons">
-                <button class="home-mode-btn quick" onclick="openQuickMode()">
-                    <div class="home-mode-btn-icon">⚡</div>
-                    <div class="home-mode-btn-title">퀵모드</div>
-                    <div class="home-mode-btn-desc">빠른 연속 촬영</div>
-                </button>
-                <button class="home-mode-btn detail" onclick="showSection('defectSection')">
-                    <div class="home-mode-btn-icon">📝</div>
-                    <div class="home-mode-btn-title">상세입력</div>
-                    <div class="home-mode-btn-desc">꼼꼼한 기록</div>
-                </button>
+            <!-- STEP 3: 리포트 생성 -->
+            <div class="flow-card" id="flowCard3">
+                <div class="flow-card-header">
+                    <div class="flow-step-badge">STEP 3</div>
+                    <div class="flow-step-title">리포트 생성</div>
+                    <div class="flow-step-status" id="flow3Status">대기</div>
+                </div>
+                <div class="flow-card-body">
+                    <button class="flow-action-btn" onclick="showSection('reportSection')" id="reportFlowBtn">
+                        <span class="flow-action-icon">📄</span>
+                        <span class="flow-action-text">
+                            <strong>리포트 보기</strong>
+                            <small>PDF 생성 및 이메일 전송</small>
+                        </span>
+                        <span class="flow-action-arrow">→</span>
+                    </button>
+                </div>
             </div>
 
-            <div class="quick-actions">
-                <div class="action-card" onclick="showSection('checklistSection')">
-                    <div class="action-icon">✅</div>
-                    <div class="action-title">체크리스트</div>
-                    <div class="action-desc">점검 가이드</div>
-                </div>
-                <div class="action-card" onclick="showSection('equipmentSection')">
-                    <div class="action-icon">🔧</div>
-                    <div class="action-title">장비 가이드</div>
-                    <div class="action-desc">사용법 안내</div>
-                </div>
-                <div class="action-card" onclick="showSection('reportSection')">
-                    <div class="action-icon">📊</div>
-                    <div class="action-title">리포트</div>
-                    <div class="action-desc" id="defectCount">0건 발견</div>
+            <!-- ========== 보조 메뉴 ========== -->
+            <div class="sub-menu-section">
+                <div class="sub-menu-title">📚 참고 자료</div>
+                <div class="sub-menu-buttons">
+                    <button class="sub-menu-btn" onclick="showSection('checklistSection')">
+                        <span>✅</span> 체크리스트
+                    </button>
+                    <button class="sub-menu-btn" onclick="showSection('equipmentSection')">
+                        <span>🔧</span> 장비 가이드
+                    </button>
                 </div>
             </div>
 
@@ -4350,13 +4516,10 @@
                 <div class="inspection-count" id="inspectionCount">0건</div>
             </div>
 
-            <!-- 퀵모드 진입 -->
+            <!-- 하자 촬영 버튼 -->
             <div class="quick-mode-entry">
-                <button class="quick-mode-entry-btn highlight" onclick="openQuickMode()">
-                    ⚡ 퀵모드
-                </button>
-                <button class="quick-mode-entry-btn" onclick="openDefectRegister()">
-                    📝 상세입력
+                <button class="quick-mode-entry-btn highlight" onclick="openQuickMode()" style="flex: 1;">
+                    📸 하자 촬영하기
                 </button>
             </div>
             
@@ -4365,15 +4528,15 @@
                     <div class="empty-state-icon">📷</div>
                     <div class="empty-state-title">아직 발견된 하자가 없습니다</div>
                     <div class="empty-state-desc">
-                        퀵모드로 빠르게 촬영하거나<br>
-                        상세입력으로 꼼꼼히 기록해보세요
+                        하자를 발견하면 촬영 버튼을 눌러<br>
+                        원경/근경 사진을 찍어주세요
                     </div>
-                    <button class="empty-state-btn" onclick="openQuickMode()">⚡ 퀵모드 시작</button>
+                    <button class="empty-state-btn" onclick="openQuickMode()">📸 촬영 시작</button>
                 </div>
             </div>
             
-            <button class="add-defect-btn" onclick="openDefectRegister()" ontouchend="openDefectRegister()">
-                <span>+</span> 하자 추가
+            <button class="add-defect-btn" onclick="openQuickMode()" ontouchend="openQuickMode()">
+                <span>+</span> 하자 촬영
             </button>
         </section>
 
@@ -4571,7 +4734,7 @@
     <div class="quick-mode-overlay" id="quickModeOverlay">
         <div class="quick-mode-header">
             <div>
-                <div class="quick-mode-title">⚡ 퀵모드</div>
+                <div class="quick-mode-title">📸 하자 촬영</div>
                 <div class="quick-mode-count" id="quickModeCount">저장: 0건</div>
             </div>
             <button class="quick-mode-close" onclick="closeQuickMode()">✕</button>
@@ -4610,10 +4773,10 @@
 
         <div class="quick-mode-footer">
             <button class="quick-mode-btn continue" onclick="saveAndContinueQuick()">
-                저장 후 계속 📸
+                저장 → 다음 촬영 📸
             </button>
             <button class="quick-mode-btn save" id="quickSaveBtn" onclick="saveAndCloseQuick()" disabled>
-                저장 ✓
+                저장 완료 ✓
             </button>
         </div>
     </div>
@@ -5994,7 +6157,7 @@
                 locations: [],
                 types: [],
                 detailLocation: '',
-                description: memo || '퀵모드 촬영',
+                description: memo || '하자 촬영',
                 photos: [quickModeData.photos.far, quickModeData.photos.near].filter(p => p)
             };
 
@@ -6060,12 +6223,42 @@
         
         function updateHomeDefectCount() {
             const count = getCurrentProject().defects.length;
-            document.getElementById('defectCountHome').textContent = count + '건';
-            document.getElementById('defectCount').textContent = count + '건 발견';
+            const defects = getCurrentProject().defects;
             
-            // 진행바 업데이트
-            const progressBar = document.getElementById('totalProgressBar');
-            progressBar.style.width = Math.min(count * 5, 100) + '%';
+            // 플로우 카드 상태 업데이트
+            const flow2Status = document.getElementById('flow2Status');
+            if (flow2Status) {
+                flow2Status.textContent = count > 0 ? `${count}건 완료` : '0건';
+                flow2Status.className = count > 0 ? 'flow-step-status done' : 'flow-step-status';
+            }
+            
+            // 하자 미리보기 업데이트
+            const preview = document.getElementById('defectPreview');
+            if (preview) {
+                if (count === 0) {
+                    preview.innerHTML = '';
+                } else {
+                    const showCount = Math.min(count, 4);
+                    let html = '';
+                    for (let i = 0; i < showCount; i++) {
+                        const photo = defects[i].photos[0] || defects[i].photos[1];
+                        if (photo) {
+                            html += `<img src="${photo}" class="flow-defect-thumb" alt="하자 ${i+1}">`;
+                        }
+                    }
+                    if (count > 4) {
+                        html += `<div class="flow-defect-more">+${count - 4}</div>`;
+                    }
+                    preview.innerHTML = html;
+                }
+            }
+            
+            // 리포트 상태 업데이트
+            const flow3Status = document.getElementById('flow3Status');
+            if (flow3Status) {
+                flow3Status.textContent = count > 0 ? '생성 가능' : '대기';
+                flow3Status.className = count > 0 ? 'flow-step-status done' : 'flow-step-status';
+            }
         }
 
         // 프로젝트 정보 자동 저장
@@ -6103,61 +6296,32 @@
             saveData();
         }
 
-        // 단계별 가이드 업데이트
+        // 플로우 가이드 업데이트
         function updateStepGuide() {
             const aptName = document.getElementById('apartmentName').value.trim();
             const dong = document.getElementById('dongNumber').value.trim();
             const ho = document.getElementById('hoNumber').value.trim();
             const defectCount = getCurrentProject().defects.length;
             
-            const step1 = document.getElementById('step1');
-            const step2 = document.getElementById('step2');
-            const step3 = document.getElementById('step3');
-            const step1Status = document.getElementById('step1Status');
-            const step2Status = document.getElementById('step2Status');
-            const step3Status = document.getElementById('step3Status');
-            const stepHint = document.getElementById('stepHint');
-            
-            // Step 1: 정보 입력 체크
+            // Step 1: 정보 입력 상태
+            const flow1Status = document.getElementById('flow1Status');
             const isStep1Complete = aptName && dong && ho;
             
-            // Step 2: 하자 점검 체크
-            const isStep2Complete = defectCount > 0;
-            
-            if (isStep1Complete && isStep2Complete) {
-                // 3단계: 리포트 생성 가능
-                step1.className = 'step-card completed';
-                step2.className = 'step-card completed';
-                step3.className = 'step-card current';
-                
-                step1Status.textContent = '완료';
-                step2Status.textContent = `${defectCount}건`;
-                step3Status.textContent = '진행';
-                
-                stepHint.textContent = '리포트 생성 가능';
-            } else if (isStep1Complete) {
-                // 2단계: 하자 점검
-                step1.className = 'step-card completed';
-                step2.className = 'step-card current';
-                step3.className = 'step-card locked';
-                
-                step1Status.textContent = '완료';
-                step2Status.textContent = defectCount > 0 ? `${defectCount}건` : '진행';
-                step3Status.textContent = '대기';
-                
-                stepHint.textContent = '하자점검을 진행하세요';
-            } else {
-                // 1단계: 정보 입력
-                step1.className = 'step-card current';
-                step2.className = 'step-card locked';
-                step3.className = 'step-card locked';
-                
-                step1Status.textContent = '시작';
-                step2Status.textContent = '대기';
-                step3Status.textContent = '대기';
-                
-                stepHint.textContent = '정보를 입력하세요';
+            if (flow1Status) {
+                if (isStep1Complete) {
+                    flow1Status.textContent = '✓ 완료';
+                    flow1Status.className = 'flow-step-status done';
+                } else if (aptName || dong || ho) {
+                    flow1Status.textContent = '⏳ 입력 중';
+                    flow1Status.className = 'flow-step-status';
+                } else {
+                    flow1Status.textContent = '⏳ 입력 필요';
+                    flow1Status.className = 'flow-step-status';
+                }
             }
+            
+            // 나머지는 updateHomeDefectCount에서 처리
+            updateHomeDefectCount();
         }
 
         // 요소로 스크롤
@@ -6467,10 +6631,19 @@
 
         function updateCounts() {
             const count = getCurrentProject().defects.length;
-            document.getElementById('defectCount').textContent = `${count}건 발견`;
-            document.getElementById('defectCountHome').textContent = `${count}건`;
-            document.getElementById('reportDefectCount').textContent = `${count}건`;
-            document.getElementById('inspectionCount').textContent = `${count}건`;
+            
+            // 요소가 있으면 업데이트 (null 체크)
+            const defectCountEl = document.getElementById('defectCount');
+            if (defectCountEl) defectCountEl.textContent = `${count}건 발견`;
+            
+            const defectCountHomeEl = document.getElementById('defectCountHome');
+            if (defectCountHomeEl) defectCountHomeEl.textContent = `${count}건`;
+            
+            const reportDefectCountEl = document.getElementById('reportDefectCount');
+            if (reportDefectCountEl) reportDefectCountEl.textContent = `${count}건`;
+            
+            const inspectionCountEl = document.getElementById('inspectionCount');
+            if (inspectionCountEl) inspectionCountEl.textContent = `${count}건`;
             
             // 촬영 사진 수
             const photoCount = getCurrentProject().defects.reduce((sum, d) => {
@@ -6481,7 +6654,8 @@
             
             // 프로그레스 바 (최대 20건 기준)
             const progress = Math.min(count * 5, 100);
-            document.getElementById('totalProgressBar').style.width = `${progress}%`;
+            const totalProgressBar = document.getElementById('totalProgressBar');
+            if (totalProgressBar) totalProgressBar.style.width = `${progress}%`;
             
             const reportBar = document.getElementById('reportProgressBar');
             if (reportBar) reportBar.style.width = `${progress}%`;
@@ -6529,17 +6703,27 @@
             const ho = document.getElementById('hoNumber').value || '-';
             const date = document.getElementById('inspectionDate').value || '-';
             
-            document.getElementById('reportAptName').textContent = aptName;
-            document.getElementById('reportDongHo').textContent = (dong !== '-' && ho !== '-') ? `${dong}동 ${ho}호` : '-';
-            document.getElementById('reportDate').textContent = date;
+            const reportAptName = document.getElementById('reportAptName');
+            if (reportAptName) reportAptName.textContent = aptName;
+            
+            const reportDongHo = document.getElementById('reportDongHo');
+            if (reportDongHo) reportDongHo.textContent = (dong !== '-' && ho !== '-') ? `${dong}동 ${ho}호` : '-';
+            
+            const reportDate = document.getElementById('reportDate');
+            if (reportDate) reportDate.textContent = date;
             
             // 통계 업데이트
             const defectCount = getCurrentProject().defects.length;
             const photoCount = getCurrentProject().defects.reduce((sum, d) => sum + d.photos.filter(p => p).length, 0);
             
-            document.getElementById('reportDefectCount').textContent = defectCount + '건';
-            document.getElementById('reportPhotoCount').textContent = photoCount;
-            document.getElementById('reportProgressBar').style.width = Math.min(defectCount * 5, 100) + '%';
+            const reportDefectCount = document.getElementById('reportDefectCount');
+            if (reportDefectCount) reportDefectCount.textContent = defectCount + '건';
+            
+            const reportPhotoCount = document.getElementById('reportPhotoCount');
+            if (reportPhotoCount) reportPhotoCount.textContent = photoCount;
+            
+            const reportProgressBar = document.getElementById('reportProgressBar');
+            if (reportProgressBar) reportProgressBar.style.width = Math.min(defectCount * 5, 100) + '%';
         }
 
         // ==================== 하자 등록 화면 ====================
@@ -7346,7 +7530,7 @@
         
         function continueAddDefect() {
             closeSavePopup();
-            // 퀵모드로 빠르게 계속
+            // 계속 촬영
             openQuickMode();
         }
         
@@ -7370,10 +7554,10 @@
                         <div class="empty-state-icon">📷</div>
                         <div class="empty-state-title">아직 발견된 하자가 없습니다</div>
                         <div class="empty-state-desc">
-                            퀵모드로 빠르게 촬영하거나<br>
-                            상세입력으로 꼼꼼히 기록해보세요
+                            하자를 발견하면 촬영 버튼을 눌러<br>
+                            원경/근경 사진을 찍어주세요
                         </div>
-                        <button class="empty-state-btn" onclick="openQuickMode()">⚡ 퀵모드 시작</button>
+                        <button class="empty-state-btn" onclick="openQuickMode()">📸 촬영 시작</button>
                     </div>
                 `;
                 updateStepGuide();
