@@ -4878,28 +4878,35 @@
     <div class="modal-overlay" id="emailSendModal" onclick="closeEmailModal(event)">
         <div class="modal-content" style="max-width: 400px;">
             <div class="modal-header">
-                <h3 style="margin: 0; font-size: 18px;" id="emailModalTitle">📧 자료 전송하기</h3>
+                <h3 style="margin: 0; font-size: 18px;" id="emailModalTitle">📧 하자접수 대행 요청</h3>
                 <button class="modal-close" onclick="closeEmailModal()">✕</button>
             </div>
             
             <!-- Step 1: 이메일 입력 -->
             <div class="modal-body" style="padding: 20px;" id="emailStep1">
-                <p style="margin: 0 0 20px 0; font-size: 14px; color: var(--text-muted); line-height: 1.6;">
-                    이메일 주소를 입력하시면<br>전체 자료(PDF+엑셀+사진)를 전송할 수 있습니다.
+                <p style="margin: 0 0 16px 0; font-size: 14px; color: var(--text-muted); line-height: 1.6;">
+                    전체 자료(PDF+엑셀+사진)를 뷰파인더로 전송하여<br>하자접수 대행을 요청합니다.
                 </p>
                 
-                <div style="margin-bottom: 16px;">
-                    <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 8px; color: var(--text);">받는 사람 이메일</label>
-                    <input type="email" id="recipientEmail" class="email-input" placeholder="example@naver.com" autocomplete="email">
+                <!-- 메인 수신자: 뷰파인더 -->
+                <div style="margin-bottom: 16px; padding: 14px; background: rgba(0, 212, 170, 0.1); border: 1px solid var(--accent); border-radius: 10px;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="font-size: 24px;">📬</span>
+                        <div>
+                            <div style="font-size: 13px; font-weight: 700; color: var(--text);">뷰파인더 하자접수팀</div>
+                            <div style="font-size: 12px; color: var(--accent);">viewfinder@example.com</div>
+                        </div>
+                    </div>
                 </div>
                 
-                <div style="margin-bottom: 20px;">
-                    <label class="checkbox-label">
-                        <input type="checkbox" id="sendCopyToCompany" checked>
-                        <span class="checkbox-text">뷰파인더에도 사본 전송</span>
+                <!-- 추가 수신자 (선택) -->
+                <div style="margin-bottom: 16px; padding-top: 16px; border-top: 1px solid var(--card-border);">
+                    <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 8px; color: var(--text);">
+                        📎 추가 수신자 <span style="font-weight: 400; color: var(--text-muted);">(선택사항)</span>
                     </label>
-                    <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px; margin-left: 24px;">
-                        하자접수 대행이 필요하시면 체크해주세요
+                    <input type="email" id="recipientEmail" class="email-input" placeholder="본인 또는 시공사 이메일" autocomplete="email">
+                    <div style="font-size: 11px; color: var(--text-muted); margin-top: 6px;">
+                        본인 보관용이나 시공사에도 전송하려면 입력하세요
                     </div>
                 </div>
                 
@@ -4930,13 +4937,13 @@
                 
                 <div style="margin-top: 20px; padding: 14px; background: var(--card-bg); border-radius: 10px;">
                     <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;">📮 받는 사람</div>
-                    <div style="font-size: 14px; color: var(--text); font-weight: 600;" id="emailRecipientDisplay">-</div>
+                    <div style="font-size: 14px; color: var(--accent); font-weight: 600;">뷰파인더 하자접수팀</div>
+                    <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;" id="emailRecipientDisplay"></div>
                 </div>
                 
                 <div style="margin-top: 16px; padding: 12px; background: rgba(255, 184, 0, 0.1); border-radius: 8px; border-left: 3px solid #FFB800;">
                     <div style="font-size: 12px; color: var(--text); line-height: 1.6;">
-                        💡 이메일 앱이 열리면 다운로드한 ZIP 파일을 첨부해서 보내주세요<br>
-                        <span style="font-size: 11px; color: var(--text-muted);">(PDF + 엑셀 + 사진 포함)</span>
+                        💡 이메일 앱이 열리면 다운로드한 ZIP 파일을 첨부해서 보내주세요
                     </div>
                 </div>
             </div>
@@ -5792,19 +5799,12 @@
         
         // Step 1: PDF 생성 준비
         async function prepareEmailData() {
-            const recipientEmail = document.getElementById('recipientEmail').value.trim();
-            const sendCopyToCompany = document.getElementById('sendCopyToCompany').checked;
+            const additionalEmail = document.getElementById('recipientEmail').value.trim();
             
-            // 유효성 검사 - 빈칸이면 뷰파인더에만 전송
-            if (recipientEmail && !isValidEmail(recipientEmail)) {
+            // 추가 이메일 유효성 검사 (입력했을 경우만)
+            if (additionalEmail && !isValidEmail(additionalEmail)) {
                 showToast('올바른 이메일 형식이 아닙니다', 'error');
                 document.getElementById('recipientEmail').focus();
-                return;
-            }
-            
-            // 둘 다 없으면 에러
-            if (!recipientEmail && !sendCopyToCompany) {
-                showToast('이메일 주소를 입력하거나\n뷰파인더 전송을 체크해주세요', 'error');
                 return;
             }
             
@@ -5888,21 +5888,13 @@
                     `--\n뷰파인더 | 스마트 셀프 홈체크`
                 );
                 
-                const recipients = sendCopyToCompany ? `${recipientEmail},${COMPANY_EMAIL}` : recipientEmail;
+                // 뷰파인더 메인 + 추가 수신자
+                let finalRecipients = COMPANY_EMAIL;
+                let additionalDisplay = '';
                 
-                // 빈칸이면 뷰파인더에만, 아니면 조합
-                let finalRecipients = '';
-                let displayRecipients = '';
-                
-                if (recipientEmail && sendCopyToCompany) {
-                    finalRecipients = `${recipientEmail},${COMPANY_EMAIL}`;
-                    displayRecipients = `${recipientEmail}, ${COMPANY_EMAIL}`;
-                } else if (recipientEmail) {
-                    finalRecipients = recipientEmail;
-                    displayRecipients = recipientEmail;
-                } else if (sendCopyToCompany) {
-                    finalRecipients = COMPANY_EMAIL;
-                    displayRecipients = `${COMPANY_EMAIL} (뷰파인더)`;
+                if (additionalEmail) {
+                    finalRecipients = `${COMPANY_EMAIL},${additionalEmail}`;
+                    additionalDisplay = `+ ${additionalEmail}`;
                 }
                 
                 // 준비 데이터 저장 (ZIP으로 변경)
@@ -5910,7 +5902,7 @@
                     zipBlob: zipBlob,
                     zipFilename: `${folderName}_${projectInfo.inspectionDate}_전체자료.zip`,
                     mailtoUrl: `mailto:${finalRecipients}?subject=${subject}&body=${body}`,
-                    recipientEmail: displayRecipients,
+                    additionalEmail: additionalDisplay,
                     defectCount: proj.defects.length,
                     photoCount: photoCount
                 };
@@ -5921,7 +5913,7 @@
                 document.getElementById('emailStep1').style.display = 'none';
                 document.getElementById('emailStep2').style.display = 'block';
                 document.getElementById('emailModalTitle').textContent = '✅ 전체 자료 생성 완료';
-                document.getElementById('emailRecipientDisplay').textContent = preparedEmailData.recipientEmail;
+                document.getElementById('emailRecipientDisplay').textContent = additionalDisplay;
                 
                 document.getElementById('emailSendModal').classList.add('active');
                 
