@@ -207,6 +207,11 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
+        @keyframes popIn {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
         .progress-section {
             margin-bottom: 24px;
         }
@@ -6003,23 +6008,25 @@
 
         function saveAndContinueQuick() {
             if (saveQuickDefect()) {
-                showToast('저장 완료! 계속 촬영하세요');
+                const count = getCurrentProject().defects.length;
+                showToast(`#${count} 저장! 다음 하자를 촬영하세요`);
                 resetQuickModeData();
                 
-                // 사진 촬영 영역으로 스크롤
+                // 바로 원경 카메라 열기 (연속 촬영)
                 setTimeout(() => {
-                    const photoArea = document.getElementById('quickPhotoFar');
-                    if (photoArea) {
-                        photoArea.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    }
-                }, 100);
+                    openQuickCamera('far');
+                }, 300);
             }
         }
 
         function saveAndCloseQuick() {
             if (saveQuickDefect()) {
-                showToast('저장 완료!');
+                const count = getCurrentProject().defects.length;
+                showToast(`#${count} 저장 완료!`);
                 closeQuickMode();
+                
+                // 하자점검 탭으로 이동하여 목록 확인
+                switchTab('defect');
             }
         }
 
@@ -7256,7 +7263,101 @@
             
             closeDefectRegister();
             renderDefectList();
-            showToast('하자가 추가되었습니다!');
+            
+            const count = getCurrentProject().defects.length;
+            
+            // 저장 후 선택 팝업
+            showSaveCompletePopup(count);
+        }
+        
+        function showSaveCompletePopup(count) {
+            // 기존 팝업 제거
+            const existing = document.getElementById('saveCompletePopup');
+            if (existing) existing.remove();
+            
+            const popup = document.createElement('div');
+            popup.id = 'saveCompletePopup';
+            popup.innerHTML = `
+                <div style="
+                    position: fixed;
+                    top: 0; left: 0; right: 0; bottom: 0;
+                    background: rgba(0,0,0,0.7);
+                    z-index: 9999;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    padding: 20px;
+                ">
+                    <div style="
+                        background: var(--card-bg);
+                        border-radius: 20px;
+                        padding: 30px;
+                        text-align: center;
+                        max-width: 320px;
+                        width: 100%;
+                        animation: popIn 0.3s ease;
+                    ">
+                        <div style="font-size: 50px; margin-bottom: 16px;">✅</div>
+                        <div style="font-size: 20px; font-weight: 700; color: var(--text); margin-bottom: 8px;">
+                            하자 #${count} 저장 완료
+                        </div>
+                        <div style="font-size: 14px; color: var(--text-muted); margin-bottom: 24px;">
+                            다음 작업을 선택하세요
+                        </div>
+                        <div style="display: flex; gap: 12px;">
+                            <button onclick="continueAddDefect()" style="
+                                flex: 1;
+                                padding: 16px;
+                                border: none;
+                                border-radius: 12px;
+                                background: linear-gradient(135deg, var(--accent), #00B894);
+                                color: var(--primary);
+                                font-size: 15px;
+                                font-weight: 700;
+                                cursor: pointer;
+                            ">
+                                ⚡ 계속 추가
+                            </button>
+                            <button onclick="closeSavePopupAndView()" style="
+                                flex: 1;
+                                padding: 16px;
+                                border: 1px solid var(--card-border);
+                                border-radius: 12px;
+                                background: var(--primary-light);
+                                color: var(--text);
+                                font-size: 15px;
+                                font-weight: 600;
+                                cursor: pointer;
+                            ">
+                                📋 목록 보기
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(popup);
+            
+            // 3초 후 자동 닫힘 (계속 추가로)
+            setTimeout(() => {
+                const p = document.getElementById('saveCompletePopup');
+                if (p) continueAddDefect();
+            }, 5000);
+        }
+        
+        function continueAddDefect() {
+            closeSavePopup();
+            // 퀵모드로 빠르게 계속
+            openQuickMode();
+        }
+        
+        function closeSavePopupAndView() {
+            closeSavePopup();
+            switchTab('defect');
+        }
+        
+        function closeSavePopup() {
+            const popup = document.getElementById('saveCompletePopup');
+            if (popup) popup.remove();
         }
 
         // ==================== 하자 목록 렌더링 ====================
