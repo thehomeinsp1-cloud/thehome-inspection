@@ -2894,7 +2894,7 @@
                 await window.addHTMLPageToPDF(doc, airQualityGuide, pageWidth, pageHeight);
 
                 doc.addPage();
-                const condensationGuide = window.createCondensationPreventionGuidePage();
+                const condensationGuide = window.createCondensationGuidePage();
                 await window.addHTMLPageToPDF(doc, condensationGuide, pageWidth, pageHeight);
 
                 // PDF Blob 생성
