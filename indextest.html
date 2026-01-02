@@ -1238,135 +1238,74 @@
 
         <!-- 데이터 관리 섹션 -->
         <div id="data" class="section">
-            <!-- Google Drive 연동 카드 -->
-            <!-- Google Drive 연동 (기본 숨김) -->
-            <div class="card" id="googleDriveCard" style="background: linear-gradient(135deg, #4285f4 0%, #34a853 100%); color: white; margin-bottom: 20px; display: none;">
-                <h2 style="color: white; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; justify-content: space-between;">
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
-                            <path d="M6.5 12L1 21h11l5.5-9H6.5zM19 12l-5.5-9L8 12h11zM7.5 3l-6 9h11l-5-9z"/>
-                        </svg>
-                        Google Drive 연동 (선택 기능)
-                    </div>
-                    <button onclick="toggleGoogleDrive()" style="background: rgba(255,255,255,0.3); border: none; color: white; padding: 4px 12px; border-radius: 12px; cursor: pointer; font-size: 14px;">
-                        ✕ 닫기
-                    </button>
+            <!-- ☁️ Google Drive 저장 카드 -->
+            <div class="card" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; margin-bottom: 20px;">
+                <h2 style="color: white; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
+                        <path d="M6.5 12L1 21h11l5.5-9H6.5zM19 12l-5.5-9L8 12h11zM7.5 3l-6 9h11l-5-9z"/>
+                    </svg>
+                    Google Drive 저장
                 </h2>
                 
-                <div style="margin-bottom: 15px; padding: 10px; background: rgba(255,255,255,0.2); border-radius: 8px; font-size: 13px;">
-                    💡 <strong>팀 공유 기능:</strong> Google Client ID를 설정하면 팀원들과 데이터를 실시간으로 공유할 수 있습니다. 혼자 사용하신다면 이 기능은 필요 없습니다.
-                </div>
-                
-                <div id="googleDriveStatus" style="margin-bottom: 15px; padding: 10px; background: rgba(255,255,255,0.2); border-radius: 8px; font-size: 14px;">
-                    <div id="notSignedIn" style="display: block;">
-                        ⚠️ 로그인이 필요합니다.
+                <div id="driveLoginStatus" style="margin-bottom: 15px; padding: 12px; background: rgba(255,255,255,0.2); border-radius: 8px; font-size: 14px;">
+                    <div id="notSignedInSimple" style="display: block;">
+                        ⚠️ Google 로그인이 필요합니다
                     </div>
-                    <div id="signedIn" style="display: none;">
-                        ✅ <span id="userEmail"></span>님 로그인됨
+                    <div id="signedInSimple" style="display: none;">
+                        ✅ <span id="userEmailSimple"></span>
                     </div>
                 </div>
                 
-                <!-- Google Client ID 설정 -->
-                <div id="clientIdSetup" style="margin-bottom: 15px; padding: 10px; background: rgba(251, 191, 36, 0.2); border: 1px solid rgba(251, 191, 36, 0.5); border-radius: 8px; display: none;">
-                    <div style="font-size: 13px; color: #fbbf24; margin-bottom: 8px;">
-                        🔑 Google Client ID를 입력하세요
-                    </div>
-                    <input type="text" id="clientIdInput" placeholder="123456789-abcdef.apps.googleusercontent.com" 
-                           style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ddd; margin-bottom: 8px; font-size: 12px;">
-                    <button onclick="saveClientId()" class="btn" style="width: 100%; background: #fbbf24; color: #1a202c; font-weight: bold;">
-                        💾 저장
-                    </button>
-                </div>
+                <button id="driveUploadBtn" class="btn" onclick="uploadProjectToDrive()" style="width: 100%; background: white; color: #059669; font-weight: bold; font-size: 16px; padding: 15px; margin-bottom: 10px;">
+                    ☁️ Drive에 저장 (PDF + 엑셀 + 사진)
+                </button>
                 
                 <div style="display: flex; gap: 10px;">
-                    <button id="signInBtn" class="btn" onclick="handleGoogleSignIn()" style="flex: 1; background: white; color: #4285f4; font-weight: bold;">
-                        🔐 Google 로그인
+                    <button id="signInBtnSimple" class="btn" onclick="handleGoogleSignIn()" style="flex: 1; background: rgba(255,255,255,0.2); color: white;">
+                        🔐 로그인
                     </button>
-                    <button id="signOutBtn" class="btn" onclick="handleGoogleSignOut()" style="flex: 1; background: rgba(255,255,255,0.2); color: white; display: none;">
+                    <button id="signOutBtnSimple" class="btn" onclick="handleGoogleSignOut()" style="flex: 1; background: rgba(255,255,255,0.2); color: white; display: none;">
                         🚪 로그아웃
                     </button>
-                    <button onclick="toggleClientIdSetup()" class="btn" style="background: rgba(251, 191, 36, 0.2); color: #fbbf24; padding: 0 15px;">
-                        ⚙️
-                    </button>
                 </div>
+            </div>
+
+            <!-- 📥 다운로드 카드 -->
+            <div class="card" style="margin-bottom: 20px;">
+                <h2 style="color: var(--primary); margin-bottom: 15px;">📥 다운로드</h2>
                 
-                <!-- 동기화 버튼 (오프라인 작업 시 표시) -->
-                <button id="syncBtn" class="btn" onclick="syncPendingProjects()" style="display: none; margin-top: 10px; background: #fbbf24; color: #1a202c; font-weight: bold; position: relative;">
-                    <span id="syncBadge" style="position: absolute; top: -8px; right: -8px; background: #ef4444; color: white; border-radius: 50%; width: 24px; height: 24px; display: none; align-items: center; justify-content: center; font-size: 12px; font-weight: bold;">0</span>
-                    📤 대기 프로젝트 동기화
+                <button class="btn" onclick="downloadAllData()" style="width: 100%; background: #3b82f6; color: white; font-weight: bold; font-size: 16px; padding: 15px; margin-bottom: 10px;">
+                    📦 모든 자료 다운로드 (ZIP)
+                </button>
+                
+                <button class="btn btn-primary" onclick="generatePDF()" style="width: 100%; margin-bottom: 10px;">
+                    📄 PDF 보고서만 다운로드
+                </button>
+                
+                <button class="btn" onclick="generateEquipmentOnlyPDF()" style="width: 100%; background: #6366f1; color: white; margin-bottom: 10px;">
+                    🔧 장비점검 보고서만
+                </button>
+                
+                <button class="btn" onclick="generateFieldReportPDF()" style="width: 100%; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white;">
+                    📋 현장출력보고서 (요약형)
                 </button>
             </div>
 
-            <!-- 클라우드 저장/불러오기 -->
-            <div class="card" id="cloudActionsCard" style="display: none;">
-                <h3 style="color: var(--primary); margin-bottom: 15px;">☁️ 클라우드 저장소</h3>
-                
-                <button class="btn btn-primary" onclick="uploadProjectToDrive()" style="margin-bottom: 10px;">
-                    ☁️ Drive에 저장
-                </button>
-                
-                <button class="btn btn-secondary" onclick="loadFromDrive()" style="margin-bottom: 10px;">
-                    📥 Drive에서 불러오기
-                </button>
-
-                <button class="btn" onclick="showDriveProjects()" style="background: #34a853; color: white;">
-                    📂 프로젝트 목록 보기
-                </button>
-            </div>
-
+            <!-- 🗑️ 프로젝트 관리 카드 -->
             <div class="card">
-                <h2 style="color: var(--primary); margin-bottom: 15px;">💾 다운로드 & 관리</h2>
-                
-                <button class="btn btn-primary" onclick="generatePDF()">📄 PDF 보고서 생성</button>
-                
-                <div style="height: 10px;"></div>
-                
-                <button class="btn" onclick="downloadAllData()" style="background: #3b82f6; color: white; font-weight: bold;">
-                    📦 모든 자료 다운로드 (엑셀 + 사진 ZIP)
-                </button>
-                
-                <div style="height: 10px;"></div>
-                
-                <button class="btn" onclick="generateEquipmentOnlyPDF()" style="background: #6366f1; color: white; font-weight: bold;">
-                    🔧 장비점검 보고서 (장비측정만)
-                </button>
-                
-                <div style="height: 10px;"></div>
-                
-                <button class="btn" onclick="generateFieldReportPDF()" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; font-weight: bold;">
-                    📋 현장출력보고서 (요약형 테이블)
-                </button>
-                
-                <div style="height: 20px;"></div>
-                
-                <details style="margin-bottom: 20px;">
+                <details>
                     <summary style="cursor: pointer; padding: 10px; background: rgba(239, 68, 68, 0.1); border-radius: 8px; color: #ef4444; font-weight: bold;">
-                        ⚠️ 고급 기능 (일반 사용자는 필요 없음)
+                        🗑️ 프로젝트 삭제 (주의)
                     </summary>
                     <div style="padding: 15px; background: rgba(0,0,0,0.05); border-radius: 8px; margin-top: 10px;">
-                        <p style="font-size: 13px; color: #333; margin-bottom: 10px;">
-                            💡 <strong>자동 저장:</strong> 데이터는 입력과 동시에 자동으로 저장됩니다.<br>
-                            💡 <strong>데이터 삭제:</strong> 브라우저 데이터를 완전히 지우고 싶을 때만 사용하세요.
+                        <p style="font-size: 13px; color: #333; margin-bottom: 15px;">
+                            ⚠️ <strong>삭제된 프로젝트는 복구할 수 없습니다!</strong>
                         </p>
-                        
-                        <!-- 팀 공유 기능 버튼 -->
-                        <button onclick="toggleGoogleDrive()" class="btn" style="width: 100%; background: rgba(66, 133, 244, 0.1); color: #4285f4; margin-bottom: 10px; font-weight: bold;">
-                            ☁️ 팀 공유 기능 (Google Drive 연동)
-                        </button>
-                        
-                        <button class="btn btn-secondary" onclick="saveCurrentData()" style="width: 100%; margin-bottom: 10px;">
-                            💾 수동 저장 (자동 저장되므로 불필요)
-                        </button>
-                        <button class="btn btn-danger" onclick="clearAllData()" style="width: 100%; margin-bottom: 15px;">
-                            🗑️ 모든 데이터 삭제 (복구 불가)
-                        </button>
-                        
-                        <div style="border-top: 2px solid rgba(239, 68, 68, 0.2); padding-top: 15px; margin-top: 15px;">
-                            <h3 style="color: var(--danger); margin-bottom: 15px; font-size: 16px;">📦 저장된 프로젝트 목록</h3>
-                            <p style="font-size: 13px; color: #333; margin-bottom: 10px;">
-                                ⚠️ <strong>프로젝트 삭제 시 복구 불가능합니다!</strong>
-                            </p>
-                            <div id="savedList" class="saved-list"></div>
+                        <div id="savedList" class="saved-list"></div>
+                        <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #ddd;">
+                            <button class="btn btn-danger" onclick="clearAllData()" style="width: 100%;">
+                                🗑️ 모든 데이터 삭제
+                            </button>
                         </div>
                     </div>
                 </details>
@@ -1756,6 +1695,9 @@
                 hideLoginScreen();
                 codeInput.value = '';
                 pinInput.value = '';
+                
+                // Google Drive 로그인 유도 (온라인일 때만)
+                showGoogleLoginPrompt();
                 
             } else {
                 // 로그인 실패
@@ -2340,37 +2282,54 @@
 
         function updateSignInStatus(isSignedIn) {
             try {
+                // 새 UI 요소들
+                const notSignedInSimple = document.getElementById('notSignedInSimple');
+                const signedInSimple = document.getElementById('signedInSimple');
+                const userEmailSimple = document.getElementById('userEmailSimple');
+                const signInBtnSimple = document.getElementById('signInBtnSimple');
+                const signOutBtnSimple = document.getElementById('signOutBtnSimple');
+                
                 if (isSignedIn) {
-                    const notSignedIn = document.getElementById('notSignedIn');
-                    const signedIn = document.getElementById('signedIn');
-                    const userEmail = document.getElementById('userEmail');
-                    const signInBtn = document.getElementById('signInBtn');
-                    const signOutBtn = document.getElementById('signOutBtn');
-                    const cloudActionsCard = document.getElementById('cloudActionsCard');
-                    
-                    if (notSignedIn) notSignedIn.style.display = 'none';
-                    if (signedIn) signedIn.style.display = 'block';
-                    if (userEmail) userEmail.textContent = currentUser?.email || '사용자';
-                    if (signInBtn) signInBtn.style.display = 'none';
-                    if (signOutBtn) signOutBtn.style.display = 'block';
-                    if (cloudActionsCard) cloudActionsCard.style.display = 'block';
+                    if (notSignedInSimple) notSignedInSimple.style.display = 'none';
+                    if (signedInSimple) signedInSimple.style.display = 'block';
+                    if (userEmailSimple) userEmailSimple.textContent = currentUser?.email || '사용자';
+                    if (signInBtnSimple) signInBtnSimple.style.display = 'none';
+                    if (signOutBtnSimple) signOutBtnSimple.style.display = 'block';
                 } else {
-                    const notSignedIn = document.getElementById('notSignedIn');
-                    const signedIn = document.getElementById('signedIn');
-                    const signInBtn = document.getElementById('signInBtn');
-                    const signOutBtn = document.getElementById('signOutBtn');
-                    const cloudActionsCard = document.getElementById('cloudActionsCard');
-                    
-                    if (notSignedIn) notSignedIn.style.display = 'block';
-                    if (signedIn) signedIn.style.display = 'none';
-                    if (signInBtn) signInBtn.style.display = 'block';
-                    if (signOutBtn) signOutBtn.style.display = 'none';
-                    if (cloudActionsCard) cloudActionsCard.style.display = 'none';
+                    if (notSignedInSimple) notSignedInSimple.style.display = 'block';
+                    if (signedInSimple) signedInSimple.style.display = 'none';
+                    if (signInBtnSimple) signInBtnSimple.style.display = 'block';
+                    if (signOutBtnSimple) signOutBtnSimple.style.display = 'none';
                 }
                 console.log('✅ UI 업데이트 완료:', isSignedIn ? '로그인' : '로그아웃');
             } catch (e) {
                 console.error('UI 업데이트 오류:', e);
             }
+        }
+        
+        // ==================== 직원 로그인 후 Google 로그인 팝업 ====================
+        function showGoogleLoginPrompt() {
+            // 이미 Google 로그인되어 있으면 스킵
+            if (accessToken) return;
+            
+            // 오프라인이면 스킵
+            if (!navigator.onLine) return;
+            
+            // 오늘 이미 "나중에" 눌렀으면 스킵
+            const skipDate = localStorage.getItem('google_login_skip_date');
+            const today = new Date().toDateString();
+            if (skipDate === today) return;
+            
+            // 1초 후 팝업 표시
+            setTimeout(() => {
+                const result = confirm('☁️ Google Drive 연동\n\n점검 완료 후 자료를 자동으로 공유 드라이브에 저장할 수 있습니다.\n\n지금 Google 로그인 하시겠습니까?\n\n(취소를 누르면 오늘 하루 다시 묻지 않습니다)');
+                
+                if (result) {
+                    handleGoogleSignIn();
+                } else {
+                    localStorage.setItem('google_login_skip_date', today);
+                }
+            }, 1000);
         }
 
         // ==================== Drive 폴더 관리 ====================
