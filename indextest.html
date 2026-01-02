@@ -2341,28 +2341,37 @@
         }
 
         // ==================== Drive 폴더 관리 ====================
+        // ==================== 공유 드라이브 설정 ====================
+        const SHARED_DRIVE_ID = '0AEataxDIni_IUk9PVA'; // 더홈점검 공유 드라이브
+        
         async function getOrCreateAppFolder() {
             try {
-                // "더홈점검" 폴더 찾기
+                // 공유 드라이브 내 "더홈점검" 폴더 찾기
                 const response = await gapi.client.drive.files.list({
-                    q: "name='더홈점검' and mimeType='application/vnd.google-apps.folder' and trashed=false",
+                    q: `name='더홈점검' and mimeType='application/vnd.google-apps.folder' and '${SHARED_DRIVE_ID}' in parents and trashed=false`,
                     fields: 'files(id, name)',
-                    spaces: 'drive'
+                    spaces: 'drive',
+                    supportsAllDrives: true,
+                    includeItemsFromAllDrives: true,
+                    corpora: 'drive',
+                    driveId: SHARED_DRIVE_ID
                 });
 
                 if (response.result.files && response.result.files.length > 0) {
                     return response.result.files[0].id;
                 }
 
-                // 폴더가 없으면 생성
+                // 폴더가 없으면 공유 드라이브 루트에 생성
                 const folderMetadata = {
                     name: '더홈점검',
-                    mimeType: 'application/vnd.google-apps.folder'
+                    mimeType: 'application/vnd.google-apps.folder',
+                    parents: [SHARED_DRIVE_ID]
                 };
 
                 const folder = await gapi.client.drive.files.create({
                     resource: folderMetadata,
-                    fields: 'id'
+                    fields: 'id',
+                    supportsAllDrives: true
                 });
 
                 return folder.result.id;
@@ -2386,7 +2395,8 @@
 
                 const folder = await gapi.client.drive.files.create({
                     resource: folderMetadata,
-                    fields: 'id, name'
+                    fields: 'id, name',
+                    supportsAllDrives: true
                 });
 
                 return folder.result.id;
@@ -2408,7 +2418,8 @@
 
                 const folder = await gapi.client.drive.files.create({
                     resource: folderMetadata,
-                    fields: 'id'
+                    fields: 'id',
+                    supportsAllDrives: true
                 });
 
                 return folder.result.id;
@@ -2442,7 +2453,7 @@
                 })], { type: 'application/json' }));
                 form.append('file', blob);
 
-                const response = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+                const response = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&supportsAllDrives=true', {
                     method: 'POST',
                     headers: {
                         'Authorization': 'Bearer ' + accessToken
@@ -2488,7 +2499,8 @@
                 await gapi.client.drive.files.update({
                     fileId: spreadsheetId,
                     addParents: projectFolderId,
-                    fields: 'id, parents'
+                    fields: 'id, parents',
+                    supportsAllDrives: true
                 });
 
                 // 데이터 입력 준비
@@ -2658,7 +2670,7 @@
                 })], { type: 'application/json' }));
                 form.append('file', blob);
 
-                const response = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+                const response = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&supportsAllDrives=true', {
                     method: 'POST',
                     headers: {
                         'Authorization': 'Bearer ' + accessToken
@@ -2802,7 +2814,9 @@
                 const response = await gapi.client.drive.files.list({
                     q: `name='${fileName}' and '${folderId}' in parents and trashed=false`,
                     fields: 'files(id, name)',
-                    spaces: 'drive'
+                    spaces: 'drive',
+                    supportsAllDrives: true,
+                    includeItemsFromAllDrives: true
                 });
 
                 if (!response.result.files || response.result.files.length === 0) {
@@ -2814,7 +2828,7 @@
                 const fileId = response.result.files[0].id;
 
                 // 파일 내용 다운로드
-                const fileResponse = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
+                const fileResponse = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media&supportsAllDrives=true`, {
                     headers: {
                         'Authorization': 'Bearer ' + accessToken
                     }
@@ -2881,7 +2895,9 @@
                     q: `'${folderId}' in parents and mimeType='application/json' and trashed=false`,
                     fields: 'files(id, name, modifiedTime)',
                     orderBy: 'modifiedTime desc',
-                    spaces: 'drive'
+                    spaces: 'drive',
+                    supportsAllDrives: true,
+                    includeItemsFromAllDrives: true
                 });
 
                 const files = response.result.files || [];
@@ -2921,7 +2937,7 @@
 
             try {
                 // 파일 내용 다운로드
-                const response = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
+                const response = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media&supportsAllDrives=true`, {
                     headers: {
                         'Authorization': 'Bearer ' + accessToken
                     }
@@ -10115,20 +10131,14 @@ window.createSummaryFirstPage = function() {
                     
                     <!-- 하자 요약 -->
                     ${(() => {
-                        // 하자 유형별 분류
-                        const criticalTypes = ['누수']; // 중대하자
-                        const finishTypes = ['유격', '틈새', '단차', '파손', '긁힘', '찍힘', '들뜸', '오염', '마감', '고정', '돌출', '불량', '누락', '수평/수직']; // 마감하자
-                        const functionTypes = ['작동']; // 기능하자
-                        
+                        // 중대하자: description에 "누수" 텍스트 포함 여부로 판단
                         let criticalCount = 0;
-                        let finishCount = 0;
-                        let functionCount = 0;
+                        let normalCount = 0;
                         
                         projectData.defects.forEach(defect => {
-                            const types = defect.types || [];
-                            if (types.some(t => criticalTypes.includes(t))) criticalCount++;
-                            else if (types.some(t => functionTypes.includes(t))) functionCount++;
-                            else finishCount++;
+                            const desc = (defect.description || '').toLowerCase();
+                            if (desc.includes('누수')) criticalCount++;
+                            else normalCount++;
                         });
                         
                         const totalPhotos = projectData.defects.filter(d => d.photos && d.photos.length > 0).reduce((sum, d) => sum + d.photos.length, 0);
@@ -10142,24 +10152,19 @@ window.createSummaryFirstPage = function() {
                         
                         <div style="display: flex; justify-content: space-between; padding: 12px 8px; background: white; border-radius: 8px; margin-bottom: 10px;">
                             <div style="text-align: center; flex: 1; border-right: 1px solid #fee2e2;">
-                                <div style="color: #dc2626; font-size: 9px; font-weight: 700; margin-bottom: 3px;">🚨 중대하자</div>
-                                <div style="color: #dc2626; font-size: 22px; font-weight: 800;">${criticalCount}</div>
-                                <div style="color: #9ca3af; font-size: 8px;">누수</div>
+                                <div style="color: #dc2626; font-size: 10px; font-weight: 700; margin-bottom: 3px;">🚨 중대하자</div>
+                                <div style="color: #dc2626; font-size: 26px; font-weight: 800;">${criticalCount}</div>
+                                <div style="color: #9ca3af; font-size: 9px;">누수</div>
                             </div>
                             <div style="text-align: center; flex: 1; border-right: 1px solid #fee2e2;">
-                                <div style="color: #f59e0b; font-size: 9px; font-weight: 700; margin-bottom: 3px;">🔧 마감하자</div>
-                                <div style="color: #f59e0b; font-size: 22px; font-weight: 800;">${finishCount}</div>
-                                <div style="color: #9ca3af; font-size: 8px;">파손·긁힘 등</div>
-                            </div>
-                            <div style="text-align: center; flex: 1; border-right: 1px solid #fee2e2;">
-                                <div style="color: #3b82f6; font-size: 9px; font-weight: 700; margin-bottom: 3px;">⚙️ 기능하자</div>
-                                <div style="color: #3b82f6; font-size: 22px; font-weight: 800;">${functionCount}</div>
-                                <div style="color: #9ca3af; font-size: 8px;">작동·개폐</div>
+                                <div style="color: #374151; font-size: 10px; font-weight: 700; margin-bottom: 3px;">📋 일반하자</div>
+                                <div style="color: #374151; font-size: 26px; font-weight: 800;">${normalCount}</div>
+                                <div style="color: #9ca3af; font-size: 9px;">마감·기능 등</div>
                             </div>
                             <div style="text-align: center; flex: 1;">
-                                <div style="color: #374151; font-size: 9px; font-weight: 700; margin-bottom: 3px;">📋 총합</div>
-                                <div style="color: #e74c3c; font-size: 22px; font-weight: 800;">${projectData.defects.length}</div>
-                                <div style="color: #9ca3af; font-size: 8px;">사진 ${totalPhotos}장</div>
+                                <div style="color: #6b7280; font-size: 10px; font-weight: 700; margin-bottom: 3px;">📷 사진</div>
+                                <div style="color: #6b7280; font-size: 26px; font-weight: 800;">${totalPhotos}</div>
+                                <div style="color: #9ca3af; font-size: 9px;">총 ${projectData.defects.length}건</div>
                             </div>
                         </div>
                         
