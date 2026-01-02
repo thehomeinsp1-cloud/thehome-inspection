@@ -1238,13 +1238,10 @@
 
         <!-- 데이터 관리 섹션 -->
         <div id="data" class="section">
-            <!-- ☁️ Google Drive 저장 카드 -->
+            <!-- ✅ 점검완료 → 공유드라이브 저장 카드 -->
             <div class="card" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; margin-bottom: 20px;">
                 <h2 style="color: white; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
-                        <path d="M6.5 12L1 21h11l5.5-9H6.5zM19 12l-5.5-9L8 12h11zM7.5 3l-6 9h11l-5-9z"/>
-                    </svg>
-                    Google Drive 저장
+                    ✅ 점검완료 → 공유드라이브 저장
                 </h2>
                 
                 <div id="driveLoginStatus" style="margin-bottom: 15px; padding: 12px; background: rgba(255,255,255,0.2); border-radius: 8px; font-size: 14px;">
@@ -1257,7 +1254,7 @@
                 </div>
                 
                 <button id="driveUploadBtn" class="btn" onclick="uploadProjectToDrive()" style="width: 100%; background: white; color: #059669; font-weight: bold; font-size: 16px; padding: 15px; margin-bottom: 10px;">
-                    ☁️ Drive에 저장 (PDF + 엑셀 + 사진)
+                    ☁️ 공유드라이브에 저장하기
                 </button>
                 
                 <div style="display: flex; gap: 10px;">
@@ -1268,6 +1265,13 @@
                         🚪 로그아웃
                     </button>
                 </div>
+            </div>
+            
+            <!-- 📖 사용 가이드 버튼 -->
+            <div class="card" style="margin-bottom: 20px; background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); color: white;">
+                <button onclick="showTutorial()" class="btn" style="width: 100%; background: white; color: #1d4ed8; font-weight: bold; font-size: 16px; padding: 15px;">
+                    📖 앱 사용 가이드 보기
+                </button>
             </div>
 
             <!-- 📥 다운로드 카드 -->
@@ -1698,6 +1702,9 @@
                 
                 // Google Drive 로그인 유도 (온라인일 때만)
                 showGoogleLoginPrompt();
+                
+                // 첫 사용자 튜토리얼 표시
+                checkFirstTimeUser();
                 
             } else {
                 // 로그인 실패
@@ -2921,14 +2928,96 @@
                 const excelBlob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
                 const excelFileName = `${projectName}${authorName}_하자목록.xlsx`;
                 
-                // ========== 5. 파일들 업로드 ==========
+                // ========== 5. 장비점검 보고서 PDF 생성 (장비 데이터가 있을 때만) ==========
+                let equipmentPdfBlob = null;
+                let equipmentPdfFileName = null;
+                
+                if (projectData.equipment && projectData.equipment.length > 0) {
+                    const equipmentWithPhotos = projectData.equipment.filter(e => {
+                        if (e.photos && typeof e.photos === 'object') {
+                            return Object.values(e.photos).some(photo => photo !== null);
+                        }
+                        return e.photo;
+                    });
+                    
+                    if (equipmentWithPhotos.length > 0) {
+                        showToast('🔧 장비점검 보고서 생성 중...');
+                        
+                        const equipDoc = new jsPDF({
+                            orientation: 'portrait',
+                            unit: 'mm',
+                            format: 'a4'
+                        });
+                        
+                        // 장비점검 표지
+                        const equipCoverHTML = `
+                            <div style="width: 794px; height: 1123px; background: #ffffff; display: flex; flex-direction: column; font-family: 'Malgun Gothic', sans-serif; position: relative;">
+                                <div style="height: 8px; background: linear-gradient(90deg, #3498db 0%, #2980b9 100%);"></div>
+                                <div style="position: absolute; left: 0; top: 0; width: 6px; height: 100%; background: linear-gradient(180deg, #3498db 0%, #2980b9 100%);"></div>
+                                <div style="flex: 1; padding: 80px 80px 60px 100px; display: flex; flex-direction: column;">
+                                    <div style="margin-bottom: 60px;">
+                                        <div style="display: inline-flex; align-items: center; gap: 12px; padding: 12px 24px; background: #ecf0f1; border-radius: 30px;">
+                                            <div style="width: 8px; height: 8px; background: #3498db; border-radius: 50%;"></div>
+                                            <span style="color: #2c3e50; font-size: 14px; font-weight: 600; letter-spacing: 1px;">EQUIPMENT INSPECTION</span>
+                                        </div>
+                                    </div>
+                                    <div style="margin-bottom: 80px;">
+                                        <h1 style="font-size: 56px; font-weight: 800; color: #2c3e50; margin: 0 0 20px 0; line-height: 1.2;">장비측정<br/>보고서</h1>
+                                        <div style="width: 80px; height: 5px; background: #3498db; border-radius: 3px;"></div>
+                                    </div>
+                                    <div style="background: #f8f9fa; border-left: 4px solid #3498db; padding: 40px 35px; margin-bottom: 60px; border-radius: 0 8px 8px 0;">
+                                        <div style="display: flex; flex-direction: column; gap: 20px;">
+                                            <div style="display: flex; align-items: baseline;">
+                                                <span style="color: #7f8c8d; font-size: 14px; width: 100px; font-weight: 600;">PROJECT</span>
+                                                <span style="color: #2c3e50; font-size: 26px; font-weight: 700;">${projectData.apartmentName}</span>
+                                            </div>
+                                            <div style="display: flex; align-items: baseline;">
+                                                <span style="color: #7f8c8d; font-size: 14px; width: 100px; font-weight: 600;">UNIT</span>
+                                                <span style="color: #2c3e50; font-size: 32px; font-weight: 700;">${projectData.dong}동 ${projectData.ho}호</span>
+                                            </div>
+                                            <div style="display: flex; align-items: baseline;">
+                                                <span style="color: #7f8c8d; font-size: 14px; width: 100px; font-weight: 600;">DATE</span>
+                                                <span style="color: #2c3e50; font-size: 20px; font-weight: 600;">${projectData.inspectionDate || ''}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div style="margin-top: auto; display: flex; align-items: center; gap: 15px;">
+                                        <div style="font-size: 22px; font-weight: 700; color: #2c3e50;">더홈점검</div>
+                                        <div style="color: #bdc3c7; font-size: 14px;">|</div>
+                                        <div style="color: #7f8c8d; font-size: 13px;">전문 하자점검 서비스</div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        await window.addHTMLPageToPDF(equipDoc, equipCoverHTML, pageWidth, pageHeight);
+                        
+                        // 장비점검 페이지들
+                        equipmentWithPhotos.forEach((item, i) => item._originalIndex = i + 1);
+                        for (let i = 0; i < equipmentWithPhotos.length; i++) {
+                            equipDoc.addPage();
+                            const equipmentHTML = await window.createEquipmentPage([equipmentWithPhotos[i]]);
+                            await window.addHTMLPageToPDF(equipDoc, equipmentHTML, pageWidth, pageHeight);
+                        }
+                        
+                        equipmentPdfBlob = equipDoc.output('blob');
+                        equipmentPdfFileName = `${projectName}${authorName}_장비점검보고서.pdf`;
+                    }
+                }
+                
+                // ========== 6. 파일들 업로드 ==========
                 showToast('📤 PDF 업로드 중...');
                 await uploadFileToDrive(projectFolderId, pdfBlob, pdfFileName, 'application/pdf');
+                
+                // 장비점검 보고서 업로드 (있을 때만)
+                if (equipmentPdfBlob) {
+                    showToast('📤 장비점검 보고서 업로드 중...');
+                    await uploadFileToDrive(projectFolderId, equipmentPdfBlob, equipmentPdfFileName, 'application/pdf');
+                }
                 
                 showToast('📤 엑셀 업로드 중...');
                 await uploadFileToDrive(projectFolderId, excelBlob, excelFileName, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
                 
-                // ========== 6. 사진 업로드 ==========
+                // ========== 7. 사진 업로드 ==========
                 const photosFolderId = await createPhotosFolder(projectFolderId);
                 
                 let photoIndex = 1;
@@ -2949,12 +3038,12 @@
                     }
                 }
                 
-                // 7. 프로젝트 상태 업데이트
+                // 8. 프로젝트 상태 업데이트
                 project.isUploaded = true;
                 project.uploadedAt = new Date().toISOString();
                 project.driveFolderId = projectFolderId;
                 
-                // 8. 로컬 저장
+                // 9. 로컬 저장
                 saveProjectsToLocalStorage();
                 renderProjectList();
                 
@@ -2963,7 +3052,8 @@
                 
                 // 동기화 중이 아닐 때만 alert 표시
                 if (!projectToUpload) {
-                    alert(`✅ 업로드 완료!\n\n프로젝트: ${projectName}\n📄 PDF 보고서\n📊 엑셀 파일\n📷 사진 ${totalPhotos}장\n\nGoogle Drive에서 확인하세요!`);
+                    const equipmentMsg = equipmentPdfBlob ? '\n🔧 장비점검 보고서' : '';
+                    alert(`✅ 업로드 완료!\n\n프로젝트: ${projectName}\n📄 PDF 보고서${equipmentMsg}\n📊 엑셀 파일\n📷 사진 ${totalPhotos}장\n\nGoogle Drive에서 확인하세요!`);
                 }
                 
             } catch (error) {
@@ -10716,6 +10806,348 @@ window.createSummaryFirstPage = function() {
     // 이전 v5.1 패치에 있는 코드가 그대로 유지되어야 합니다.
     // (이 코드 블록은 가이드 페이지 추가용이므로, 만약 앞선 v5.1 패치를 지우셨다면 
     // v5.1 패치 코드 + 이 코드 내용을 합쳐서 넣으셔야 합니다.)
+    
+    // ==================== 튜토리얼 시스템 ====================
+    let currentTutorialStep = 0;
+    const tutorialSteps = [
+        {
+            title: '👋 더홈점검 앱 사용 가이드',
+            content: `
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <div style="font-size: 60px; margin-bottom: 15px;">🏠</div>
+                    <p style="font-size: 16px; color: #666; line-height: 1.6;">
+                        신축 아파트 하자점검을 위한<br/>
+                        <strong>더홈점검 앱</strong> 사용법을 안내합니다.
+                    </p>
+                </div>
+                <div style="background: #f0fdf4; padding: 15px; border-radius: 10px; border-left: 4px solid #10b981;">
+                    <div style="font-weight: bold; color: #059669; margin-bottom: 8px;">📋 점검 흐름</div>
+                    <div style="font-size: 14px; color: #333; line-height: 1.8;">
+                        1️⃣ 프로젝트 정보 입력<br/>
+                        2️⃣ 하자점검 (사진 2장 필수)<br/>
+                        3️⃣ 장비점검 (4구역 촬영)<br/>
+                        4️⃣ 공기질 측정<br/>
+                        5️⃣ 공유드라이브 저장
+                    </div>
+                </div>
+            `
+        },
+        {
+            title: '👔 소장님 vs 매니저 역할',
+            content: `
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div style="background: #fef3c7; padding: 15px; border-radius: 10px;">
+                        <div style="font-weight: bold; color: #d97706; margin-bottom: 10px; font-size: 15px;">👔 소장님 (현장 총괄)</div>
+                        <div style="font-size: 13px; color: #333; line-height: 1.7;">
+                            • 고객 연락 & 세대 동행<br/>
+                            • <strong>육안 하자점검</strong><br/>
+                            • 스티커 부착 (위치 명시)<br/>
+                            • <strong>장비점검</strong> 앱 등록<br/>
+                            • 물고임 확인 사진
+                        </div>
+                    </div>
+                    <div style="background: #dbeafe; padding: 15px; border-radius: 10px;">
+                        <div style="font-weight: bold; color: #2563eb; margin-bottom: 10px; font-size: 15px;">📱 매니저 (기록 및 관리)</div>
+                        <div style="font-size: 13px; color: #333; line-height: 1.7;">
+                            • 프로젝트 정보 입력<br/>
+                            • <strong>하자 사진 촬영</strong> (2장)<br/>
+                            • 하자 정보 터치 입력<br/>
+                            • <strong>공기질 측정</strong> 입력<br/>
+                            • 드라이브 저장
+                        </div>
+                    </div>
+                </div>
+                <div style="margin-top: 15px; padding: 12px; background: #fef2f2; border-radius: 8px; font-size: 13px; color: #dc2626;">
+                    ⚠️ <strong>주의:</strong> 스티커는 발코니/페인트 도장면에 부착 자제!
+                </div>
+            `
+        },
+        {
+            title: '📁 STEP 1: 프로젝트 정보',
+            content: `
+                <div style="background: #f8fafc; padding: 20px; border-radius: 12px; margin-bottom: 15px;">
+                    <div style="font-size: 40px; text-align: center; margin-bottom: 15px;">📁</div>
+                    <div style="font-size: 14px; color: #333; line-height: 1.8;">
+                        <strong>프로젝트 탭</strong>에서 기본 정보를 입력합니다:
+                    </div>
+                </div>
+                <div style="display: grid; gap: 10px;">
+                    <div style="display: flex; align-items: center; gap: 10px; padding: 12px; background: #f0fdf4; border-radius: 8px;">
+                        <span style="font-size: 20px;">🏢</span>
+                        <div><strong>아파트명</strong> - 단지명 입력</div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px; padding: 12px; background: #f0fdf4; border-radius: 8px;">
+                        <span style="font-size: 20px;">🔢</span>
+                        <div><strong>동/호수</strong> - 예: 101동, 1502호</div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px; padding: 12px; background: #f0fdf4; border-radius: 8px;">
+                        <span style="font-size: 20px;">📅</span>
+                        <div><strong>점검일자</strong> - 오늘 날짜</div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px; padding: 12px; background: #fef3c7; border-radius: 8px;">
+                        <span style="font-size: 20px;">✍️</span>
+                        <div><strong>작성자</strong> - 본인 이름 (리포트에 표시)</div>
+                    </div>
+                </div>
+            `
+        },
+        {
+            title: '📸 STEP 2: 하자 사진 촬영',
+            content: `
+                <div style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); padding: 15px; border-radius: 12px; margin-bottom: 15px; text-align: center;">
+                    <div style="font-size: 24px; font-weight: bold; color: #d97706;">⭐ 필수 2장 ⭐</div>
+                    <div style="font-size: 14px; color: #92400e; margin-top: 5px;">원경 1장 + 근경 1장</div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                    <div style="background: #dbeafe; padding: 15px; border-radius: 10px; text-align: center;">
+                        <div style="font-size: 30px; margin-bottom: 8px;">🔭</div>
+                        <div style="font-weight: bold; color: #2563eb;">원경 사진</div>
+                        <div style="font-size: 12px; color: #666; margin-top: 5px;">
+                            하자 위치 + 스티커가<br/>함께 보이도록
+                        </div>
+                    </div>
+                    <div style="background: #fce7f3; padding: 15px; border-radius: 10px; text-align: center;">
+                        <div style="font-size: 30px; margin-bottom: 8px;">🔍</div>
+                        <div style="font-weight: bold; color: #db2777;">근경 사진</div>
+                        <div style="font-size: 12px; color: #666; margin-top: 5px;">
+                            하자 상세 상태를<br/>가까이서 촬영
+                        </div>
+                    </div>
+                </div>
+                <div style="background: #ecfdf5; padding: 12px; border-radius: 8px; font-size: 13px;">
+                    💡 <strong>터치 마커:</strong> 원경 촬영 시 화면을 터치하면 녹색 마커가 표시됩니다!
+                </div>
+            `
+        },
+        {
+            title: '✏️ STEP 3: 하자 정보 입력',
+            content: `
+                <div style="background: #f8fafc; padding: 15px; border-radius: 12px; margin-bottom: 15px;">
+                    <div style="font-size: 14px; color: #333; line-height: 1.8;">
+                        사진 촬영 후, 소장님이 붙인 <strong>스티커를 확인</strong>하여<br/>
+                        터치로 간편하게 입력합니다.
+                    </div>
+                </div>
+                <div style="display: grid; gap: 10px;">
+                    <div style="padding: 12px; background: #dbeafe; border-radius: 8px;">
+                        <strong>1️⃣ 공간 선택</strong> (최대 4개)<br/>
+                        <span style="font-size: 13px; color: #666;">현관, 안방, 침실1, 거실, 주방...</span>
+                    </div>
+                    <div style="padding: 12px; background: #fce7f3; border-radius: 8px;">
+                        <strong>2️⃣ 위치 선택</strong> (최대 4개)<br/>
+                        <span style="font-size: 13px; color: #666;">벽, 바닥, 천장, 문, 창...</span>
+                    </div>
+                    <div style="padding: 12px; background: #fef3c7; border-radius: 8px;">
+                        <strong>3️⃣ 하자내용 선택</strong> (최대 4개)<br/>
+                        <span style="font-size: 13px; color: #666;">유격, 틈새, 단차, 파손, 오염...</span>
+                    </div>
+                </div>
+                <div style="margin-top: 15px; padding: 12px; background: #f0fdf4; border-radius: 8px; font-size: 13px;">
+                    💡 목록에 없는 공간은 <strong>'+' 버튼</strong>으로 직접 입력 가능!
+                </div>
+            `
+        },
+        {
+            title: '📷 STEP 4: 장비점검 (소장님)',
+            content: `
+                <div style="background: #f8fafc; padding: 15px; border-radius: 12px; margin-bottom: 15px;">
+                    <div style="font-size: 14px; color: #333; line-height: 1.6;">
+                        <strong>장비점검 탭</strong>에서 4개 구역별로<br/>측정 사진을 등록합니다.
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
+                    <div style="padding: 12px; background: #fef3c7; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 24px;">🔥</div>
+                        <div style="font-size: 13px; font-weight: bold; margin-top: 5px;">열화상 (단열/난방)</div>
+                    </div>
+                    <div style="padding: 12px; background: #dbeafe; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 24px;">📐</div>
+                        <div style="font-size: 13px; font-weight: bold; margin-top: 5px;">수평계 (벽체/바닥)</div>
+                    </div>
+                    <div style="padding: 12px; background: #e0e7ff; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 24px;">💧</div>
+                        <div style="font-size: 13px; font-weight: bold; margin-top: 5px;">물고임 (욕실/발코니)</div>
+                    </div>
+                    <div style="padding: 12px; background: #fce7f3; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 24px;">🔧</div>
+                        <div style="font-size: 13px; font-weight: bold; margin-top: 5px;">기타 측정</div>
+                    </div>
+                </div>
+                <div style="background: #fef2f2; padding: 12px; border-radius: 8px; font-size: 13px; color: #dc2626;">
+                    ⚠️ <strong>[필수]</strong> 보일러 작동 확인! 난방 미작동 시 열화상 검사 불가 안내
+                </div>
+            `
+        },
+        {
+            title: '🌬️ STEP 5: 공기질 측정 (매니저)',
+            content: `
+                <div style="background: #f8fafc; padding: 15px; border-radius: 12px; margin-bottom: 15px;">
+                    <div style="font-size: 14px; color: #333; line-height: 1.6;">
+                        <strong>공기질 탭</strong>에서 5개 구역의<br/>라돈, 포름알데히드, VOCs를 입력합니다.
+                    </div>
+                </div>
+                <div style="display: grid; gap: 10px; margin-bottom: 15px;">
+                    <div style="display: flex; justify-content: space-between; padding: 12px; background: #ecfdf5; border-radius: 8px;">
+                        <span><strong>거실</strong></span>
+                        <span style="color: #059669;">라돈 + 포름알데히드 + VOCs</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; padding: 12px; background: #ecfdf5; border-radius: 8px;">
+                        <span><strong>침실 (3~4개)</strong></span>
+                        <span style="color: #059669;">라돈 + 포름알데히드 + VOCs</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; padding: 12px; background: #fef3c7; border-radius: 8px;">
+                        <span><strong>욕실</strong></span>
+                        <span style="color: #d97706;">라돈만 체크</span>
+                    </div>
+                </div>
+                <div style="background: #dbeafe; padding: 12px; border-radius: 8px; font-size: 13px;">
+                    💧 <strong>구배 점검:</strong> 욕실/발코니에 물 뿌리기 → 소장님이 물고임 확인
+                </div>
+            `
+        },
+        {
+            title: '☁️ STEP 6: 공유드라이브 저장',
+            content: `
+                <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 20px; border-radius: 12px; margin-bottom: 15px; text-align: center; color: white;">
+                    <div style="font-size: 40px; margin-bottom: 10px;">☁️</div>
+                    <div style="font-size: 18px; font-weight: bold;">점검완료 → 공유드라이브 저장</div>
+                </div>
+                <div style="background: #f0fdf4; padding: 15px; border-radius: 10px; margin-bottom: 15px;">
+                    <div style="font-weight: bold; color: #059669; margin-bottom: 10px;">📦 저장되는 파일:</div>
+                    <div style="font-size: 14px; line-height: 1.8;">
+                        📄 하자점검 보고서 (PDF)<br/>
+                        🔧 장비점검 보고서 (PDF)<br/>
+                        📊 하자목록 (엑셀)<br/>
+                        📷 모든 하자 사진
+                    </div>
+                </div>
+                <div style="background: #fef3c7; padding: 12px; border-radius: 8px; font-size: 13px; color: #92400e;">
+                    ⏰ <strong>마감:</strong> 오후 6시 전까지 드라이브 업로드 완료!
+                </div>
+            `
+        },
+        {
+            title: '✅ 최종 체크리스트',
+            content: `
+                <div style="font-size: 14px; margin-bottom: 10px; color: #666;">점검 완료 전 확인하세요!</div>
+                <div style="display: grid; gap: 8px;">
+                    <div style="display: flex; align-items: center; gap: 10px; padding: 12px; background: #f0fdf4; border-radius: 8px;">
+                        <span style="font-size: 18px;">📸</span>
+                        <div style="font-size: 13px;">모든 하자에 <strong>사진 2장</strong> (원경+근경) 등록?</div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px; padding: 12px; background: #f0fdf4; border-radius: 8px;">
+                        <span style="font-size: 18px;">🔧</span>
+                        <div style="font-size: 13px;"><strong>장비점검</strong> 4구역 사진 등록?</div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px; padding: 12px; background: #f0fdf4; border-radius: 8px;">
+                        <span style="font-size: 18px;">🌬️</span>
+                        <div style="font-size: 13px;"><strong>공기질</strong> 수치 입력?</div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px; padding: 12px; background: #dbeafe; border-radius: 8px;">
+                        <span style="font-size: 18px;">📤</span>
+                        <div style="font-size: 13px;"><strong>고객에게</strong> 하자+장비 보고서 전송?</div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px; padding: 12px; background: #fef3c7; border-radius: 8px;">
+                        <span style="font-size: 18px;">☁️</span>
+                        <div style="font-size: 13px;"><strong>6시 전</strong> 공유드라이브 업로드?</div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px; padding: 12px; background: #fce7f3; border-radius: 8px;">
+                        <span style="font-size: 18px;">💬</span>
+                        <div style="font-size: 13px;">단톡방에 <strong>"종료톡"</strong> 전송?</div>
+                    </div>
+                </div>
+                <div style="margin-top: 15px; padding: 12px; background: #fef2f2; border-radius: 8px; font-size: 13px; color: #dc2626; text-align: center;">
+                    🎒 장비 분실 금지! 점검 후 장비 회수 철저!
+                </div>
+            `
+        }
+    ];
+    
+    function showTutorial(startStep = 0) {
+        currentTutorialStep = startStep;
+        const modal = document.getElementById('tutorialModal');
+        if (modal) {
+            modal.style.display = 'flex';
+            renderTutorialStep();
+        }
+    }
+    
+    function closeTutorial() {
+        const modal = document.getElementById('tutorialModal');
+        if (modal) {
+            modal.style.display = 'none';
+        }
+        // 첫 사용자면 다시 보지 않기 설정
+        localStorage.setItem('tutorial_shown', 'true');
+    }
+    
+    function renderTutorialStep() {
+        const step = tutorialSteps[currentTutorialStep];
+        const titleEl = document.getElementById('tutorialTitle');
+        const contentEl = document.getElementById('tutorialContent');
+        const progressEl = document.getElementById('tutorialProgress');
+        const prevBtn = document.getElementById('tutorialPrevBtn');
+        const nextBtn = document.getElementById('tutorialNextBtn');
+        
+        if (titleEl) titleEl.textContent = step.title;
+        if (contentEl) contentEl.innerHTML = step.content;
+        if (progressEl) progressEl.textContent = `${currentTutorialStep + 1} / ${tutorialSteps.length}`;
+        
+        if (prevBtn) prevBtn.style.visibility = currentTutorialStep === 0 ? 'hidden' : 'visible';
+        if (nextBtn) {
+            nextBtn.textContent = currentTutorialStep === tutorialSteps.length - 1 ? '완료 ✓' : '다음 →';
+        }
+    }
+    
+    function tutorialPrev() {
+        if (currentTutorialStep > 0) {
+            currentTutorialStep--;
+            renderTutorialStep();
+        }
+    }
+    
+    function tutorialNext() {
+        if (currentTutorialStep < tutorialSteps.length - 1) {
+            currentTutorialStep++;
+            renderTutorialStep();
+        } else {
+            closeTutorial();
+        }
+    }
+    
+    // 첫 사용자 튜토리얼 자동 표시
+    function checkFirstTimeUser() {
+        const tutorialShown = localStorage.getItem('tutorial_shown');
+        if (!tutorialShown) {
+            // 로그인 후 2초 뒤에 튜토리얼 표시
+            setTimeout(() => {
+                showTutorial();
+            }, 2000);
+        }
+    }
     </script>
+    
+    <!-- 튜토리얼 모달 -->
+    <div id="tutorialModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 10000; justify-content: center; align-items: center; padding: 20px;">
+        <div style="background: white; border-radius: 20px; max-width: 420px; width: 100%; max-height: 85vh; overflow: hidden; display: flex; flex-direction: column;">
+            <!-- 헤더 -->
+            <div style="padding: 20px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; display: flex; justify-content: space-between; align-items: center;">
+                <h3 id="tutorialTitle" style="margin: 0; font-size: 18px;">튜토리얼</h3>
+                <button onclick="closeTutorial()" style="background: rgba(255,255,255,0.2); border: none; color: white; width: 32px; height: 32px; border-radius: 50%; font-size: 18px; cursor: pointer;">✕</button>
+            </div>
+            
+            <!-- 컨텐츠 -->
+            <div id="tutorialContent" style="padding: 20px; overflow-y: auto; flex: 1;">
+                <!-- 동적 컨텐츠 -->
+            </div>
+            
+            <!-- 푸터 -->
+            <div style="padding: 15px 20px; border-top: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center; background: #f9fafb;">
+                <button id="tutorialPrevBtn" onclick="tutorialPrev()" style="padding: 10px 20px; border: 1px solid #d1d5db; background: white; border-radius: 8px; cursor: pointer; font-size: 14px;">← 이전</button>
+                <span id="tutorialProgress" style="color: #6b7280; font-size: 14px;">1 / 9</span>
+                <button id="tutorialNextBtn" onclick="tutorialNext()" style="padding: 10px 20px; border: none; background: #10b981; color: white; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: bold;">다음 →</button>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
