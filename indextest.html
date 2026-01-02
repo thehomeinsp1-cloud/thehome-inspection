@@ -2259,6 +2259,7 @@
                     
                     updateSignInStatus(true);
                     console.log('✅ 자동 로그인:', currentUser.email);
+                    showToast('✅ ' + currentUser.email + ' 로그인됨');
                 } catch (error) {
                     console.log('❌ 토큰 만료');
                     accessToken = null;
@@ -2266,6 +2267,25 @@
                 }
             }
         }
+        
+        // 다른 탭에서 로그인 시 감지 (localStorage 변경)
+        window.addEventListener('storage', (event) => {
+            if (event.key === 'google_access_token' && event.newValue) {
+                console.log('🔄 다른 탭에서 로그인 감지');
+                checkIfSignedIn();
+            }
+        });
+        
+        // 탭 전환 시 로그인 상태 확인 (모바일 대응)
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible' && !accessToken) {
+                const token = localStorage.getItem('google_access_token');
+                if (token) {
+                    console.log('🔄 탭 복귀 - 로그인 확인');
+                    checkIfSignedIn();
+                }
+            }
+        });
 
         window.handleGoogleSignOut = function() {
             if (accessToken) {

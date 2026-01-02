@@ -58,31 +58,51 @@
         const accessToken = params.get('access_token');
 
         if (accessToken) {
-            // 부모 창(opener)으로 토큰 전달
+            // 1. localStorage에 토큰 저장 (메인 앱에서 감지)
+            localStorage.setItem('google_access_token', accessToken);
+            localStorage.setItem('google_auth_timestamp', Date.now().toString());
+            
+            // 2. 부모 창(opener)이 있으면 메시지 전달
             if (window.opener) {
-                window.opener.postMessage({
-                    type: 'GOOGLE_AUTH',
-                    accessToken: accessToken
-                }, window.location.origin);
-                
-                // 성공 메시지 표시 후 창 닫기
-                document.querySelector('h2').textContent = '✅ 로그인 성공!';
+                try {
+                    window.opener.postMessage({
+                        type: 'GOOGLE_AUTH',
+                        accessToken: accessToken
+                    }, window.location.origin);
+                } catch (e) {
+                    console.log('postMessage 실패:', e);
+                }
+            }
+            
+            // 성공 메시지 표시
+            document.querySelector('h2').textContent = '✅ 로그인 성공!';
+            document.querySelector('.spinner').style.display = 'none';
+            
+            // 팝업이면 닫고, 아니면 메인 앱으로 이동
+            if (window.opener) {
                 document.querySelector('p').textContent = '창이 자동으로 닫힙니다...';
-                
                 setTimeout(() => {
                     window.close();
                 }, 1000);
             } else {
-                document.querySelector('h2').textContent = '❌ 오류';
-                document.querySelector('p').textContent = '팝업 창이 아닙니다';
+                document.querySelector('p').textContent = '앱으로 이동합니다...';
+                setTimeout(() => {
+                    // 메인 앱으로 리다이렉트
+                    window.location.href = window.location.origin + window.location.pathname.replace('oauth-callback.html', '');
+                }, 1000);
             }
         } else {
             // 토큰이 없으면 에러
             document.querySelector('h2').textContent = '❌ 로그인 실패';
             document.querySelector('p').textContent = '다시 시도해주세요';
+            document.querySelector('.spinner').style.display = 'none';
             
             setTimeout(() => {
-                window.close();
+                if (window.opener) {
+                    window.close();
+                } else {
+                    window.location.href = window.location.origin + window.location.pathname.replace('oauth-callback.html', '');
+                }
             }, 2000);
         }
     </script>
