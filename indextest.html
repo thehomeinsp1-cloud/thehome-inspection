@@ -30,7 +30,7 @@
     
     <!-- Google API Client Library -->
     <!-- Google API (광고차단기로 인해 주석 처리) -->
-    <!-- <script src="https://apis.google.com/js/api.js"></script> -->
+    <script src="https://apis.google.com/js/api.js" async defer></script>
     <!-- <script src="https://accounts.google.com/gsi/client" async defer></script> -->
     
     <style>
@@ -2179,8 +2179,28 @@
         let currentPhotoTarget = null;
 
         // ==================== Google API 초기화 ====================
-        function gapiLoaded() {
+        window.gapiLoaded = function() {
             gapi.load('client', initializeGapiClient);
+        }
+
+        async function initializeGapiClient() {
+            try {
+                await gapi.client.init({});
+                // Drive API 로드
+                await gapi.client.load('drive', 'v3');
+                // Sheets API 로드
+                await gapi.client.load('sheets', 'v4');
+                console.log('✅ Google API 클라이언트 초기화 완료');
+                
+                // 저장된 토큰이 있으면 설정
+                const savedToken = localStorage.getItem('google_access_token');
+                if (savedToken) {
+                    gapi.client.setToken({ access_token: savedToken });
+                    console.log('✅ 저장된 토큰으로 gapi 설정 완료');
+                }
+            } catch (error) {
+                console.error('❌ Google API 초기화 오류:', error);
+            }
         }
 
         // ==================== OAuth2 팝업 로그인 ====================
@@ -2230,6 +2250,12 @@
                     accessToken = token;
                     localStorage.setItem('google_access_token', accessToken);
                     console.log('✅ 토큰 저장 완료');
+                    
+                    // gapi 클라이언트에 토큰 설정
+                    if (typeof gapi !== 'undefined' && gapi.client) {
+                        gapi.client.setToken({ access_token: token });
+                        console.log('✅ gapi 토큰 설정 완료');
+                    }
                     
                     // 사용자 정보 가져오기
                     try {
@@ -2282,6 +2308,13 @@
                     if (!response.ok) throw new Error('Token expired');
                     
                     currentUser = await response.json();
+                    
+                    // gapi 클라이언트에 토큰 설정
+                    if (typeof gapi !== 'undefined' && gapi.client) {
+                        gapi.client.setToken({ access_token: token });
+                        console.log('✅ gapi 토큰 설정 완료 (자동 로그인)');
+                    }
+                    
                     updateSignInStatus(true);
                     console.log('✅ 자동 로그인:', currentUser.email);
                 } catch (error) {
@@ -3434,10 +3467,16 @@
         }
 
         // ==================== 초기화 ====================
-        // Google API 로드
-        if (typeof gapi !== 'undefined') {
-            gapiLoaded();
+        // Google API 로드 대기 및 초기화
+        function waitForGapi() {
+            if (typeof gapi !== 'undefined') {
+                window.gapiLoaded();
+            } else {
+                setTimeout(waitForGapi, 100);
+            }
         }
+        waitForGapi();
+        
         if (typeof google !== 'undefined') {
             gisLoaded();
         }
