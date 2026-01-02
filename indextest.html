@@ -2064,8 +2064,8 @@
         // ⚠️ API 키가 GitHub에 노출되어 비활성화되었습니다
         // 다시 사용하려면 새로운 Client ID를 발급받아 설정하세요
         
-        let GOOGLE_CLIENT_ID = localStorage.getItem('google_client_id') || '';
-        const REDIRECT_URI = window.location.origin + window.location.pathname;
+        let GOOGLE_CLIENT_ID = localStorage.getItem('google_client_id') || '412972723395-akfc0j40utujca3ofvbdmmqdlh449do2.apps.googleusercontent.com';
+        const REDIRECT_URI = 'https://thehomeinsp1-cloud.github.io/thehome-inspection/oauth-callback.html';
         const SCOPES = 'https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/spreadsheets';
         
         let accessToken = null;
