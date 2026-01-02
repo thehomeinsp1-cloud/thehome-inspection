@@ -2783,16 +2783,13 @@
             const projectData = project; // 호환성을 위해
 
             try {
-                // 1. 앱 루트 폴더 가져오기/생성
+                // 1. 프로젝트 폴더 생성 (공유드라이브 루트에 바로 생성)
                 showToast('📁 폴더 생성 중...');
-                const appFolderId = await getOrCreateAppFolder();
-                
-                // 2. 프로젝트 폴더 생성
-                const projectName = `${project.inspectionDate}_${project.apartmentName}_${project.dong}_${project.ho}`;
                 const authorName = project.author ? `_${project.author}` : '';
-                const projectFolderId = await createProjectFolder(appFolderId, projectName);
+                const projectName = `${project.apartmentName}_${project.dong}동_${project.ho}호_${project.inspectionDate}${authorName}`;
+                const projectFolderId = await createProjectFolder(SHARED_DRIVE_ID, projectName);
                 
-                // ========== 3. PDF 보고서 생성 ==========
+                // ========== 2. PDF 보고서 생성 ==========
                 showToast('📄 PDF 보고서 생성 중...');
                 
                 const { jsPDF } = window.jspdf;
@@ -2885,9 +2882,9 @@
 
                 // PDF Blob 생성
                 const pdfBlob = doc.output('blob');
-                const pdfFileName = `${projectName}${authorName}_하자점검보고서.pdf`;
+                const pdfFileName = `${projectName}_하자점검보고서.pdf`;
                 
-                // ========== 4. 엑셀 파일 생성 ==========
+                // ========== 3. 엑셀 파일 생성 ==========
                 showToast('📊 엑셀 파일 생성 중...');
                 
                 const workbook = new ExcelJS.Workbook();
@@ -2926,9 +2923,9 @@
                 // 엑셀 Blob 생성
                 const excelBuffer = await workbook.xlsx.writeBuffer();
                 const excelBlob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-                const excelFileName = `${projectName}${authorName}_하자목록.xlsx`;
+                const excelFileName = `${projectName}_하자목록.xlsx`;
                 
-                // ========== 5. 장비점검 보고서 PDF 생성 (장비 데이터가 있을 때만) ==========
+                // ========== 4. 장비점검 보고서 PDF 생성 (장비 데이터가 있을 때만) ==========
                 let equipmentPdfBlob = null;
                 let equipmentPdfFileName = null;
                 
@@ -3001,7 +2998,7 @@
                             }
                             
                             equipmentPdfBlob = equipDoc.output('blob');
-                            equipmentPdfFileName = `${projectName}${authorName}_장비점검보고서.pdf`;
+                            equipmentPdfFileName = `${projectName}_장비점검보고서.pdf`;
                         } catch (equipError) {
                             console.error('장비점검 보고서 생성 오류:', equipError);
                             showToast('⚠️ 장비점검 보고서 생성 실패 - 나머지 업로드 진행', 'warning');
@@ -3009,7 +3006,7 @@
                     }
                 }
                 
-                // ========== 6. 파일들 업로드 ==========
+                // ========== 5. 파일들 업로드 ==========
                 showToast('📤 PDF 업로드 중...');
                 await uploadFileToDrive(projectFolderId, pdfBlob, pdfFileName, 'application/pdf');
                 
@@ -3022,7 +3019,7 @@
                 showToast('📤 엑셀 업로드 중...');
                 await uploadFileToDrive(projectFolderId, excelBlob, excelFileName, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
                 
-                // ========== 7. 사진 업로드 ==========
+                // ========== 6. 사진 업로드 ==========
                 const photosFolderId = await createPhotosFolder(projectFolderId);
                 
                 let photoIndex = 1;
@@ -3043,12 +3040,12 @@
                     }
                 }
                 
-                // 8. 프로젝트 상태 업데이트
+                // 7. 프로젝트 상태 업데이트
                 project.isUploaded = true;
                 project.uploadedAt = new Date().toISOString();
                 project.driveFolderId = projectFolderId;
                 
-                // 9. 로컬 저장
+                // 8. 로컬 저장
                 saveProjectsToLocalStorage();
                 renderProjectList();
                 
