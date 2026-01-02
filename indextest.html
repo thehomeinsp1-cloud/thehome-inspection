@@ -2506,6 +2506,38 @@
             }
         }
 
+        // 일반 파일 업로드 (PDF, 엑셀 등)
+        async function uploadFileToDrive(folderId, blob, fileName, mimeType) {
+            try {
+                const form = new FormData();
+                form.append('metadata', new Blob([JSON.stringify({
+                    name: fileName,
+                    mimeType: mimeType,
+                    parents: [folderId]
+                })], { type: 'application/json' }));
+                form.append('file', blob);
+
+                const response = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&supportsAllDrives=true', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer ' + accessToken
+                    },
+                    body: form
+                });
+
+                if (!response.ok) {
+                    throw new Error(`파일 업로드 실패: ${fileName}`);
+                }
+
+                const result = await response.json();
+                console.log(`✅ 파일 업로드 완료: ${fileName}`);
+                return result.id;
+            } catch (error) {
+                console.error('파일 업로드 오류:', error);
+                throw error;
+            }
+        }
+
         // Google Sheets 생성 (하자 리스트)
 
         async function createDefectSpreadsheet(projectFolderId, projectName, defects) {
@@ -2730,7 +2762,6 @@
             
             // 오프라인 체크
             if (!isOnline) {
-                // 오프라인일 때 로컬 저장
                 try {
                     addToPendingSync(project);
                     showToast('📶 오프라인 - 프로젝트가 저장되었습니다. 온라인 연결 시 동기화하세요.', 'warning');
@@ -2758,24 +2789,169 @@
             }
 
             // projectToUpload가 있으면 동기화 중이므로 confirm 스킵
-            if (!projectToUpload && !confirm(`"${project.apartmentName} ${project.dong} ${project.ho}"를 Google Drive에 업로드하시겠습니까?`)) {
+            if (!projectToUpload && !confirm(`"${project.apartmentName} ${project.dong} ${project.ho}"를 Google Drive에 업로드하시겠습니까?\n\n📄 PDF 보고서\n📊 엑셀 파일\n📷 사진 파일\n\n모든 자료가 업로드됩니다.`)) {
                 return;
             }
 
             showLoading();
+            const projectData = project; // 호환성을 위해
 
             try {
                 // 1. 앱 루트 폴더 가져오기/생성
+                showToast('📁 폴더 생성 중...');
                 const appFolderId = await getOrCreateAppFolder();
                 
                 // 2. 프로젝트 폴더 생성
                 const projectName = `${project.inspectionDate}_${project.apartmentName}_${project.dong}_${project.ho}`;
+                const authorName = project.author ? `_${project.author}` : '';
                 const projectFolderId = await createProjectFolder(appFolderId, projectName);
                 
-                // 3. 하자사진 폴더 생성
+                // ========== 3. PDF 보고서 생성 ==========
+                showToast('📄 PDF 보고서 생성 중...');
+                
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF({
+                    orientation: 'portrait',
+                    unit: 'mm',
+                    format: 'a4'
+                });
+
+                const pageWidth = 210;
+                const pageHeight = 297;
+
+                // PDF 페이지들 생성
+                const firstPageHTML = window.createSummaryFirstPage();
+                await window.addHTMLPageToPDF(doc, firstPageHTML, pageWidth, pageHeight);
+
+                // 하자 목록 페이지
+                if (projectData.defects.length > 0) {
+                    const itemsPerPage = 18;
+                    for (let i = 0; i < projectData.defects.length; i += itemsPerPage) {
+                        doc.addPage();
+                        const listPageHTML = window.createDefectListPage(i, itemsPerPage);
+                        await window.addHTMLPageToPDF(doc, listPageHTML, pageWidth, pageHeight);
+                    }
+                }
+
+                // 하자 상세 사진 페이지
+                if (projectData.defects.length > 0) {
+                    const defectsWithPhotos = projectData.defects.filter(d => d.photos && d.photos.length > 0);
+                    if (defectsWithPhotos.length > 0) {
+                        for (let i = 0; i < defectsWithPhotos.length; i += 3) {
+                            doc.addPage();
+                            const batch = defectsWithPhotos.slice(i, i + 3);
+                            const detailHTML = await window.createDefectDetailPage(batch, i);
+                            await window.addHTMLPageToPDF(doc, detailHTML, pageWidth, pageHeight);
+                        }
+                    }
+                }
+
+                // 장비점검 페이지
+                if (projectData.equipment && projectData.equipment.length > 0) {
+                    const equipmentWithPhotos = projectData.equipment.filter(e => {
+                        if (e.photos && typeof e.photos === 'object') {
+                            return Object.values(e.photos).some(photo => photo !== null);
+                        }
+                        return e.photo;
+                    });
+                    
+                    if (equipmentWithPhotos.length > 0) {
+                        equipmentWithPhotos.forEach((item, i) => item._originalIndex = i + 1);
+                        for (let i = 0; i < equipmentWithPhotos.length; i++) {
+                            doc.addPage();
+                            const equipmentHTML = await window.createEquipmentPage([equipmentWithPhotos[i]]);
+                            await window.addHTMLPageToPDF(doc, equipmentHTML, pageWidth, pageHeight);
+                        }
+                    }
+                }
+
+                // 공기질 페이지
+                const airQualityWithData = projectData.airQuality.filter(room => 
+                    room.radon || room.formaldehyde || room.vocs
+                );
+                if (airQualityWithData.length > 0) {
+                    doc.addPage();
+                    const airQualityHTML = window.createAirQualityDetailPage();
+                    await window.addHTMLPageToPDF(doc, airQualityHTML, pageWidth, pageHeight);
+                }
+
+                // 견적서 페이지
+                doc.addPage();
+                const quotationPage = window.createQuotationPage(projectData.apartmentName, projectData.dong, projectData.ho, projectData.inspectionDate || new Date().toLocaleDateString('ko-KR'));
+                await window.addHTMLPageToPDF(doc, quotationPage, pageWidth, pageHeight);
+
+                // 가이드 페이지들
+                doc.addPage();
+                const serviceGuidePage = window.createServiceGuidePage();
+                await window.addHTMLPageToPDF(doc, serviceGuidePage, pageWidth, pageHeight);
+
+                doc.addPage();
+                const warrantyPage1 = window.createWarrantyGuidePage1();
+                await window.addHTMLPageToPDF(doc, warrantyPage1, pageWidth, pageHeight);
+
+                doc.addPage();
+                const airQualityGuide = window.createAirQualityManagementGuidePage();
+                await window.addHTMLPageToPDF(doc, airQualityGuide, pageWidth, pageHeight);
+
+                doc.addPage();
+                const condensationGuide = window.createCondensationPreventionGuidePage();
+                await window.addHTMLPageToPDF(doc, condensationGuide, pageWidth, pageHeight);
+
+                // PDF Blob 생성
+                const pdfBlob = doc.output('blob');
+                const pdfFileName = `${projectName}${authorName}_하자점검보고서.pdf`;
+                
+                // ========== 4. 엑셀 파일 생성 ==========
+                showToast('📊 엑셀 파일 생성 중...');
+                
+                const workbook = new ExcelJS.Workbook();
+                workbook.creator = '더홈점검';
+                workbook.created = new Date();
+                
+                // 하자목록 시트
+                const defectSheet = workbook.addWorksheet('하자목록');
+                
+                // 헤더
+                defectSheet.columns = [
+                    { header: 'No', key: 'no', width: 8 },
+                    { header: '공간', key: 'space', width: 15 },
+                    { header: '위치', key: 'location', width: 15 },
+                    { header: '하자종류', key: 'type', width: 15 },
+                    { header: '상세설명', key: 'description', width: 40 }
+                ];
+                
+                // 헤더 스타일
+                const headerRow = defectSheet.getRow(1);
+                headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+                headerRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF10B981' } };
+                headerRow.alignment = { vertical: 'middle', horizontal: 'center' };
+                
+                // 데이터 추가
+                projectData.defects.forEach((defect, index) => {
+                    defectSheet.addRow({
+                        no: index + 1,
+                        space: defect.spaces ? defect.spaces.join(', ') : '',
+                        location: defect.locations ? defect.locations.join(', ') : '',
+                        type: defect.types ? defect.types.join(', ') : '',
+                        description: defect.description || ''
+                    });
+                });
+                
+                // 엑셀 Blob 생성
+                const excelBuffer = await workbook.xlsx.writeBuffer();
+                const excelBlob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+                const excelFileName = `${projectName}${authorName}_하자목록.xlsx`;
+                
+                // ========== 5. 파일들 업로드 ==========
+                showToast('📤 PDF 업로드 중...');
+                await uploadFileToDrive(projectFolderId, pdfBlob, pdfFileName, 'application/pdf');
+                
+                showToast('📤 엑셀 업로드 중...');
+                await uploadFileToDrive(projectFolderId, excelBlob, excelFileName, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+                
+                // ========== 6. 사진 업로드 ==========
                 const photosFolderId = await createPhotosFolder(projectFolderId);
                 
-                // 4. 사진 업로드 (찍은 순서대로 1.jpg, 2.jpg...)
                 let photoIndex = 1;
                 const totalPhotos = project.defects.reduce((sum, defect) => {
                     if (!defect.photos) return sum;
@@ -2786,18 +2962,13 @@
                     if (defect.photos && defect.photos.length > 0) {
                         for (const photo of defect.photos) {
                             if (photo !== null) {
+                                showToast(`📷 사진 업로드 중... (${photoIndex}/${totalPhotos})`);
                                 await uploadPhoto(photosFolderId, photo, `${photoIndex}.jpg`);
                                 photoIndex++;
                             }
                         }
                     }
                 }
-                
-                // 5. 하자 리스트 스프레드시트 생성
-                await createDefectSpreadsheet(projectFolderId, projectName, project.defects);
-                
-                // 6. 프로젝트 정보 JSON 업로드
-                await uploadProjectInfo(projectFolderId, project);
                 
                 // 7. 프로젝트 상태 업데이트
                 project.isUploaded = true;
@@ -2809,17 +2980,17 @@
                 renderProjectList();
                 
                 hideLoading();
-                showToast(`✅ 업로드 완료! (사진 ${totalPhotos}장)`);
+                showToast(`✅ 업로드 완료!`);
                 
                 // 동기화 중이 아닐 때만 alert 표시
                 if (!projectToUpload) {
-                    alert(`✅ 업로드 완료!\n\n프로젝트: ${projectName}\n사진: ${totalPhotos}장\n하자: ${project.defects.length}개\n\nGoogle Drive에서 확인하세요!`);
+                    alert(`✅ 업로드 완료!\n\n프로젝트: ${projectName}\n📄 PDF 보고서\n📊 엑셀 파일\n📷 사진 ${totalPhotos}장\n\nGoogle Drive에서 확인하세요!`);
                 }
                 
             } catch (error) {
                 console.error('업로드 오류:', error);
                 hideLoading();
-                alert('업로드 중 오류가 발생했습니다:\n' + error.message);
+                alert('업로드 중 오류가 발생했습니다:\n' + (error.message || error || '알 수 없는 오류'));
             }
         }
 
