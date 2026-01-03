@@ -1150,8 +1150,8 @@
                     </div>
 
                     <div class="form-field">
-                        <label class="form-label">점검 작성자</label>
-                        <input type="text" class="form-input" id="author" placeholder="작성자 이름" oninput="autoSaveProjectData()">
+                        <label class="form-label">점검 작성자 <span style="color: #ef4444;">*필수</span></label>
+                        <input type="text" class="form-input" id="author" placeholder="작성자 이름 (필수)" oninput="autoSaveProjectData()">
                     </div>
                 </div>
 
@@ -2768,6 +2768,12 @@
                 alert('프로젝트 정보(아파트명, 동, 호)를 먼저 입력해주세요');
                 return;
             }
+            
+            // 점검자명 필수 확인
+            if (!project.author || project.author.trim() === '') {
+                alert('⚠️ 점검 작성자를 입력해주세요.\n\n프로젝트 탭에서 작성자 이름을 입력해주세요.');
+                return;
+            }
 
             if (project.defects.length === 0) {
                 alert('최소 1개 이상의 하자를 등록해주세요');
@@ -2785,8 +2791,7 @@
             try {
                 // 1. 프로젝트 폴더 생성 (공유드라이브 루트에 바로 생성)
                 showToast('📁 폴더 생성 중...');
-                const authorName = project.author ? `_${project.author}` : '';
-                const projectName = `${project.apartmentName}_${project.dong}동_${project.ho}호_${project.inspectionDate}${authorName}`;
+                const projectName = `${project.apartmentName}_${project.dong}동_${project.ho}호_${project.inspectionDate}_${project.author}`;
                 const projectFolderId = await createProjectFolder(SHARED_DRIVE_ID, projectName);
                 
                 // ========== 2. PDF 보고서 생성 ==========
@@ -3022,19 +3027,23 @@
                 // ========== 6. 사진 업로드 ==========
                 const photosFolderId = await createPhotosFolder(projectFolderId);
                 
-                let photoIndex = 1;
                 const totalPhotos = project.defects.reduce((sum, defect) => {
                     if (!defect.photos) return sum;
                     return sum + defect.photos.filter(p => p !== null).length;
                 }, 0);
                 
-                for (const defect of project.defects) {
+                let uploadedCount = 0;
+                for (let defectIndex = 0; defectIndex < project.defects.length; defectIndex++) {
+                    const defect = project.defects[defectIndex];
                     if (defect.photos && defect.photos.length > 0) {
+                        let photoNum = 1;
                         for (const photo of defect.photos) {
                             if (photo !== null) {
-                                showToast(`📷 사진 업로드 중... (${photoIndex}/${totalPhotos})`);
-                                await uploadPhoto(photosFolderId, photo, `${photoIndex}.jpg`);
-                                photoIndex++;
+                                uploadedCount++;
+                                showToast(`📷 사진 업로드 중... (${uploadedCount}/${totalPhotos})`);
+                                // 파일명: 하자번호-사진번호.jpg (예: 1-1.jpg, 1-2.jpg, 2-1.jpg...)
+                                await uploadPhoto(photosFolderId, photo, `${defectIndex + 1}-${photoNum}.jpg`);
+                                photoNum++;
                             }
                         }
                     }
