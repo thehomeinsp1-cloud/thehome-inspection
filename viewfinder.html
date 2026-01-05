@@ -4882,7 +4882,7 @@
             <!-- Step 1: 업로드 시작 -->
             <div class="modal-body" style="padding: 20px;" id="emailStep1">
                 <p style="margin: 0 0 16px 0; font-size: 14px; color: var(--text-muted); line-height: 1.6;">
-                    전체 자료(PDF+엑셀+사진)를 Google Drive에 업로드하고<br>뷰파인더에 하자접수 대행을 요청합니다.
+                    전체 자료(PDF+엑셀+사진)를 클라우드에 업로드하고<br>뷰파인더에 하자접수 대행을 요청합니다.
                 </p>
                 
                 <!-- 메인 수신자: 뷰파인더 -->
@@ -4912,7 +4912,7 @@
                 </button>
                 
                 <div style="margin-top: 16px; padding: 12px; background: var(--card-bg); border-radius: 8px; font-size: 11px; color: var(--text-muted); line-height: 1.6;">
-                    💡 Google Drive에 업로드 → 다운로드 링크 자동 생성 → 이메일 전송
+                    💡 클라우드에 업로드 → 다운로드 링크 자동 생성 → 이메일 전송
                 </div>
             </div>
             
@@ -4929,7 +4929,7 @@
                 </button>
                 
                 <div style="margin-top: 16px; padding: 14px; background: var(--card-bg); border-radius: 10px;">
-                    <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;">📎 Google Drive 링크</div>
+                    <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;">📎 클라우드 링크</div>
                     <div style="font-size: 13px; color: var(--accent); word-break: break-all;" id="driveLink">-</div>
                 </div>
                 
@@ -5740,105 +5740,31 @@
         }
 
         // ==================== Cloudflare R2 업로드 기능 ====================
-        const R2_CONFIG = {
-            accountId: 'eea4f44fd1942c901852bc1e7fda19f4',
-            bucketName: 'viewfinder-uploads',
-            publicUrl: 'https://pub-eea4f44fd1942c901852bc1e7fda19f4.r2.dev',
-            accessKeyId: '82b237907d0aafadcf974924e12dddf2',
-            secretAccessKey: '9e6be503940404bdbe6e89f93a2849cedd1bb6f31884c22b9ca8b4a3236bac69'
-        };
+        const WORKER_URL = 'https://viewfinder-upload.foxclubs.workers.dev';
+        const R2_PUBLIC_URL = 'https://pub-eea4f44fd1942c901852bc1e7fda19f4.r2.dev';
         
-        // R2에 파일 업로드
+        // R2에 파일 업로드 (Worker 경유)
         async function uploadToR2(blob, filename) {
-            const timestamp = Date.now();
-            const uniqueFilename = `${timestamp}_${filename}`;
+            const formData = new FormData();
+            formData.append('file', blob);
+            formData.append('filename', filename);
             
-            // AWS Signature V4 생성
-            const encoder = new TextEncoder();
-            
-            async function hmacSha256(key, message) {
-                const cryptoKey = await crypto.subtle.importKey(
-                    'raw', key, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']
-                );
-                const signature = await crypto.subtle.sign('HMAC', cryptoKey, encoder.encode(message));
-                return new Uint8Array(signature);
-            }
-            
-            async function sha256(message) {
-                const hash = await crypto.subtle.digest('SHA-256', encoder.encode(message));
-                return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
-            }
-            
-            function toHex(buffer) {
-                return Array.from(buffer).map(b => b.toString(16).padStart(2, '0')).join('');
-            }
-            
-            const now = new Date();
-            const amzDate = now.toISOString().replace(/[:-]|\.\d{3}/g, '');
-            const dateStamp = amzDate.slice(0, 8);
-            const region = 'auto';
-            const service = 's3';
-            
-            const host = `${R2_CONFIG.accountId}.r2.cloudflarestorage.com`;
-            const endpoint = `https://${host}/${R2_CONFIG.bucketName}/${uniqueFilename}`;
-            
-            // Payload hash
-            const payloadArray = await blob.arrayBuffer();
-            const payloadHash = await crypto.subtle.digest('SHA-256', payloadArray);
-            const payloadHashHex = Array.from(new Uint8Array(payloadHash)).map(b => b.toString(16).padStart(2, '0')).join('');
-            
-            // Canonical request
-            const method = 'PUT';
-            const canonicalUri = `/${R2_CONFIG.bucketName}/${uniqueFilename}`;
-            const canonicalQueryString = '';
-            const canonicalHeaders = `content-type:${blob.type}\nhost:${host}\nx-amz-content-sha256:${payloadHashHex}\nx-amz-date:${amzDate}\n`;
-            const signedHeaders = 'content-type;host;x-amz-content-sha256;x-amz-date';
-            const canonicalRequest = `${method}\n${canonicalUri}\n${canonicalQueryString}\n${canonicalHeaders}\n${signedHeaders}\n${payloadHashHex}`;
-            
-            // String to sign
-            const algorithm = 'AWS4-HMAC-SHA256';
-            const credentialScope = `${dateStamp}/${region}/${service}/aws4_request`;
-            const canonicalRequestHash = await sha256(canonicalRequest);
-            const stringToSign = `${algorithm}\n${amzDate}\n${credentialScope}\n${canonicalRequestHash}`;
-            
-            // Signing key
-            let signingKey = encoder.encode(`AWS4${R2_CONFIG.secretAccessKey}`);
-            signingKey = await hmacSha256(signingKey, dateStamp);
-            signingKey = await hmacSha256(signingKey, region);
-            signingKey = await hmacSha256(signingKey, service);
-            signingKey = await hmacSha256(signingKey, 'aws4_request');
-            
-            // Signature
-            const signature = toHex(await hmacSha256(signingKey, stringToSign));
-            
-            // Authorization header
-            const authorization = `${algorithm} Credential=${R2_CONFIG.accessKeyId}/${credentialScope}, SignedHeaders=${signedHeaders}, Signature=${signature}`;
-            
-            // Upload
-            const response = await fetch(endpoint, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': blob.type,
-                    'Host': host,
-                    'X-Amz-Date': amzDate,
-                    'X-Amz-Content-Sha256': payloadHashHex,
-                    'Authorization': authorization
-                },
-                body: blob
+            const response = await fetch(WORKER_URL, {
+                method: 'POST',
+                body: formData
             });
             
             if (!response.ok) {
                 const errorText = await response.text();
-                console.error('R2 Upload Error:', errorText);
+                console.error('Upload Error:', errorText);
                 throw new Error('업로드 실패: ' + response.status);
             }
             
-            // 공개 URL 반환
-            const publicDownloadUrl = `${R2_CONFIG.publicUrl}/${uniqueFilename}`;
+            const result = await response.json();
             
             return {
-                fileName: uniqueFilename,
-                downloadUrl: publicDownloadUrl
+                fileName: result.filename,
+                downloadUrl: result.url
             };
         }
 
@@ -5889,7 +5815,7 @@
             return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
         }
         
-        // Google Drive 업로드 후 이메일 전송
+        // 클라우드 업로드 후 이메일 전송
         async function uploadAndSendEmail() {
             const additionalEmail = document.getElementById('recipientEmail').value.trim();
             
@@ -6015,7 +5941,7 @@
                 
                 document.getElementById('emailSendModal').classList.add('active');
                 
-                showToast('Google Drive 업로드 완료!');
+                showToast('클라우드 업로드 완료!');
                 
             } catch (error) {
                 console.error('업로드 오류:', error);
