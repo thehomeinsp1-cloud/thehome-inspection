@@ -1093,7 +1093,7 @@
         </button>
         
         <h1>🏠 더홈점검</h1>
-        <p>하자관리 시스템 v3.5 (사진 2장 촬영)</p>
+        <p>하자관리 시스템 v3.6 (사진 2장 촬영)</p>
         <div class="progress-bar">
             <div class="progress-fill" id="progressBar"></div>
         </div>
@@ -2913,15 +2913,56 @@
                 workbook.creator = '더홈점검';
                 workbook.created = new Date();
                 
-                // 하자목록 시트
+                // ===== 표지 시트 =====
+                const coverSheet = workbook.addWorksheet('표지');
+                coverSheet.getColumn('A').width = 25;
+                coverSheet.getColumn('B').width = 35;
+                
+                // 제목
+                coverSheet.mergeCells('A1:B1');
+                const titleCell = coverSheet.getCell('A1');
+                titleCell.value = '하자점검 리스트';
+                titleCell.font = { size: 20, bold: true, color: { argb: 'FF10B981' } };
+                titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
+                coverSheet.getRow(1).height = 40;
+                
+                // 프로젝트 정보 섹션
+                coverSheet.getCell('A5').value = '[ 프로젝트 정보 ]';
+                coverSheet.getCell('A5').font = { bold: true, size: 12 };
+                
+                const infoData = [
+                    ['아파트명', projectData.apartmentName || ''],
+                    ['동 / 호수', `${projectData.dong || ''} / ${projectData.ho || ''}`],
+                    ['점검일자', projectData.inspectionDate || ''],
+                    ['점검자', projectData.author || ''],
+                    ['연락처', projectData.customerPhone || '']
+                ];
+                
+                infoData.forEach((row, idx) => {
+                    const rowNum = 6 + idx;
+                    coverSheet.getCell(`A${rowNum}`).value = row[0];
+                    coverSheet.getCell(`A${rowNum}`).font = { bold: true };
+                    coverSheet.getCell(`B${rowNum}`).value = row[1];
+                });
+                
+                // 하자 현황 섹션
+                coverSheet.getCell('A12').value = '[ 하자 현황 ]';
+                coverSheet.getCell('A12').font = { bold: true, size: 12 };
+                
+                coverSheet.getCell('A13').value = '총 하자 건수';
+                coverSheet.getCell('A13').font = { bold: true };
+                coverSheet.getCell('B13').value = `${projectData.defects.length} 건`;
+                coverSheet.getCell('B13').font = { bold: true, color: { argb: 'FF10B981' } };
+                
+                // ===== 하자목록 시트 =====
                 const defectSheet = workbook.addWorksheet('하자목록');
                 
                 // 헤더
                 defectSheet.columns = [
-                    { header: 'No', key: 'no', width: 8 },
-                    { header: '공간', key: 'space', width: 15 },
+                    { header: '번호', key: 'no', width: 7 },
+                    { header: '공간', key: 'space', width: 12 },
                     { header: '위치', key: 'location', width: 15 },
-                    { header: '하자종류', key: 'type', width: 15 },
+                    { header: '하자내용', key: 'type', width: 18 },
                     { header: '상세설명', key: 'description', width: 40 }
                 ];
                 
@@ -2930,6 +2971,7 @@
                 headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
                 headerRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF10B981' } };
                 headerRow.alignment = { vertical: 'middle', horizontal: 'center' };
+                headerRow.height = 25;
                 
                 // 데이터 추가
                 projectData.defects.forEach((defect, index) => {
@@ -5998,393 +6040,83 @@
                 const workbook = new ExcelJS.Workbook();
                 workbook.creator = '더홈점검';
                 workbook.created = new Date();
-                workbook.modified = new Date();
-                workbook.lastModifiedBy = '더홈점검';
-                workbook.calcProperties = { fullCalcOnLoad: true };
                 
-                // ==================== 시트1: 표지 (전문적 디자인) ====================
-                const coverSheet = workbook.addWorksheet('표지', {
-                    pageSetup: {
-                        paperSize: 9, // A4
-                        orientation: 'portrait',
-                        fitToPage: true,
-                        fitToWidth: 1,
-                        fitToHeight: 0,
-                        margins: {
-                            left: 0.7, right: 0.7,
-                            top: 0.75, bottom: 0.75,
-                            header: 0.3, footer: 0.3
-                        }
-                    }
-                });
+                // ===== 표지 시트 =====
+                const coverSheet = workbook.addWorksheet('표지');
+                coverSheet.getColumn('A').width = 25;
+                coverSheet.getColumn('B').width = 35;
                 
-                coverSheet.getColumn(1).width = 25;
-                coverSheet.getColumn(2).width = 35;
-                
-                // 로고/타이틀 영역 (1~3행)
-                coverSheet.mergeCells('A1:B3');
+                // 제목
+                coverSheet.mergeCells('A1:B1');
                 const titleCell = coverSheet.getCell('A1');
                 titleCell.value = '하자점검 리스트';
-                titleCell.font = { 
-                    name: '맑은 고딕', 
-                    size: 32, 
-                    bold: true,
-                    color: { argb: 'FF1F2937' }
-                };
-                titleCell.alignment = { 
-                    vertical: 'middle', 
-                    horizontal: 'center' 
-                };
-                titleCell.fill = {
-                    type: 'pattern',
-                    pattern: 'solid',
-                    fgColor: { argb: 'FFF3F4F6' }
-                };
-                titleCell.border = {
-                    top: { style: 'thick', color: { argb: 'FF10B981' } },
-                    left: { style: 'thick', color: { argb: 'FF10B981' } },
-                    right: { style: 'thick', color: { argb: 'FF10B981' } },
-                    bottom: { style: 'medium', color: { argb: 'FF10B981' } }
-                };
-                coverSheet.getRow(1).height = 35;
-                coverSheet.getRow(2).height = 35;
-                coverSheet.getRow(3).height = 35;
+                titleCell.font = { size: 20, bold: true, color: { argb: 'FF10B981' } };
+                titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
+                coverSheet.getRow(1).height = 40;
                 
-                // 빈 줄
-                coverSheet.getRow(4).height = 20;
+                // 프로젝트 정보 섹션
+                coverSheet.getCell('A5').value = '[ 프로젝트 정보 ]';
+                coverSheet.getCell('A5').font = { bold: true, size: 12 };
                 
-                // 부제목 (5행)
-                coverSheet.mergeCells('A5:B5');
-                const subtitleCell = coverSheet.getCell('A5');
-                subtitleCell.value = '[ 프로젝트 정보 ]';
-                subtitleCell.font = { 
-                    name: '맑은 고딕', 
-                    size: 14, 
-                    bold: true,
-                    color: { argb: 'FF10B981' }
-                };
-                subtitleCell.alignment = { 
-                    vertical: 'middle', 
-                    horizontal: 'left' 
-                };
-                coverSheet.getRow(5).height = 25;
-                
-                // 프로젝트 정보 (6행~)
-                const projectInfo = [
+                const infoData = [
                     ['아파트명', projectData.apartmentName || ''],
                     ['동 / 호수', `${projectData.dong || ''} / ${projectData.ho || ''}`],
                     ['점검일자', projectData.inspectionDate || ''],
-                    ['점검자 (계약자)', projectData.inspector || ''],
-                    ['연락처', projectData.phone || '']
+                    ['점검자', projectData.author || ''],
+                    ['연락처', projectData.customerPhone || '']
                 ];
                 
-                projectInfo.forEach((rowData, index) => {
-                    const rowNum = 6 + index;
-                    const row = coverSheet.getRow(rowNum);
-                    row.height = 28;
-                    
-                    // A열 (라벨)
-                    const cellA = row.getCell(1);
-                    cellA.value = rowData[0];
-                    cellA.font = { 
-                        name: '맑은 고딕', 
-                        bold: true, 
-                        size: 12,
-                        color: { argb: 'FFFFFFFF' }
-                    };
-                    cellA.fill = {
-                        type: 'pattern',
-                        pattern: 'solid',
-                        fgColor: { argb: 'FF059669' }
-                    };
-                    cellA.border = {
-                        top: { style: 'thin', color: { argb: 'FFCCCCCC' } },
-                        left: { style: 'thin', color: { argb: 'FFCCCCCC' } },
-                        bottom: { style: 'thin', color: { argb: 'FFCCCCCC' } },
-                        right: { style: 'thin', color: { argb: 'FFCCCCCC' } }
-                    };
-                    cellA.alignment = { 
-                        vertical: 'middle', 
-                        horizontal: 'center' 
-                    };
-                    
-                    // B열 (값)
-                    const cellB = row.getCell(2);
-                    cellB.value = rowData[1];
-                    cellB.font = { 
-                        name: '맑은 고딕', 
-                        size: 12,
-                        color: { argb: 'FF1F2937' }
-                    };
-                    cellB.fill = {
-                        type: 'pattern',
-                        pattern: 'solid',
-                        fgColor: { argb: 'FFFFFFFF' }
-                    };
-                    cellB.border = {
-                        top: { style: 'thin', color: { argb: 'FFCCCCCC' } },
-                        left: { style: 'thin', color: { argb: 'FFCCCCCC' } },
-                        bottom: { style: 'thin', color: { argb: 'FFCCCCCC' } },
-                        right: { style: 'thin', color: { argb: 'FFCCCCCC' } }
-                    };
-                    cellB.alignment = { 
-                        vertical: 'middle', 
-                        horizontal: 'left',
-                        indent: 1
-                    };
+                infoData.forEach((row, idx) => {
+                    const rowNum = 6 + idx;
+                    coverSheet.getCell(`A${rowNum}`).value = row[0];
+                    coverSheet.getCell(`A${rowNum}`).font = { bold: true };
+                    coverSheet.getCell(`B${rowNum}`).value = row[1];
                 });
                 
-                // 빈 줄
-                coverSheet.getRow(11).height = 20;
+                // 하자 현황 섹션
+                coverSheet.getCell('A12').value = '[ 하자 현황 ]';
+                coverSheet.getCell('A12').font = { bold: true, size: 12 };
                 
-                // 하자 요약 (12행)
-                coverSheet.mergeCells('A12:B12');
-                const summaryCell = coverSheet.getCell('A12');
-                summaryCell.value = '[ 하자 현황 ]';
-                summaryCell.font = { 
-                    name: '맑은 고딕', 
-                    size: 14, 
-                    bold: true,
-                    color: { argb: 'FF10B981' }
-                };
-                summaryCell.alignment = { 
-                    vertical: 'middle', 
-                    horizontal: 'left' 
-                };
-                coverSheet.getRow(12).height = 25;
+                coverSheet.getCell('A13').value = '총 하자 건수';
+                coverSheet.getCell('A13').font = { bold: true };
+                coverSheet.getCell('B13').value = `${projectData.defects.length} 건`;
+                coverSheet.getCell('B13').font = { bold: true, color: { argb: 'FF10B981' } };
                 
-                // 하자 건수 (13행)
-                const defectCountRow = coverSheet.getRow(13);
-                defectCountRow.height = 35;
-                
-                const countLabelCell = defectCountRow.getCell(1);
-                countLabelCell.value = '총 하자 건수';
-                countLabelCell.font = { 
-                    name: '맑은 고딕', 
-                    bold: true, 
-                    size: 13,
-                    color: { argb: 'FFFFFFFF' }
-                };
-                countLabelCell.fill = {
-                    type: 'pattern',
-                    pattern: 'solid',
-                    fgColor: { argb: 'FF059669' }
-                };
-                countLabelCell.border = {
-                    top: { style: 'thin', color: { argb: 'FFCCCCCC' } },
-                    left: { style: 'thin', color: { argb: 'FFCCCCCC' } },
-                    bottom: { style: 'thin', color: { argb: 'FFCCCCCC' } },
-                    right: { style: 'thin', color: { argb: 'FFCCCCCC' } }
-                };
-                countLabelCell.alignment = { 
-                    vertical: 'middle', 
-                    horizontal: 'center' 
-                };
-                
-                const countValueCell = defectCountRow.getCell(2);
-                countValueCell.value = `${projectData.defects.length} 건`;
-                countValueCell.font = { 
-                    name: '맑은 고딕', 
-                    size: 18,
-                    bold: true,
-                    color: { argb: 'FFEF4444' }
-                };
-                countValueCell.fill = {
-                    type: 'pattern',
-                    pattern: 'solid',
-                    fgColor: { argb: 'FFFEF2F2' }
-                };
-                countValueCell.border = {
-                    top: { style: 'thin', color: { argb: 'FFCCCCCC' } },
-                    left: { style: 'thin', color: { argb: 'FFCCCCCC' } },
-                    bottom: { style: 'thin', color: { argb: 'FFCCCCCC' } },
-                    right: { style: 'thin', color: { argb: 'FFCCCCCC' } }
-                };
-                countValueCell.alignment = { 
-                    vertical: 'middle', 
-                    horizontal: 'center' 
-                };
-                
-                // 빈 줄들
-                for (let i = 14; i <= 20; i++) {
-                    coverSheet.getRow(i).height = 15;
-                }
-                
-                // 서명란 (21행)
-                coverSheet.mergeCells('A21:B21');
-                const signCell = coverSheet.getCell('A21');
-                signCell.value = '작성자:  _______________     (인)';
-                signCell.font = { 
-                    name: '맑은 고딕', 
-                    size: 12,
-                    color: { argb: 'FF6B7280' }
-                };
-                signCell.alignment = { 
-                    vertical: 'middle', 
-                    horizontal: 'right' 
-                };
-                coverSheet.getRow(21).height = 30;
-                
-                // 하단 로고/날짜 (22행)
-                coverSheet.mergeCells('A22:B22');
-                const footerCell = coverSheet.getCell('A22');
-                footerCell.value = `Generated by 더홈점검 | ${new Date().toLocaleDateString('ko-KR')}`;
-                footerCell.font = { 
-                    name: '맑은 고딕', 
-                    size: 9,
-                    italic: true,
-                    color: { argb: 'FF9CA3AF' }
-                };
-                footerCell.alignment = { 
-                    vertical: 'middle', 
-                    horizontal: 'center' 
-                };
-                coverSheet.getRow(22).height = 20;
-                
-                // ==================== 시트2: 하자목록 ====================
-                const detailSheet = workbook.addWorksheet('하자목록', {
-                    pageSetup: {
-                        paperSize: 9, // A4
-                        orientation: 'portrait',
-                        fitToPage: true,
-                        fitToWidth: 1,
-                        fitToHeight: 0,
-                        margins: {
-                            left: 0.7, right: 0.7,
-                            top: 0.75, bottom: 0.75,
-                            header: 0.3, footer: 0.3
-                        }
-                    }
-                });
+                // ===== 하자목록 시트 =====
+                const detailSheet = workbook.addWorksheet('하자목록');
                 
                 // 컬럼 너비 설정
                 detailSheet.getColumn(1).width = 7;   // 번호
                 detailSheet.getColumn(2).width = 12;  // 공간
                 detailSheet.getColumn(3).width = 15;  // 위치
-                detailSheet.getColumn(4).width = 15;  // 하자내용
+                detailSheet.getColumn(4).width = 18;  // 하자내용
                 detailSheet.getColumn(5).width = 40;  // 상세설명
                 
                 // 헤더 행
                 const headerRow = detailSheet.getRow(1);
-                headerRow.height = 30;
+                headerRow.height = 25;
                 
                 const headers = ['번호', '공간', '위치', '하자내용', '상세설명'];
                 headers.forEach((header, index) => {
                     const cell = headerRow.getCell(index + 1);
                     cell.value = header;
-                    cell.font = { 
-                        name: '맑은 고딕', 
-                        bold: true, 
-                        size: 12, 
-                        color: { argb: 'FFFFFFFF' } 
-                    };
-                    cell.alignment = { 
-                        vertical: 'middle', 
-                        horizontal: 'center', 
-                        wrapText: true 
-                    };
+                    cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+                    cell.alignment = { vertical: 'middle', horizontal: 'center' };
                     cell.fill = {
                         type: 'pattern',
                         pattern: 'solid',
-                        fgColor: { argb: 'FF059669' }
-                    };
-                    cell.border = {
-                        top: { style: 'medium', color: { argb: 'FF000000' } },
-                        left: { style: 'medium', color: { argb: 'FF000000' } },
-                        bottom: { style: 'medium', color: { argb: 'FF000000' } },
-                        right: { style: 'medium', color: { argb: 'FF000000' } }
+                        fgColor: { argb: 'FF10B981' }
                     };
                 });
                 
-                // 하자 데이터 행 (수정: addRow 대신 getRow 사용)
+                // 하자 데이터 행
                 projectData.defects.forEach((defect, index) => {
                     const row = detailSheet.getRow(index + 2);
-                    row.height = 40;
-                    
-                    // 번호
-                    const cell1 = row.getCell(1);
-                    cell1.value = index + 1;
-                    cell1.font = { name: '맑은 고딕', size: 11, bold: true };
-                    cell1.alignment = { vertical: 'middle', horizontal: 'center' };
-                    cell1.fill = {
-                        type: 'pattern',
-                        pattern: 'solid',
-                        fgColor: { argb: index % 2 === 0 ? 'FFFFFFFF' : 'FFF9FAFB' }
-                    };
-                    cell1.border = {
-                        top: { style: 'thin', color: { argb: 'FFD1D5DB' } },
-                        left: { style: 'medium', color: { argb: 'FF6B7280' } },
-                        bottom: { style: 'thin', color: { argb: 'FFD1D5DB' } },
-                        right: { style: 'thin', color: { argb: 'FFD1D5DB' } }
-                    };
-                    
-                    // 공간 (배열에서 가져오기)
-                    const cell2 = row.getCell(2);
-                    cell2.value = (defect.spaces && defect.spaces.length > 0) ? defect.spaces.join(', ') : '';
-                    cell2.font = { name: '맑은 고딕', size: 11 };
-                    cell2.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
-                    cell2.fill = {
-                        type: 'pattern',
-                        pattern: 'solid',
-                        fgColor: { argb: index % 2 === 0 ? 'FFFFFFFF' : 'FFF9FAFB' }
-                    };
-                    cell2.border = {
-                        top: { style: 'thin', color: { argb: 'FFD1D5DB' } },
-                        left: { style: 'thin', color: { argb: 'FFD1D5DB' } },
-                        bottom: { style: 'thin', color: { argb: 'FFD1D5DB' } },
-                        right: { style: 'thin', color: { argb: 'FFD1D5DB' } }
-                    };
-                    
-                    // 위치 (배열에서 가져오기)
-                    const cell3 = row.getCell(3);
-                    cell3.value = (defect.locations && defect.locations.length > 0) ? defect.locations.join(', ') : '';
-                    cell3.font = { name: '맑은 고딕', size: 11 };
-                    cell3.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
-                    cell3.fill = {
-                        type: 'pattern',
-                        pattern: 'solid',
-                        fgColor: { argb: index % 2 === 0 ? 'FFFFFFFF' : 'FFF9FAFB' }
-                    };
-                    cell3.border = {
-                        top: { style: 'thin', color: { argb: 'FFD1D5DB' } },
-                        left: { style: 'thin', color: { argb: 'FFD1D5DB' } },
-                        bottom: { style: 'thin', color: { argb: 'FFD1D5DB' } },
-                        right: { style: 'thin', color: { argb: 'FFD1D5DB' } }
-                    };
-                    
-                    // 하자내용 (배열에서 가져오기)
-                    const cell4 = row.getCell(4);
-                    cell4.value = (defect.types && defect.types.length > 0) ? defect.types.join(', ') : '';
-                    cell4.font = { name: '맑은 고딕', size: 11 };
-                    cell4.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
-                    cell4.fill = {
-                        type: 'pattern',
-                        pattern: 'solid',
-                        fgColor: { argb: index % 2 === 0 ? 'FFFFFFFF' : 'FFF9FAFB' }
-                    };
-                    cell4.border = {
-                        top: { style: 'thin', color: { argb: 'FFD1D5DB' } },
-                        left: { style: 'thin', color: { argb: 'FFD1D5DB' } },
-                        bottom: { style: 'thin', color: { argb: 'FFD1D5DB' } },
-                        right: { style: 'thin', color: { argb: 'FFD1D5DB' } }
-                    };
-                    
-                    // 상세설명
-                    const cell5 = row.getCell(5);
-                    cell5.value = defect.description || '';
-                    cell5.font = { name: '맑은 고딕', size: 10 };
-                    cell5.alignment = { vertical: 'top', horizontal: 'left', wrapText: true, indent: 1 };
-                    cell5.fill = {
-                        type: 'pattern',
-                        pattern: 'solid',
-                        fgColor: { argb: index % 2 === 0 ? 'FFFFFFFF' : 'FFF9FAFB' }
-                    };
-                    cell5.border = {
-                        top: { style: 'thin', color: { argb: 'FFD1D5DB' } },
-                        left: { style: 'thin', color: { argb: 'FFD1D5DB' } },
-                        bottom: { style: 'thin', color: { argb: 'FFD1D5DB' } },
-                        right: { style: 'medium', color: { argb: 'FF6B7280' } }
-                    };
+                    row.getCell(1).value = index + 1;
+                    row.getCell(2).value = (defect.spaces && defect.spaces.length > 0) ? defect.spaces.join(', ') : '';
+                    row.getCell(3).value = (defect.locations && defect.locations.length > 0) ? defect.locations.join(', ') : '';
+                    row.getCell(4).value = (defect.types && defect.types.length > 0) ? defect.types.join(', ') : '';
+                    row.getCell(5).value = defect.description || '';
                 });
                 
                 // 엑셀 파일을 ZIP에 추가
@@ -6522,257 +6254,83 @@
                 const workbook = new ExcelJS.Workbook();
                 workbook.creator = '더홈점검';
                 workbook.created = new Date();
-                workbook.modified = new Date();
-                workbook.lastModifiedBy = '더홈점검';
-                workbook.calcProperties = { fullCalcOnLoad: true };
                 
-                // === 동일한 코드 재사용 (통합 다운로드와 동일) ===
-                // 표지 시트
-                const coverSheet = workbook.addWorksheet('표지', {
-                    pageSetup: {
-                        paperSize: 9,
-                        orientation: 'portrait',
-                        fitToPage: true,
-                        fitToWidth: 1,
-                        fitToHeight: 0,
-                        margins: {
-                            left: 0.7, right: 0.7,
-                            top: 0.75, bottom: 0.75,
-                            header: 0.3, footer: 0.3
-                        }
-                    }
-                });
+                // ===== 표지 시트 =====
+                const coverSheet = workbook.addWorksheet('표지');
+                coverSheet.getColumn('A').width = 25;
+                coverSheet.getColumn('B').width = 35;
                 
-                coverSheet.getColumn(1).width = 25;
-                coverSheet.getColumn(2).width = 35;
-                
-                // 타이틀
-                coverSheet.mergeCells('A1:B3');
+                // 제목
+                coverSheet.mergeCells('A1:B1');
                 const titleCell = coverSheet.getCell('A1');
                 titleCell.value = '하자점검 리스트';
-                titleCell.font = { name: '맑은 고딕', size: 32, bold: true, color: { argb: 'FF1F2937' } };
-                titleCell.alignment = { vertical: 'middle', horizontal: 'center' };
-                titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF3F4F6' } };
-                titleCell.border = {
-                    top: { style: 'thick', color: { argb: 'FF10B981' } },
-                    left: { style: 'thick', color: { argb: 'FF10B981' } },
-                    right: { style: 'thick', color: { argb: 'FF10B981' } },
-                    bottom: { style: 'medium', color: { argb: 'FF10B981' } }
-                };
-                coverSheet.getRow(1).height = 35;
-                coverSheet.getRow(2).height = 35;
-                coverSheet.getRow(3).height = 35;
-                coverSheet.getRow(4).height = 20;
+                titleCell.font = { size: 20, bold: true, color: { argb: 'FF10B981' } };
+                titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
+                coverSheet.getRow(1).height = 40;
                 
-                // 부제목
-                coverSheet.mergeCells('A5:B5');
-                const subtitleCell = coverSheet.getCell('A5');
-                subtitleCell.value = '[ 프로젝트 정보 ]';
-                subtitleCell.font = { name: '맑은 고딕', size: 14, bold: true, color: { argb: 'FF10B981' } };
-                subtitleCell.alignment = { vertical: 'middle', horizontal: 'left' };
-                coverSheet.getRow(5).height = 25;
+                // 프로젝트 정보 섹션
+                coverSheet.getCell('A5').value = '[ 프로젝트 정보 ]';
+                coverSheet.getCell('A5').font = { bold: true, size: 12 };
                 
-                // 프로젝트 정보
-                const projectInfo = [
+                const infoData = [
                     ['아파트명', projectData.apartmentName || ''],
                     ['동 / 호수', `${projectData.dong || ''} / ${projectData.ho || ''}`],
                     ['점검일자', projectData.inspectionDate || ''],
-                    ['점검자 (계약자)', projectData.inspector || ''],
-                    ['연락처', projectData.phone || '']
+                    ['점검자', projectData.author || ''],
+                    ['연락처', projectData.customerPhone || '']
                 ];
                 
-                projectInfo.forEach((rowData, index) => {
-                    const rowNum = 6 + index;
-                    const row = coverSheet.getRow(rowNum);
-                    row.height = 28;
-                    
-                    const cellA = row.getCell(1);
-                    cellA.value = rowData[0];
-                    cellA.font = { name: '맑은 고딕', bold: true, size: 12, color: { argb: 'FFFFFFFF' } };
-                    cellA.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF059669' } };
-                    cellA.border = {
-                        top: { style: 'thin', color: { argb: 'FFCCCCCC' } },
-                        left: { style: 'thin', color: { argb: 'FFCCCCCC' } },
-                        bottom: { style: 'thin', color: { argb: 'FFCCCCCC' } },
-                        right: { style: 'thin', color: { argb: 'FFCCCCCC' } }
-                    };
-                    cellA.alignment = { vertical: 'middle', horizontal: 'center' };
-                    
-                    const cellB = row.getCell(2);
-                    cellB.value = rowData[1];
-                    cellB.font = { name: '맑은 고딕', size: 12, color: { argb: 'FF1F2937' } };
-                    cellB.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFFFF' } };
-                    cellB.border = {
-                        top: { style: 'thin', color: { argb: 'FFCCCCCC' } },
-                        left: { style: 'thin', color: { argb: 'FFCCCCCC' } },
-                        bottom: { style: 'thin', color: { argb: 'FFCCCCCC' } },
-                        right: { style: 'thin', color: { argb: 'FFCCCCCC' } }
-                    };
-                    cellB.alignment = { vertical: 'middle', horizontal: 'left', indent: 1 };
+                infoData.forEach((row, idx) => {
+                    const rowNum = 6 + idx;
+                    coverSheet.getCell(`A${rowNum}`).value = row[0];
+                    coverSheet.getCell(`A${rowNum}`).font = { bold: true };
+                    coverSheet.getCell(`B${rowNum}`).value = row[1];
                 });
                 
-                coverSheet.getRow(11).height = 20;
+                // 하자 현황 섹션
+                coverSheet.getCell('A12').value = '[ 하자 현황 ]';
+                coverSheet.getCell('A12').font = { bold: true, size: 12 };
                 
-                // 하자 요약
-                coverSheet.mergeCells('A12:B12');
-                const summaryCell = coverSheet.getCell('A12');
-                summaryCell.value = '[ 하자 현황 ]';
-                summaryCell.font = { name: '맑은 고딕', size: 14, bold: true, color: { argb: 'FF10B981' } };
-                summaryCell.alignment = { vertical: 'middle', horizontal: 'left' };
-                coverSheet.getRow(12).height = 25;
+                coverSheet.getCell('A13').value = '총 하자 건수';
+                coverSheet.getCell('A13').font = { bold: true };
+                coverSheet.getCell('B13').value = `${projectData.defects.length} 건`;
+                coverSheet.getCell('B13').font = { bold: true, color: { argb: 'FF10B981' } };
                 
-                const defectCountRow = coverSheet.getRow(13);
-                defectCountRow.height = 35;
+                // ===== 하자목록 시트 =====
+                const detailSheet = workbook.addWorksheet('하자목록');
                 
-                const countLabelCell = defectCountRow.getCell(1);
-                countLabelCell.value = '총 하자 건수';
-                countLabelCell.font = { name: '맑은 고딕', bold: true, size: 13, color: { argb: 'FFFFFFFF' } };
-                countLabelCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF059669' } };
-                countLabelCell.border = {
-                    top: { style: 'thin', color: { argb: 'FFCCCCCC' } },
-                    left: { style: 'thin', color: { argb: 'FFCCCCCC' } },
-                    bottom: { style: 'thin', color: { argb: 'FFCCCCCC' } },
-                    right: { style: 'thin', color: { argb: 'FFCCCCCC' } }
-                };
-                countLabelCell.alignment = { vertical: 'middle', horizontal: 'center' };
-                
-                const countValueCell = defectCountRow.getCell(2);
-                countValueCell.value = `${projectData.defects.length} 건`;
-                countValueCell.font = { name: '맑은 고딕', size: 18, bold: true, color: { argb: 'FFEF4444' } };
-                countValueCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFEF2F2' } };
-                countValueCell.border = {
-                    top: { style: 'thin', color: { argb: 'FFCCCCCC' } },
-                    left: { style: 'thin', color: { argb: 'FFCCCCCC' } },
-                    bottom: { style: 'thin', color: { argb: 'FFCCCCCC' } },
-                    right: { style: 'thin', color: { argb: 'FFCCCCCC' } }
-                };
-                countValueCell.alignment = { vertical: 'middle', horizontal: 'center' };
-                
-                for (let i = 14; i <= 20; i++) {
-                    coverSheet.getRow(i).height = 15;
-                }
-                
-                // 서명란
-                coverSheet.mergeCells('A21:B21');
-                const signCell = coverSheet.getCell('A21');
-                signCell.value = '작성자:  _______________     (인)';
-                signCell.font = { name: '맑은 고딕', size: 12, color: { argb: 'FF6B7280' } };
-                signCell.alignment = { vertical: 'middle', horizontal: 'right' };
-                coverSheet.getRow(21).height = 30;
-                
-                // 하단
-                coverSheet.mergeCells('A22:B22');
-                const footerCell = coverSheet.getCell('A22');
-                footerCell.value = `Generated by 더홈점검 | ${new Date().toLocaleDateString('ko-KR')}`;
-                footerCell.font = { name: '맑은 고딕', size: 9, italic: true, color: { argb: 'FF9CA3AF' } };
-                footerCell.alignment = { vertical: 'middle', horizontal: 'center' };
-                coverSheet.getRow(22).height = 20;
-                
-                // 하자목록 시트
-                const detailSheet = workbook.addWorksheet('하자목록', {
-                    pageSetup: {
-                        paperSize: 9,
-                        orientation: 'portrait',
-                        fitToPage: true,
-                        fitToWidth: 1,
-                        fitToHeight: 0,
-                        margins: {
-                            left: 0.7, right: 0.7,
-                            top: 0.75, bottom: 0.75,
-                            header: 0.3, footer: 0.3
-                        }
-                    }
-                });
-                
+                // 컬럼 너비 설정
                 detailSheet.getColumn(1).width = 7;
                 detailSheet.getColumn(2).width = 12;
                 detailSheet.getColumn(3).width = 15;
-                detailSheet.getColumn(4).width = 15;
+                detailSheet.getColumn(4).width = 18;
                 detailSheet.getColumn(5).width = 40;
                 
+                // 헤더 행
                 const headerRow = detailSheet.getRow(1);
-                headerRow.height = 30;
+                headerRow.height = 25;
+                
                 const headers = ['번호', '공간', '위치', '하자내용', '상세설명'];
                 headers.forEach((header, index) => {
                     const cell = headerRow.getCell(index + 1);
                     cell.value = header;
-                    cell.font = { name: '맑은 고딕', bold: true, size: 12, color: { argb: 'FFFFFFFF' } };
-                    cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
-                    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF059669' } };
-                    cell.border = {
-                        top: { style: 'medium', color: { argb: 'FF000000' } },
-                        left: { style: 'medium', color: { argb: 'FF000000' } },
-                        bottom: { style: 'medium', color: { argb: 'FF000000' } },
-                        right: { style: 'medium', color: { argb: 'FF000000' } }
+                    cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+                    cell.alignment = { vertical: 'middle', horizontal: 'center' };
+                    cell.fill = {
+                        type: 'pattern',
+                        pattern: 'solid',
+                        fgColor: { argb: 'FF10B981' }
                     };
                 });
                 
+                // 하자 데이터 행
                 projectData.defects.forEach((defect, index) => {
                     const row = detailSheet.getRow(index + 2);
-                    row.height = 40;
-                    
-                    const cell1 = row.getCell(1);
-                    cell1.value = index + 1;
-                    cell1.font = { name: '맑은 고딕', size: 11, bold: true };
-                    cell1.alignment = { vertical: 'middle', horizontal: 'center' };
-                    cell1.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: index % 2 === 0 ? 'FFFFFFFF' : 'FFF9FAFB' } };
-                    cell1.border = {
-                        top: { style: 'thin', color: { argb: 'FFD1D5DB' } },
-                        left: { style: 'medium', color: { argb: 'FF6B7280' } },
-                        bottom: { style: 'thin', color: { argb: 'FFD1D5DB' } },
-                        right: { style: 'thin', color: { argb: 'FFD1D5DB' } }
-                    };
-                    
-                    // 공간 (배열에서 가져오기) ✅ 수정됨
-                    const cell2 = row.getCell(2);
-                    cell2.value = (defect.spaces && defect.spaces.length > 0) ? defect.spaces.join(', ') : '';
-                    cell2.font = { name: '맑은 고딕', size: 11 };
-                    cell2.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
-                    cell2.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: index % 2 === 0 ? 'FFFFFFFF' : 'FFF9FAFB' } };
-                    cell2.border = {
-                        top: { style: 'thin', color: { argb: 'FFD1D5DB' } },
-                        left: { style: 'thin', color: { argb: 'FFD1D5DB' } },
-                        bottom: { style: 'thin', color: { argb: 'FFD1D5DB' } },
-                        right: { style: 'thin', color: { argb: 'FFD1D5DB' } }
-                    };
-                    
-                    // 위치 (배열에서 가져오기) ✅ 수정됨
-                    const cell3 = row.getCell(3);
-                    cell3.value = (defect.locations && defect.locations.length > 0) ? defect.locations.join(', ') : '';
-                    cell3.font = { name: '맑은 고딕', size: 11 };
-                    cell3.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
-                    cell3.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: index % 2 === 0 ? 'FFFFFFFF' : 'FFF9FAFB' } };
-                    cell3.border = {
-                        top: { style: 'thin', color: { argb: 'FFD1D5DB' } },
-                        left: { style: 'thin', color: { argb: 'FFD1D5DB' } },
-                        bottom: { style: 'thin', color: { argb: 'FFD1D5DB' } },
-                        right: { style: 'thin', color: { argb: 'FFD1D5DB' } }
-                    };
-                    
-                    // 하자내용 (배열에서 가져오기) ✅ 수정됨
-                    const cell4 = row.getCell(4);
-                    cell4.value = (defect.types && defect.types.length > 0) ? defect.types.join(', ') : '';
-                    cell4.font = { name: '맑은 고딕', size: 11 };
-                    cell4.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
-                    cell4.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: index % 2 === 0 ? 'FFFFFFFF' : 'FFF9FAFB' } };
-                    cell4.border = {
-                        top: { style: 'thin', color: { argb: 'FFD1D5DB' } },
-                        left: { style: 'thin', color: { argb: 'FFD1D5DB' } },
-                        bottom: { style: 'thin', color: { argb: 'FFD1D5DB' } },
-                        right: { style: 'thin', color: { argb: 'FFD1D5DB' } }
-                    };
-                    
-                    const cell5 = row.getCell(5);
-                    cell5.value = defect.description || '';
-                    cell5.font = { name: '맑은 고딕', size: 10 };
-                    cell5.alignment = { vertical: 'top', horizontal: 'left', wrapText: true, indent: 1 };
-                    cell5.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: index % 2 === 0 ? 'FFFFFFFF' : 'FFF9FAFB' } };
-                    cell5.border = {
-                        top: { style: 'thin', color: { argb: 'FFD1D5DB' } },
-                        left: { style: 'thin', color: { argb: 'FFD1D5DB' } },
-                        bottom: { style: 'thin', color: { argb: 'FFD1D5DB' } },
-                        right: { style: 'medium', color: { argb: 'FF6B7280' } }
-                    };
+                    row.getCell(1).value = index + 1;
+                    row.getCell(2).value = (defect.spaces && defect.spaces.length > 0) ? defect.spaces.join(', ') : '';
+                    row.getCell(3).value = (defect.locations && defect.locations.length > 0) ? defect.locations.join(', ') : '';
+                    row.getCell(4).value = (defect.types && defect.types.length > 0) ? defect.types.join(', ') : '';
+                    row.getCell(5).value = defect.description || '';
                 });
                 
                 // 파일 생성 및 다운로드
@@ -6781,10 +6339,9 @@
                     type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
                 });
                 
-                // ✅ 작성자 정보 포함한 파일명
-                const projectName = `${projectData.apartmentName}_${projectData.dong}_${projectData.ho}`;
-                const authorName = projectData.author ? `_${projectData.author}` : '';
-                const fileName = `${projectName}${authorName}_하자점검리스트_${projectData.inspectionDate || new Date().toISOString().split('T')[0]}.xlsx`;
+                // 파일명 (드라이브와 동일 형식)
+                const projectName = `${projectData.apartmentName}_${projectData.dong}동_${projectData.ho}호_${projectData.inspectionDate}_${projectData.author || ''}`;
+                const fileName = `${projectName}_하자목록.xlsx`;
                 
                 const url = URL.createObjectURL(blob);
                 const link = document.createElement('a');
@@ -11204,7 +10761,7 @@ window.createSummaryFirstPage = function() {
     }
     
     // ==================== 버전 체크 및 업데이트 시스템 ====================
-    const APP_VERSION = '3.5';
+    const APP_VERSION = '3.6';
     
     function checkForUpdates() {
         const savedVersion = localStorage.getItem('app_version');
