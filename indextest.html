@@ -2797,11 +2797,6 @@
                 return;
             }
 
-            if (project.defects.length === 0) {
-                alert('최소 1개 이상의 하자를 등록해주세요');
-                return;
-            }
-
             // projectToUpload가 있으면 동기화 중이므로 confirm 스킵
             if (!projectToUpload && !confirm(`"${project.apartmentName} ${project.dong} ${project.ho}"를 Google Drive에 업로드하시겠습니까?\n\n📄 PDF 보고서\n📊 엑셀 파일\n📷 사진 파일\n\n모든 자료가 업로드됩니다.`)) {
                 return;
@@ -3046,29 +3041,50 @@
                 showToast('📤 엑셀 업로드 중...');
                 await uploadFileToDrive(projectFolderId, excelBlob, excelFileName, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
                 
-                // ========== 6. 사진 업로드 ==========
+                // ========== 6. 사진 업로드 (병렬 처리) ==========
                 const photosFolderId = await createPhotosFolder(projectFolderId);
                 
-                const totalPhotos = project.defects.reduce((sum, defect) => {
-                    if (!defect.photos) return sum;
-                    return sum + defect.photos.filter(p => p !== null).length;
-                }, 0);
-                
-                let uploadedCount = 0;
+                // 업로드할 사진 목록 준비
+                const photoTasks = [];
                 for (let defectIndex = 0; defectIndex < project.defects.length; defectIndex++) {
                     const defect = project.defects[defectIndex];
                     if (defect.photos && defect.photos.length > 0) {
                         let photoNum = 1;
                         for (const photo of defect.photos) {
                             if (photo !== null) {
-                                uploadedCount++;
-                                showToast(`📷 사진 업로드 중... (${uploadedCount}/${totalPhotos})`);
-                                // 파일명: 하자번호-사진번호.jpg (예: 1-1.jpg, 1-2.jpg, 2-1.jpg...)
-                                await uploadPhoto(photosFolderId, photo, `${defectIndex + 1}-${photoNum}.jpg`);
+                                photoTasks.push({
+                                    photo,
+                                    fileName: `${defectIndex + 1}-${photoNum}.jpg`
+                                });
                                 photoNum++;
                             }
                         }
                     }
+                }
+                
+                // 병렬 업로드 (5개씩)
+                const BATCH_SIZE = 5;
+                let uploadedCount = 0;
+                const totalPhotos = photoTasks.length;
+                
+                for (let i = 0; i < photoTasks.length; i += BATCH_SIZE) {
+                    const batch = photoTasks.slice(i, i + BATCH_SIZE);
+                    
+                    await Promise.all(batch.map(async (task) => {
+                        try {
+                            await uploadPhoto(photosFolderId, task.photo, task.fileName);
+                        } catch (error) {
+                            // 1회 재시도
+                            console.log(`재시도: ${task.fileName}`);
+                            try {
+                                await uploadPhoto(photosFolderId, task.photo, task.fileName);
+                            } catch (retryError) {
+                                console.error(`업로드 실패: ${task.fileName}`, retryError);
+                            }
+                        }
+                        uploadedCount++;
+                        showToast(`📷 사진 업로드 중... (${uploadedCount}/${totalPhotos})`);
+                    }));
                 }
                 
                 // 7. 프로젝트 상태 업데이트
