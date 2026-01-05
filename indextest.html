@@ -1023,6 +1023,22 @@
 
 </head>
 <body>
+    <!-- ==================== 업데이트 알림 배너 ==================== -->
+    <div id="updateBanner" style="display: none; position: fixed; top: 0; left: 0; right: 0; background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); color: white; padding: 12px 20px; z-index: 99999; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
+        <div style="display: flex; justify-content: space-between; align-items: center; max-width: 600px; margin: 0 auto;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <span style="font-size: 20px;">🔄</span>
+                <div>
+                    <div style="font-weight: bold; font-size: 14px;">새 버전이 있습니다!</div>
+                    <div style="font-size: 12px; opacity: 0.9;">업데이트하려면 버튼을 눌러주세요</div>
+                </div>
+            </div>
+            <button onclick="applyUpdate()" style="background: white; color: #1d4ed8; border: none; padding: 8px 16px; border-radius: 20px; font-weight: bold; font-size: 13px; cursor: pointer;">
+                업데이트
+            </button>
+        </div>
+    </div>
+    
     <!-- ==================== 로그인 화면 ==================== -->
     <div id="loginOverlay" class="login-overlay">
         <div class="login-box">
@@ -1077,7 +1093,7 @@
         </button>
         
         <h1>🏠 더홈점검</h1>
-        <p>하자관리 시스템 v3.2 (사진 2장 촬영)</p>
+        <p>하자관리 시스템 v3.5 (사진 2장 촬영)</p>
         <div class="progress-bar">
             <div class="progress-fill" id="progressBar"></div>
         </div>
@@ -1139,7 +1155,7 @@
                 </div>
 
                 <div class="form-field">
-                    <label class="form-label">점검일자</label>
+                    <label class="form-label">점검일자 <span style="color: #ef4444;">*필수</span></label>
                     <input type="date" class="form-input" id="inspectionDate" onchange="autoSaveProjectData()">
                 </div>
 
@@ -2766,6 +2782,12 @@
             // 필수 정보 확인
             if (!project.apartmentName || !project.dong || !project.ho) {
                 alert('프로젝트 정보(아파트명, 동, 호)를 먼저 입력해주세요');
+                return;
+            }
+            
+            // 점검일자 필수 확인
+            if (!project.inspectionDate) {
+                alert('⚠️ 점검일자를 입력해주세요.\n\n프로젝트 탭에서 점검일자를 선택해주세요.');
                 return;
             }
             
@@ -5850,8 +5872,8 @@
             
             try {
                 const zip = new JSZip();
-                const projectName = `${projectData.apartmentName}_${projectData.dong}_${projectData.ho}`;
-                const authorName = projectData.author ? `_${projectData.author}` : ''; // ✅ 작성자 변수 한 번만 선언
+                // 드라이브 업로드와 동일한 파일명 형식
+                const projectName = `${projectData.apartmentName}_${projectData.dong}동_${projectData.ho}호_${projectData.inspectionDate}_${projectData.author}`;
                 let photoCount = 0;
                 
                 // ========== 1. PDF 파일 생성 ==========
@@ -5949,8 +5971,8 @@
                 // PDF를 Blob으로 변환하여 ZIP에 추가
                 const pdfBlob = doc.output('blob');
                 
-                // 작성자 정보 포함한 파일명
-                const pdfFileName = `${projectName}${authorName}_하자점검보고서.pdf`;
+                // 파일명 (드라이브와 동일 형식)
+                const pdfFileName = `${projectName}_하자점검보고서.pdf`;
                 
                 zip.file(pdfFileName, pdfBlob);
                 
@@ -6352,8 +6374,8 @@
                 // 엑셀 파일을 ZIP에 추가
                 const excelBuffer = await workbook.xlsx.writeBuffer();
                 
-                // 작성자 정보 포함한 파일명
-                const excelFileName = `${projectName}${authorName}_하자목록.xlsx`;
+                // 파일명 (드라이브와 동일 형식)
+                const excelFileName = `${projectName}_하자목록.xlsx`;
                 
                 zip.file(excelFileName, excelBuffer);
                 
@@ -6441,8 +6463,8 @@
                 const link = document.createElement('a');
                 link.href = url;
                 
-                // 작성자 정보 포함한 파일명
-                link.download = `${projectName}${authorName}_전체자료_${projectData.inspectionDate || new Date().toISOString().split('T')[0]}.zip`;
+                // 파일명 (드라이브와 동일 형식)
+                link.download = `${projectName}_전체자료.zip`;
                 
                 document.body.appendChild(link);
                 link.click();
@@ -9052,6 +9074,7 @@ window.createSummaryFirstPage = function() {
             projectData.inspectionDate = document.getElementById('inspectionDate').value;
             projectData.customerName = document.getElementById('customerName').value;
             projectData.customerPhone = document.getElementById('customerPhone').value;
+            projectData.author = document.getElementById('author').value; // ✅ 작성자 추가
             
             // 저장 (이미 debounce 적용)
             saveWithDebounce(500); // 0.5초 지연
@@ -9082,6 +9105,7 @@ window.createSummaryFirstPage = function() {
                     document.getElementById('inspectionDate').value = projectData.inspectionDate || '';
                     document.getElementById('customerName').value = projectData.customerName || '';
                     document.getElementById('customerPhone').value = projectData.customerPhone || '';
+                    document.getElementById('author').value = projectData.author || ''; // ✅ 작성자 로드
                     
                     displayFloorplan();
                     renderDefects();
@@ -11151,16 +11175,67 @@ window.createSummaryFirstPage = function() {
     function checkFirstTimeUser() {
         const tutorialShown = localStorage.getItem('tutorial_shown');
         if (!tutorialShown) {
-            // 로그인 후 2초 뒤에 튜토리얼 표시
+            // 업데이트 배너가 있으면 튜토리얼 스킵 (업데이트 먼저)
             setTimeout(() => {
+                const updateBanner = document.getElementById('updateBanner');
+                if (updateBanner && updateBanner.style.display !== 'none') {
+                    // 업데이트 배너가 표시 중이면 튜토리얼 스킵
+                    return;
+                }
                 showTutorial();
             }, 2000);
         }
     }
+    
+    // ==================== 버전 체크 및 업데이트 시스템 ====================
+    const APP_VERSION = '3.5';
+    
+    function checkForUpdates() {
+        const savedVersion = localStorage.getItem('app_version');
+        
+        if (savedVersion && savedVersion !== APP_VERSION) {
+            // 새 버전 감지 - 업데이트 배너 표시
+            showUpdateBanner();
+        } else if (!savedVersion) {
+            // 첫 설치 - 버전 저장
+            localStorage.setItem('app_version', APP_VERSION);
+        }
+    }
+    
+    function showUpdateBanner() {
+        const banner = document.getElementById('updateBanner');
+        if (banner) {
+            banner.style.display = 'block';
+            // body에 패딩 추가 (배너 높이만큼)
+            document.body.style.paddingTop = '70px';
+        }
+    }
+    
+    function applyUpdate() {
+        // 버전 업데이트 저장
+        localStorage.setItem('app_version', APP_VERSION);
+        
+        // 캐시 삭제 시도
+        if ('caches' in window) {
+            caches.keys().then(names => {
+                names.forEach(name => {
+                    caches.delete(name);
+                });
+            });
+        }
+        
+        // 페이지 새로고침 (캐시 무시)
+        window.location.reload(true);
+    }
+    
+    // 페이지 로드 시 버전 체크
+    document.addEventListener('DOMContentLoaded', function() {
+        checkForUpdates();
+    });
     </script>
     
     <!-- 튜토리얼 모달 -->
-    <div id="tutorialModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 10000; justify-content: center; align-items: center; padding: 20px;">
+    <div id="tutorialModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 100000; justify-content: center; align-items: center; padding: 20px;">
         <div style="background: white; border-radius: 20px; max-width: 420px; width: 100%; max-height: 85vh; overflow: hidden; display: flex; flex-direction: column;">
             <!-- 헤더 -->
             <div style="padding: 20px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; display: flex; justify-content: space-between; align-items: center;">
