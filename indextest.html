@@ -1093,7 +1093,7 @@
         </button>
         
         <h1>🏠 더홈점검</h1>
-        <p>하자관리 시스템 v3.6 (사진 2장 촬영)</p>
+        <p>하자관리 시스템 v3.7 (사진 2장 촬영)</p>
         <div class="progress-bar">
             <div class="progress-fill" id="progressBar"></div>
         </div>
@@ -1107,7 +1107,6 @@
             <button class="tab" onclick="switchTab('equipment', event)">📸 장비점검</button>
             <button class="tab" onclick="switchTab('airquality', event)">🌬️ 공기질</button>
             <button class="tab" onclick="switchTab('data', event)">💾 데이터</button>
-            <button class="tab" onclick="switchTab('contract', event)">📄 계약서</button>
         </div>
 
         <!-- 프로젝트 정보 섹션 -->
@@ -1349,177 +1348,6 @@
         </div>
     </div>
 
-        <!-- 계약서 관리 섹션 (숨김) -->
-        <div id="contract" class="section">
-            <div class="card">
-                <h2 style="color: var(--primary); margin-bottom: 20px;">📄 프리랜서 계약서 관리</h2>
-                <p style="color: var(--text-secondary); margin-bottom: 30px; font-size: 14px;">
-                    프리랜서 고용계약서를 디지털로 작성하고 관리합니다
-                </p>
-
-                <!-- 계약서 작성 안내 -->
-                <div style="text-align: center; margin-bottom: 30px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 30px; border-radius: 15px;">
-                    <p style="color: white; font-size: 20px; font-weight: bold; margin-bottom: 12px;">
-                        ✨ 간편한 계약서 작성
-                    </p>
-                    <p style="color: white; font-size: 15px; margin-bottom: 20px; opacity: 0.95;">
-                        작성 → 서명 → PDF 다운로드 → 카톡/이메일 공유
-                    </p>
-                    <button class="btn" onclick="showContractForm()" 
-                        style="background: white; color: #10b981; font-size: 17px; padding: 14px 35px; font-weight: bold; border: none;">
-                        ➕ 계약서 작성하기
-                    </button>
-                </div>
-
-                <!-- 계약서 작성 폼 -->
-                <div id="contractForm" style="display: block;">
-                    <div class="form-group">
-                        <h3 style="color: var(--primary); margin-bottom: 15px;">👤 프리랜서 정보</h3>
-                        
-                        <div class="form-field">
-                            <label class="form-label">성명 *</label>
-                            <input type="text" class="form-input" id="contractName" required>
-                        </div>
-
-                        <div class="form-field">
-                            <label class="form-label">주소 *</label>
-                            <input type="text" class="form-input" id="contractAddress" required>
-                        </div>
-
-                        <div class="form-field">
-                            <label class="form-label">주민등록번호 *</label>
-                            <div style="display: flex; gap: 10px; align-items: center;">
-                                <input type="text" class="form-input" id="contractJumin1" placeholder="생년월일 6자리" 
-                                    maxlength="6" style="width: 150px;" required>
-                                <span>-</span>
-                                <input type="text" class="form-input" id="contractJumin2" placeholder="뒷자리 1자리" 
-                                    maxlength="1" style="width: 60px;" required>
-                                <span>******</span>
-                            </div>
-                        </div>
-
-                        <div class="form-field">
-                            <label class="form-label">연락처 *</label>
-                            <input type="tel" class="form-input" id="contractPhone" placeholder="010-0000-0000" required>
-                        </div>
-
-                        <div class="form-field">
-                            <label class="form-label">이메일 *</label>
-                            <input type="email" class="form-input" id="contractEmail" required>
-                        </div>
-
-                        <div class="form-field">
-                            <label class="form-label">사업자등록번호 (선택)</label>
-                            <input type="text" class="form-input" id="contractBusiness" placeholder="000-00-00000">
-                        </div>
-                    </div>
-
-                    <div class="form-group" style="margin-top: 30px;">
-                        <h3 style="color: var(--primary); margin-bottom: 15px;">📋 계약 조건</h3>
-                        
-                        <div class="form-field">
-                            <label class="form-label">계약 시작일 *</label>
-                            <input type="date" class="form-input" id="contractStartDate" required>
-                        </div>
-
-                        <div class="form-field">
-                            <label class="form-label">계약 종료일 *</label>
-                            <input type="date" class="form-input" id="contractEndDate" required>
-                        </div>
-
-                        <div class="form-field">
-                            <label class="form-label">계약금액 안내</label>
-                            <div style="padding: 15px; background: rgba(16, 185, 129, 0.1); border-radius: 8px; border-left: 4px solid var(--primary);">
-                                <p style="color: var(--text-primary); margin-bottom: 8px;">
-                                    <strong>일당: 1만원 ~ 50만원</strong>
-                                </p>
-                                <p style="color: var(--text-secondary); font-size: 13px;">
-                                    ※ 업무에 따라 지급비용이 다르게 지급됩니다
-                                </p>
-                            </div>
-                        </div>
-
-                        <div class="form-field">
-                            <label class="form-label">지급일 안내</label>
-                            <div style="padding: 15px; background: rgba(251, 191, 36, 0.1); border-radius: 8px; border-left: 4px solid var(--secondary);">
-                                <p style="color: var(--text-primary); margin-bottom: 8px;">
-                                    <strong>업무 완료 후 1개월 이내 지급</strong>
-                                </p>
-                                <p style="color: var(--text-secondary); font-size: 13px;">
-                                    ※ 사업소득세 3.3% 원천징수 후 지급
-                                </p>
-                            </div>
-                        </div>
-
-                        <div class="form-field">
-                            <label class="form-label">특이사항 (선택)</label>
-                            <textarea class="form-input" id="contractNotes" rows="3" 
-                                placeholder="추가 계약 조건이나 특이사항을 입력하세요"></textarea>
-                        </div>
-                    </div>
-
-                    <div class="form-group" style="margin-top: 30px;">
-                        <h3 style="color: var(--primary); margin-bottom: 15px;">✍️ 전자 서명</h3>
-                        
-                        <div style="margin-bottom: 20px;">
-                            <label class="form-label">대표 서명 (박지현)</label>
-                            <div style="border: 2px solid var(--border); border-radius: 8px; background: white; position: relative;">
-                                <canvas id="signatureCEO" width="600" height="200" 
-                                    style="display: block; width: 100%; cursor: crosshair; touch-action: none;"></canvas>
-                            </div>
-                            <button class="btn" onclick="clearSignature('CEO')" style="margin-top: 10px; background: var(--danger);">
-                                🗑️ 서명 지우기
-                            </button>
-                        </div>
-
-                        <div style="margin-bottom: 20px;">
-                            <label class="form-label">프리랜서 서명</label>
-                            <div style="border: 2px solid var(--border); border-radius: 8px; background: white; position: relative;">
-                                <canvas id="signatureFreelancer" width="600" height="200" 
-                                    style="display: block; width: 100%; cursor: crosshair; touch-action: none;"></canvas>
-                            </div>
-                            <button class="btn" onclick="clearSignature('Freelancer')" style="margin-top: 10px; background: var(--danger);">
-                                🗑️ 서명 지우기
-                            </button>
-                        </div>
-                    </div>
-
-                    <div style="display: flex; gap: 10px; margin-top: 30px;">
-                        <button class="btn btn-primary" onclick="previewContract()" style="flex: 1;">
-                            👁️ 미리보기
-                        </button>
-                        <button class="btn btn-primary" onclick="downloadContractPDF()" style="flex: 1;">
-                            📥 PDF 다운로드
-                        </button>
-                    </div>
-                    <p style="text-align: center; margin-top: 15px; color: var(--text-secondary); font-size: 14px;">
-                        💡 서명 후 PDF 다운로드 → 카톡/이메일로 공유하세요
-                    </p>
-                </div>
-
-                <!-- 계약서 미리보기 모달 -->
-                <div id="contractPreviewModal" style="display: none; position: fixed; top: 0; left: 0; 
-                    width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10000; 
-                    overflow: auto; padding: 20px;">
-                    <div style="max-width: 800px; margin: 0 auto; background: white; 
-                        border-radius: 15px; padding: 30px; position: relative; color: #333;">
-                        <button onclick="closePreview()" 
-                            style="position: absolute; top: 15px; right: 15px; 
-                            background: #dc3545; color: white; border: none; 
-                            border-radius: 50%; width: 40px; height: 40px; 
-                            font-size: 20px; cursor: pointer;">✕</button>
-                        
-                        <div id="contractPreviewContent"></div>
-                        
-                        <div style="margin-top: 30px; text-align: center;">
-                            <button class="btn btn-primary" onclick="closePreview()" style="padding: 12px 40px; font-size: 16px;">
-                                닫기
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
 
 
     <!-- 플로팅 하자/장비 추가 버튼 -->
@@ -2090,6 +1918,9 @@
 
         // 프로젝트 템플릿
         function createNewProject() {
+            // 마지막 작성자 불러오기
+            const lastAuthor = localStorage.getItem('lastAuthor') || '';
+            
             return {
                 id: Date.now(),
                 apartmentName: '',
@@ -2098,7 +1929,7 @@
                 inspectionDate: new Date().toISOString().split('T')[0],
                 customerName: '',
                 customerPhone: '',
-                author: '', // ✅ 점검 작성자 추가
+                author: lastAuthor, // ✅ 마지막 작성자 자동 적용
                 floorplan: null,
                 defects: [],
                 equipment: [],
@@ -3536,6 +3367,11 @@
             project.customerPhone = document.getElementById('customerPhone').value;
             project.author = document.getElementById('author').value; // ✅ 작성자 저장
             
+            // 작성자를 localStorage에 저장 (다음 프로젝트에서도 유지)
+            if (project.author && project.author.trim()) {
+                localStorage.setItem('lastAuthor', project.author.trim());
+            }
+            
             // floorplan, defects, equipment, airQuality는 이미 projectData 참조로 실시간 업데이트됨
         }
 
@@ -4338,11 +4174,29 @@
 
                     <div class="form-field">
                         <label class="form-label">📝 상세위치 (선택사항)</label>
-                        <input type="text" class="form-input" value="${defect.detailLocation || ''}" 
+                        
+                        <!-- 자주 쓰는 단어 버튼 -->
+                        <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px;">
+                            ${['좌측','우측','상단','하단','상부','하부','입구','코너','모서리','주위','3곳','5곳','다수','전체'].map(word => `
+                                <button type="button" 
+                                    style="padding: 6px 12px; font-size: 12px; border: 1px solid var(--border); 
+                                           background: var(--bg-light); color: var(--text); border-radius: 15px;
+                                           cursor: pointer; transition: all 0.2s;"
+                                    onclick="appendToDetailLocation(${defect.id}, '${word}')">
+                                    ${word}
+                                </button>
+                            `).join('')}
+                        </div>
+                        
+                        <input type="text" class="form-input" id="detailLocation_${defect.id}" 
+                               value="${defect.detailLocation || ''}" 
                                onchange="updateDefect(${defect.id}, 'detailLocation', this.value)" 
-                               placeholder="예: 거실 창문 우측 하단, 주방 싱크대 좌측 벽 등">
+                               onblur="checkTypo(${defect.id}, this.value)"
+                               placeholder="예: 좌측 상부 신발장, 우측 하단 코킹 등">
+                        <div id="typoAlert_${defect.id}" style="display: none; font-size: 12px; color: #f59e0b; margin-top: 6px; padding: 8px; background: #fef3c7; border-radius: 6px;">
+                        </div>
                         <div style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;">
-                            💡 위치를 더 구체적으로 설명하고 싶을 때 입력하세요
+                            💡 버튼을 눌러 빠르게 입력하거나 직접 입력하세요
                         </div>
                     </div>
 
@@ -5699,6 +5553,199 @@
             }
             
             closeCameraModal();
+        }
+
+        // ==================== 상세위치 오타 감지 시스템 ====================
+        
+        // 정상 단어 사전 (빈도 3회 이상)
+        const validWords = [
+            // 위치
+            '좌측', '우측', '상단', '하단', '상부', '하부', '좌우', '입구', '주위', '코너', 
+            '모서리', '정면', '중앙', '외부', '내부', '전체', '일부',
+            // 부위/자재
+            '피스커버', '걸레받이', '선반', '신발장', '세면대', '상부장', '하부장', '커텐박스', 
+            '냉장고장', '냉장고', '배관커버', '상판', '몰딩', '아트월', '도어', '서랍', '옷장',
+            '유리', '거울', '욕조', '변기', '샤워부스', '싱크', '후드', '키큰장', '화장대',
+            '걸이', '수건', '스토퍼', '힌지', '레버', '손잡이', '잠금', '환기캡', '환풍기',
+            '에어컨', '실외기', '보일러', '콘센트', '스위치', '월패드', '조명', '간접등',
+            '배관', '배수구', '점검구', '우물', '디딤석', '경계석', '장판', '필름', '페인트',
+            '단열재', '가스켓', '모헤어', '비드', '마블씰', '문풍지',
+            // 상태/수량
+            '떨림', '돌출', '곰보', '크랙', '채움', '유격', '태움', '소음', '개폐시', '닫힘시',
+            '3곳', '4곳', '5곳', '6곳', '7곳', '8곳', '다수', '이상',
+            // 복합 위치
+            '좌내', '우내', '좌외', '우외', '좌상', '우상', '좌하', '우하'
+        ];
+        
+        // 오타 → 정답 매핑
+        const typoCorrections = {
+            '피스커바': '피스커버',
+            '스므브': '스무브',
+            '봐측': '좌측',
+            '촤측': '좌측',
+            '좌즉': '좌측',
+            '우즉': '우측',
+            '허부': '하부',
+            '핳부': '하부',
+            '상딘': '상단',
+            '하딘': '하단',
+            '새워부스': '샤워부스',
+            '샤워부쓰': '샤워부스',
+            '마몰식': '마블씰',
+            '마블씩': '마블씰',
+            '마불씰': '마블씰',
+            '이트월': '아트월',
+            '아트웰': '아트월',
+            '징판': '장판',
+            '잔판': '장판',
+            '풍지': '문풍지',
+            '서압': '수압',
+            '모허어': '모헤어',
+            '커턴박스': '커텐박스',
+            '커튼박스': '커텐박스',
+            '신발쟝': '신발장',
+            '냉장고쟝': '냉장고장',
+            '상부쟝': '상부장',
+            '하부쟝': '하부장',
+            '걸래받이': '걸레받이',
+            '걸레바지': '걸레받이',
+            '세면때': '세면대',
+            '피스커어': '피스커버'
+        };
+        
+        // 버튼 클릭 시 상세위치에 단어 추가
+        function appendToDetailLocation(defectId, word) {
+            const input = document.getElementById(`detailLocation_${defectId}`);
+            if (input) {
+                const currentValue = input.value.trim();
+                input.value = currentValue ? `${currentValue} ${word}` : word;
+                updateDefect(defectId, 'detailLocation', input.value);
+                
+                // 오타 알림 초기화
+                const alertDiv = document.getElementById(`typoAlert_${defectId}`);
+                if (alertDiv) alertDiv.style.display = 'none';
+            }
+        }
+        
+        // 오타 감지
+        function checkTypo(defectId, value) {
+            if (!value || !value.trim()) return;
+            
+            const words = value.trim().split(/\s+/);
+            const typos = [];
+            
+            for (const word of words) {
+                if (word.length < 2) continue;
+                
+                // 1. 명확한 오타 매핑 확인
+                if (typoCorrections[word]) {
+                    typos.push({ wrong: word, correct: typoCorrections[word] });
+                    continue;
+                }
+                
+                // 2. 자음/모음만 있는지 확인
+                if (/^[ㄱ-ㅎㅏ-ㅣ]+$/.test(word)) {
+                    typos.push({ wrong: word, correct: '(올바른 단어로 수정 필요)' });
+                    continue;
+                }
+                
+                // 3. 영문만 있는지 확인 (의도적인 경우 제외)
+                if (/^[a-zA-Z]+$/.test(word) && word.length > 2) {
+                    typos.push({ wrong: word, correct: '(한글로 입력 필요)' });
+                    continue;
+                }
+                
+                // 4. 유사 단어 찾기 (편집 거리 1-2)
+                if (!validWords.includes(word)) {
+                    const similar = findSimilarWord(word);
+                    if (similar) {
+                        typos.push({ wrong: word, correct: similar });
+                    }
+                }
+            }
+            
+            // 오타 알림 표시
+            const alertDiv = document.getElementById(`typoAlert_${defectId}`);
+            if (alertDiv && typos.length > 0) {
+                alertDiv.innerHTML = `⚠️ 오타 의심: ${typos.map(t => 
+                    `<strong>"${t.wrong}"</strong> → <span style="color: #059669;">"${t.correct}"</span>`
+                ).join(', ')} 
+                <button onclick="applyTypoFix(${defectId})" style="margin-left: 8px; padding: 4px 10px; 
+                    background: #10b981; color: white; border: none; border-radius: 4px; 
+                    font-size: 11px; cursor: pointer;">자동 수정</button>`;
+                alertDiv.style.display = 'block';
+                alertDiv.dataset.typos = JSON.stringify(typos);
+            } else if (alertDiv) {
+                alertDiv.style.display = 'none';
+            }
+        }
+        
+        // 유사 단어 찾기 (편집 거리 기반)
+        function findSimilarWord(word) {
+            let bestMatch = null;
+            let bestDistance = 3; // 최대 편집 거리 2
+            
+            for (const valid of validWords) {
+                const dist = levenshteinDistance(word, valid);
+                if (dist < bestDistance && dist <= 2) {
+                    bestDistance = dist;
+                    bestMatch = valid;
+                }
+            }
+            
+            return bestMatch;
+        }
+        
+        // 레벤슈타인 거리 계산
+        function levenshteinDistance(a, b) {
+            if (a.length === 0) return b.length;
+            if (b.length === 0) return a.length;
+            
+            const matrix = [];
+            for (let i = 0; i <= b.length; i++) {
+                matrix[i] = [i];
+            }
+            for (let j = 0; j <= a.length; j++) {
+                matrix[0][j] = j;
+            }
+            
+            for (let i = 1; i <= b.length; i++) {
+                for (let j = 1; j <= a.length; j++) {
+                    if (b.charAt(i - 1) === a.charAt(j - 1)) {
+                        matrix[i][j] = matrix[i - 1][j - 1];
+                    } else {
+                        matrix[i][j] = Math.min(
+                            matrix[i - 1][j - 1] + 1,
+                            matrix[i][j - 1] + 1,
+                            matrix[i - 1][j] + 1
+                        );
+                    }
+                }
+            }
+            
+            return matrix[b.length][a.length];
+        }
+        
+        // 오타 자동 수정 적용
+        function applyTypoFix(defectId) {
+            const input = document.getElementById(`detailLocation_${defectId}`);
+            const alertDiv = document.getElementById(`typoAlert_${defectId}`);
+            
+            if (input && alertDiv && alertDiv.dataset.typos) {
+                let value = input.value;
+                const typos = JSON.parse(alertDiv.dataset.typos);
+                
+                for (const typo of typos) {
+                    if (typo.correct && !typo.correct.startsWith('(')) {
+                        value = value.replace(new RegExp(typo.wrong, 'g'), typo.correct);
+                    }
+                }
+                
+                input.value = value;
+                updateDefect(defectId, 'detailLocation', value);
+                alertDiv.style.display = 'none';
+                showToast('✅ 오타가 수정되었습니다!');
+            }
         }
 
         function updateDefect(id, field, value) {
@@ -8654,6 +8701,11 @@ window.createSummaryFirstPage = function() {
             projectData.customerPhone = document.getElementById('customerPhone').value;
             projectData.author = document.getElementById('author').value; // ✅ 작성자 추가
             
+            // 작성자를 localStorage에 저장 (다음 프로젝트에서도 유지)
+            if (projectData.author && projectData.author.trim()) {
+                localStorage.setItem('lastAuthor', projectData.author.trim());
+            }
+            
             // 저장 (이미 debounce 적용)
             saveWithDebounce(500); // 0.5초 지연
             updateProgress();
@@ -8855,770 +8907,8 @@ window.createSummaryFirstPage = function() {
             }
         }
 
-        // ==================== 계약서 관리 기능 ====================
-
-        // 전역 변수
-        let contracts = [];
-        let currentEditingContract = null;
-        let signaturePads = {};
-
-        // 계약서 데이터 로드
-        async function loadContracts() {
-            try {
-                const db = await initContractDB();
-                const tx = db.transaction('contracts', 'readonly');
-                const store = tx.objectStore('contracts');
-                const request = store.getAll();
-                
-                request.onsuccess = () => {
-                    contracts = request.result || [];
-                    displayContractList();
-                };
-            } catch (error) {
-                console.error('계약서 로드 실패:', error);
-                contracts = [];
-                displayContractList();
-            }
-        }
-
-        // IndexedDB에 contracts 저장소 추가
-        async function initContractDB() {
-            return new Promise((resolve, reject) => {
-                const request = indexedDB.open('TheHomeInspectionDB', 3); // 버전 업그레이드
-                
-                request.onerror = () => reject(request.error);
-                request.onsuccess = () => resolve(request.result);
-                
-                request.onupgradeneeded = (event) => {
-                    const db = event.target.result;
-                    
-                    // contracts 저장소가 없으면 생성
-                    if (!db.objectStoreNames.contains('contracts')) {
-                        const contractStore = db.createObjectStore('contracts', { 
-                            keyPath: 'id', 
-                            autoIncrement: true 
-                        });
-                        contractStore.createIndex('name', 'name', { unique: false });
-                        contractStore.createIndex('createdAt', 'createdAt', { unique: false });
-                    }
-                };
-            });
-        }
-
-        // 계약서 목록 표시
-        function displayContractList() {
-            const container = document.getElementById('contractListContainer');
-            
-            if (!container) return;
-            
-            if (contracts.length === 0) {
-                container.innerHTML = `
-                    <div style="text-align: center; padding: 60px 20px; color: var(--text-secondary);">
-                        <div style="font-size: 48px; margin-bottom: 20px;">📄</div>
-                        <p style="font-size: 18px;">작성된 계약서가 없습니다</p>
-                        <p style="font-size: 14px; margin-top: 10px;">
-                            "➕ 새 계약서 작성" 버튼을 클릭하여 첫 계약서를 작성하세요
-                        </p>
-                    </div>
-                `;
-                return;
-            }
-            
-            const sortedContracts = [...contracts].sort((a, b) => 
-                new Date(b.createdAt) - new Date(a.createdAt)
-            );
-            
-            container.innerHTML = sortedContracts.map(contract => `
-                <div class="card" style="margin-bottom: 15px;">
-                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 15px;">
-                        <div style="flex: 1;">
-                            <h3 style="color: var(--primary); margin-bottom: 8px; font-size: 20px;">
-                                ${contract.name}
-                            </h3>
-                            <p style="color: var(--text-secondary); font-size: 14px; margin: 5px 0;">
-                                📅 계약일: ${contract.startDate} ~ ${contract.endDate}
-                            </p>
-                            <p style="color: var(--text-secondary); font-size: 14px; margin: 5px 0;">
-                                💰 단가: ${Number(contract.price).toLocaleString()}원/건
-                            </p>
-                            <p style="color: var(--text-secondary); font-size: 12px; margin-top: 10px;">
-                                작성일: ${new Date(contract.createdAt).toLocaleDateString()}
-                            </p>
-                        </div>
-                        <div style="display: flex; gap: 8px; flex-direction: column;">
-                            <button class="btn btn-primary" onclick="viewContract(${contract.id})" 
-                                style="font-size: 14px; padding: 8px 15px;">
-                                👁️ 보기
-                            </button>
-                            <button class="btn" onclick="downloadContractPDF(${contract.id})" 
-                                style="font-size: 14px; padding: 8px 15px;">
-                                📥 PDF
-                            </button>
-                            <button class="btn" onclick="deleteContract(${contract.id})" 
-                                style="font-size: 14px; padding: 8px 15px; background: var(--danger); color: white;">
-                                🗑️ 삭제
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        // 계약서 검색
-        function searchContracts() {
-            const searchTerm = document.getElementById('contractSearch').value.toLowerCase();
-            const filtered = contracts.filter(c => 
-                c.name.toLowerCase().includes(searchTerm)
-            );
-            
-            const container = document.getElementById('contractListContainer');
-            
-            if (filtered.length === 0) {
-                container.innerHTML = `
-                    <div style="text-align: center; padding: 40px; color: var(--text-secondary);">
-                        <p>검색 결과가 없습니다</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            container.innerHTML = filtered.map(contract => `
-                <div class="card" style="margin-bottom: 15px;">
-                    <h3 style="color: var(--primary);">${contract.name}</h3>
-                    <p style="color: var(--text-secondary); font-size: 14px;">
-                        계약기간: ${contract.startDate} ~ ${contract.endDate}
-                    </p>
-                    <div style="margin-top: 15px; display: flex; gap: 10px;">
-                        <button class="btn btn-primary" onclick="viewContract(${contract.id})">보기</button>
-                        <button class="btn" onclick="downloadContractPDF(${contract.id})">PDF</button>
-                        <button class="btn" onclick="deleteContract(${contract.id})" 
-                            style="background: var(--danger); color: white;">삭제</button>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        // 계약서 작성 폼으로 스크롤
-        window.showContractForm = function() {
-            const contractForm = document.getElementById('contractForm');
-            if (contractForm) {
-                contractForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
-            
-            // 서명 패드 초기화
-            setTimeout(() => {
-                if (typeof initializeSignaturePads === 'function') {
-                    initializeSignaturePads();
-                }
-            }, 300);
-            
-            // 기본 날짜 설정
-            const today = new Date().toISOString().split('T')[0];
-            const nextYear = new Date();
-            nextYear.setFullYear(nextYear.getFullYear() + 1);
-            
-            const startDateEl = document.getElementById('contractStartDate');
-            const endDateEl = document.getElementById('contractEndDate');
-            if (startDateEl && !startDateEl.value) startDateEl.value = today;
-            if (endDateEl && !endDateEl.value) endDateEl.value = nextYear.toISOString().split('T')[0];
-        }
-
-        // 계약서 목록 표시
-        window.showContractList = function() {
-            // 더 이상 목록 기능 없음 - 아무 동작 안 함
-            console.log('계약서 목록 기능이 제거되었습니다.');
-        }
-
-        // 서명 패드 초기화
-        function initializeSignaturePads() {
-            setTimeout(() => {
-                ['CEO', 'Freelancer'].forEach(type => {
-                    const canvas = document.getElementById(`signature${type}`);
-                    if (!canvas) return;
-                    
-                    const ctx = canvas.getContext('2d', { willReadFrequently: true });
-                    let isDrawing = false;
-                    let lastX = 0;
-                    let lastY = 0;
-                    
-                    // 캔버스 크기 설정
-                    const rect = canvas.getBoundingClientRect();
-                    canvas.width = rect.width * 2;
-                    canvas.height = rect.height * 2;
-                    ctx.scale(2, 2);
-                    
-                    // 선 스타일
-                    ctx.strokeStyle = '#000';
-                    ctx.lineWidth = 2;
-                    ctx.lineCap = 'round';
-                    ctx.lineJoin = 'round';
-                    
-                    function startDrawing(e) {
-                        isDrawing = true;
-                        const pos = getPosition(e);
-                        [lastX, lastY] = [pos.x, pos.y];
-                    }
-                    
-                    function draw(e) {
-                        if (!isDrawing) return;
-                        e.preventDefault();
-                        
-                        const pos = getPosition(e);
-                        ctx.beginPath();
-                        ctx.moveTo(lastX, lastY);
-                        ctx.lineTo(pos.x, pos.y);
-                        ctx.stroke();
-                        [lastX, lastY] = [pos.x, pos.y];
-                    }
-                    
-                    function stopDrawing() {
-                        isDrawing = false;
-                    }
-                    
-                    function getPosition(e) {
-                        const rect = canvas.getBoundingClientRect();
-                        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-                        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-                        return {
-                            x: clientX - rect.left,
-                            y: clientY - rect.top
-                        };
-                    }
-                    
-                    // 이벤트 리스너
-                    canvas.addEventListener('mousedown', startDrawing);
-                    canvas.addEventListener('mousemove', draw);
-                    canvas.addEventListener('mouseup', stopDrawing);
-                    canvas.addEventListener('mouseout', stopDrawing);
-                    
-                    canvas.addEventListener('touchstart', startDrawing);
-                    canvas.addEventListener('touchmove', draw);
-                    canvas.addEventListener('touchend', stopDrawing);
-                    
-                    signaturePads[type] = { canvas, ctx };
-                });
-            }, 100);
-        }
-
-        // 서명 지우기
-        window.clearSignature = function(type) {
-            const pad = signaturePads[type];
-            if (pad) {
-                pad.ctx.clearRect(0, 0, pad.canvas.width, pad.canvas.height);
-            }
-        }
-
-        // 캔버스가 비어있는지 확인
-        function isCanvasBlank(canvas) {
-            const context = canvas.getContext('2d', { willReadFrequently: true });
-            const pixelBuffer = new Uint32Array(
-                context.getImageData(0, 0, canvas.width, canvas.height).data.buffer
-            );
-            return !pixelBuffer.some(color => color !== 0);
-        }
-
-        // 계약서 미리보기
-        window.previewContract = function() {
-            // 필수 항목 검증
-            const name = document.getElementById('contractName').value;
-            const address = document.getElementById('contractAddress').value;
-            const jumin1 = document.getElementById('contractJumin1').value;
-            const jumin2 = document.getElementById('contractJumin2').value;
-            const phone = document.getElementById('contractPhone').value;
-            const email = document.getElementById('contractEmail').value;
-            const startDate = document.getElementById('contractStartDate').value;
-            const endDate = document.getElementById('contractEndDate').value;
-            
-            if (!name || !address || !jumin1 || !jumin2 || !phone || !email || 
-                !startDate || !endDate) {
-                alert('필수 항목을 모두 입력해주세요');
-                return;
-            }
-            
-            // 서명 확인
-            const ceoSigned = signaturePads['CEO'] && !isCanvasBlank(signaturePads['CEO'].canvas);
-            const freelancerSigned = signaturePads['Freelancer'] && !isCanvasBlank(signaturePads['Freelancer'].canvas);
-            
-            if (!ceoSigned && !freelancerSigned) {
-                alert('최소 한 명은 서명이 필요합니다');
-                return;
-            }
-            
-            // 미리보기 생성
-            const business = document.getElementById('contractBusiness').value;
-            const notes = document.getElementById('contractNotes').value;
-            
-            // ✅ price와 payDay 정의 추가
-            const price = '일당 1만~50만원 (업무별 상이)';
-            const payDay = '업무 완료 후 1개월 이내';
-            
-            // 서명 이미지 가져오기
-            const signatureCEO = ceoSigned ? signaturePads['CEO'].canvas.toDataURL() : null;
-            const signatureFreelancer = freelancerSigned ? signaturePads['Freelancer'].canvas.toDataURL() : null;
-            
-            const previewHTML = generateContractHTML({
-                name, address, jumin1, jumin2, phone, email, business,
-                startDate, endDate, price, payDay, notes,
-                signatureCEO, signatureFreelancer
-            });
-            
-            document.getElementById('contractPreviewContent').innerHTML = previewHTML;
-            document.getElementById('contractPreviewModal').style.display = 'block';
-        }
-
-        // PDF 다운로드 (HTML을 이미지로 변환)
-        window.downloadContractPDF = async function() {
-            const name = document.getElementById('contractName').value;
-            const address = document.getElementById('contractAddress').value;
-            const jumin1 = document.getElementById('contractJumin1').value;
-            const jumin2 = document.getElementById('contractJumin2').value;
-            const phone = document.getElementById('contractPhone').value;
-            const email = document.getElementById('contractEmail').value;
-            const startDate = document.getElementById('contractStartDate').value;
-            const endDate = document.getElementById('contractEndDate').value;
-            
-            if (!name || !address || !jumin1 || !jumin2 || !phone || !email || !startDate || !endDate) {
-                alert('필수 항목을 모두 입력해주세요');
-                return;
-            }
-            
-            const ceoSigned = signaturePads['CEO'] && !isCanvasBlank(signaturePads['CEO'].canvas);
-            const freelancerSigned = signaturePads['Freelancer'] && !isCanvasBlank(signaturePads['Freelancer'].canvas);
-            
-            if (!ceoSigned && !freelancerSigned) {
-                alert('최소 한 명은 서명이 필요합니다');
-                return;
-            }
-            
-            try {
-                showToast('PDF 생성 중...', 'info');
-                
-                const business = document.getElementById('contractBusiness').value;
-                const notes = document.getElementById('contractNotes').value;
-                const price = '일당 1만~50만원 (업무별 상이)';
-                const payDay = '업무 완료 후 1개월 이내';
-                
-                // 서명 이미지 가져오기
-                const signatureCEO = ceoSigned ? signaturePads['CEO'].canvas.toDataURL() : null;
-                const signatureFreelancer = freelancerSigned ? signaturePads['Freelancer'].canvas.toDataURL() : null;
-                
-                // HTML 생성 (서명 포함)
-                const contractHTML = generateContractHTML({
-                    name, address, jumin1, jumin2, phone, email, business,
-                    startDate, endDate, price, payDay, notes,
-                    signatureCEO, signatureFreelancer
-                });
-                
-                // 임시 div 생성
-                const tempDiv = document.createElement('div');
-                tempDiv.style.position = 'absolute';
-                tempDiv.style.left = '-9999px';
-                tempDiv.style.width = '794px';
-                tempDiv.style.background = 'white';
-                tempDiv.innerHTML = contractHTML;
-                document.body.appendChild(tempDiv);
-                
-                // HTML을 이미지로 변환
-                const canvas = await html2canvas(tempDiv, {
-                    scale: 2,
-                    useCORS: true,
-                    logging: false,
-                    backgroundColor: '#ffffff'
-                });
-                
-                // div 제거
-                document.body.removeChild(tempDiv);
-                
-                // PDF 생성
-                const { jsPDF } = window.jspdf;
-                const imgData = canvas.toDataURL('image/png');
-                const imgWidth = 210; // A4 width in mm
-                const imgHeight = (canvas.height * imgWidth) / canvas.width;
-                
-                const doc = new jsPDF('p', 'mm', 'a4');
-                let heightLeft = imgHeight;
-                let position = 0;
-                
-                // 첫 페이지
-                doc.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-                heightLeft -= 297;
-                
-                // 추가 페이지 (필요시)
-                while (heightLeft > 0) {
-                    position = heightLeft - imgHeight;
-                    doc.addPage();
-                    doc.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-                    heightLeft -= 297;
-                }
-                
-                const fileName = `프리랜서계약서_${name}_${new Date().toISOString().split('T')[0]}.pdf`;
-                doc.save(fileName);
-                
-                showToast('✅ PDF 다운로드 완료!', 'success');
-                
-            } catch (error) {
-                console.error('❌ PDF 생성 실패:', error);
-                alert('PDF 생성 실패: ' + error.message);
-            }
-        }
-
-
-        // 미리보기 닫기
-        window.closePreview = function() {
-            document.getElementById('contractPreviewModal').style.display = 'none';
-        }
-
-        // 계약서 저장
-        window.saveContract = async function() {
-            // 유효성 검사
-            const name = document.getElementById('contractName').value;
-            if (!name) {
-                alert('필수 항목을 입력해주세요');
-                return;
-            }
-            
-            const contractData = {
-                name: document.getElementById('contractName').value,
-                address: document.getElementById('contractAddress').value,
-                jumin1: document.getElementById('contractJumin1').value,
-                jumin2: document.getElementById('contractJumin2').value,
-                phone: document.getElementById('contractPhone').value,
-                email: document.getElementById('contractEmail').value,
-                business: document.getElementById('contractBusiness').value,
-                startDate: document.getElementById('contractStartDate').value,
-                endDate: document.getElementById('contractEndDate').value,
-                price: '일당 1만~50만원 (업무별 상이)',
-                payDay: '업무 완료 후 1개월 이내',
-                notes: document.getElementById('contractNotes').value,
-                signatureCEO: signaturePads['CEO'] ? signaturePads['CEO'].canvas.toDataURL() : null,
-                signatureFreelancer: signaturePads['Freelancer'] ? signaturePads['Freelancer'].canvas.toDataURL() : null,
-                createdAt: new Date().toISOString()
-            };
-            
-            try {
-                const db = await initContractDB();
-                const tx = db.transaction('contracts', 'readwrite');
-                const store = tx.objectStore('contracts');
-                
-                store.add(contractData);
-                
-                tx.oncomplete = () => {
-                    showToast('✅ 계약서가 저장되었습니다!', 'success');
-                    showContractList();
-                };
-                
-                tx.onerror = () => {
-                    throw new Error('저장 실패');
-                };
-            } catch (error) {
-                console.error('저장 실패:', error);
-                alert('저장에 실패했습니다: ' + error.message);
-            }
-        }
-
-        // 계약서 HTML 생성
-        function generateContractHTML(data) {
-            return `
-                <div style="font-family: '맑은 고딕', sans-serif; line-height: 1.6; color: #333; max-width: 800px; margin: 0 auto; padding: 20px;">
-                    <h2 style="text-align: center; margin-bottom: 25px; color: #10b981; font-size: 26px;">
-                        표준 프리랜서 계약서
-                    </h2>
-                    
-                    <div style="margin-bottom: 25px; text-align: justify; line-height: 1.7; font-size: 14px;">
-                        <strong>더홈점검</strong> (이하 "갑"이라 합니다)은 
-                        <strong>${data.name}</strong> (이하 "을"이라 합니다)에게 
-                        아파트사전점검 대행업무를 의뢰하면서 다음과 같이 프리랜서 계약을 체결한다.
-                    </div>
-                    
-                    <h3 style="color: #10b981; margin-top: 20px; margin-bottom: 10px; border-bottom: 2px solid #10b981; padding-bottom: 5px; font-size: 15px;">
-                        제1조 【목적】
-                    </h3>
-                    <p style="text-align: justify; line-height: 1.6; font-size: 13px; margin-bottom: 15px;">
-                        본 계약은 "갑"이 "을"에게 연구 및 용역을 의뢰함에 있어 필요한 사항을 정하는 것을 목적으로 한다.
-                    </p>
-                    
-                    <h3 style="color: #10b981; margin-top: 20px; margin-bottom: 10px; border-bottom: 2px solid #10b981; padding-bottom: 5px; font-size: 15px;">
-                        제2조 【계약업무】
-                    </h3>
-                    <p style="text-align: justify; line-height: 1.6; font-size: 13px; margin-bottom: 5px;">
-                        "을"은 "갑"이 의뢰한 다음 각 호의 과업을 수행하여야 한다.
-                    </p>
-                    <p style="margin-left: 20px; line-height: 1.6; font-size: 13px; margin-bottom: 15px;">
-                        1. 아파트사전점검 대행 서비스
-                    </p>
-                    
-                    <h3 style="color: #10b981; margin-top: 20px; margin-bottom: 10px; border-bottom: 2px solid #10b981; padding-bottom: 5px; font-size: 15px;">
-                        제3조 【계약기간】
-                    </h3>
-                    <p style="text-align: justify; line-height: 1.6; font-size: 13px; margin-bottom: 15px;">
-                        계약기간은 <strong>${data.startDate}</strong>로부터 <strong>${data.endDate}</strong>까지로 하며, 
-                        "갑"과 "을"의 합의 하에 본 계약기간은 연장되거나 해지될 수 있다.
-                    </p>
-                    
-                    <h3 style="color: #10b981; margin-top: 20px; margin-bottom: 10px; border-bottom: 2px solid #10b981; padding-bottom: 5px; font-size: 15px;">
-                        제4조 【근무시간 및 장소】
-                    </h3>
-                    <p style="text-align: justify; line-height: 1.6; font-size: 13px; margin-bottom: 15px;">
-                        "을"은 "갑"이 지정하는 근무시간 및 근무장소에서 업무를 성실히 수행하여야 한다. 
-                        다만, "갑"과 합의하여 근무 시간과 근무장소를 조정할 수 있다.
-                    </p>
-                    
-                    <h3 style="color: #10b981; margin-top: 20px; margin-bottom: 10px; border-bottom: 2px solid #10b981; padding-bottom: 5px; font-size: 15px;">
-                        제5조 【계약금액】
-                    </h3>
-                    <p style="line-height: 1.6; font-size: 13px; margin-bottom: 15px;">
-                        ① 총 계약금액은 일당 1만원~50만원으로 한다. 
-                        <strong style="color: #ef4444;">(업무에 따라 지급비용이 다르게 지급됨)</strong>
-                    </p>
-                    <p style="line-height: 1.6; font-size: 13px; margin-bottom: 15px;">
-                        ② "갑"은 "을"에게 아파트사전점검 업무 완료 후 
-                        <strong style="color: #ef4444;">1개월 이내에</strong> "을" 명의의 계좌로 이체한다.
-                    </p>
-                    <p style="line-height: 1.6; font-size: 13px; margin-bottom: 15px;">
-                        ③ "갑"은 전 항의 보수 중 사업소득세율(3.3%)에 따라 원천징수의무를 이행한 후 
-                        남은 금액을 "을"에게 지급한다.
-                    </p>
-                    
-                    <h3 style="color: #10b981; margin-top: 20px; margin-bottom: 10px; border-bottom: 2px solid #10b981; padding-bottom: 5px; font-size: 15px;">
-                        제6조 【양 당사자의 권리와 의무】
-                    </h3>
-                    <p style="line-height: 1.6; font-size: 13px; margin-bottom: 15px;">
-                        ① "갑"은 "을"이 과업하는데 필요한 자료 및 정보 등을 제공하여야 하며, 
-                        과업수행을 위한 "을"의 요청이 있는 경우 이에 적극적으로 협조하여야 한다.
-                    </p>
-                    <p style="line-height: 1.6; font-size: 13px; margin-bottom: 15px;">
-                        ② "을"은 본 계약상 부담하는 모든 사항을 "갑"과 합의한 대로 이행하여야 하며, 
-                        신의성실의 원칙에 따라 계약 내용을 이행하여야 한다.
-                    </p>
-                    <p style="line-height: 1.6; font-size: 13px; margin-bottom: 15px;">
-                        ③ "갑"은 "을"의 과업과 관련하여 협의할 사항이 있는 경우 "을"에게 협의를 요청할 수 있고 
-                        "을"은 이러한 "갑"의 요구에 최대한 협조한다.
-                    </p>
-                    <p style="line-height: 1.6; font-size: 13px; margin-bottom: 15px;">
-                        ④ "을"은 본 계약 종료 후 지체없이 "갑"으로부터 제공받은 서류, 정보, 데이터 기타 
-                        모든 형태의 자료를 "갑"에게 반환하여야 하고, 반환이 어려운 경우 이를 파기하고 
-                        "갑"의 승인을 받아야 한다.
-                    </p>
-                    
-                    <h3 style="color: #10b981; margin-top: 20px; margin-bottom: 10px; border-bottom: 2px solid #10b981; padding-bottom: 5px; font-size: 15px;">
-                        제7조 【비밀유지 및 지식재산권의 귀속】
-                    </h3>
-                    <p style="line-height: 1.6; font-size: 13px; margin-bottom: 15px;">
-                        ① "을"은 본 계약 및 과업과 관련하여 알게 된 일체의 정보를 외부에 누설하거나 
-                        유출해서는 아니되며, 이로 인해 발생하는 손해에 대해 책임을 지기로 한다.
-                    </p>
-                    <p style="line-height: 1.6; font-size: 13px; margin-bottom: 15px;">
-                        ② "을"은 창조, 개선, 작성, 생산한 모든 결과물의 저작권에 대한 책임을 보증하며, 
-                        본 계약에 의한 결과물의 권리는 "갑"의 소유가 된다.
-                    </p>
-                    
-                    <h3 style="color: #10b981; margin-top: 20px; margin-bottom: 10px; border-bottom: 2px solid #10b981; padding-bottom: 5px; font-size: 15px;">
-                        제8조 【근무조건】
-                    </h3>
-                    <p style="line-height: 1.6; font-size: 13px; margin-bottom: 15px;">
-                        ① 본 계약상의 업무를 수행하기 위하여 필요한 기타사항은 자유로 한다.
-                    </p>
-                    <p style="line-height: 1.6; font-size: 13px; margin-bottom: 15px;">
-                        ② 본 계약 내용 외에도 다른 필요한 업무가 필요한 경우 "갑"은 "을"이 추가로 
-                        작업을 수행하는 부분에 대한 인건비와 계약 기간은 상호 협의 하에 결정한다.
-                    </p>
-                    
-                    <h3 style="color: #10b981; margin-top: 20px; margin-bottom: 10px; border-bottom: 2px solid #10b981; padding-bottom: 5px; font-size: 15px;">
-                        제9조 【권리의 이전·양도·처분·재위탁 금지】
-                    </h3>
-                    <p style="text-align: justify; line-height: 1.6; font-size: 13px; margin-bottom: 15px;">
-                        "갑" 또는 "을"은 서로 상대방의 서면 동의가 있는 경우를 제외하고는 어떠한 이유로도 
-                        본 계약상 자신의 권리나 의무를 다른 제3자에게 이전·양도·처분·재위탁할 수 없다.
-                    </p>
-                    
-                    <h3 style="color: #10b981; margin-top: 20px; margin-bottom: 10px; border-bottom: 2px solid #10b981; padding-bottom: 5px; font-size: 15px;">
-                        제10조 【해지】
-                    </h3>
-                    <p style="line-height: 1.6; font-size: 13px; margin-bottom: 15px;">
-                        ① "갑"과 "을"은 다음 각 호에 해당될 경우 본 계약을 해지할 수 있다.
-                    </p>
-                    <p style="margin-left: 20px; line-height: 1.6; font-size: 13px; margin-bottom: 15px;">
-                        1. 정당한 이유 없이 과업 진행이 이루어지지 않을 때<br>
-                        2. 정당한 이유 없이 계약기간 내에 과업완료가 불가능하다고 판단될 때<br>
-                        3. 상호간에 계약을 해지하기로 서면합의한 때<br>
-                        4. 회생절차, 파산절차의 개시신청, 채무자 회생 및 파산에 관한 법률에 의한 보전처분의 신청, 
-                           기타 이와 유사한 신청, 회사의 해산결의 등의 사유가 발생한 때<br>
-                        5. 압류, 가압류, 가처분, 경매의 집행을 받거나 국세나 지방세 체납, 기타 공법상의 처분을 받고 
-                           7일 이내에 집행취소나 체납 등 처분의 취소를 받지 않은 때<br>
-                        6. 기타 본 계약상의 과업을 수행하는 것이 불가능하다고 객관적으로 판단될 때
-                    </p>
-                    <p style="line-height: 1.6; font-size: 13px; margin-bottom: 15px;">
-                        ② 본 조에 따른 계약의 해지는 계약기간 중 발생한 당사자 간의 권리의무에 따른 
-                        손해배상의 청구에 영향을 미치지 않는다.
-                    </p>
-                    
-                    <h3 style="color: #10b981; margin-top: 20px; margin-bottom: 10px; border-bottom: 2px solid #10b981; padding-bottom: 5px; font-size: 15px;">
-                        제11조 【손해배상】
-                    </h3>
-                    <p style="line-height: 1.6; font-size: 13px; margin-bottom: 15px;">
-                        ① "을"의 귀책사유로 인하여 본 계약이 불이행 되었을 경우 "을"은 "갑"이 제시한 
-                        손해배상의 책임을 진다(이때, 손해배상액은 상호 협의 한다).
-                    </p>
-                    <p style="line-height: 1.6; font-size: 13px; margin-bottom: 15px;">
-                        ② "을"의 귀책사유로 인하여 기타 제3자에게 손해가 발생하는 경우 이는 "을"이 부담하며, 
-                        "갑"이 전부 또는 일부를 배상한 때에는 "갑"이 "을"에게 이를 구상할 수 있다.
-                    </p>
-                    
-                    <h3 style="color: #10b981; margin-top: 20px; margin-bottom: 10px; border-bottom: 2px solid #10b981; padding-bottom: 5px; font-size: 15px;">
-                        제12조 【일부무효】
-                    </h3>
-                    <p style="text-align: justify; line-height: 1.6; font-size: 13px; margin-bottom: 15px;">
-                        본 계약의 일부 조항이 법령 또는 판결에 의하여 무효 또는 불법으로 판정되는 경우에도 
-                        본 계약 전체가 무효로 되는 것은 아니며, 무효로 되지 않는 다른 조항은 법령에 의하여 
-                        허용되는 한도에서 여전히 유효하게 존속하고, 무효 또는 불법조항이 포함되지 않았던 것처럼 해석한다.
-                    </p>
-                    
-                    <h3 style="color: #10b981; margin-top: 20px; margin-bottom: 10px; border-bottom: 2px solid #10b981; padding-bottom: 5px; font-size: 15px;">
-                        제13조 【계약의 변경】
-                    </h3>
-                    <p style="text-align: justify; line-height: 1.6; font-size: 13px; margin-bottom: 15px;">
-                        본 계약은 "갑"과 "을"의 서면합의에 따라 변경될 수 있다.
-                    </p>
-                    
-                    <h3 style="color: #10b981; margin-top: 20px; margin-bottom: 10px; border-bottom: 2px solid #10b981; padding-bottom: 5px; font-size: 15px;">
-                        제14조 【관할】
-                    </h3>
-                    <p style="text-align: justify; line-height: 1.6; font-size: 13px; margin-bottom: 15px;">
-                        본 계약과 관련하여 분쟁이 발생한 경우 당사자의 상호 협의에 의한 해결을 모색하되, 
-                        분쟁에 관한 합의가 이루어지지 아니한 경우에는 "갑"의 본점 소재지 관할법원을 
-                        제1심 관할법원으로 하여 소송을 통해 분쟁을 해결하기로 한다.
-                    </p>
-                    
-                    <div style="margin-top: 40px; padding: 20px; background: #f8f9fa; border-radius: 8px;">
-                        <p style="text-align: center; margin-bottom: 30px; line-height: 1.6; font-size: 13px; margin-bottom: 15px;">
-                            각 당사자는 위 계약을 증명하기 위하여 본 계약서 2통을 작성하여,<br>
-                            각각 서명(또는 기명)날인 후 "갑"과 "을"이 각각 1통씩을 보관한다.
-                        </p>
-                        
-                        <p style="text-align: center; font-size: 20px; font-weight: bold; margin-bottom: 40px;">
-                            ${new Date().getFullYear()}년 ${new Date().getMonth() + 1}월 ${new Date().getDate()}일
-                        </p>
-                        
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 30px;">
-                            <div style="border: 2px solid #10b981; padding: 15px; border-radius: 8px; background: white;">
-                                <h4 style="color: #10b981; margin-bottom: 10px; text-align: center; font-size: 16px;">【갑】</h4>
-                                <p style="line-height: 1.6; font-size: 13px;">
-                                    <strong>대표자:</strong> 박지현 (더홈점검)<br>
-                                    <strong>주소:</strong> 경기도 부천시 원미구 송내대로265번길 23, 201호<br>
-                                    <strong>사업자번호:</strong> 531-42-01293<br>
-                                    <strong>연락처:</strong> 1668-5322
-                                </p>
-                                ${data.signatureCEO ? `
-                                    <div style="margin-top: 10px; text-align: center;">
-                                        <img src="${data.signatureCEO}" style="max-width: 150px; max-height: 60px; border: 1px solid #ddd; padding: 5px; background: white;" alt="CEO 서명">
-                                        <p style="font-size: 11px; color: #333; margin-top: 5px;">(서명)</p>
-                                    </div>
-                                ` : `
-                                    <div style="margin-top: 10px; padding: 30px; border: 1px dashed #ddd; text-align: center; color: #333; font-size: 12px;">
-                                        서명 없음
-                                    </div>
-                                `}
-                            </div>
-                            
-                            <div style="border: 2px solid #10b981; padding: 15px; border-radius: 8px; background: white;">
-                                <h4 style="color: #10b981; margin-bottom: 10px; text-align: center; font-size: 16px;">【을】</h4>
-                                <p style="line-height: 1.6; font-size: 13px;">
-                                    <strong>성명:</strong> ${data.name}<br>
-                                    <strong>주소:</strong> ${data.address}<br>
-                                    <strong>주민등록번호:</strong> ${data.jumin1}-${data.jumin2}******<br>
-                                    <strong>연락처:</strong> ${data.phone}<br>
-                                    <strong>이메일:</strong> ${data.email}
-                                    ${data.business ? `<br><strong>사업자번호:</strong> ${data.business}` : ''}
-                                </p>
-                                ${data.signatureFreelancer ? `
-                                    <div style="margin-top: 10px; text-align: center;">
-                                        <img src="${data.signatureFreelancer}" style="max-width: 150px; max-height: 60px; border: 1px solid #ddd; padding: 5px; background: white;" alt="프리랜서 서명">
-                                        <p style="font-size: 11px; color: #333; margin-top: 5px;">(서명)</p>
-                                    </div>
-                                ` : `
-                                    <div style="margin-top: 10px; padding: 30px; border: 1px dashed #ddd; text-align: center; color: #333; font-size: 12px;">
-                                        서명 없음
-                                    </div>
-                                `}
-                            </div>
-                        </div>
-                    </div>
-                    
-                    ${data.notes ? `
-                        <div style="margin-top: 30px; padding: 20px; background: #fffbeb; border-radius: 8px; border-left: 5px solid #fbbf24;">
-                            <h4 style="color: #92400e; margin-bottom: 10px;">📌 특이사항</h4>
-                            <p style="line-height: 1.6; font-size: 13px; margin-bottom: 15px; color: #92400e;">${data.notes}</p>
-                        </div>
-                    ` : ''}
-                </div>
-            `;
-        }
-
-        // 계약서 보기
-        window.viewContract = async function(id) {
-            try {
-                const db = await initContractDB();
-                const tx = db.transaction('contracts', 'readonly');
-                const store = tx.objectStore('contracts');
-                const request = store.get(id);
-                
-                request.onsuccess = () => {
-                    const contract = request.result;
-                    if (!contract) {
-                        alert('계약서를 찾을 수 없습니다');
-                        return;
-                    }
-                    
-                    const html = generateContractHTML(contract);
-                    document.getElementById('contractPreviewContent').innerHTML = html;
-                    document.getElementById('contractPreviewModal').style.display = 'block';
-                };
-            } catch (error) {
-                console.error('조회 실패:', error);
-                alert('계약서를 불러올 수 없습니다');
-            }
-        }
-
-        // PDF 생성
-        window.generateContractPDF = function() {
-            showToast('📄 인쇄 화면으로 이동합니다', 'info');
-            setTimeout(() => {
-                window.print();
-            }, 500);
-        }
-
-
-
-        // 계약서 삭제
-        window.deleteContract = async function(id) {
-            if (!confirm('정말 이 계약서를 삭제하시겠습니까?')) {
-                return;
-            }
-            
-            try {
-                const db = await initContractDB();
-                const tx = db.transaction('contracts', 'readwrite');
-                const store = tx.objectStore('contracts');
-                
-                store.delete(id);
-                
-                tx.oncomplete = () => {
-                    showToast('삭제되었습니다', 'success');
-                    loadContracts();
-                };
-            } catch (error) {
-                console.error('삭제 실패:', error);
-                alert('삭제에 실패했습니다');
-            }
-        }
-
-        // 페이지 로드 시 계약서 데이터 로드
+        // 페이지 로드 시 테마 설정 불러오기
         document.addEventListener('DOMContentLoaded', () => {
-            if (document.getElementById('contract')) {
-                loadContracts();
-            }
-            
-            // 테마 설정 불러오기
             loadTheme();
         });
 
@@ -10766,7 +10056,7 @@ window.createSummaryFirstPage = function() {
     }
     
     // ==================== 버전 체크 및 업데이트 시스템 ====================
-    const APP_VERSION = '3.6';
+    const APP_VERSION = '3.7';
     
     function checkForUpdates() {
         const savedVersion = localStorage.getItem('app_version');
