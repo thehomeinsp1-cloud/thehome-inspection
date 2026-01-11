@@ -2627,6 +2627,13 @@
                 alert('⚠️ 점검 작성자를 입력해주세요.\n\n프로젝트 탭에서 작성자 이름을 입력해주세요.');
                 return;
             }
+            
+            // ✅ 오타 검사 (저장 전 필수)
+            const typoResult = checkAllTypos();
+            if (typoResult.hasError) {
+                showTypoModal(typoResult.errors, () => uploadProjectToDrive(projectToUpload));
+                return;
+            }
 
             // projectToUpload가 있으면 동기화 중이므로 confirm 스킵
             if (!projectToUpload && !confirm(`"${project.apartmentName} ${project.dong} ${project.ho}"를 Google Drive에 업로드하시겠습니까?\n\n📄 PDF 보고서\n📊 엑셀 파일\n📷 사진 파일\n\n모든 자료가 업로드됩니다.`)) {
@@ -4176,13 +4183,10 @@
                         <label class="form-label">📝 상세위치 (선택사항)</label>
                         <input type="text" class="form-input" id="detailLocation_${defect.id}" 
                                value="${defect.detailLocation || ''}" 
-                               onchange="updateDefect(${defect.id}, 'detailLocation', this.value)" 
-                               onblur="checkTypo(${defect.id}, this.value)"
+                               onchange="updateDefect(${defect.id}, 'detailLocation', this.value)"
                                placeholder="예: 좌측 상부 신발장, 우측 하단 등">
-                        <div id="typoAlert_${defect.id}" style="display: none; font-size: 12px; color: #f59e0b; margin-top: 6px; padding: 8px; background: #fef3c7; border-radius: 6px;">
-                        </div>
                         <div style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;">
-                            💡 입력 후 오타가 감지되면 자동으로 수정 제안합니다
+                            💡 저장/업로드 시 오타가 감지되면 수정 후 진행됩니다
                         </div>
                     </div>
 
@@ -5734,9 +5738,9 @@
             '미싱공': '미시공'
         };
         
-        // 오타 감지
-        function checkTypo(defectId, value) {
-            if (!value || !value.trim()) return;
+        // 단일 텍스트 오타 검사 (오타 배열 반환)
+        function detectTypos(value) {
+            if (!value || !value.trim()) return [];
             
             const words = value.trim().split(/\s+/);
             const typos = [];
@@ -5752,72 +5756,62 @@
                 
                 // 2. 자음만 있는지 확인 (ㅁㄴㅇㄹ, ㄱㄱㄱ)
                 if (/^[ㄱ-ㅎ]+$/.test(word)) {
-                    typos.push({ wrong: word, correct: '(자음만 입력됨)' });
+                    typos.push({ wrong: word, correct: null, reason: '자음만 입력됨' });
                     continue;
                 }
                 
                 // 3. 모음만 있는지 확인 (ㅏㅓㅗㅜ)
                 if (/^[ㅏ-ㅣ]+$/.test(word)) {
-                    typos.push({ wrong: word, correct: '(모음만 입력됨)' });
+                    typos.push({ wrong: word, correct: null, reason: '모음만 입력됨' });
                     continue;
                 }
                 
                 // 4. 자음+모음 혼합 (완성되지 않은 글자)
                 if (/^[ㄱ-ㅎㅏ-ㅣ]+$/.test(word)) {
-                    typos.push({ wrong: word, correct: '(완성된 글자로 입력 필요)' });
+                    typos.push({ wrong: word, correct: null, reason: '완성되지 않은 글자' });
                     continue;
                 }
                 
                 // 5. 같은 글자 3번 이상 반복 (아아아, ㅋㅋㅋ, 111)
                 if (/(.)\1{2,}/.test(word)) {
-                    typos.push({ wrong: word, correct: '(반복 입력됨)' });
+                    typos.push({ wrong: word, correct: null, reason: '반복 입력됨' });
                     continue;
                 }
                 
                 // 6. 영문만 있는지 확인 (asdf, qwer)
                 if (/^[a-zA-Z]+$/.test(word) && word.length > 2) {
-                    // MC, SP 등 약어는 허용
                     if (!['MC', 'SP', 'LED', 'PVC'].includes(word.toUpperCase())) {
-                        typos.push({ wrong: word, correct: '(한글로 입력 필요)' });
+                        typos.push({ wrong: word, correct: null, reason: '영문만 입력됨' });
                         continue;
                     }
                 }
                 
-                // 7. 숫자만 있는지 확인 (1234) - 단, 곳 수는 제외
+                // 7. 숫자만 있는지 확인 (1234)
                 if (/^[0-9]+$/.test(word) && word.length > 2) {
-                    typos.push({ wrong: word, correct: '(숫자만 입력됨)' });
+                    typos.push({ wrong: word, correct: null, reason: '숫자만 입력됨' });
                     continue;
                 }
                 
-                // 8. 특수문자만 있는지 확인 (!!!, ???, ...)
+                // 8. 특수문자만 있는지 확인
                 if (/^[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~`]+$/.test(word)) {
-                    typos.push({ wrong: word, correct: '(특수문자만 입력됨)' });
+                    typos.push({ wrong: word, correct: null, reason: '특수문자만 입력됨' });
                     continue;
                 }
                 
-                // 9. 키보드 연속 입력 패턴 (ㅂㅈㄷㄱ, ㅁㄴㅇㄹ, qwer, asdf)
-                const keyboardPatterns = ['ㅂㅈㄷㄱ', 'ㅁㄴㅇㄹ', 'ㅋㅌㅊㅍ', 'ㅎㅗㅓㅏ', 'qwer', 'asdf', 'zxcv', '1234', '2345'];
+                // 9. 키보드 연속 입력 패턴
+                const keyboardPatterns = ['ㅂㅈㄷㄱ', 'ㅁㄴㅇㄹ', 'ㅋㅌㅊㅍ', 'qwer', 'asdf', 'zxcv', '1234'];
                 if (keyboardPatterns.some(p => word.toLowerCase().includes(p))) {
-                    typos.push({ wrong: word, correct: '(의미없는 입력)' });
+                    typos.push({ wrong: word, correct: null, reason: '의미없는 입력' });
                     continue;
                 }
                 
-                // 10. 한글+영어+숫자 이상한 조합 (abc가나123)
-                const hasKorean = /[가-힣]/.test(word);
-                const hasEnglish = /[a-zA-Z]/.test(word);
-                const hasNumber = /[0-9]/.test(word);
-                if (hasKorean && hasEnglish && hasNumber) {
-                    typos.push({ wrong: word, correct: '(입력 확인 필요)' });
-                    continue;
-                }
-                
-                // 11. 너무 긴 단어 (띄어쓰기 없이 15자 이상)
+                // 10. 너무 긴 단어 (15자 이상)
                 if (word.length > 15) {
-                    typos.push({ wrong: word, correct: '(띄어쓰기 확인 필요)' });
+                    typos.push({ wrong: word, correct: null, reason: '띄어쓰기 필요' });
                     continue;
                 }
                 
-                // 12. 유사 단어 찾기 (편집 거리 1-2)
+                // 11. 유사 단어 찾기 (편집 거리 1-2)
                 if (!validWords.includes(word)) {
                     const similar = findSimilarWord(word);
                     if (similar) {
@@ -5826,20 +5820,194 @@
                 }
             }
             
-            // 오타 알림 표시
-            const alertDiv = document.getElementById(`typoAlert_${defectId}`);
-            if (alertDiv && typos.length > 0) {
-                alertDiv.innerHTML = `⚠️ 오타 의심: ${typos.map(t => 
-                    `<strong>"${t.wrong}"</strong> → <span style="color: #059669;">"${t.correct}"</span>`
-                ).join(', ')} 
-                <button onclick="applyTypoFix(${defectId})" style="margin-left: 8px; padding: 4px 10px; 
-                    background: #10b981; color: white; border: none; border-radius: 4px; 
-                    font-size: 11px; cursor: pointer;">자동 수정</button>`;
-                alertDiv.style.display = 'block';
-                alertDiv.dataset.typos = JSON.stringify(typos);
-            } else if (alertDiv) {
-                alertDiv.style.display = 'none';
+            return typos;
+        }
+        
+        // 전체 프로젝트 오타 검사
+        function checkAllTypos() {
+            const project = getCurrentProject();
+            if (!project || !project.defects || project.defects.length === 0) {
+                return { hasError: false, errors: [] };
             }
+            
+            const errors = [];
+            
+            for (const defect of project.defects) {
+                if (defect.detailLocation && defect.detailLocation.trim()) {
+                    const typos = detectTypos(defect.detailLocation);
+                    if (typos.length > 0) {
+                        errors.push({
+                            defectId: defect.id,
+                            defectIndex: project.defects.indexOf(defect) + 1,
+                            location: defect.detailLocation,
+                            typos: typos
+                        });
+                    }
+                }
+            }
+            
+            return { hasError: errors.length > 0, errors: errors };
+        }
+        
+        // 오타 수정 모달 표시
+        function showTypoModal(errors, onComplete) {
+            // 기존 모달 제거
+            const existingModal = document.getElementById('typoModal');
+            if (existingModal) existingModal.remove();
+            
+            const modal = document.createElement('div');
+            modal.id = 'typoModal';
+            modal.style.cssText = `
+                position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+                background: rgba(0,0,0,0.85); z-index: 99999;
+                display: flex; align-items: center; justify-content: center;
+                padding: 20px;
+            `;
+            
+            let errorListHTML = errors.map((error, idx) => {
+                const typoItems = error.typos.map(t => {
+                    if (t.correct) {
+                        return `<span style="color: #ef4444;">"${t.wrong}"</span> → <span style="color: #10b981;">"${t.correct}"</span>`;
+                    } else {
+                        return `<span style="color: #ef4444;">"${t.wrong}"</span> <span style="color: #f59e0b;">(${t.reason})</span>`;
+                    }
+                }).join(', ');
+                
+                return `
+                    <div style="background: var(--bg-light); padding: 15px; border-radius: 8px; margin-bottom: 10px;">
+                        <div style="font-weight: bold; margin-bottom: 8px; color: var(--primary);">
+                            하자 #${error.defectIndex}
+                        </div>
+                        <div style="margin-bottom: 8px; font-size: 13px;">
+                            <span style="color: var(--text-secondary);">현재 입력:</span> 
+                            <span style="color: var(--text);">"${error.location}"</span>
+                        </div>
+                        <div style="font-size: 13px;">
+                            <span style="color: var(--text-secondary);">오타:</span> ${typoItems}
+                        </div>
+                        <div style="margin-top: 10px;">
+                            <input type="text" id="typoFix_${error.defectId}" 
+                                   value="${error.location}" 
+                                   style="width: 100%; padding: 10px; border: 2px solid var(--primary); 
+                                          border-radius: 6px; font-size: 14px; background: var(--bg-dark); color: var(--text);">
+                            ${error.typos.some(t => t.correct) ? `
+                                <button onclick="autoFixTypo(${error.defectId}, '${error.typos.filter(t => t.correct).map(t => t.wrong + '|' + t.correct).join(',')}')" 
+                                        style="margin-top: 8px; padding: 8px 16px; background: #10b981; color: white; 
+                                               border: none; border-radius: 6px; font-size: 12px; cursor: pointer;">
+                                    ✨ 자동 수정
+                                </button>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            modal.innerHTML = `
+                <div style="background: var(--bg-dark); border-radius: 16px; max-width: 500px; width: 100%; 
+                            max-height: 80vh; overflow-y: auto; border: 2px solid #ef4444;">
+                    <div style="background: #ef4444; color: white; padding: 20px; text-align: center;">
+                        <div style="font-size: 40px; margin-bottom: 10px;">⚠️</div>
+                        <div style="font-size: 18px; font-weight: bold;">오타가 발견되었습니다!</div>
+                        <div style="font-size: 14px; margin-top: 8px; opacity: 0.9;">
+                            ${errors.length}개 하자에서 오타가 감지되었습니다.<br>
+                            수정 후 저장해주세요.
+                        </div>
+                    </div>
+                    <div style="padding: 20px;">
+                        ${errorListHTML}
+                        <div style="display: flex; gap: 10px; margin-top: 20px;">
+                            <button onclick="applyAllTypoFixes()" 
+                                    style="flex: 1; padding: 15px; background: #10b981; color: white; 
+                                           border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer;">
+                                ✅ 수정 완료
+                            </button>
+                            <button onclick="closeTypoModal()" 
+                                    style="flex: 1; padding: 15px; background: #6b7280; color: white; 
+                                           border: none; border-radius: 8px; font-size: 16px; cursor: pointer;">
+                                취소
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            window.typoModalCallback = onComplete;
+            window.typoErrors = errors;
+        }
+        
+        // 자동 수정 적용 (개별)
+        window.autoFixTypo = function(defectId, corrections) {
+            const input = document.getElementById(`typoFix_${defectId}`);
+            if (!input) return;
+            
+            let value = input.value;
+            corrections.split(',').forEach(pair => {
+                const [wrong, correct] = pair.split('|');
+                if (wrong && correct) {
+                    value = value.replace(new RegExp(wrong, 'g'), correct);
+                }
+            });
+            input.value = value;
+        };
+        
+        // 모든 수정 적용
+        window.applyAllTypoFixes = function() {
+            const errors = window.typoErrors || [];
+            let hasRemaining = false;
+            
+            for (const error of errors) {
+                const input = document.getElementById(`typoFix_${error.defectId}`);
+                if (input) {
+                    const newValue = input.value.trim();
+                    
+                    // 수정된 값 다시 검사
+                    const remainingTypos = detectTypos(newValue);
+                    if (remainingTypos.length > 0) {
+                        hasRemaining = true;
+                        input.style.borderColor = '#ef4444';
+                        showToast(`❌ 하자 #${error.defectIndex}에 아직 오타가 있습니다!`, 'error');
+                        return;
+                    }
+                    
+                    // 프로젝트 데이터 업데이트
+                    const defect = projectData.defects.find(d => d.id === error.defectId);
+                    if (defect) {
+                        defect.detailLocation = newValue;
+                    }
+                }
+            }
+            
+            if (!hasRemaining) {
+                closeTypoModal();
+                saveProjects();
+                showToast('✅ 오타가 수정되었습니다!');
+                
+                // 콜백 실행 (저장/업로드 계속 진행)
+                if (window.typoModalCallback) {
+                    setTimeout(() => window.typoModalCallback(), 500);
+                }
+            }
+        };
+        
+        // 모달 닫기
+        window.closeTypoModal = function() {
+            const modal = document.getElementById('typoModal');
+            if (modal) modal.remove();
+            window.typoModalCallback = null;
+            window.typoErrors = null;
+        };
+        
+        // 저장 전 오타 검사 (true: 통과, false: 오타 있음)
+        function validateBeforeSave(onPass) {
+            const result = checkAllTypos();
+            
+            if (result.hasError) {
+                showTypoModal(result.errors, onPass);
+                return false;
+            }
+            
+            return true;
         }
         
         // 유사 단어 찾기 (편집 거리 기반)
@@ -5886,28 +6054,6 @@
             }
             
             return matrix[b.length][a.length];
-        }
-        
-        // 오타 자동 수정 적용
-        function applyTypoFix(defectId) {
-            const input = document.getElementById(`detailLocation_${defectId}`);
-            const alertDiv = document.getElementById(`typoAlert_${defectId}`);
-            
-            if (input && alertDiv && alertDiv.dataset.typos) {
-                let value = input.value;
-                const typos = JSON.parse(alertDiv.dataset.typos);
-                
-                for (const typo of typos) {
-                    if (typo.correct && !typo.correct.startsWith('(')) {
-                        value = value.replace(new RegExp(typo.wrong, 'g'), typo.correct);
-                    }
-                }
-                
-                input.value = value;
-                updateDefect(defectId, 'detailLocation', value);
-                alertDiv.style.display = 'none';
-                showToast('✅ 오타가 수정되었습니다!');
-            }
         }
 
         function updateDefect(id, field, value) {
@@ -6137,6 +6283,13 @@
                 if (!confirm(`⚠️ 사진이 2장 미만인 하자가 ${defectsWithIncompletePhotos.length}건 있습니다.\n\n${photoDetails}\n\n📷 권장: 원경 + 근접 사진 2장\n\n시공사 제출 시 증거 자료가 부족할 수 있습니다.\n계속 진행하시겠습니까?`)) {
                     return;
                 }
+            }
+            
+            // ✅ 4. 오타 검사 (저장 전 필수)
+            const typoResult = checkAllTypos();
+            if (typoResult.hasError) {
+                showTypoModal(typoResult.errors, () => downloadAllData());
+                return;
             }
             
             showLoading();
@@ -6459,6 +6612,13 @@
             
             if (!projectData.defects || projectData.defects.length === 0) {
                 alert('다운로드할 하자 내역이 없습니다');
+                return;
+            }
+            
+            // ✅ 오타 검사 (저장 전 필수)
+            const typoResult = checkAllTypos();
+            if (typoResult.hasError) {
+                showTypoModal(typoResult.errors, () => downloadExcel());
                 return;
             }
             
