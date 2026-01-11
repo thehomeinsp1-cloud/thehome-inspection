@@ -5786,20 +5786,30 @@
             const input = document.getElementById(`detailLocation_${defectId}`);
             const alertDiv = document.getElementById(`typoAlert_${defectId}`);
             
-            if (!input || !alertDiv || !alertDiv.dataset.typos) return;
+            if (!input || !alertDiv || !alertDiv.dataset.typos) {
+                console.log('autoFix: 요소를 찾을 수 없음', defectId);
+                return;
+            }
             
             let value = input.value;
             const typos = JSON.parse(alertDiv.dataset.typos);
             
+            console.log('autoFix 실행:', defectId, typos);
+            
             for (const typo of typos) {
                 if (typo.correct) {
-                    value = value.replace(new RegExp(typo.wrong, 'g'), typo.correct);
+                    // 특수문자 이스케이프
+                    const escaped = typo.wrong.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                    value = value.replace(new RegExp(escaped, 'g'), typo.correct);
                 }
             }
             
             input.value = value;
             updateDefect(defectId, 'detailLocation', value);
-            alertDiv.style.display = 'none';
+            
+            // 수정 후 다시 검사
+            checkTypoRealtime(defectId, value);
+            
             showToast('✅ 오타가 수정되었습니다!');
         };
         
