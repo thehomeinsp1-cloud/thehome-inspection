@@ -4184,9 +4184,9 @@
                         <input type="text" class="form-input" id="detailLocation_${defect.id}" 
                                value="${defect.detailLocation || ''}" 
                                onchange="updateDefect(${defect.id}, 'detailLocation', this.value)"
+                               oninput="checkTypoRealtime(${defect.id}, this.value)"
                                placeholder="예: 좌측 상부 신발장, 우측 하단 등">
-                        <div style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;">
-                            💡 저장/업로드 시 오타가 감지되면 수정 후 진행됩니다
+                        <div id="typoAlert_${defect.id}" style="display: none; font-size: 12px; color: #dc2626; margin-top: 6px; padding: 10px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 6px;">
                         </div>
                     </div>
 
@@ -5736,6 +5736,71 @@
             '물고잉': '물고임',
             '미시곤': '미시공',
             '미싱공': '미시공'
+        };
+        
+        // 실시간 오타 검사 (debounce 적용)
+        let typoCheckTimer = {};
+        function checkTypoRealtime(defectId, value) {
+            // 300ms 디바운스
+            if (typoCheckTimer[defectId]) {
+                clearTimeout(typoCheckTimer[defectId]);
+            }
+            
+            typoCheckTimer[defectId] = setTimeout(() => {
+                const alertDiv = document.getElementById(`typoAlert_${defectId}`);
+                if (!alertDiv) return;
+                
+                if (!value || !value.trim()) {
+                    alertDiv.style.display = 'none';
+                    return;
+                }
+                
+                const typos = detectTypos(value);
+                
+                if (typos.length > 0) {
+                    const typoList = typos.map(t => {
+                        if (t.correct) {
+                            return `<strong>"${t.wrong}"</strong> → <span style="color: #059669;">"${t.correct}"</span>`;
+                        } else {
+                            return `<strong>"${t.wrong}"</strong> <span style="color: #f59e0b;">(${t.reason})</span>`;
+                        }
+                    }).join(', ');
+                    
+                    // 자동 수정 가능한 오타가 있는지 확인
+                    const fixableTypos = typos.filter(t => t.correct);
+                    const autoFixBtn = fixableTypos.length > 0 
+                        ? `<button onclick="autoFixTypoRealtime(${defectId})" style="margin-top: 8px; padding: 6px 12px; background: #10b981; color: white; border: none; border-radius: 4px; font-size: 12px; cursor: pointer; display: block;">✨ 자동 수정</button>`
+                        : '';
+                    
+                    alertDiv.innerHTML = `⚠️ 오타 감지: ${typoList}${autoFixBtn}`;
+                    alertDiv.dataset.typos = JSON.stringify(typos);
+                    alertDiv.style.display = 'block';
+                } else {
+                    alertDiv.style.display = 'none';
+                }
+            }, 300);
+        }
+        
+        // 실시간 자동 수정
+        window.autoFixTypoRealtime = function(defectId) {
+            const input = document.getElementById(`detailLocation_${defectId}`);
+            const alertDiv = document.getElementById(`typoAlert_${defectId}`);
+            
+            if (!input || !alertDiv || !alertDiv.dataset.typos) return;
+            
+            let value = input.value;
+            const typos = JSON.parse(alertDiv.dataset.typos);
+            
+            for (const typo of typos) {
+                if (typo.correct) {
+                    value = value.replace(new RegExp(typo.wrong, 'g'), typo.correct);
+                }
+            }
+            
+            input.value = value;
+            updateDefect(defectId, 'detailLocation', value);
+            alertDiv.style.display = 'none';
+            showToast('✅ 오타가 수정되었습니다!');
         };
         
         // 단일 텍스트 오타 검사 (오타 배열 반환)
