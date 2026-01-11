@@ -5811,12 +5811,23 @@
                     continue;
                 }
                 
-                // 11. 유사 단어 찾기 (편집 거리 1-2)
-                if (!validWords.includes(word)) {
-                    const similar = findSimilarWord(word);
-                    if (similar) {
-                        typos.push({ wrong: word, correct: similar });
-                    }
+                // 11. 숫자+단위 패턴 허용 (3곳, 10개, 2군데 등)
+                if (/^[0-9]+[곳개군데번째]$/.test(word)) {
+                    continue; // 허용
+                }
+                
+                // 12. 사전에 있는 단어는 통과
+                if (validWords.includes(word)) {
+                    continue;
+                }
+                
+                // 13. 사전에 없는 단어 → 유사 단어 찾기 또는 오타 처리
+                const similar = findSimilarWord(word);
+                if (similar) {
+                    typos.push({ wrong: word, correct: similar });
+                } else {
+                    // 유사 단어도 없으면 = 사전에 없는 단어 (오타로 간주)
+                    typos.push({ wrong: word, correct: null, reason: '사전에 없는 단어' });
                 }
             }
             
