@@ -2808,7 +2808,7 @@
             try {
                 // 1. 프로젝트 폴더 생성 (공유드라이브 루트에 바로 생성)
                 showToast('📁 폴더 생성 중...');
-                const projectName = `${project.apartmentName}_${project.dong}동_${project.ho}호_${project.inspectionDate}_${project.author}`;
+                const projectName = `${project.apartmentName}_${project.dong}동_${project.ho}호_${project.author}_${project.inspectionDate}`;
                 const projectFolderId = await createProjectFolder(SHARED_DRIVE_ID, projectName);
                 
                 // ========== 2. PDF 보고서 생성 ==========
@@ -3091,13 +3091,18 @@
                 for (let defectIndex = 0; defectIndex < project.defects.length; defectIndex++) {
                     const defect = project.defects[defectIndex];
                     if (defect.photos && defect.photos.length > 0) {
-                        let photoNum = 1;
+                        // 파일명용 정보 추출
+                        const num = String(defectIndex + 1).padStart(2, '0');
+                        const space = defect.spaces && defect.spaces.length > 0 ? defect.spaces[0] : '기타';
+                        const location = defect.locations && defect.locations.length > 0 ? defect.locations[0] : '';
+                        
+                        let photoNum = 0;
                         for (const photo of defect.photos) {
                             if (photo !== null) {
-                                photoTasks.push({
-                                    photo,
-                                    fileName: `${defectIndex + 1}-${photoNum}.jpg`
-                                });
+                                // 파일명: 01_현관_벽_원경.jpg, 01_현관_벽_근접.jpg
+                                const photoType = photoNum === 0 ? '원경' : '근접';
+                                const fileName = `${num}_${space}_${location}_${photoType}.jpg`;
+                                photoTasks.push({ photo, fileName });
                                 photoNum++;
                             }
                         }
@@ -5931,7 +5936,7 @@
             try {
                 const zip = new JSZip();
                 // 드라이브 업로드와 동일한 파일명 형식
-                const projectName = `${projectData.apartmentName}_${projectData.dong}동_${projectData.ho}호_${projectData.inspectionDate}_${projectData.author}`;
+                const projectName = `${projectData.apartmentName}_${projectData.dong}동_${projectData.ho}호_${projectData.author}_${projectData.inspectionDate}`;
                 let photoCount = 0;
                 
                 // ========== 1. PDF 파일 생성 ==========
@@ -6340,7 +6345,7 @@
                 });
                 
                 // 파일명 (드라이브와 동일 형식)
-                const projectName = `${projectData.apartmentName}_${projectData.dong}동_${projectData.ho}호_${projectData.inspectionDate}_${projectData.author || ''}`;
+                const projectName = `${projectData.apartmentName}_${projectData.dong}동_${projectData.ho}호_${projectData.author || ''}_${projectData.inspectionDate}`;
                 const fileName = `${projectName}_하자목록.xlsx`;
                 
                 const url = URL.createObjectURL(blob);
