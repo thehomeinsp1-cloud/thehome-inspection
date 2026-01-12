@@ -4184,7 +4184,7 @@
                         <input type="text" class="form-input" id="detailLocation_${defect.id}" 
                                value="${defect.detailLocation || ''}" 
                                onchange="updateDefect(${defect.id}, 'detailLocation', this.value)"
-                               oninput="checkTypoRealtime(${defect.id}, this.value)"
+                               onblur="checkTypoOnBlur(${defect.id}, this.value)"
                                placeholder="예: 좌측 상부 신발장, 우측 하단 등">
                         <div id="typoAlert_${defect.id}" style="display: none; font-size: 12px; color: #dc2626; margin-top: 6px; padding: 10px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 6px;">
                         </div>
@@ -5738,80 +5738,79 @@
             '미싱공': '미시공'
         };
         
-        // 실시간 오타 검사 (debounce 적용)
-        let typoCheckTimer = {};
-        function checkTypoRealtime(defectId, value) {
-            // 300ms 디바운스
-            if (typoCheckTimer[defectId]) {
-                clearTimeout(typoCheckTimer[defectId]);
-            }
-            
-            typoCheckTimer[defectId] = setTimeout(() => {
-                const alertDiv = document.getElementById(`typoAlert_${defectId}`);
-                if (!alertDiv) return;
-                
-                if (!value || !value.trim()) {
-                    alertDiv.style.display = 'none';
-                    return;
-                }
-                
-                const typos = detectTypos(value);
-                
-                if (typos.length > 0) {
-                    const typoList = typos.map(t => {
-                        if (t.correct) {
-                            return `<strong>"${t.wrong}"</strong> → <span style="color: #059669;">"${t.correct}"</span>`;
-                        } else {
-                            return `<strong>"${t.wrong}"</strong> <span style="color: #f59e0b;">(${t.reason})</span>`;
-                        }
-                    }).join(', ');
-                    
-                    // 자동 수정 가능한 오타가 있는지 확인
-                    const fixableTypos = typos.filter(t => t.correct);
-                    const autoFixBtn = fixableTypos.length > 0 
-                        ? `<button onclick="autoFixTypoRealtime(${defectId})" style="margin-top: 8px; padding: 6px 12px; background: #10b981; color: white; border: none; border-radius: 4px; font-size: 12px; cursor: pointer; display: block;">✨ 자동 수정</button>`
-                        : '';
-                    
-                    alertDiv.innerHTML = `⚠️ 오타 감지: ${typoList}${autoFixBtn}`;
-                    alertDiv.dataset.typos = JSON.stringify(typos);
-                    alertDiv.style.display = 'block';
-                } else {
-                    alertDiv.style.display = 'none';
-                }
-            }, 300);
+        // 사용자 사전 불러오기
+        function getUserDictionary() {
+            const stored = localStorage.getItem('user_dictionary');
+            return stored ? JSON.parse(stored) : [];
         }
         
-        // 실시간 자동 수정
-        window.autoFixTypoRealtime = function(defectId) {
+        // 사용자 사전에 단어 추가
+        window.addToUserDictionary = function(word, defectId) {
+            const userDict = getUserDictionary();
+            if (!userDict.includes(word)) {
+                userDict.push(word);
+                localStorage.setItem('user_dictionary', JSON.stringify(userDict));
+                showToast(`✅ "${word}" 단어가 사전에 등록되었습니다.`);
+                
+                // 해당 입력창의 경고 다시 검사 (경고 제거용)
+                const input = document.getElementById(`detailLocation_${defectId}`);
+                if (input) checkTypoOnBlur(defectId, input.value);
+            }
+        };
+        
+        // 클릭으로 수정 적용
+        window.applyTypoCorrection = function(defectId, wrong, correct) {
             const input = document.getElementById(`detailLocation_${defectId}`);
+            if (input) {
+                const escaped = wrong.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                input.value = input.value.replace(new RegExp(escaped, 'g'), correct);
+                updateDefect(defectId, 'detailLocation', input.value);
+                checkTypoOnBlur(defectId, input.value); // 다시 검사
+                showToast('✅ 수정되었습니다.');
+            }
+        };
+        
+        // 포커스 벗어날 때 오타 검사
+        function checkTypoOnBlur(defectId, value) {
             const alertDiv = document.getElementById(`typoAlert_${defectId}`);
+            if (!alertDiv) return;
             
-            if (!input || !alertDiv || !alertDiv.dataset.typos) {
-                console.log('autoFix: 요소를 찾을 수 없음', defectId);
+            if (!value || !value.trim()) {
+                alertDiv.style.display = 'none';
                 return;
             }
             
-            let value = input.value;
-            const typos = JSON.parse(alertDiv.dataset.typos);
+            const typos = detectTypos(value);
             
-            console.log('autoFix 실행:', defectId, typos);
-            
-            for (const typo of typos) {
-                if (typo.correct) {
-                    // 특수문자 이스케이프
-                    const escaped = typo.wrong.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                    value = value.replace(new RegExp(escaped, 'g'), typo.correct);
-                }
+            if (typos.length > 0) {
+                const suggestionHTML = typos.map(t => {
+                    if (t.correct) {
+                        // 클릭 시 수정되는 버튼
+                        return `<button onclick="applyTypoCorrection(${defectId}, '${t.wrong}', '${t.correct}')" 
+                                style="margin: 2px; padding: 4px 8px; background: #e0f2fe; color: #0284c7; 
+                                       border: 1px solid #7dd3fc; border-radius: 12px; cursor: pointer; font-size: 11px;">
+                                ${t.wrong} → <strong>${t.correct}</strong>
+                                </button>`;
+                    } else {
+                        // 사전에 없는 단어 → 사전등록 버튼 제공
+                        return `<span style="display: inline-flex; align-items: center; margin: 2px;">
+                                    <span style="color: #dc2626; font-size: 12px;">"${t.wrong}"</span>
+                                    <span style="color: #f59e0b; font-size: 11px; margin: 0 4px;">(${t.reason})</span>
+                                    <button onclick="addToUserDictionary('${t.wrong}', ${defectId})"
+                                            style="padding: 2px 6px; background: #f3f4f6; border: 1px solid #d1d5db; 
+                                                   border-radius: 4px; cursor: pointer; font-size: 10px; color: #374151;">
+                                    사전등록
+                                    </button>
+                                </span>`;
+                    }
+                }).join(' ');
+                
+                alertDiv.innerHTML = `<div style="margin-bottom: 4px; font-weight: 500;">⚠️ 오타 감지</div>${suggestionHTML}`;
+                alertDiv.style.display = 'block';
+            } else {
+                alertDiv.style.display = 'none';
             }
-            
-            input.value = value;
-            updateDefect(defectId, 'detailLocation', value);
-            
-            // 수정 후 다시 검사
-            checkTypoRealtime(defectId, value);
-            
-            showToast('✅ 오타가 수정되었습니다!');
-        };
+        }
         
         // 단일 텍스트 오타 검사 (오타 배열 반환)
         function detectTypos(value) {
@@ -5891,8 +5890,9 @@
                     continue; // 허용
                 }
                 
-                // 12. 사전에 있는 단어는 통과
-                if (validWords.includes(word)) {
+                // 12. 기본 사전 + 사용자 사전 통과
+                const userDict = getUserDictionary();
+                if (validWords.includes(word) || userDict.includes(word)) {
                     continue;
                 }
                 
@@ -6022,7 +6022,7 @@
             window.typoErrors = errors;
         }
         
-        // 자동 수정 적용 (개별)
+        // 자동 수정 적용 (개별 - 모달용)
         window.autoFixTypo = function(defectId, corrections) {
             const input = document.getElementById(`typoFix_${defectId}`);
             if (!input) return;
@@ -6031,7 +6031,8 @@
             corrections.split(',').forEach(pair => {
                 const [wrong, correct] = pair.split('|');
                 if (wrong && correct) {
-                    value = value.replace(new RegExp(wrong, 'g'), correct);
+                    const escaped = wrong.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                    value = value.replace(new RegExp(escaped, 'g'), correct);
                 }
             });
             input.value = value;
@@ -6097,13 +6098,45 @@
         }
         
         // 유사 단어 찾기 (편집 거리 기반)
+        // ==================== 한글 자소 분리 (정확도 향상) ====================
+        
+        // 한글 자소 분리 함수 (초성, 중성, 종성 분리)
+        function decomposeHangul(char) {
+            const code = char.charCodeAt(0) - 44032;
+            if (code < 0 || code > 11171) return char; // 한글 아님
+            
+            const cho = Math.floor(code / 588);
+            const jung = Math.floor((code - (cho * 588)) / 28);
+            const jong = code % 28;
+            
+            // 초성, 중성, 종성 문자로 변환하여 반환
+            return String.fromCharCode(0x1100 + cho) + 
+                   String.fromCharCode(0x1161 + jung) + 
+                   (jong ? String.fromCharCode(0x11A7 + jong) : '');
+        }
+        
+        // 문자열을 자소 단위로 풀어서 반환
+        function disassembleString(str) {
+            return str.split('').map(decomposeHangul).join('');
+        }
+        
+        // 개선된 유사 단어 찾기 (자소 단위 비교)
         function findSimilarWord(word) {
             let bestMatch = null;
-            let bestDistance = 3; // 최대 편집 거리 2
+            let bestDistance = Infinity;
+            const wordJamo = disassembleString(word);
             
-            for (const valid of validWords) {
-                const dist = levenshteinDistance(word, valid);
-                if (dist < bestDistance && dist <= 2) {
+            // 사용자 사전도 포함하여 검색
+            const allWords = [...validWords, ...getUserDictionary()];
+            
+            for (const valid of allWords) {
+                const validJamo = disassembleString(valid);
+                const dist = levenshteinDistance(wordJamo, validJamo);
+                
+                // 자소 단위 길이에 비례하여 임계값 설정 (약 30% 차이까지 허용)
+                const threshold = Math.max(3, Math.floor(validJamo.length * 0.35));
+                
+                if (dist < bestDistance && dist <= threshold) {
                     bestDistance = dist;
                     bestMatch = valid;
                 }
