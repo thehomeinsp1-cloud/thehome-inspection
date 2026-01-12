@@ -2629,7 +2629,33 @@
             }
 
             // projectToUpload가 있으면 동기화 중이므로 confirm 스킵
-            if (!projectToUpload && !confirm(`"${project.apartmentName} ${project.dong} ${project.ho}"를 Google Drive에 업로드하시겠습니까?\n\n📄 PDF 보고서\n📊 엑셀 파일\n📷 사진 파일\n\n모든 자료가 업로드됩니다.`)) {
+            // ✅ 하자/장비 데이터 확인
+            const hasDefects = project.defects && project.defects.length > 0;
+            const hasEquipmentPhotos = project.equipment && project.equipment.some(e => {
+                if (e.photos && typeof e.photos === 'object') {
+                    return Object.values(e.photos).some(photo => photo !== null);
+                }
+                return e.photo;
+            });
+            
+            // 둘 다 없으면 경고
+            if (!hasDefects && !hasEquipmentPhotos) {
+                alert('⚠️ 업로드할 내용이 없습니다.\n\n하자 점검 또는 장비 점검을 먼저 진행해주세요.');
+                return;
+            }
+            
+            // confirm 메시지 분기
+            let confirmMsg = '';
+            if (hasDefects && hasEquipmentPhotos) {
+                confirmMsg = `"${project.apartmentName} ${project.dong} ${project.ho}"를 Google Drive에 업로드하시겠습니까?\n\n📄 PDF 보고서 (하자 + 장비)\n📊 엑셀 파일\n📷 하자 사진\n🔧 장비점검 보고서\n📷 장비 사진\n\n모든 자료가 업로드됩니다.`;
+            } else if (hasDefects) {
+                confirmMsg = `"${project.apartmentName} ${project.dong} ${project.ho}"를 Google Drive에 업로드하시겠습니까?\n\n📄 PDF 보고서\n📊 엑셀 파일\n📷 하자 사진\n\n하자 점검 자료가 업로드됩니다.`;
+            } else {
+                // 장비만 있는 경우
+                confirmMsg = `"${project.apartmentName} ${project.dong} ${project.ho}"를 Google Drive에 업로드하시겠습니까?\n\n🔧 장비점검 보고서\n📷 장비 사진\n\n장비 점검 자료만 업로드됩니다.`;
+            }
+            
+            if (!projectToUpload && !confirm(confirmMsg)) {
                 return;
             }
 
@@ -2642,7 +2668,113 @@
                 const projectName = `${project.apartmentName}_${project.dong}동_${project.ho}호_${project.author}_${project.inspectionDate}`;
                 const projectFolderId = await createProjectFolder(SHARED_DRIVE_ID, projectName);
                 
-                // ========== 2. PDF 보고서 생성 ==========
+                // ========== 장비점검만 있는 경우 (하자 없음) ==========
+                if (!hasDefects && hasEquipmentPhotos) {
+                    // 장비점검 보고서 PDF 생성
+                    showToast('🔧 장비점검 보고서 생성 중...');
+                    
+                    const { jsPDF } = window.jspdf;
+                    const pageWidth = 210;
+                    const pageHeight = 297;
+                    
+                    const equipmentWithPhotos = projectData.equipment.filter(e => {
+                        if (e.photos && typeof e.photos === 'object') {
+                            return Object.values(e.photos).some(photo => photo !== null);
+                        }
+                        return e.photo;
+                    });
+                    
+                    const equipDoc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+                    
+                    // 장비점검 표지
+                    const equipCoverHTML = `
+                        <div style="width: 210mm; height: 297mm; padding: 20mm; box-sizing: border-box; font-family: 'Malgun Gothic', sans-serif; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;">
+                            <div style="font-size: 36px; font-weight: bold; color: #10b981; margin-bottom: 30px;">🔧 장비점검 보고서</div>
+                            <div style="font-size: 24px; margin-bottom: 50px;">${projectData.apartmentName || ''}</div>
+                            <div style="font-size: 20px; margin-bottom: 10px;">${projectData.dong || ''} ${projectData.ho || ''}</div>
+                            <div style="font-size: 16px; color: #666; margin-bottom: 30px;">점검일: ${projectData.inspectionDate || ''}</div>
+                            <div style="font-size: 14px; color: #999;">점검자: ${projectData.author || ''}</div>
+                            <div style="position: absolute; bottom: 30mm; font-size: 18px; color: #10b981; font-weight: bold;">더홈점검</div>
+                        </div>
+                    `;
+                    await window.addHTMLPageToPDF(equipDoc, equipCoverHTML, pageWidth, pageHeight);
+                    
+                    // 장비점검 페이지들
+                    equipmentWithPhotos.forEach((item, i) => item._originalIndex = i + 1);
+                    for (let i = 0; i < equipmentWithPhotos.length; i++) {
+                        equipDoc.addPage();
+                        const equipmentHTML = await window.createEquipmentPage([equipmentWithPhotos[i]]);
+                        await window.addHTMLPageToPDF(equipDoc, equipmentHTML, pageWidth, pageHeight);
+                    }
+                    
+                    const equipmentPdfBlob = equipDoc.output('blob');
+                    const equipmentPdfFileName = `${projectName}_장비점검보고서.pdf`;
+                    
+                    // 장비점검 보고서 업로드
+                    showToast('📤 장비점검 보고서 업로드 중...');
+                    await uploadFileToDrive(projectFolderId, equipmentPdfBlob, equipmentPdfFileName, 'application/pdf');
+                    
+                    // 장비 사진 업로드
+                    const photosFolderId = await createPhotosFolder(projectFolderId);
+                    const equipPhotoTasks = [];
+                    
+                    for (let equipIndex = 0; equipIndex < equipmentWithPhotos.length; equipIndex++) {
+                        const equip = equipmentWithPhotos[equipIndex];
+                        const num = String(equipIndex + 1).padStart(2, '0');
+                        const equipName = equip.name || `장비${equipIndex + 1}`;
+                        
+                        if (equip.photos && typeof equip.photos === 'object') {
+                            const positions = ['좌측상단', '좌측하단', '우측상단', '우측하단'];
+                            for (const pos of positions) {
+                                if (equip.photos[pos]) {
+                                    const fileName = `장비${num}_${equipName}_${pos}.jpg`;
+                                    equipPhotoTasks.push({ photo: equip.photos[pos], fileName });
+                                }
+                            }
+                        }
+                    }
+                    
+                    // 병렬 업로드 (5개씩)
+                    const BATCH_SIZE = 5;
+                    let uploadedCount = 0;
+                    const totalPhotos = equipPhotoTasks.length;
+                    
+                    for (let i = 0; i < equipPhotoTasks.length; i += BATCH_SIZE) {
+                        const batch = equipPhotoTasks.slice(i, i + BATCH_SIZE);
+                        await Promise.all(batch.map(async (task) => {
+                            try {
+                                await uploadPhoto(photosFolderId, task.photo, task.fileName);
+                            } catch (error) {
+                                console.log(`재시도: ${task.fileName}`);
+                                try {
+                                    await uploadPhoto(photosFolderId, task.photo, task.fileName);
+                                } catch (retryError) {
+                                    console.error(`업로드 실패: ${task.fileName}`, retryError);
+                                }
+                            }
+                            uploadedCount++;
+                            showToast(`📷 장비 사진 업로드 중... (${uploadedCount}/${totalPhotos})`);
+                        }));
+                    }
+                    
+                    // 프로젝트 상태 업데이트
+                    project.isUploaded = true;
+                    project.uploadedAt = new Date().toISOString();
+                    project.driveFolderId = projectFolderId;
+                    
+                    saveProjectsToLocalStorage();
+                    renderProjectList();
+                    
+                    hideLoading();
+                    showToast(`✅ 업로드 완료!`);
+                    
+                    if (!projectToUpload) {
+                        alert(`✅ 장비점검 업로드 완료!\n\n프로젝트: ${projectName}\n🔧 장비점검 보고서\n📷 장비 사진 ${totalPhotos}장\n\nGoogle Drive에서 확인하세요!`);
+                    }
+                    return; // 장비만 업로드 후 종료
+                }
+                
+                // ========== 2. PDF 보고서 생성 (하자가 있는 경우) ==========
                 showToast('📄 PDF 보고서 생성 중...');
                 
                 const { jsPDF } = window.jspdf;
@@ -2917,7 +3049,7 @@
                 // ========== 6. 사진 업로드 (병렬 처리) ==========
                 const photosFolderId = await createPhotosFolder(projectFolderId);
                 
-                // 업로드할 사진 목록 준비
+                // 업로드할 하자 사진 목록 준비
                 const photoTasks = [];
                 for (let defectIndex = 0; defectIndex < project.defects.length; defectIndex++) {
                     const defect = project.defects[defectIndex];
@@ -2935,6 +3067,32 @@
                                 const fileName = `${num}_${space}_${location}_${photoType}.jpg`;
                                 photoTasks.push({ photo, fileName });
                                 photoNum++;
+                            }
+                        }
+                    }
+                }
+                
+                // 장비 사진도 추가 (있을 경우)
+                if (hasEquipmentPhotos) {
+                    const equipmentWithPhotos = projectData.equipment.filter(e => {
+                        if (e.photos && typeof e.photos === 'object') {
+                            return Object.values(e.photos).some(photo => photo !== null);
+                        }
+                        return e.photo;
+                    });
+                    
+                    for (let equipIndex = 0; equipIndex < equipmentWithPhotos.length; equipIndex++) {
+                        const equip = equipmentWithPhotos[equipIndex];
+                        const num = String(equipIndex + 1).padStart(2, '0');
+                        const equipName = equip.name || `장비${equipIndex + 1}`;
+                        
+                        if (equip.photos && typeof equip.photos === 'object') {
+                            const positions = ['좌측상단', '좌측하단', '우측상단', '우측하단'];
+                            for (const pos of positions) {
+                                if (equip.photos[pos]) {
+                                    const fileName = `장비${num}_${equipName}_${pos}.jpg`;
+                                    photoTasks.push({ photo: equip.photos[pos], fileName });
+                                }
                             }
                         }
                     }
