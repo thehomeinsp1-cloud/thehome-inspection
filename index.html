@@ -30,7 +30,7 @@
     
     <!-- Google API Client Library -->
     <!-- Google API (광고차단기로 인해 주석 처리) -->
-    <!-- <script src="https://apis.google.com/js/api.js"></script> -->
+    <script src="https://apis.google.com/js/api.js" async defer></script>
     <!-- <script src="https://accounts.google.com/gsi/client" async defer></script> -->
     
     <style>
@@ -1023,6 +1023,22 @@
 
 </head>
 <body>
+    <!-- ==================== 업데이트 알림 배너 ==================== -->
+    <div id="updateBanner" style="display: none; position: fixed; top: 0; left: 0; right: 0; background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); color: white; padding: 12px 20px; z-index: 99999; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
+        <div style="display: flex; justify-content: space-between; align-items: center; max-width: 600px; margin: 0 auto;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <span style="font-size: 20px;">🔄</span>
+                <div>
+                    <div style="font-weight: bold; font-size: 14px;">새 버전이 있습니다!</div>
+                    <div style="font-size: 12px; opacity: 0.9;">업데이트하려면 버튼을 눌러주세요</div>
+                </div>
+            </div>
+            <button onclick="applyUpdate()" style="background: white; color: #1d4ed8; border: none; padding: 8px 16px; border-radius: 20px; font-weight: bold; font-size: 13px; cursor: pointer;">
+                업데이트
+            </button>
+        </div>
+    </div>
+    
     <!-- ==================== 로그인 화면 ==================== -->
     <div id="loginOverlay" class="login-overlay">
         <div class="login-box">
@@ -1077,7 +1093,7 @@
         </button>
         
         <h1>🏠 더홈점검</h1>
-        <p>하자관리 시스템 v3.2 (사진 2장 촬영)</p>
+        <p>하자관리 시스템 v3.7 (사진 2장 촬영)</p>
         <div class="progress-bar">
             <div class="progress-fill" id="progressBar"></div>
         </div>
@@ -1091,7 +1107,6 @@
             <button class="tab" onclick="switchTab('equipment', event)">📸 장비점검</button>
             <button class="tab" onclick="switchTab('airquality', event)">🌬️ 공기질</button>
             <button class="tab" onclick="switchTab('data', event)">💾 데이터</button>
-            <button class="tab" onclick="switchTab('contract', event)">📄 계약서</button>
         </div>
 
         <!-- 프로젝트 정보 섹션 -->
@@ -1139,7 +1154,7 @@
                 </div>
 
                 <div class="form-field">
-                    <label class="form-label">점검일자</label>
+                    <label class="form-label">점검일자 <span style="color: #ef4444;">*필수</span></label>
                     <input type="date" class="form-input" id="inspectionDate" onchange="autoSaveProjectData()">
                 </div>
 
@@ -1150,8 +1165,8 @@
                     </div>
 
                     <div class="form-field">
-                        <label class="form-label">점검 작성자</label>
-                        <input type="text" class="form-input" id="author" placeholder="작성자 이름" oninput="autoSaveProjectData()">
+                        <label class="form-label">점검 작성자 <span style="color: #ef4444;">*필수</span></label>
+                        <input type="text" class="form-input" id="author" placeholder="작성자 이름 (필수)" oninput="autoSaveProjectData()">
                     </div>
                 </div>
 
@@ -1238,135 +1253,78 @@
 
         <!-- 데이터 관리 섹션 -->
         <div id="data" class="section">
-            <!-- Google Drive 연동 카드 -->
-            <!-- Google Drive 연동 (기본 숨김) -->
-            <div class="card" id="googleDriveCard" style="background: linear-gradient(135deg, #4285f4 0%, #34a853 100%); color: white; margin-bottom: 20px; display: none;">
-                <h2 style="color: white; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; justify-content: space-between;">
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
-                            <path d="M6.5 12L1 21h11l5.5-9H6.5zM19 12l-5.5-9L8 12h11zM7.5 3l-6 9h11l-5-9z"/>
-                        </svg>
-                        Google Drive 연동 (선택 기능)
-                    </div>
-                    <button onclick="toggleGoogleDrive()" style="background: rgba(255,255,255,0.3); border: none; color: white; padding: 4px 12px; border-radius: 12px; cursor: pointer; font-size: 14px;">
-                        ✕ 닫기
-                    </button>
+            <!-- ✅ 점검완료 → 공유드라이브 저장 카드 -->
+            <div class="card" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; margin-bottom: 20px;">
+                <h2 style="color: white; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+                    ✅ 점검완료 → 공유드라이브 저장
                 </h2>
                 
-                <div style="margin-bottom: 15px; padding: 10px; background: rgba(255,255,255,0.2); border-radius: 8px; font-size: 13px;">
-                    💡 <strong>팀 공유 기능:</strong> Google Client ID를 설정하면 팀원들과 데이터를 실시간으로 공유할 수 있습니다. 혼자 사용하신다면 이 기능은 필요 없습니다.
-                </div>
-                
-                <div id="googleDriveStatus" style="margin-bottom: 15px; padding: 10px; background: rgba(255,255,255,0.2); border-radius: 8px; font-size: 14px;">
-                    <div id="notSignedIn" style="display: block;">
-                        ⚠️ 로그인이 필요합니다.
+                <div id="driveLoginStatus" style="margin-bottom: 15px; padding: 12px; background: rgba(255,255,255,0.2); border-radius: 8px; font-size: 14px;">
+                    <div id="notSignedInSimple" style="display: block;">
+                        ⚠️ Google 로그인이 필요합니다
                     </div>
-                    <div id="signedIn" style="display: none;">
-                        ✅ <span id="userEmail"></span>님 로그인됨
+                    <div id="signedInSimple" style="display: none;">
+                        ✅ <span id="userEmailSimple"></span>
                     </div>
                 </div>
                 
-                <!-- Google Client ID 설정 -->
-                <div id="clientIdSetup" style="margin-bottom: 15px; padding: 10px; background: rgba(251, 191, 36, 0.2); border: 1px solid rgba(251, 191, 36, 0.5); border-radius: 8px; display: none;">
-                    <div style="font-size: 13px; color: #fbbf24; margin-bottom: 8px;">
-                        🔑 Google Client ID를 입력하세요
-                    </div>
-                    <input type="text" id="clientIdInput" placeholder="123456789-abcdef.apps.googleusercontent.com" 
-                           style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ddd; margin-bottom: 8px; font-size: 12px;">
-                    <button onclick="saveClientId()" class="btn" style="width: 100%; background: #fbbf24; color: #1a202c; font-weight: bold;">
-                        💾 저장
-                    </button>
-                </div>
+                <button id="driveUploadBtn" class="btn" onclick="uploadProjectToDrive()" style="width: 100%; background: white; color: #059669; font-weight: bold; font-size: 16px; padding: 15px; margin-bottom: 10px;">
+                    ☁️ 공유드라이브에 저장하기
+                </button>
                 
                 <div style="display: flex; gap: 10px;">
-                    <button id="signInBtn" class="btn" onclick="handleGoogleSignIn()" style="flex: 1; background: white; color: #4285f4; font-weight: bold;">
-                        🔐 Google 로그인
+                    <button id="signInBtnSimple" class="btn" onclick="handleGoogleSignIn()" style="flex: 1; background: rgba(255,255,255,0.2); color: white;">
+                        🔐 로그인
                     </button>
-                    <button id="signOutBtn" class="btn" onclick="handleGoogleSignOut()" style="flex: 1; background: rgba(255,255,255,0.2); color: white; display: none;">
+                    <button id="signOutBtnSimple" class="btn" onclick="handleGoogleSignOut()" style="flex: 1; background: rgba(255,255,255,0.2); color: white; display: none;">
                         🚪 로그아웃
                     </button>
-                    <button onclick="toggleClientIdSetup()" class="btn" style="background: rgba(251, 191, 36, 0.2); color: #fbbf24; padding: 0 15px;">
-                        ⚙️
-                    </button>
                 </div>
-                
-                <!-- 동기화 버튼 (오프라인 작업 시 표시) -->
-                <button id="syncBtn" class="btn" onclick="syncPendingProjects()" style="display: none; margin-top: 10px; background: #fbbf24; color: #1a202c; font-weight: bold; position: relative;">
-                    <span id="syncBadge" style="position: absolute; top: -8px; right: -8px; background: #ef4444; color: white; border-radius: 50%; width: 24px; height: 24px; display: none; align-items: center; justify-content: center; font-size: 12px; font-weight: bold;">0</span>
-                    📤 대기 프로젝트 동기화
+            </div>
+            
+            <!-- 📖 사용 가이드 버튼 -->
+            <div class="card" style="margin-bottom: 20px; background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); color: white;">
+                <button onclick="showTutorial()" class="btn" style="width: 100%; background: white; color: #1d4ed8; font-weight: bold; font-size: 16px; padding: 15px;">
+                    📖 앱 사용 가이드 보기
                 </button>
             </div>
 
-            <!-- 클라우드 저장/불러오기 -->
-            <div class="card" id="cloudActionsCard" style="display: none;">
-                <h3 style="color: var(--primary); margin-bottom: 15px;">☁️ 클라우드 저장소</h3>
+            <!-- 📥 다운로드 카드 -->
+            <div class="card" style="margin-bottom: 20px;">
+                <h2 style="color: var(--primary); margin-bottom: 15px;">📥 다운로드</h2>
                 
-                <button class="btn btn-primary" onclick="uploadProjectToDrive()" style="margin-bottom: 10px;">
-                    ☁️ Drive에 저장
+                <button class="btn" onclick="downloadAllData()" style="width: 100%; background: #3b82f6; color: white; font-weight: bold; font-size: 16px; padding: 15px; margin-bottom: 10px;">
+                    📦 모든 자료 다운로드 (ZIP)
                 </button>
                 
-                <button class="btn btn-secondary" onclick="loadFromDrive()" style="margin-bottom: 10px;">
-                    📥 Drive에서 불러오기
+                <button class="btn btn-primary" onclick="generatePDF()" style="width: 100%; margin-bottom: 10px;">
+                    📄 PDF 보고서만 다운로드
                 </button>
-
-                <button class="btn" onclick="showDriveProjects()" style="background: #34a853; color: white;">
-                    📂 프로젝트 목록 보기
+                
+                <button class="btn" onclick="generateEquipmentOnlyPDF()" style="width: 100%; background: #6366f1; color: white; margin-bottom: 10px;">
+                    🔧 장비점검 보고서만
+                </button>
+                
+                <button class="btn" onclick="generateFieldReportPDF()" style="width: 100%; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white;">
+                    📋 현장출력보고서 (요약형)
                 </button>
             </div>
 
+            <!-- 🗑️ 프로젝트 관리 카드 -->
             <div class="card">
-                <h2 style="color: var(--primary); margin-bottom: 15px;">💾 다운로드 & 관리</h2>
-                
-                <button class="btn btn-primary" onclick="generatePDF()">📄 PDF 보고서 생성</button>
-                
-                <div style="height: 10px;"></div>
-                
-                <button class="btn" onclick="downloadAllData()" style="background: #3b82f6; color: white; font-weight: bold;">
-                    📦 모든 자료 다운로드 (엑셀 + 사진 ZIP)
-                </button>
-                
-                <div style="height: 10px;"></div>
-                
-                <button class="btn" onclick="generateEquipmentOnlyPDF()" style="background: #6366f1; color: white; font-weight: bold;">
-                    🔧 장비점검 보고서 (장비측정만)
-                </button>
-                
-                <div style="height: 10px;"></div>
-                
-                <button class="btn" onclick="generateFieldReportPDF()" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; font-weight: bold;">
-                    📋 현장출력보고서 (요약형 테이블)
-                </button>
-                
-                <div style="height: 20px;"></div>
-                
-                <details style="margin-bottom: 20px;">
+                <details>
                     <summary style="cursor: pointer; padding: 10px; background: rgba(239, 68, 68, 0.1); border-radius: 8px; color: #ef4444; font-weight: bold;">
-                        ⚠️ 고급 기능 (일반 사용자는 필요 없음)
+                        🗑️ 프로젝트 삭제 (주의)
                     </summary>
                     <div style="padding: 15px; background: rgba(0,0,0,0.05); border-radius: 8px; margin-top: 10px;">
-                        <p style="font-size: 13px; color: #333; margin-bottom: 10px;">
-                            💡 <strong>자동 저장:</strong> 데이터는 입력과 동시에 자동으로 저장됩니다.<br>
-                            💡 <strong>데이터 삭제:</strong> 브라우저 데이터를 완전히 지우고 싶을 때만 사용하세요.
+                        <p style="font-size: 13px; color: #333; margin-bottom: 15px;">
+                            ⚠️ <strong>삭제된 프로젝트는 복구할 수 없습니다!</strong>
                         </p>
-                        
-                        <!-- 팀 공유 기능 버튼 -->
-                        <button onclick="toggleGoogleDrive()" class="btn" style="width: 100%; background: rgba(66, 133, 244, 0.1); color: #4285f4; margin-bottom: 10px; font-weight: bold;">
-                            ☁️ 팀 공유 기능 (Google Drive 연동)
-                        </button>
-                        
-                        <button class="btn btn-secondary" onclick="saveCurrentData()" style="width: 100%; margin-bottom: 10px;">
-                            💾 수동 저장 (자동 저장되므로 불필요)
-                        </button>
-                        <button class="btn btn-danger" onclick="clearAllData()" style="width: 100%; margin-bottom: 15px;">
-                            🗑️ 모든 데이터 삭제 (복구 불가)
-                        </button>
-                        
-                        <div style="border-top: 2px solid rgba(239, 68, 68, 0.2); padding-top: 15px; margin-top: 15px;">
-                            <h3 style="color: var(--danger); margin-bottom: 15px; font-size: 16px;">📦 저장된 프로젝트 목록</h3>
-                            <p style="font-size: 13px; color: #333; margin-bottom: 10px;">
-                                ⚠️ <strong>프로젝트 삭제 시 복구 불가능합니다!</strong>
-                            </p>
-                            <div id="savedList" class="saved-list"></div>
+                        <div id="savedList" class="saved-list"></div>
+                        <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #ddd;">
+                            <button class="btn btn-danger" onclick="clearAllData()" style="width: 100%;">
+                                🗑️ 모든 데이터 삭제
+                            </button>
                         </div>
                     </div>
                 </details>
@@ -1390,177 +1348,6 @@
         </div>
     </div>
 
-        <!-- 계약서 관리 섹션 (숨김) -->
-        <div id="contract" class="section">
-            <div class="card">
-                <h2 style="color: var(--primary); margin-bottom: 20px;">📄 프리랜서 계약서 관리</h2>
-                <p style="color: var(--text-secondary); margin-bottom: 30px; font-size: 14px;">
-                    프리랜서 고용계약서를 디지털로 작성하고 관리합니다
-                </p>
-
-                <!-- 계약서 작성 안내 -->
-                <div style="text-align: center; margin-bottom: 30px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 30px; border-radius: 15px;">
-                    <p style="color: white; font-size: 20px; font-weight: bold; margin-bottom: 12px;">
-                        ✨ 간편한 계약서 작성
-                    </p>
-                    <p style="color: white; font-size: 15px; margin-bottom: 20px; opacity: 0.95;">
-                        작성 → 서명 → PDF 다운로드 → 카톡/이메일 공유
-                    </p>
-                    <button class="btn" onclick="showContractForm()" 
-                        style="background: white; color: #10b981; font-size: 17px; padding: 14px 35px; font-weight: bold; border: none;">
-                        ➕ 계약서 작성하기
-                    </button>
-                </div>
-
-                <!-- 계약서 작성 폼 -->
-                <div id="contractForm" style="display: block;">
-                    <div class="form-group">
-                        <h3 style="color: var(--primary); margin-bottom: 15px;">👤 프리랜서 정보</h3>
-                        
-                        <div class="form-field">
-                            <label class="form-label">성명 *</label>
-                            <input type="text" class="form-input" id="contractName" required>
-                        </div>
-
-                        <div class="form-field">
-                            <label class="form-label">주소 *</label>
-                            <input type="text" class="form-input" id="contractAddress" required>
-                        </div>
-
-                        <div class="form-field">
-                            <label class="form-label">주민등록번호 *</label>
-                            <div style="display: flex; gap: 10px; align-items: center;">
-                                <input type="text" class="form-input" id="contractJumin1" placeholder="생년월일 6자리" 
-                                    maxlength="6" style="width: 150px;" required>
-                                <span>-</span>
-                                <input type="text" class="form-input" id="contractJumin2" placeholder="뒷자리 1자리" 
-                                    maxlength="1" style="width: 60px;" required>
-                                <span>******</span>
-                            </div>
-                        </div>
-
-                        <div class="form-field">
-                            <label class="form-label">연락처 *</label>
-                            <input type="tel" class="form-input" id="contractPhone" placeholder="010-0000-0000" required>
-                        </div>
-
-                        <div class="form-field">
-                            <label class="form-label">이메일 *</label>
-                            <input type="email" class="form-input" id="contractEmail" required>
-                        </div>
-
-                        <div class="form-field">
-                            <label class="form-label">사업자등록번호 (선택)</label>
-                            <input type="text" class="form-input" id="contractBusiness" placeholder="000-00-00000">
-                        </div>
-                    </div>
-
-                    <div class="form-group" style="margin-top: 30px;">
-                        <h3 style="color: var(--primary); margin-bottom: 15px;">📋 계약 조건</h3>
-                        
-                        <div class="form-field">
-                            <label class="form-label">계약 시작일 *</label>
-                            <input type="date" class="form-input" id="contractStartDate" required>
-                        </div>
-
-                        <div class="form-field">
-                            <label class="form-label">계약 종료일 *</label>
-                            <input type="date" class="form-input" id="contractEndDate" required>
-                        </div>
-
-                        <div class="form-field">
-                            <label class="form-label">계약금액 안내</label>
-                            <div style="padding: 15px; background: rgba(16, 185, 129, 0.1); border-radius: 8px; border-left: 4px solid var(--primary);">
-                                <p style="color: var(--text-primary); margin-bottom: 8px;">
-                                    <strong>일당: 1만원 ~ 50만원</strong>
-                                </p>
-                                <p style="color: var(--text-secondary); font-size: 13px;">
-                                    ※ 업무에 따라 지급비용이 다르게 지급됩니다
-                                </p>
-                            </div>
-                        </div>
-
-                        <div class="form-field">
-                            <label class="form-label">지급일 안내</label>
-                            <div style="padding: 15px; background: rgba(251, 191, 36, 0.1); border-radius: 8px; border-left: 4px solid var(--secondary);">
-                                <p style="color: var(--text-primary); margin-bottom: 8px;">
-                                    <strong>업무 완료 후 1개월 이내 지급</strong>
-                                </p>
-                                <p style="color: var(--text-secondary); font-size: 13px;">
-                                    ※ 사업소득세 3.3% 원천징수 후 지급
-                                </p>
-                            </div>
-                        </div>
-
-                        <div class="form-field">
-                            <label class="form-label">특이사항 (선택)</label>
-                            <textarea class="form-input" id="contractNotes" rows="3" 
-                                placeholder="추가 계약 조건이나 특이사항을 입력하세요"></textarea>
-                        </div>
-                    </div>
-
-                    <div class="form-group" style="margin-top: 30px;">
-                        <h3 style="color: var(--primary); margin-bottom: 15px;">✍️ 전자 서명</h3>
-                        
-                        <div style="margin-bottom: 20px;">
-                            <label class="form-label">대표 서명 (박지현)</label>
-                            <div style="border: 2px solid var(--border); border-radius: 8px; background: white; position: relative;">
-                                <canvas id="signatureCEO" width="600" height="200" 
-                                    style="display: block; width: 100%; cursor: crosshair; touch-action: none;"></canvas>
-                            </div>
-                            <button class="btn" onclick="clearSignature('CEO')" style="margin-top: 10px; background: var(--danger);">
-                                🗑️ 서명 지우기
-                            </button>
-                        </div>
-
-                        <div style="margin-bottom: 20px;">
-                            <label class="form-label">프리랜서 서명</label>
-                            <div style="border: 2px solid var(--border); border-radius: 8px; background: white; position: relative;">
-                                <canvas id="signatureFreelancer" width="600" height="200" 
-                                    style="display: block; width: 100%; cursor: crosshair; touch-action: none;"></canvas>
-                            </div>
-                            <button class="btn" onclick="clearSignature('Freelancer')" style="margin-top: 10px; background: var(--danger);">
-                                🗑️ 서명 지우기
-                            </button>
-                        </div>
-                    </div>
-
-                    <div style="display: flex; gap: 10px; margin-top: 30px;">
-                        <button class="btn btn-primary" onclick="previewContract()" style="flex: 1;">
-                            👁️ 미리보기
-                        </button>
-                        <button class="btn btn-primary" onclick="downloadContractPDF()" style="flex: 1;">
-                            📥 PDF 다운로드
-                        </button>
-                    </div>
-                    <p style="text-align: center; margin-top: 15px; color: var(--text-secondary); font-size: 14px;">
-                        💡 서명 후 PDF 다운로드 → 카톡/이메일로 공유하세요
-                    </p>
-                </div>
-
-                <!-- 계약서 미리보기 모달 -->
-                <div id="contractPreviewModal" style="display: none; position: fixed; top: 0; left: 0; 
-                    width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10000; 
-                    overflow: auto; padding: 20px;">
-                    <div style="max-width: 800px; margin: 0 auto; background: white; 
-                        border-radius: 15px; padding: 30px; position: relative; color: #333;">
-                        <button onclick="closePreview()" 
-                            style="position: absolute; top: 15px; right: 15px; 
-                            background: #dc3545; color: white; border: none; 
-                            border-radius: 50%; width: 40px; height: 40px; 
-                            font-size: 20px; cursor: pointer;">✕</button>
-                        
-                        <div id="contractPreviewContent"></div>
-                        
-                        <div style="margin-top: 30px; text-align: center;">
-                            <button class="btn btn-primary" onclick="closePreview()" style="padding: 12px 40px; font-size: 16px;">
-                                닫기
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
 
 
     <!-- 플로팅 하자/장비 추가 버튼 -->
@@ -1756,6 +1543,12 @@
                 hideLoginScreen();
                 codeInput.value = '';
                 pinInput.value = '';
+                
+                // Google Drive 로그인 유도 (온라인일 때만)
+                showGoogleLoginPrompt();
+                
+                // 첫 사용자 튜토리얼 표시
+                checkFirstTimeUser();
                 
             } else {
                 // 로그인 실패
@@ -2064,14 +1857,14 @@
         // ⚠️ API 키가 GitHub에 노출되어 비활성화되었습니다
         // 다시 사용하려면 새로운 Client ID를 발급받아 설정하세요
         
-        let GOOGLE_CLIENT_ID = localStorage.getItem('google_client_id') || '';
-        const REDIRECT_URI = window.location.origin + window.location.pathname;
+        let GOOGLE_CLIENT_ID = localStorage.getItem('google_client_id') || '1072953478658-2rlbb0oga4iououi2c6bt1lq1kp5ojsr.apps.googleusercontent.com';
+        const REDIRECT_URI = 'https://thehomeinsp1-cloud.github.io/thehome-inspection/oauth-callback.html';
         const SCOPES = 'https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/spreadsheets';
         
         let accessToken = null;
         let currentUser = null;
         
-        const GOOGLE_DRIVE_DISABLED = true; // Google Drive 기능 비활성화
+        const GOOGLE_DRIVE_DISABLED = false; // Google Drive 기능 활성화
         
         // 설정 저장
         function saveGoogleClientId(clientId) {
@@ -2125,6 +1918,9 @@
 
         // 프로젝트 템플릿
         function createNewProject() {
+            // 마지막 작성자 불러오기
+            const lastAuthor = localStorage.getItem('lastAuthor') || '';
+            
             return {
                 id: Date.now(),
                 apartmentName: '',
@@ -2133,7 +1929,7 @@
                 inspectionDate: new Date().toISOString().split('T')[0],
                 customerName: '',
                 customerPhone: '',
-                author: '', // ✅ 점검 작성자 추가
+                author: lastAuthor, // ✅ 마지막 작성자 자동 적용
                 floorplan: null,
                 defects: [],
                 equipment: [],
@@ -2179,8 +1975,28 @@
         let currentPhotoTarget = null;
 
         // ==================== Google API 초기화 ====================
-        function gapiLoaded() {
+        window.gapiLoaded = function() {
             gapi.load('client', initializeGapiClient);
+        }
+
+        async function initializeGapiClient() {
+            try {
+                await gapi.client.init({});
+                // Drive API 로드
+                await gapi.client.load('drive', 'v3');
+                // Sheets API 로드
+                await gapi.client.load('sheets', 'v4');
+                console.log('✅ Google API 클라이언트 초기화 완료');
+                
+                // 저장된 토큰이 있으면 설정
+                const savedToken = localStorage.getItem('google_access_token');
+                if (savedToken) {
+                    gapi.client.setToken({ access_token: savedToken });
+                    console.log('✅ 저장된 토큰으로 gapi 설정 완료');
+                }
+            } catch (error) {
+                console.error('❌ Google API 초기화 오류:', error);
+            }
         }
 
         // ==================== OAuth2 팝업 로그인 ====================
@@ -2230,6 +2046,12 @@
                     accessToken = token;
                     localStorage.setItem('google_access_token', accessToken);
                     console.log('✅ 토큰 저장 완료');
+                    
+                    // gapi 클라이언트에 토큰 설정
+                    if (typeof gapi !== 'undefined' && gapi.client) {
+                        gapi.client.setToken({ access_token: token });
+                        console.log('✅ gapi 토큰 설정 완료');
+                    }
                     
                     // 사용자 정보 가져오기
                     try {
@@ -2282,8 +2104,16 @@
                     if (!response.ok) throw new Error('Token expired');
                     
                     currentUser = await response.json();
+                    
+                    // gapi 클라이언트에 토큰 설정
+                    if (typeof gapi !== 'undefined' && gapi.client) {
+                        gapi.client.setToken({ access_token: token });
+                        console.log('✅ gapi 토큰 설정 완료 (자동 로그인)');
+                    }
+                    
                     updateSignInStatus(true);
                     console.log('✅ 자동 로그인:', currentUser.email);
+                    showToast('✅ ' + currentUser.email + ' 로그인됨');
                 } catch (error) {
                     console.log('❌ 토큰 만료');
                     accessToken = null;
@@ -2291,6 +2121,25 @@
                 }
             }
         }
+        
+        // 다른 탭에서 로그인 시 감지 (localStorage 변경)
+        window.addEventListener('storage', (event) => {
+            if (event.key === 'google_access_token' && event.newValue) {
+                console.log('🔄 다른 탭에서 로그인 감지');
+                checkIfSignedIn();
+            }
+        });
+        
+        // 탭 전환 시 로그인 상태 확인 (모바일 대응)
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible' && !accessToken) {
+                const token = localStorage.getItem('google_access_token');
+                if (token) {
+                    console.log('🔄 탭 복귀 - 로그인 확인');
+                    checkIfSignedIn();
+                }
+            }
+        });
 
         window.handleGoogleSignOut = function() {
             if (accessToken) {
@@ -2307,62 +2156,88 @@
 
         function updateSignInStatus(isSignedIn) {
             try {
+                // 새 UI 요소들
+                const notSignedInSimple = document.getElementById('notSignedInSimple');
+                const signedInSimple = document.getElementById('signedInSimple');
+                const userEmailSimple = document.getElementById('userEmailSimple');
+                const signInBtnSimple = document.getElementById('signInBtnSimple');
+                const signOutBtnSimple = document.getElementById('signOutBtnSimple');
+                
                 if (isSignedIn) {
-                    const notSignedIn = document.getElementById('notSignedIn');
-                    const signedIn = document.getElementById('signedIn');
-                    const userEmail = document.getElementById('userEmail');
-                    const signInBtn = document.getElementById('signInBtn');
-                    const signOutBtn = document.getElementById('signOutBtn');
-                    const cloudActionsCard = document.getElementById('cloudActionsCard');
-                    
-                    if (notSignedIn) notSignedIn.style.display = 'none';
-                    if (signedIn) signedIn.style.display = 'block';
-                    if (userEmail) userEmail.textContent = currentUser?.email || '사용자';
-                    if (signInBtn) signInBtn.style.display = 'none';
-                    if (signOutBtn) signOutBtn.style.display = 'block';
-                    if (cloudActionsCard) cloudActionsCard.style.display = 'block';
+                    if (notSignedInSimple) notSignedInSimple.style.display = 'none';
+                    if (signedInSimple) signedInSimple.style.display = 'block';
+                    if (userEmailSimple) userEmailSimple.textContent = currentUser?.email || '사용자';
+                    if (signInBtnSimple) signInBtnSimple.style.display = 'none';
+                    if (signOutBtnSimple) signOutBtnSimple.style.display = 'block';
                 } else {
-                    const notSignedIn = document.getElementById('notSignedIn');
-                    const signedIn = document.getElementById('signedIn');
-                    const signInBtn = document.getElementById('signInBtn');
-                    const signOutBtn = document.getElementById('signOutBtn');
-                    const cloudActionsCard = document.getElementById('cloudActionsCard');
-                    
-                    if (notSignedIn) notSignedIn.style.display = 'block';
-                    if (signedIn) signedIn.style.display = 'none';
-                    if (signInBtn) signInBtn.style.display = 'block';
-                    if (signOutBtn) signOutBtn.style.display = 'none';
-                    if (cloudActionsCard) cloudActionsCard.style.display = 'none';
+                    if (notSignedInSimple) notSignedInSimple.style.display = 'block';
+                    if (signedInSimple) signedInSimple.style.display = 'none';
+                    if (signInBtnSimple) signInBtnSimple.style.display = 'block';
+                    if (signOutBtnSimple) signOutBtnSimple.style.display = 'none';
                 }
                 console.log('✅ UI 업데이트 완료:', isSignedIn ? '로그인' : '로그아웃');
             } catch (e) {
                 console.error('UI 업데이트 오류:', e);
             }
         }
+        
+        // ==================== 직원 로그인 후 Google 로그인 팝업 ====================
+        function showGoogleLoginPrompt() {
+            // 이미 Google 로그인되어 있으면 스킵
+            if (accessToken) return;
+            
+            // 오프라인이면 스킵
+            if (!navigator.onLine) return;
+            
+            // 오늘 이미 "나중에" 눌렀으면 스킵
+            const skipDate = localStorage.getItem('google_login_skip_date');
+            const today = new Date().toDateString();
+            if (skipDate === today) return;
+            
+            // 1초 후 팝업 표시
+            setTimeout(() => {
+                const result = confirm('☁️ Google Drive 연동\n\n점검 완료 후 자료를 자동으로 공유 드라이브에 저장할 수 있습니다.\n\n지금 Google 로그인 하시겠습니까?\n\n(취소를 누르면 오늘 하루 다시 묻지 않습니다)');
+                
+                if (result) {
+                    handleGoogleSignIn();
+                } else {
+                    localStorage.setItem('google_login_skip_date', today);
+                }
+            }, 1000);
+        }
 
         // ==================== Drive 폴더 관리 ====================
+        // ==================== 공유 드라이브 설정 ====================
+        const SHARED_DRIVE_ID = '0AEataxDIni_IUk9PVA'; // 더홈점검 공유 드라이브
+        
         async function getOrCreateAppFolder() {
             try {
-                // "더홈점검" 폴더 찾기
+                // 공유 드라이브 내 "더홈점검" 폴더 찾기
                 const response = await gapi.client.drive.files.list({
-                    q: "name='더홈점검' and mimeType='application/vnd.google-apps.folder' and trashed=false",
+                    q: `name='더홈점검' and mimeType='application/vnd.google-apps.folder' and '${SHARED_DRIVE_ID}' in parents and trashed=false`,
                     fields: 'files(id, name)',
-                    spaces: 'drive'
+                    spaces: 'drive',
+                    supportsAllDrives: true,
+                    includeItemsFromAllDrives: true,
+                    corpora: 'drive',
+                    driveId: SHARED_DRIVE_ID
                 });
 
                 if (response.result.files && response.result.files.length > 0) {
                     return response.result.files[0].id;
                 }
 
-                // 폴더가 없으면 생성
+                // 폴더가 없으면 공유 드라이브 루트에 생성
                 const folderMetadata = {
                     name: '더홈점검',
-                    mimeType: 'application/vnd.google-apps.folder'
+                    mimeType: 'application/vnd.google-apps.folder',
+                    parents: [SHARED_DRIVE_ID]
                 };
 
                 const folder = await gapi.client.drive.files.create({
                     resource: folderMetadata,
-                    fields: 'id'
+                    fields: 'id',
+                    supportsAllDrives: true
                 });
 
                 return folder.result.id;
@@ -2386,7 +2261,8 @@
 
                 const folder = await gapi.client.drive.files.create({
                     resource: folderMetadata,
-                    fields: 'id, name'
+                    fields: 'id, name',
+                    supportsAllDrives: true
                 });
 
                 return folder.result.id;
@@ -2408,7 +2284,8 @@
 
                 const folder = await gapi.client.drive.files.create({
                     resource: folderMetadata,
-                    fields: 'id'
+                    fields: 'id',
+                    supportsAllDrives: true
                 });
 
                 return folder.result.id;
@@ -2442,7 +2319,7 @@
                 })], { type: 'application/json' }));
                 form.append('file', blob);
 
-                const response = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+                const response = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&supportsAllDrives=true', {
                     method: 'POST',
                     headers: {
                         'Authorization': 'Bearer ' + accessToken
@@ -2458,6 +2335,38 @@
                 return result.id;
             } catch (error) {
                 console.error('사진 업로드 오류:', error);
+                throw error;
+            }
+        }
+
+        // 일반 파일 업로드 (PDF, 엑셀 등)
+        async function uploadFileToDrive(folderId, blob, fileName, mimeType) {
+            try {
+                const form = new FormData();
+                form.append('metadata', new Blob([JSON.stringify({
+                    name: fileName,
+                    mimeType: mimeType,
+                    parents: [folderId]
+                })], { type: 'application/json' }));
+                form.append('file', blob);
+
+                const response = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&supportsAllDrives=true', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer ' + accessToken
+                    },
+                    body: form
+                });
+
+                if (!response.ok) {
+                    throw new Error(`파일 업로드 실패: ${fileName}`);
+                }
+
+                const result = await response.json();
+                console.log(`✅ 파일 업로드 완료: ${fileName}`);
+                return result.id;
+            } catch (error) {
+                console.error('파일 업로드 오류:', error);
                 throw error;
             }
         }
@@ -2488,7 +2397,8 @@
                 await gapi.client.drive.files.update({
                     fileId: spreadsheetId,
                     addParents: projectFolderId,
-                    fields: 'id, parents'
+                    fields: 'id, parents',
+                    supportsAllDrives: true
                 });
 
                 // 데이터 입력 준비
@@ -2658,7 +2568,7 @@
                 })], { type: 'application/json' }));
                 form.append('file', blob);
 
-                const response = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+                const response = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&supportsAllDrives=true', {
                     method: 'POST',
                     headers: {
                         'Authorization': 'Bearer ' + accessToken
@@ -2685,7 +2595,6 @@
             
             // 오프라인 체크
             if (!isOnline) {
-                // 오프라인일 때 로컬 저장
                 try {
                     addToPendingSync(project);
                     showToast('📶 오프라인 - 프로젝트가 저장되었습니다. 온라인 연결 시 동기화하세요.', 'warning');
@@ -2706,53 +2615,513 @@
                 alert('프로젝트 정보(아파트명, 동, 호)를 먼저 입력해주세요');
                 return;
             }
-
-            if (project.defects.length === 0) {
-                alert('최소 1개 이상의 하자를 등록해주세요');
+            
+            // 점검일자 필수 확인
+            if (!project.inspectionDate) {
+                alert('⚠️ 점검일자를 입력해주세요.\n\n프로젝트 탭에서 점검일자를 선택해주세요.');
+                return;
+            }
+            
+            // 점검자명 필수 확인
+            if (!project.author || project.author.trim() === '') {
+                alert('⚠️ 점검 작성자를 입력해주세요.\n\n프로젝트 탭에서 작성자 이름을 입력해주세요.');
                 return;
             }
 
             // projectToUpload가 있으면 동기화 중이므로 confirm 스킵
-            if (!projectToUpload && !confirm(`"${project.apartmentName} ${project.dong} ${project.ho}"를 Google Drive에 업로드하시겠습니까?`)) {
+            // ✅ 하자/장비 데이터 확인
+            const hasDefects = project.defects && project.defects.length > 0;
+            const hasEquipmentPhotos = project.equipment && project.equipment.some(e => {
+                if (e.photos && typeof e.photos === 'object') {
+                    return Object.values(e.photos).some(photo => photo !== null);
+                }
+                return e.photo;
+            });
+            
+            // 둘 다 없으면 경고
+            if (!hasDefects && !hasEquipmentPhotos) {
+                alert('⚠️ 업로드할 내용이 없습니다.\n\n하자 점검 또는 장비 점검을 먼저 진행해주세요.');
+                return;
+            }
+            
+            // confirm 메시지 분기
+            let confirmMsg = '';
+            if (hasDefects && hasEquipmentPhotos) {
+                confirmMsg = `"${project.apartmentName} ${project.dong} ${project.ho}"를 Google Drive에 업로드하시겠습니까?\n\n📄 PDF 보고서 (하자 + 장비)\n📊 엑셀 파일\n📷 하자 사진\n🔧 장비점검 보고서\n📷 장비 사진\n\n모든 자료가 업로드됩니다.`;
+            } else if (hasDefects) {
+                confirmMsg = `"${project.apartmentName} ${project.dong} ${project.ho}"를 Google Drive에 업로드하시겠습니까?\n\n📄 PDF 보고서\n📊 엑셀 파일\n📷 하자 사진\n\n하자 점검 자료가 업로드됩니다.`;
+            } else {
+                // 장비만 있는 경우
+                confirmMsg = `"${project.apartmentName} ${project.dong} ${project.ho}"를 Google Drive에 업로드하시겠습니까?\n\n🔧 장비점검 보고서\n📷 장비 사진\n\n장비 점검 자료만 업로드됩니다.`;
+            }
+            
+            if (!projectToUpload && !confirm(confirmMsg)) {
                 return;
             }
 
             showLoading();
+            const projectData = project; // 호환성을 위해
 
             try {
-                // 1. 앱 루트 폴더 가져오기/생성
-                const appFolderId = await getOrCreateAppFolder();
+                // 1. 프로젝트 폴더 생성 (공유드라이브 루트에 바로 생성)
+                showToast('📁 폴더 생성 중...');
+                const projectName = `${project.apartmentName}_${project.dong}동_${project.ho}호_${project.author}_${project.inspectionDate}`;
+                const projectFolderId = await createProjectFolder(SHARED_DRIVE_ID, projectName);
                 
-                // 2. 프로젝트 폴더 생성
-                const projectName = `${project.inspectionDate}_${project.apartmentName}_${project.dong}_${project.ho}`;
-                const projectFolderId = await createProjectFolder(appFolderId, projectName);
+                // ========== 장비점검만 있는 경우 (하자 없음) ==========
+                if (!hasDefects && hasEquipmentPhotos) {
+                    // 장비점검 보고서 PDF 생성
+                    showToast('🔧 장비점검 보고서 생성 중...');
+                    
+                    const { jsPDF } = window.jspdf;
+                    const pageWidth = 210;
+                    const pageHeight = 297;
+                    
+                    const equipmentWithPhotos = projectData.equipment.filter(e => {
+                        if (e.photos && typeof e.photos === 'object') {
+                            return Object.values(e.photos).some(photo => photo !== null);
+                        }
+                        return e.photo;
+                    });
+                    
+                    const equipDoc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+                    
+                    // 장비점검 표지
+                    const equipCoverHTML = `
+                        <div style="width: 210mm; height: 297mm; padding: 20mm; box-sizing: border-box; font-family: 'Malgun Gothic', sans-serif; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;">
+                            <div style="font-size: 36px; font-weight: bold; color: #10b981; margin-bottom: 30px;">🔧 장비점검 보고서</div>
+                            <div style="font-size: 24px; margin-bottom: 50px;">${projectData.apartmentName || ''}</div>
+                            <div style="font-size: 20px; margin-bottom: 10px;">${projectData.dong || ''} ${projectData.ho || ''}</div>
+                            <div style="font-size: 16px; color: #666; margin-bottom: 30px;">점검일: ${projectData.inspectionDate || ''}</div>
+                            <div style="font-size: 14px; color: #999;">점검자: ${projectData.author || ''}</div>
+                            <div style="position: absolute; bottom: 30mm; font-size: 18px; color: #10b981; font-weight: bold;">더홈점검</div>
+                        </div>
+                    `;
+                    await window.addHTMLPageToPDF(equipDoc, equipCoverHTML, pageWidth, pageHeight);
+                    
+                    // 장비점검 페이지들
+                    equipmentWithPhotos.forEach((item, i) => item._originalIndex = i + 1);
+                    for (let i = 0; i < equipmentWithPhotos.length; i++) {
+                        equipDoc.addPage();
+                        const equipmentHTML = await window.createEquipmentPage([equipmentWithPhotos[i]]);
+                        await window.addHTMLPageToPDF(equipDoc, equipmentHTML, pageWidth, pageHeight);
+                    }
+                    
+                    const equipmentPdfBlob = equipDoc.output('blob');
+                    const equipmentPdfFileName = `${projectName}_장비점검보고서.pdf`;
+                    
+                    // 장비점검 보고서 업로드
+                    showToast('📤 장비점검 보고서 업로드 중...');
+                    await uploadFileToDrive(projectFolderId, equipmentPdfBlob, equipmentPdfFileName, 'application/pdf');
+                    
+                    // 장비 사진 업로드
+                    const photosFolderId = await createPhotosFolder(projectFolderId);
+                    const equipPhotoTasks = [];
+                    
+                    for (let equipIndex = 0; equipIndex < equipmentWithPhotos.length; equipIndex++) {
+                        const equip = equipmentWithPhotos[equipIndex];
+                        const num = String(equipIndex + 1).padStart(2, '0');
+                        const equipName = equip.name || `장비${equipIndex + 1}`;
+                        
+                        if (equip.photos && typeof equip.photos === 'object') {
+                            const positions = ['좌측상단', '좌측하단', '우측상단', '우측하단'];
+                            for (const pos of positions) {
+                                if (equip.photos[pos]) {
+                                    const fileName = `장비${num}_${equipName}_${pos}.jpg`;
+                                    equipPhotoTasks.push({ photo: equip.photos[pos], fileName });
+                                }
+                            }
+                        }
+                    }
+                    
+                    // 병렬 업로드 (5개씩)
+                    const BATCH_SIZE = 5;
+                    let uploadedCount = 0;
+                    const totalPhotos = equipPhotoTasks.length;
+                    
+                    for (let i = 0; i < equipPhotoTasks.length; i += BATCH_SIZE) {
+                        const batch = equipPhotoTasks.slice(i, i + BATCH_SIZE);
+                        await Promise.all(batch.map(async (task) => {
+                            try {
+                                await uploadPhoto(photosFolderId, task.photo, task.fileName);
+                            } catch (error) {
+                                console.log(`재시도: ${task.fileName}`);
+                                try {
+                                    await uploadPhoto(photosFolderId, task.photo, task.fileName);
+                                } catch (retryError) {
+                                    console.error(`업로드 실패: ${task.fileName}`, retryError);
+                                }
+                            }
+                            uploadedCount++;
+                            showToast(`📷 장비 사진 업로드 중... (${uploadedCount}/${totalPhotos})`);
+                        }));
+                    }
+                    
+                    // 프로젝트 상태 업데이트
+                    project.isUploaded = true;
+                    project.uploadedAt = new Date().toISOString();
+                    project.driveFolderId = projectFolderId;
+                    
+                    saveProjectsToLocalStorage();
+                    renderProjectList();
+                    
+                    hideLoading();
+                    showToast(`✅ 업로드 완료!`);
+                    
+                    if (!projectToUpload) {
+                        alert(`✅ 장비점검 업로드 완료!\n\n프로젝트: ${projectName}\n🔧 장비점검 보고서\n📷 장비 사진 ${totalPhotos}장`);
+                    }
+                    return; // 장비만 업로드 후 종료
+                }
                 
-                // 3. 하자사진 폴더 생성
+                // ========== 2. PDF 보고서 생성 (하자가 있는 경우) ==========
+                showToast('📄 PDF 보고서 생성 중...');
+                
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF({
+                    orientation: 'portrait',
+                    unit: 'mm',
+                    format: 'a4'
+                });
+
+                const pageWidth = 210;
+                const pageHeight = 297;
+
+                // PDF 페이지들 생성
+                const firstPageHTML = window.createSummaryFirstPage();
+                await window.addHTMLPageToPDF(doc, firstPageHTML, pageWidth, pageHeight);
+
+                // 하자 목록 페이지
+                if (projectData.defects.length > 0) {
+                    const itemsPerPage = 18;
+                    for (let i = 0; i < projectData.defects.length; i += itemsPerPage) {
+                        doc.addPage();
+                        const listPageHTML = window.createDefectListPage(i, itemsPerPage);
+                        await window.addHTMLPageToPDF(doc, listPageHTML, pageWidth, pageHeight);
+                    }
+                }
+
+                // 하자 상세 사진 페이지
+                if (projectData.defects.length > 0) {
+                    const defectsWithPhotos = projectData.defects.filter(d => d.photos && d.photos.length > 0);
+                    if (defectsWithPhotos.length > 0) {
+                        for (let i = 0; i < defectsWithPhotos.length; i += 3) {
+                            doc.addPage();
+                            const batch = defectsWithPhotos.slice(i, i + 3);
+                            const detailHTML = await window.createDefectDetailPage(batch, i);
+                            await window.addHTMLPageToPDF(doc, detailHTML, pageWidth, pageHeight);
+                        }
+                    }
+                }
+
+                // 장비점검 페이지
+                if (projectData.equipment && projectData.equipment.length > 0) {
+                    const equipmentWithPhotos = projectData.equipment.filter(e => {
+                        if (e.photos && typeof e.photos === 'object') {
+                            return Object.values(e.photos).some(photo => photo !== null);
+                        }
+                        return e.photo;
+                    });
+                    
+                    if (equipmentWithPhotos.length > 0) {
+                        equipmentWithPhotos.forEach((item, i) => item._originalIndex = i + 1);
+                        for (let i = 0; i < equipmentWithPhotos.length; i++) {
+                            doc.addPage();
+                            const equipmentHTML = await window.createEquipmentPage([equipmentWithPhotos[i]]);
+                            await window.addHTMLPageToPDF(doc, equipmentHTML, pageWidth, pageHeight);
+                        }
+                    }
+                }
+
+                // 공기질 페이지
+                const airQualityWithData = projectData.airQuality.filter(room => 
+                    room.radon || room.formaldehyde || room.vocs
+                );
+                if (airQualityWithData.length > 0) {
+                    doc.addPage();
+                    const airQualityHTML = window.createAirQualityDetailPage();
+                    await window.addHTMLPageToPDF(doc, airQualityHTML, pageWidth, pageHeight);
+                }
+
+                // 견적서 페이지
+                doc.addPage();
+                const quotationPage = window.createQuotationPage(projectData.apartmentName, projectData.dong, projectData.ho, projectData.inspectionDate || new Date().toLocaleDateString('ko-KR'));
+                await window.addHTMLPageToPDF(doc, quotationPage, pageWidth, pageHeight);
+
+                // 가이드 페이지들
+                doc.addPage();
+                const serviceGuidePage = window.createServiceGuidePage();
+                await window.addHTMLPageToPDF(doc, serviceGuidePage, pageWidth, pageHeight);
+
+                doc.addPage();
+                const warrantyPage1 = window.createWarrantyGuidePage1();
+                await window.addHTMLPageToPDF(doc, warrantyPage1, pageWidth, pageHeight);
+
+                doc.addPage();
+                const airQualityGuide = window.createAirQualityManagementGuidePage();
+                await window.addHTMLPageToPDF(doc, airQualityGuide, pageWidth, pageHeight);
+
+                doc.addPage();
+                const condensationGuide = window.createCondensationGuidePage();
+                await window.addHTMLPageToPDF(doc, condensationGuide, pageWidth, pageHeight);
+
+                // PDF Blob 생성
+                const pdfBlob = doc.output('blob');
+                const pdfFileName = `${projectName}_하자점검보고서.pdf`;
+                
+                // ========== 3. 엑셀 파일 생성 ==========
+                showToast('📊 엑셀 파일 생성 중...');
+                
+                const workbook = new ExcelJS.Workbook();
+                workbook.creator = '더홈점검';
+                workbook.created = new Date();
+                
+                // ===== 표지 시트 =====
+                const coverSheet = workbook.addWorksheet('표지');
+                coverSheet.getColumn('A').width = 25;
+                coverSheet.getColumn('B').width = 35;
+                
+                // 제목
+                coverSheet.mergeCells('A1:B1');
+                const titleCell = coverSheet.getCell('A1');
+                titleCell.value = '하자점검 리스트';
+                titleCell.font = { size: 20, bold: true, color: { argb: 'FF10B981' } };
+                titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
+                coverSheet.getRow(1).height = 40;
+                
+                // 프로젝트 정보 섹션
+                coverSheet.getCell('A5').value = '[ 프로젝트 정보 ]';
+                coverSheet.getCell('A5').font = { bold: true, size: 12 };
+                
+                const infoData = [
+                    ['아파트명', projectData.apartmentName || ''],
+                    ['동 / 호수', `${projectData.dong || ''} / ${projectData.ho || ''}`],
+                    ['점검일자', projectData.inspectionDate || ''],
+                    ['점검자', projectData.author || ''],
+                    ['연락처', projectData.customerPhone || '']
+                ];
+                
+                infoData.forEach((row, idx) => {
+                    const rowNum = 6 + idx;
+                    coverSheet.getCell(`A${rowNum}`).value = row[0];
+                    coverSheet.getCell(`A${rowNum}`).font = { bold: true };
+                    coverSheet.getCell(`B${rowNum}`).value = row[1];
+                });
+                
+                // 하자 현황 섹션
+                coverSheet.getCell('A12').value = '[ 하자 현황 ]';
+                coverSheet.getCell('A12').font = { bold: true, size: 12 };
+                
+                coverSheet.getCell('A13').value = '총 하자 건수';
+                coverSheet.getCell('A13').font = { bold: true };
+                coverSheet.getCell('B13').value = `${projectData.defects.length} 건`;
+                coverSheet.getCell('B13').font = { bold: true, color: { argb: 'FF10B981' } };
+                
+                // ===== 하자목록 시트 =====
+                const defectSheet = workbook.addWorksheet('하자목록');
+                
+                // 헤더
+                defectSheet.columns = [
+                    { header: '번호', key: 'no', width: 7 },
+                    { header: '공간', key: 'space', width: 12 },
+                    { header: '위치', key: 'location', width: 15 },
+                    { header: '하자내용', key: 'type', width: 18 },
+                    { header: '상세설명', key: 'description', width: 40 }
+                ];
+                
+                // 헤더 스타일
+                const headerRow = defectSheet.getRow(1);
+                headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+                headerRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF10B981' } };
+                headerRow.alignment = { vertical: 'middle', horizontal: 'center' };
+                headerRow.height = 25;
+                
+                // 데이터 추가
+                projectData.defects.forEach((defect, index) => {
+                    defectSheet.addRow({
+                        no: index + 1,
+                        space: defect.spaces ? defect.spaces.join(', ') : '',
+                        location: defect.locations ? defect.locations.join(', ') : '',
+                        type: defect.types ? defect.types.join(', ') : '',
+                        description: defect.description || ''
+                    });
+                });
+                
+                // 엑셀 Blob 생성
+                const excelBuffer = await workbook.xlsx.writeBuffer();
+                const excelBlob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+                const excelFileName = `${projectName}_하자목록.xlsx`;
+                
+                // ========== 4. 장비점검 보고서 PDF 생성 (장비 데이터가 있을 때만) ==========
+                let equipmentPdfBlob = null;
+                let equipmentPdfFileName = null;
+                
+                if (projectData.equipment && projectData.equipment.length > 0) {
+                    const equipmentWithPhotos = projectData.equipment.filter(e => {
+                        if (e.photos && typeof e.photos === 'object') {
+                            return Object.values(e.photos).some(photo => photo !== null);
+                        }
+                        return e.photo;
+                    });
+                    
+                    if (equipmentWithPhotos.length > 0) {
+                        try {
+                            showToast('🔧 장비점검 보고서 생성 중...');
+                            
+                            const equipDoc = new jsPDF({
+                                orientation: 'portrait',
+                                unit: 'mm',
+                                format: 'a4'
+                            });
+                            
+                            // 장비점검 표지
+                            const equipCoverHTML = `
+                                <div style="width: 794px; height: 1123px; background: #ffffff; display: flex; flex-direction: column; font-family: 'Malgun Gothic', sans-serif; position: relative;">
+                                    <div style="height: 8px; background: linear-gradient(90deg, #3498db 0%, #2980b9 100%);"></div>
+                                    <div style="position: absolute; left: 0; top: 0; width: 6px; height: 100%; background: linear-gradient(180deg, #3498db 0%, #2980b9 100%);"></div>
+                                    <div style="flex: 1; padding: 80px 80px 60px 100px; display: flex; flex-direction: column;">
+                                        <div style="margin-bottom: 60px;">
+                                            <div style="display: inline-flex; align-items: center; gap: 12px; padding: 12px 24px; background: #ecf0f1; border-radius: 30px;">
+                                                <div style="width: 8px; height: 8px; background: #3498db; border-radius: 50%;"></div>
+                                                <span style="color: #2c3e50; font-size: 14px; font-weight: 600; letter-spacing: 1px;">EQUIPMENT INSPECTION</span>
+                                            </div>
+                                        </div>
+                                        <div style="margin-bottom: 80px;">
+                                            <h1 style="font-size: 56px; font-weight: 800; color: #2c3e50; margin: 0 0 20px 0; line-height: 1.2;">장비측정<br/>보고서</h1>
+                                            <div style="width: 80px; height: 5px; background: #3498db; border-radius: 3px;"></div>
+                                        </div>
+                                        <div style="background: #f8f9fa; border-left: 4px solid #3498db; padding: 40px 35px; margin-bottom: 60px; border-radius: 0 8px 8px 0;">
+                                            <div style="display: flex; flex-direction: column; gap: 20px;">
+                                                <div style="display: flex; align-items: baseline;">
+                                                    <span style="color: #7f8c8d; font-size: 14px; width: 100px; font-weight: 600;">PROJECT</span>
+                                                    <span style="color: #2c3e50; font-size: 26px; font-weight: 700;">${projectData.apartmentName}</span>
+                                                </div>
+                                                <div style="display: flex; align-items: baseline;">
+                                                    <span style="color: #7f8c8d; font-size: 14px; width: 100px; font-weight: 600;">UNIT</span>
+                                                    <span style="color: #2c3e50; font-size: 32px; font-weight: 700;">${projectData.dong}동 ${projectData.ho}호</span>
+                                                </div>
+                                                <div style="display: flex; align-items: baseline;">
+                                                    <span style="color: #7f8c8d; font-size: 14px; width: 100px; font-weight: 600;">DATE</span>
+                                                    <span style="color: #2c3e50; font-size: 20px; font-weight: 600;">${projectData.inspectionDate || ''}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div style="margin-top: auto; display: flex; align-items: center; gap: 15px;">
+                                            <div style="font-size: 22px; font-weight: 700; color: #2c3e50;">더홈점검</div>
+                                            <div style="color: #bdc3c7; font-size: 14px;">|</div>
+                                            <div style="color: #7f8c8d; font-size: 13px;">전문 하자점검 서비스</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                            await window.addHTMLPageToPDF(equipDoc, equipCoverHTML, pageWidth, pageHeight);
+                            
+                            // 장비점검 페이지들
+                            equipmentWithPhotos.forEach((item, i) => item._originalIndex = i + 1);
+                            for (let i = 0; i < equipmentWithPhotos.length; i++) {
+                                equipDoc.addPage();
+                                const equipmentHTML = await window.createEquipmentPage([equipmentWithPhotos[i]]);
+                                await window.addHTMLPageToPDF(equipDoc, equipmentHTML, pageWidth, pageHeight);
+                            }
+                            
+                            equipmentPdfBlob = equipDoc.output('blob');
+                            equipmentPdfFileName = `${projectName}_장비점검보고서.pdf`;
+                        } catch (equipError) {
+                            console.error('장비점검 보고서 생성 오류:', equipError);
+                            showToast('⚠️ 장비점검 보고서 생성 실패 - 나머지 업로드 진행', 'warning');
+                        }
+                    }
+                }
+                
+                // ========== 5. 파일들 업로드 ==========
+                showToast('📤 PDF 업로드 중...');
+                await uploadFileToDrive(projectFolderId, pdfBlob, pdfFileName, 'application/pdf');
+                
+                // 장비점검 보고서 업로드 (있을 때만)
+                if (equipmentPdfBlob) {
+                    showToast('📤 장비점검 보고서 업로드 중...');
+                    await uploadFileToDrive(projectFolderId, equipmentPdfBlob, equipmentPdfFileName, 'application/pdf');
+                }
+                
+                showToast('📤 엑셀 업로드 중...');
+                await uploadFileToDrive(projectFolderId, excelBlob, excelFileName, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+                
+                // ========== 6. 사진 업로드 (병렬 처리) ==========
                 const photosFolderId = await createPhotosFolder(projectFolderId);
                 
-                // 4. 사진 업로드 (찍은 순서대로 1.jpg, 2.jpg...)
-                let photoIndex = 1;
-                const totalPhotos = project.defects.reduce((sum, defect) => {
-                    if (!defect.photos) return sum;
-                    return sum + defect.photos.filter(p => p !== null).length;
-                }, 0);
-                
-                for (const defect of project.defects) {
+                // 업로드할 하자 사진 목록 준비
+                const photoTasks = [];
+                for (let defectIndex = 0; defectIndex < project.defects.length; defectIndex++) {
+                    const defect = project.defects[defectIndex];
                     if (defect.photos && defect.photos.length > 0) {
+                        // 파일명용 정보 추출
+                        const num = String(defectIndex + 1).padStart(2, '0');
+                        const space = defect.spaces && defect.spaces.length > 0 ? defect.spaces[0] : '기타';
+                        const location = defect.locations && defect.locations.length > 0 ? defect.locations[0] : '';
+                        
+                        let photoNum = 0;
                         for (const photo of defect.photos) {
                             if (photo !== null) {
-                                await uploadPhoto(photosFolderId, photo, `${photoIndex}.jpg`);
-                                photoIndex++;
+                                // 파일명: 01_현관_벽_원경.jpg, 01_현관_벽_근접.jpg
+                                const photoType = photoNum === 0 ? '원경' : '근접';
+                                const fileName = `${num}_${space}_${location}_${photoType}.jpg`;
+                                photoTasks.push({ photo, fileName });
+                                photoNum++;
                             }
                         }
                     }
                 }
                 
-                // 5. 하자 리스트 스프레드시트 생성
-                await createDefectSpreadsheet(projectFolderId, projectName, project.defects);
+                // 장비 사진도 추가 (있을 경우)
+                if (hasEquipmentPhotos) {
+                    const equipmentWithPhotos = projectData.equipment.filter(e => {
+                        if (e.photos && typeof e.photos === 'object') {
+                            return Object.values(e.photos).some(photo => photo !== null);
+                        }
+                        return e.photo;
+                    });
+                    
+                    for (let equipIndex = 0; equipIndex < equipmentWithPhotos.length; equipIndex++) {
+                        const equip = equipmentWithPhotos[equipIndex];
+                        const num = String(equipIndex + 1).padStart(2, '0');
+                        const equipName = equip.name || `장비${equipIndex + 1}`;
+                        
+                        if (equip.photos && typeof equip.photos === 'object') {
+                            const positions = ['좌측상단', '좌측하단', '우측상단', '우측하단'];
+                            for (const pos of positions) {
+                                if (equip.photos[pos]) {
+                                    const fileName = `장비${num}_${equipName}_${pos}.jpg`;
+                                    photoTasks.push({ photo: equip.photos[pos], fileName });
+                                }
+                            }
+                        }
+                    }
+                }
                 
-                // 6. 프로젝트 정보 JSON 업로드
-                await uploadProjectInfo(projectFolderId, project);
+                // 병렬 업로드 (5개씩)
+                const BATCH_SIZE = 5;
+                let uploadedCount = 0;
+                const totalPhotos = photoTasks.length;
+                
+                for (let i = 0; i < photoTasks.length; i += BATCH_SIZE) {
+                    const batch = photoTasks.slice(i, i + BATCH_SIZE);
+                    
+                    await Promise.all(batch.map(async (task) => {
+                        try {
+                            await uploadPhoto(photosFolderId, task.photo, task.fileName);
+                        } catch (error) {
+                            // 1회 재시도
+                            console.log(`재시도: ${task.fileName}`);
+                            try {
+                                await uploadPhoto(photosFolderId, task.photo, task.fileName);
+                            } catch (retryError) {
+                                console.error(`업로드 실패: ${task.fileName}`, retryError);
+                            }
+                        }
+                        uploadedCount++;
+                        showToast(`📷 사진 업로드 중... (${uploadedCount}/${totalPhotos})`);
+                    }));
+                }
                 
                 // 7. 프로젝트 상태 업데이트
                 project.isUploaded = true;
@@ -2764,17 +3133,39 @@
                 renderProjectList();
                 
                 hideLoading();
-                showToast(`✅ 업로드 완료! (사진 ${totalPhotos}장)`);
+                showToast(`✅ 업로드 완료!`);
                 
                 // 동기화 중이 아닐 때만 alert 표시
                 if (!projectToUpload) {
-                    alert(`✅ 업로드 완료!\n\n프로젝트: ${projectName}\n사진: ${totalPhotos}장\n하자: ${project.defects.length}개\n\nGoogle Drive에서 확인하세요!`);
+                    const equipmentMsg = equipmentPdfBlob ? '\n🔧 장비점검 보고서' : '';
+                    alert(`✅ 업로드 완료!\n\n프로젝트: ${projectName}\n📄 PDF 보고서${equipmentMsg}\n📊 엑셀 파일\n📷 사진 ${totalPhotos}장`);
                 }
                 
             } catch (error) {
                 console.error('업로드 오류:', error);
                 hideLoading();
-                alert('업로드 중 오류가 발생했습니다:\n' + error.message);
+                
+                // 에러 메시지 추출
+                let errorMsg = '알 수 없는 오류';
+                if (error) {
+                    if (typeof error === 'string') {
+                        errorMsg = error;
+                    } else if (error.message) {
+                        errorMsg = error.message;
+                    } else if (error.error) {
+                        errorMsg = typeof error.error === 'string' ? error.error : JSON.stringify(error.error);
+                    } else if (error.result && error.result.error) {
+                        errorMsg = error.result.error.message || JSON.stringify(error.result.error);
+                    } else {
+                        try {
+                            errorMsg = JSON.stringify(error);
+                        } catch (e) {
+                            errorMsg = String(error);
+                        }
+                    }
+                }
+                
+                alert('업로드 중 오류가 발생했습니다:\n' + errorMsg);
             }
         }
 
@@ -2802,7 +3193,9 @@
                 const response = await gapi.client.drive.files.list({
                     q: `name='${fileName}' and '${folderId}' in parents and trashed=false`,
                     fields: 'files(id, name)',
-                    spaces: 'drive'
+                    spaces: 'drive',
+                    supportsAllDrives: true,
+                    includeItemsFromAllDrives: true
                 });
 
                 if (!response.result.files || response.result.files.length === 0) {
@@ -2814,7 +3207,7 @@
                 const fileId = response.result.files[0].id;
 
                 // 파일 내용 다운로드
-                const fileResponse = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
+                const fileResponse = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media&supportsAllDrives=true`, {
                     headers: {
                         'Authorization': 'Bearer ' + accessToken
                     }
@@ -2881,7 +3274,9 @@
                     q: `'${folderId}' in parents and mimeType='application/json' and trashed=false`,
                     fields: 'files(id, name, modifiedTime)',
                     orderBy: 'modifiedTime desc',
-                    spaces: 'drive'
+                    spaces: 'drive',
+                    supportsAllDrives: true,
+                    includeItemsFromAllDrives: true
                 });
 
                 const files = response.result.files || [];
@@ -2921,7 +3316,7 @@
 
             try {
                 // 파일 내용 다운로드
-                const response = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
+                const response = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media&supportsAllDrives=true`, {
                     headers: {
                         'Authorization': 'Bearer ' + accessToken
                     }
@@ -3129,6 +3524,11 @@
             project.customerName = document.getElementById('customerName').value;
             project.customerPhone = document.getElementById('customerPhone').value;
             project.author = document.getElementById('author').value; // ✅ 작성자 저장
+            
+            // 작성자를 localStorage에 저장 (다음 프로젝트에서도 유지)
+            if (project.author && project.author.trim()) {
+                localStorage.setItem('lastAuthor', project.author.trim());
+            }
             
             // floorplan, defects, equipment, airQuality는 이미 projectData 참조로 실시간 업데이트됨
         }
@@ -3418,10 +3818,16 @@
         }
 
         // ==================== 초기화 ====================
-        // Google API 로드
-        if (typeof gapi !== 'undefined') {
-            gapiLoaded();
+        // Google API 로드 대기 및 초기화
+        function waitForGapi() {
+            if (typeof gapi !== 'undefined') {
+                window.gapiLoaded();
+            } else {
+                setTimeout(waitForGapi, 100);
+            }
         }
+        waitForGapi();
+        
         if (typeof google !== 'undefined') {
             gisLoaded();
         }
@@ -3926,11 +4332,12 @@
 
                     <div class="form-field">
                         <label class="form-label">📝 상세위치 (선택사항)</label>
-                        <input type="text" class="form-input" value="${defect.detailLocation || ''}" 
-                               onchange="updateDefect(${defect.id}, 'detailLocation', this.value)" 
-                               placeholder="예: 거실 창문 우측 하단, 주방 싱크대 좌측 벽 등">
-                        <div style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;">
-                            💡 위치를 더 구체적으로 설명하고 싶을 때 입력하세요
+                        <input type="text" class="form-input" id="detailLocation_${defect.id}" 
+                               value="${defect.detailLocation || ''}" 
+                               onchange="updateDefect(${defect.id}, 'detailLocation', this.value)"
+                               onblur="checkTypoOnBlur(${defect.id}, this.value)"
+                               placeholder="예: 좌측 상부 신발장, 우측 하단 등">
+                        <div id="typoAlert_${defect.id}" style="display: none; font-size: 12px; color: #dc2626; margin-top: 6px; padding: 10px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 6px;">
                         </div>
                     </div>
 
@@ -5289,6 +5696,103 @@
             closeCameraModal();
         }
 
+
+        // ==================== 상세위치 오타 감지 (단순 버전) ====================
+        
+        // 포커스 벗어날 때 오타 검사
+        function checkTypoOnBlur(defectId, value) {
+            const alertDiv = document.getElementById(`typoAlert_${defectId}`);
+            if (!alertDiv) return;
+            
+            if (!value || !value.trim()) {
+                alertDiv.style.display = 'none';
+                return;
+            }
+            
+            const errors = detectInvalidInput(value);
+            
+            if (errors.length > 0) {
+                const errorHTML = errors.map(e => 
+                    `<span style="display: inline-block; margin: 2px; padding: 4px 8px; background: #fef3c7; 
+                           border: 1px solid #fcd34d; border-radius: 8px; font-size: 11px;">
+                        <span style="color: #dc2626;">"${e.word}"</span>
+                        <span style="color: #92400e;">(${e.reason})</span>
+                    </span>`
+                ).join(' ');
+                
+                alertDiv.innerHTML = `<div style="margin-bottom: 4px; font-weight: 500;">⚠️ 입력 오류</div>${errorHTML}`;
+                alertDiv.style.display = 'block';
+            } else {
+                alertDiv.style.display = 'none';
+            }
+        }
+        
+        // 말도 안 되는 입력만 체크
+        function detectInvalidInput(value) {
+            if (!value || !value.trim()) return [];
+            
+            const words = value.trim().split(/\s+/);
+            const errors = [];
+            
+            for (const word of words) {
+                if (word.length < 2) continue;
+                
+                // 1. 자음만 (ㅁㄴㅇㄹ, ㄱㄱㄱ)
+                if (/^[ㄱ-ㅎ]+$/.test(word)) {
+                    errors.push({ word, reason: '자음만 입력됨' });
+                    continue;
+                }
+                
+                // 2. 모음만 (ㅏㅓㅗㅜ)
+                if (/^[ㅏ-ㅣ]+$/.test(word)) {
+                    errors.push({ word, reason: '모음만 입력됨' });
+                    continue;
+                }
+                
+                // 3. 자음+모음 혼합 (완성되지 않은 글자)
+                if (/^[ㄱ-ㅎㅏ-ㅣ]+$/.test(word)) {
+                    errors.push({ word, reason: '완성되지 않은 글자' });
+                    continue;
+                }
+                
+                // 4. 같은 글자 3번 이상 반복 (아아아, ㅋㅋㅋ)
+                if (/(.)\1{2,}/.test(word)) {
+                    errors.push({ word, reason: '반복 입력됨' });
+                    continue;
+                }
+                
+                // 5. 영문만 (asdf, qwer) - MC, SP 등 허용
+                if (/^[a-zA-Z]+$/.test(word) && word.length > 2) {
+                    if (!['MC', 'SP', 'LED', 'PVC'].includes(word.toUpperCase())) {
+                        errors.push({ word, reason: '영문만 입력됨' });
+                        continue;
+                    }
+                }
+                
+                // 6. 숫자만 3자리 이상 (123, 1234)
+                if (/^[0-9]+$/.test(word) && word.length > 2) {
+                    errors.push({ word, reason: '숫자만 입력됨' });
+                    continue;
+                }
+                
+                // 7. 특수문자만 (!!!, ???)
+                if (/^[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~`]+$/.test(word)) {
+                    errors.push({ word, reason: '특수문자만 입력됨' });
+                    continue;
+                }
+                
+                // 8. 키보드 연속 입력 패턴
+                const keyboardPatterns = ['ㅂㅈㄷㄱ', 'ㅁㄴㅇㄹ', 'ㅋㅌㅊㅍ', 'qwer', 'asdf', 'zxcv', '1234'];
+                if (keyboardPatterns.some(p => word.toLowerCase().includes(p))) {
+                    errors.push({ word, reason: '의미없는 입력' });
+                    continue;
+                }
+            }
+            
+            return errors;
+        }
+
+
         function updateDefect(id, field, value) {
             const defect = projectData.defects.find(d => d.id === id);
             if (defect) {
@@ -5523,8 +6027,8 @@
             
             try {
                 const zip = new JSZip();
-                const projectName = `${projectData.apartmentName}_${projectData.dong}_${projectData.ho}`;
-                const authorName = projectData.author ? `_${projectData.author}` : ''; // ✅ 작성자 변수 한 번만 선언
+                // 드라이브 업로드와 동일한 파일명 형식
+                const projectName = `${projectData.apartmentName}_${projectData.dong}동_${projectData.ho}호_${projectData.author}_${projectData.inspectionDate}`;
                 let photoCount = 0;
                 
                 // ========== 1. PDF 파일 생성 ==========
@@ -5622,8 +6126,8 @@
                 // PDF를 Blob으로 변환하여 ZIP에 추가
                 const pdfBlob = doc.output('blob');
                 
-                // 작성자 정보 포함한 파일명
-                const pdfFileName = `${projectName}${authorName}_하자점검보고서.pdf`;
+                // 파일명 (드라이브와 동일 형식)
+                const pdfFileName = `${projectName}_하자점검보고서.pdf`;
                 
                 zip.file(pdfFileName, pdfBlob);
                 
@@ -5633,400 +6137,90 @@
                 const workbook = new ExcelJS.Workbook();
                 workbook.creator = '더홈점검';
                 workbook.created = new Date();
-                workbook.modified = new Date();
-                workbook.lastModifiedBy = '더홈점검';
-                workbook.calcProperties = { fullCalcOnLoad: true };
                 
-                // ==================== 시트1: 표지 (전문적 디자인) ====================
-                const coverSheet = workbook.addWorksheet('표지', {
-                    pageSetup: {
-                        paperSize: 9, // A4
-                        orientation: 'portrait',
-                        fitToPage: true,
-                        fitToWidth: 1,
-                        fitToHeight: 0,
-                        margins: {
-                            left: 0.7, right: 0.7,
-                            top: 0.75, bottom: 0.75,
-                            header: 0.3, footer: 0.3
-                        }
-                    }
-                });
+                // ===== 표지 시트 =====
+                const coverSheet = workbook.addWorksheet('표지');
+                coverSheet.getColumn('A').width = 25;
+                coverSheet.getColumn('B').width = 35;
                 
-                coverSheet.getColumn(1).width = 25;
-                coverSheet.getColumn(2).width = 35;
-                
-                // 로고/타이틀 영역 (1~3행)
-                coverSheet.mergeCells('A1:B3');
+                // 제목
+                coverSheet.mergeCells('A1:B1');
                 const titleCell = coverSheet.getCell('A1');
                 titleCell.value = '하자점검 리스트';
-                titleCell.font = { 
-                    name: '맑은 고딕', 
-                    size: 32, 
-                    bold: true,
-                    color: { argb: 'FF1F2937' }
-                };
-                titleCell.alignment = { 
-                    vertical: 'middle', 
-                    horizontal: 'center' 
-                };
-                titleCell.fill = {
-                    type: 'pattern',
-                    pattern: 'solid',
-                    fgColor: { argb: 'FFF3F4F6' }
-                };
-                titleCell.border = {
-                    top: { style: 'thick', color: { argb: 'FF10B981' } },
-                    left: { style: 'thick', color: { argb: 'FF10B981' } },
-                    right: { style: 'thick', color: { argb: 'FF10B981' } },
-                    bottom: { style: 'medium', color: { argb: 'FF10B981' } }
-                };
-                coverSheet.getRow(1).height = 35;
-                coverSheet.getRow(2).height = 35;
-                coverSheet.getRow(3).height = 35;
+                titleCell.font = { size: 20, bold: true, color: { argb: 'FF10B981' } };
+                titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
+                coverSheet.getRow(1).height = 40;
                 
-                // 빈 줄
-                coverSheet.getRow(4).height = 20;
+                // 프로젝트 정보 섹션
+                coverSheet.getCell('A5').value = '[ 프로젝트 정보 ]';
+                coverSheet.getCell('A5').font = { bold: true, size: 12 };
                 
-                // 부제목 (5행)
-                coverSheet.mergeCells('A5:B5');
-                const subtitleCell = coverSheet.getCell('A5');
-                subtitleCell.value = '[ 프로젝트 정보 ]';
-                subtitleCell.font = { 
-                    name: '맑은 고딕', 
-                    size: 14, 
-                    bold: true,
-                    color: { argb: 'FF10B981' }
-                };
-                subtitleCell.alignment = { 
-                    vertical: 'middle', 
-                    horizontal: 'left' 
-                };
-                coverSheet.getRow(5).height = 25;
-                
-                // 프로젝트 정보 (6행~)
-                const projectInfo = [
+                const infoData = [
                     ['아파트명', projectData.apartmentName || ''],
                     ['동 / 호수', `${projectData.dong || ''} / ${projectData.ho || ''}`],
                     ['점검일자', projectData.inspectionDate || ''],
-                    ['점검자 (계약자)', projectData.inspector || ''],
-                    ['연락처', projectData.phone || '']
+                    ['점검자', projectData.author || ''],
+                    ['연락처', projectData.customerPhone || '']
                 ];
                 
-                projectInfo.forEach((rowData, index) => {
-                    const rowNum = 6 + index;
-                    const row = coverSheet.getRow(rowNum);
-                    row.height = 28;
-                    
-                    // A열 (라벨)
-                    const cellA = row.getCell(1);
-                    cellA.value = rowData[0];
-                    cellA.font = { 
-                        name: '맑은 고딕', 
-                        bold: true, 
-                        size: 12,
-                        color: { argb: 'FFFFFFFF' }
-                    };
-                    cellA.fill = {
-                        type: 'pattern',
-                        pattern: 'solid',
-                        fgColor: { argb: 'FF059669' }
-                    };
-                    cellA.border = {
-                        top: { style: 'thin', color: { argb: 'FFCCCCCC' } },
-                        left: { style: 'thin', color: { argb: 'FFCCCCCC' } },
-                        bottom: { style: 'thin', color: { argb: 'FFCCCCCC' } },
-                        right: { style: 'thin', color: { argb: 'FFCCCCCC' } }
-                    };
-                    cellA.alignment = { 
-                        vertical: 'middle', 
-                        horizontal: 'center' 
-                    };
-                    
-                    // B열 (값)
-                    const cellB = row.getCell(2);
-                    cellB.value = rowData[1];
-                    cellB.font = { 
-                        name: '맑은 고딕', 
-                        size: 12,
-                        color: { argb: 'FF1F2937' }
-                    };
-                    cellB.fill = {
-                        type: 'pattern',
-                        pattern: 'solid',
-                        fgColor: { argb: 'FFFFFFFF' }
-                    };
-                    cellB.border = {
-                        top: { style: 'thin', color: { argb: 'FFCCCCCC' } },
-                        left: { style: 'thin', color: { argb: 'FFCCCCCC' } },
-                        bottom: { style: 'thin', color: { argb: 'FFCCCCCC' } },
-                        right: { style: 'thin', color: { argb: 'FFCCCCCC' } }
-                    };
-                    cellB.alignment = { 
-                        vertical: 'middle', 
-                        horizontal: 'left',
-                        indent: 1
-                    };
+                infoData.forEach((row, idx) => {
+                    const rowNum = 6 + idx;
+                    coverSheet.getCell(`A${rowNum}`).value = row[0];
+                    coverSheet.getCell(`A${rowNum}`).font = { bold: true };
+                    coverSheet.getCell(`B${rowNum}`).value = row[1];
                 });
                 
-                // 빈 줄
-                coverSheet.getRow(11).height = 20;
+                // 하자 현황 섹션
+                coverSheet.getCell('A12').value = '[ 하자 현황 ]';
+                coverSheet.getCell('A12').font = { bold: true, size: 12 };
                 
-                // 하자 요약 (12행)
-                coverSheet.mergeCells('A12:B12');
-                const summaryCell = coverSheet.getCell('A12');
-                summaryCell.value = '[ 하자 현황 ]';
-                summaryCell.font = { 
-                    name: '맑은 고딕', 
-                    size: 14, 
-                    bold: true,
-                    color: { argb: 'FF10B981' }
-                };
-                summaryCell.alignment = { 
-                    vertical: 'middle', 
-                    horizontal: 'left' 
-                };
-                coverSheet.getRow(12).height = 25;
+                coverSheet.getCell('A13').value = '총 하자 건수';
+                coverSheet.getCell('A13').font = { bold: true };
+                coverSheet.getCell('B13').value = `${projectData.defects.length} 건`;
+                coverSheet.getCell('B13').font = { bold: true, color: { argb: 'FF10B981' } };
                 
-                // 하자 건수 (13행)
-                const defectCountRow = coverSheet.getRow(13);
-                defectCountRow.height = 35;
-                
-                const countLabelCell = defectCountRow.getCell(1);
-                countLabelCell.value = '총 하자 건수';
-                countLabelCell.font = { 
-                    name: '맑은 고딕', 
-                    bold: true, 
-                    size: 13,
-                    color: { argb: 'FFFFFFFF' }
-                };
-                countLabelCell.fill = {
-                    type: 'pattern',
-                    pattern: 'solid',
-                    fgColor: { argb: 'FF059669' }
-                };
-                countLabelCell.border = {
-                    top: { style: 'thin', color: { argb: 'FFCCCCCC' } },
-                    left: { style: 'thin', color: { argb: 'FFCCCCCC' } },
-                    bottom: { style: 'thin', color: { argb: 'FFCCCCCC' } },
-                    right: { style: 'thin', color: { argb: 'FFCCCCCC' } }
-                };
-                countLabelCell.alignment = { 
-                    vertical: 'middle', 
-                    horizontal: 'center' 
-                };
-                
-                const countValueCell = defectCountRow.getCell(2);
-                countValueCell.value = `${projectData.defects.length} 건`;
-                countValueCell.font = { 
-                    name: '맑은 고딕', 
-                    size: 18,
-                    bold: true,
-                    color: { argb: 'FFEF4444' }
-                };
-                countValueCell.fill = {
-                    type: 'pattern',
-                    pattern: 'solid',
-                    fgColor: { argb: 'FFFEF2F2' }
-                };
-                countValueCell.border = {
-                    top: { style: 'thin', color: { argb: 'FFCCCCCC' } },
-                    left: { style: 'thin', color: { argb: 'FFCCCCCC' } },
-                    bottom: { style: 'thin', color: { argb: 'FFCCCCCC' } },
-                    right: { style: 'thin', color: { argb: 'FFCCCCCC' } }
-                };
-                countValueCell.alignment = { 
-                    vertical: 'middle', 
-                    horizontal: 'center' 
-                };
-                
-                // 빈 줄들
-                for (let i = 14; i <= 20; i++) {
-                    coverSheet.getRow(i).height = 15;
-                }
-                
-                // 서명란 (21행)
-                coverSheet.mergeCells('A21:B21');
-                const signCell = coverSheet.getCell('A21');
-                signCell.value = '작성자:  _______________     (인)';
-                signCell.font = { 
-                    name: '맑은 고딕', 
-                    size: 12,
-                    color: { argb: 'FF6B7280' }
-                };
-                signCell.alignment = { 
-                    vertical: 'middle', 
-                    horizontal: 'right' 
-                };
-                coverSheet.getRow(21).height = 30;
-                
-                // 하단 로고/날짜 (22행)
-                coverSheet.mergeCells('A22:B22');
-                const footerCell = coverSheet.getCell('A22');
-                footerCell.value = `Generated by 더홈점검 | ${new Date().toLocaleDateString('ko-KR')}`;
-                footerCell.font = { 
-                    name: '맑은 고딕', 
-                    size: 9,
-                    italic: true,
-                    color: { argb: 'FF9CA3AF' }
-                };
-                footerCell.alignment = { 
-                    vertical: 'middle', 
-                    horizontal: 'center' 
-                };
-                coverSheet.getRow(22).height = 20;
-                
-                // ==================== 시트2: 하자목록 ====================
-                const detailSheet = workbook.addWorksheet('하자목록', {
-                    pageSetup: {
-                        paperSize: 9, // A4
-                        orientation: 'portrait',
-                        fitToPage: true,
-                        fitToWidth: 1,
-                        fitToHeight: 0,
-                        margins: {
-                            left: 0.7, right: 0.7,
-                            top: 0.75, bottom: 0.75,
-                            header: 0.3, footer: 0.3
-                        }
-                    }
-                });
+                // ===== 하자목록 시트 =====
+                const detailSheet = workbook.addWorksheet('하자목록');
                 
                 // 컬럼 너비 설정
                 detailSheet.getColumn(1).width = 7;   // 번호
                 detailSheet.getColumn(2).width = 12;  // 공간
                 detailSheet.getColumn(3).width = 15;  // 위치
-                detailSheet.getColumn(4).width = 15;  // 하자내용
+                detailSheet.getColumn(4).width = 18;  // 하자내용
                 detailSheet.getColumn(5).width = 40;  // 상세설명
                 
                 // 헤더 행
                 const headerRow = detailSheet.getRow(1);
-                headerRow.height = 30;
+                headerRow.height = 25;
                 
                 const headers = ['번호', '공간', '위치', '하자내용', '상세설명'];
                 headers.forEach((header, index) => {
                     const cell = headerRow.getCell(index + 1);
                     cell.value = header;
-                    cell.font = { 
-                        name: '맑은 고딕', 
-                        bold: true, 
-                        size: 12, 
-                        color: { argb: 'FFFFFFFF' } 
-                    };
-                    cell.alignment = { 
-                        vertical: 'middle', 
-                        horizontal: 'center', 
-                        wrapText: true 
-                    };
+                    cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+                    cell.alignment = { vertical: 'middle', horizontal: 'center' };
                     cell.fill = {
                         type: 'pattern',
                         pattern: 'solid',
-                        fgColor: { argb: 'FF059669' }
-                    };
-                    cell.border = {
-                        top: { style: 'medium', color: { argb: 'FF000000' } },
-                        left: { style: 'medium', color: { argb: 'FF000000' } },
-                        bottom: { style: 'medium', color: { argb: 'FF000000' } },
-                        right: { style: 'medium', color: { argb: 'FF000000' } }
+                        fgColor: { argb: 'FF10B981' }
                     };
                 });
                 
-                // 하자 데이터 행 (수정: addRow 대신 getRow 사용)
+                // 하자 데이터 행
                 projectData.defects.forEach((defect, index) => {
                     const row = detailSheet.getRow(index + 2);
-                    row.height = 40;
-                    
-                    // 번호
-                    const cell1 = row.getCell(1);
-                    cell1.value = index + 1;
-                    cell1.font = { name: '맑은 고딕', size: 11, bold: true };
-                    cell1.alignment = { vertical: 'middle', horizontal: 'center' };
-                    cell1.fill = {
-                        type: 'pattern',
-                        pattern: 'solid',
-                        fgColor: { argb: index % 2 === 0 ? 'FFFFFFFF' : 'FFF9FAFB' }
-                    };
-                    cell1.border = {
-                        top: { style: 'thin', color: { argb: 'FFD1D5DB' } },
-                        left: { style: 'medium', color: { argb: 'FF6B7280' } },
-                        bottom: { style: 'thin', color: { argb: 'FFD1D5DB' } },
-                        right: { style: 'thin', color: { argb: 'FFD1D5DB' } }
-                    };
-                    
-                    // 공간 (배열에서 가져오기)
-                    const cell2 = row.getCell(2);
-                    cell2.value = (defect.spaces && defect.spaces.length > 0) ? defect.spaces.join(', ') : '';
-                    cell2.font = { name: '맑은 고딕', size: 11 };
-                    cell2.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
-                    cell2.fill = {
-                        type: 'pattern',
-                        pattern: 'solid',
-                        fgColor: { argb: index % 2 === 0 ? 'FFFFFFFF' : 'FFF9FAFB' }
-                    };
-                    cell2.border = {
-                        top: { style: 'thin', color: { argb: 'FFD1D5DB' } },
-                        left: { style: 'thin', color: { argb: 'FFD1D5DB' } },
-                        bottom: { style: 'thin', color: { argb: 'FFD1D5DB' } },
-                        right: { style: 'thin', color: { argb: 'FFD1D5DB' } }
-                    };
-                    
-                    // 위치 (배열에서 가져오기)
-                    const cell3 = row.getCell(3);
-                    cell3.value = (defect.locations && defect.locations.length > 0) ? defect.locations.join(', ') : '';
-                    cell3.font = { name: '맑은 고딕', size: 11 };
-                    cell3.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
-                    cell3.fill = {
-                        type: 'pattern',
-                        pattern: 'solid',
-                        fgColor: { argb: index % 2 === 0 ? 'FFFFFFFF' : 'FFF9FAFB' }
-                    };
-                    cell3.border = {
-                        top: { style: 'thin', color: { argb: 'FFD1D5DB' } },
-                        left: { style: 'thin', color: { argb: 'FFD1D5DB' } },
-                        bottom: { style: 'thin', color: { argb: 'FFD1D5DB' } },
-                        right: { style: 'thin', color: { argb: 'FFD1D5DB' } }
-                    };
-                    
-                    // 하자내용 (배열에서 가져오기)
-                    const cell4 = row.getCell(4);
-                    cell4.value = (defect.types && defect.types.length > 0) ? defect.types.join(', ') : '';
-                    cell4.font = { name: '맑은 고딕', size: 11 };
-                    cell4.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
-                    cell4.fill = {
-                        type: 'pattern',
-                        pattern: 'solid',
-                        fgColor: { argb: index % 2 === 0 ? 'FFFFFFFF' : 'FFF9FAFB' }
-                    };
-                    cell4.border = {
-                        top: { style: 'thin', color: { argb: 'FFD1D5DB' } },
-                        left: { style: 'thin', color: { argb: 'FFD1D5DB' } },
-                        bottom: { style: 'thin', color: { argb: 'FFD1D5DB' } },
-                        right: { style: 'thin', color: { argb: 'FFD1D5DB' } }
-                    };
-                    
-                    // 상세설명
-                    const cell5 = row.getCell(5);
-                    cell5.value = defect.description || '';
-                    cell5.font = { name: '맑은 고딕', size: 10 };
-                    cell5.alignment = { vertical: 'top', horizontal: 'left', wrapText: true, indent: 1 };
-                    cell5.fill = {
-                        type: 'pattern',
-                        pattern: 'solid',
-                        fgColor: { argb: index % 2 === 0 ? 'FFFFFFFF' : 'FFF9FAFB' }
-                    };
-                    cell5.border = {
-                        top: { style: 'thin', color: { argb: 'FFD1D5DB' } },
-                        left: { style: 'thin', color: { argb: 'FFD1D5DB' } },
-                        bottom: { style: 'thin', color: { argb: 'FFD1D5DB' } },
-                        right: { style: 'medium', color: { argb: 'FF6B7280' } }
-                    };
+                    row.getCell(1).value = index + 1;
+                    row.getCell(2).value = (defect.spaces && defect.spaces.length > 0) ? defect.spaces.join(', ') : '';
+                    row.getCell(3).value = (defect.locations && defect.locations.length > 0) ? defect.locations.join(', ') : '';
+                    row.getCell(4).value = (defect.types && defect.types.length > 0) ? defect.types.join(', ') : '';
+                    row.getCell(5).value = defect.description || '';
                 });
                 
                 // 엑셀 파일을 ZIP에 추가
                 const excelBuffer = await workbook.xlsx.writeBuffer();
                 
-                // 작성자 정보 포함한 파일명
-                const excelFileName = `${projectName}${authorName}_하자목록.xlsx`;
+                // 파일명 (드라이브와 동일 형식)
+                const excelFileName = `${projectName}_하자목록.xlsx`;
                 
                 zip.file(excelFileName, excelBuffer);
                 
@@ -6114,8 +6308,8 @@
                 const link = document.createElement('a');
                 link.href = url;
                 
-                // 작성자 정보 포함한 파일명
-                link.download = `${projectName}${authorName}_전체자료_${projectData.inspectionDate || new Date().toISOString().split('T')[0]}.zip`;
+                // 파일명 (드라이브와 동일 형식)
+                link.download = `${projectName}_전체자료.zip`;
                 
                 document.body.appendChild(link);
                 link.click();
@@ -6157,257 +6351,83 @@
                 const workbook = new ExcelJS.Workbook();
                 workbook.creator = '더홈점검';
                 workbook.created = new Date();
-                workbook.modified = new Date();
-                workbook.lastModifiedBy = '더홈점검';
-                workbook.calcProperties = { fullCalcOnLoad: true };
                 
-                // === 동일한 코드 재사용 (통합 다운로드와 동일) ===
-                // 표지 시트
-                const coverSheet = workbook.addWorksheet('표지', {
-                    pageSetup: {
-                        paperSize: 9,
-                        orientation: 'portrait',
-                        fitToPage: true,
-                        fitToWidth: 1,
-                        fitToHeight: 0,
-                        margins: {
-                            left: 0.7, right: 0.7,
-                            top: 0.75, bottom: 0.75,
-                            header: 0.3, footer: 0.3
-                        }
-                    }
-                });
+                // ===== 표지 시트 =====
+                const coverSheet = workbook.addWorksheet('표지');
+                coverSheet.getColumn('A').width = 25;
+                coverSheet.getColumn('B').width = 35;
                 
-                coverSheet.getColumn(1).width = 25;
-                coverSheet.getColumn(2).width = 35;
-                
-                // 타이틀
-                coverSheet.mergeCells('A1:B3');
+                // 제목
+                coverSheet.mergeCells('A1:B1');
                 const titleCell = coverSheet.getCell('A1');
                 titleCell.value = '하자점검 리스트';
-                titleCell.font = { name: '맑은 고딕', size: 32, bold: true, color: { argb: 'FF1F2937' } };
-                titleCell.alignment = { vertical: 'middle', horizontal: 'center' };
-                titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF3F4F6' } };
-                titleCell.border = {
-                    top: { style: 'thick', color: { argb: 'FF10B981' } },
-                    left: { style: 'thick', color: { argb: 'FF10B981' } },
-                    right: { style: 'thick', color: { argb: 'FF10B981' } },
-                    bottom: { style: 'medium', color: { argb: 'FF10B981' } }
-                };
-                coverSheet.getRow(1).height = 35;
-                coverSheet.getRow(2).height = 35;
-                coverSheet.getRow(3).height = 35;
-                coverSheet.getRow(4).height = 20;
+                titleCell.font = { size: 20, bold: true, color: { argb: 'FF10B981' } };
+                titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
+                coverSheet.getRow(1).height = 40;
                 
-                // 부제목
-                coverSheet.mergeCells('A5:B5');
-                const subtitleCell = coverSheet.getCell('A5');
-                subtitleCell.value = '[ 프로젝트 정보 ]';
-                subtitleCell.font = { name: '맑은 고딕', size: 14, bold: true, color: { argb: 'FF10B981' } };
-                subtitleCell.alignment = { vertical: 'middle', horizontal: 'left' };
-                coverSheet.getRow(5).height = 25;
+                // 프로젝트 정보 섹션
+                coverSheet.getCell('A5').value = '[ 프로젝트 정보 ]';
+                coverSheet.getCell('A5').font = { bold: true, size: 12 };
                 
-                // 프로젝트 정보
-                const projectInfo = [
+                const infoData = [
                     ['아파트명', projectData.apartmentName || ''],
                     ['동 / 호수', `${projectData.dong || ''} / ${projectData.ho || ''}`],
                     ['점검일자', projectData.inspectionDate || ''],
-                    ['점검자 (계약자)', projectData.inspector || ''],
-                    ['연락처', projectData.phone || '']
+                    ['점검자', projectData.author || ''],
+                    ['연락처', projectData.customerPhone || '']
                 ];
                 
-                projectInfo.forEach((rowData, index) => {
-                    const rowNum = 6 + index;
-                    const row = coverSheet.getRow(rowNum);
-                    row.height = 28;
-                    
-                    const cellA = row.getCell(1);
-                    cellA.value = rowData[0];
-                    cellA.font = { name: '맑은 고딕', bold: true, size: 12, color: { argb: 'FFFFFFFF' } };
-                    cellA.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF059669' } };
-                    cellA.border = {
-                        top: { style: 'thin', color: { argb: 'FFCCCCCC' } },
-                        left: { style: 'thin', color: { argb: 'FFCCCCCC' } },
-                        bottom: { style: 'thin', color: { argb: 'FFCCCCCC' } },
-                        right: { style: 'thin', color: { argb: 'FFCCCCCC' } }
-                    };
-                    cellA.alignment = { vertical: 'middle', horizontal: 'center' };
-                    
-                    const cellB = row.getCell(2);
-                    cellB.value = rowData[1];
-                    cellB.font = { name: '맑은 고딕', size: 12, color: { argb: 'FF1F2937' } };
-                    cellB.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFFFF' } };
-                    cellB.border = {
-                        top: { style: 'thin', color: { argb: 'FFCCCCCC' } },
-                        left: { style: 'thin', color: { argb: 'FFCCCCCC' } },
-                        bottom: { style: 'thin', color: { argb: 'FFCCCCCC' } },
-                        right: { style: 'thin', color: { argb: 'FFCCCCCC' } }
-                    };
-                    cellB.alignment = { vertical: 'middle', horizontal: 'left', indent: 1 };
+                infoData.forEach((row, idx) => {
+                    const rowNum = 6 + idx;
+                    coverSheet.getCell(`A${rowNum}`).value = row[0];
+                    coverSheet.getCell(`A${rowNum}`).font = { bold: true };
+                    coverSheet.getCell(`B${rowNum}`).value = row[1];
                 });
                 
-                coverSheet.getRow(11).height = 20;
+                // 하자 현황 섹션
+                coverSheet.getCell('A12').value = '[ 하자 현황 ]';
+                coverSheet.getCell('A12').font = { bold: true, size: 12 };
                 
-                // 하자 요약
-                coverSheet.mergeCells('A12:B12');
-                const summaryCell = coverSheet.getCell('A12');
-                summaryCell.value = '[ 하자 현황 ]';
-                summaryCell.font = { name: '맑은 고딕', size: 14, bold: true, color: { argb: 'FF10B981' } };
-                summaryCell.alignment = { vertical: 'middle', horizontal: 'left' };
-                coverSheet.getRow(12).height = 25;
+                coverSheet.getCell('A13').value = '총 하자 건수';
+                coverSheet.getCell('A13').font = { bold: true };
+                coverSheet.getCell('B13').value = `${projectData.defects.length} 건`;
+                coverSheet.getCell('B13').font = { bold: true, color: { argb: 'FF10B981' } };
                 
-                const defectCountRow = coverSheet.getRow(13);
-                defectCountRow.height = 35;
+                // ===== 하자목록 시트 =====
+                const detailSheet = workbook.addWorksheet('하자목록');
                 
-                const countLabelCell = defectCountRow.getCell(1);
-                countLabelCell.value = '총 하자 건수';
-                countLabelCell.font = { name: '맑은 고딕', bold: true, size: 13, color: { argb: 'FFFFFFFF' } };
-                countLabelCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF059669' } };
-                countLabelCell.border = {
-                    top: { style: 'thin', color: { argb: 'FFCCCCCC' } },
-                    left: { style: 'thin', color: { argb: 'FFCCCCCC' } },
-                    bottom: { style: 'thin', color: { argb: 'FFCCCCCC' } },
-                    right: { style: 'thin', color: { argb: 'FFCCCCCC' } }
-                };
-                countLabelCell.alignment = { vertical: 'middle', horizontal: 'center' };
-                
-                const countValueCell = defectCountRow.getCell(2);
-                countValueCell.value = `${projectData.defects.length} 건`;
-                countValueCell.font = { name: '맑은 고딕', size: 18, bold: true, color: { argb: 'FFEF4444' } };
-                countValueCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFEF2F2' } };
-                countValueCell.border = {
-                    top: { style: 'thin', color: { argb: 'FFCCCCCC' } },
-                    left: { style: 'thin', color: { argb: 'FFCCCCCC' } },
-                    bottom: { style: 'thin', color: { argb: 'FFCCCCCC' } },
-                    right: { style: 'thin', color: { argb: 'FFCCCCCC' } }
-                };
-                countValueCell.alignment = { vertical: 'middle', horizontal: 'center' };
-                
-                for (let i = 14; i <= 20; i++) {
-                    coverSheet.getRow(i).height = 15;
-                }
-                
-                // 서명란
-                coverSheet.mergeCells('A21:B21');
-                const signCell = coverSheet.getCell('A21');
-                signCell.value = '작성자:  _______________     (인)';
-                signCell.font = { name: '맑은 고딕', size: 12, color: { argb: 'FF6B7280' } };
-                signCell.alignment = { vertical: 'middle', horizontal: 'right' };
-                coverSheet.getRow(21).height = 30;
-                
-                // 하단
-                coverSheet.mergeCells('A22:B22');
-                const footerCell = coverSheet.getCell('A22');
-                footerCell.value = `Generated by 더홈점검 | ${new Date().toLocaleDateString('ko-KR')}`;
-                footerCell.font = { name: '맑은 고딕', size: 9, italic: true, color: { argb: 'FF9CA3AF' } };
-                footerCell.alignment = { vertical: 'middle', horizontal: 'center' };
-                coverSheet.getRow(22).height = 20;
-                
-                // 하자목록 시트
-                const detailSheet = workbook.addWorksheet('하자목록', {
-                    pageSetup: {
-                        paperSize: 9,
-                        orientation: 'portrait',
-                        fitToPage: true,
-                        fitToWidth: 1,
-                        fitToHeight: 0,
-                        margins: {
-                            left: 0.7, right: 0.7,
-                            top: 0.75, bottom: 0.75,
-                            header: 0.3, footer: 0.3
-                        }
-                    }
-                });
-                
+                // 컬럼 너비 설정
                 detailSheet.getColumn(1).width = 7;
                 detailSheet.getColumn(2).width = 12;
                 detailSheet.getColumn(3).width = 15;
-                detailSheet.getColumn(4).width = 15;
+                detailSheet.getColumn(4).width = 18;
                 detailSheet.getColumn(5).width = 40;
                 
+                // 헤더 행
                 const headerRow = detailSheet.getRow(1);
-                headerRow.height = 30;
+                headerRow.height = 25;
+                
                 const headers = ['번호', '공간', '위치', '하자내용', '상세설명'];
                 headers.forEach((header, index) => {
                     const cell = headerRow.getCell(index + 1);
                     cell.value = header;
-                    cell.font = { name: '맑은 고딕', bold: true, size: 12, color: { argb: 'FFFFFFFF' } };
-                    cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
-                    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF059669' } };
-                    cell.border = {
-                        top: { style: 'medium', color: { argb: 'FF000000' } },
-                        left: { style: 'medium', color: { argb: 'FF000000' } },
-                        bottom: { style: 'medium', color: { argb: 'FF000000' } },
-                        right: { style: 'medium', color: { argb: 'FF000000' } }
+                    cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+                    cell.alignment = { vertical: 'middle', horizontal: 'center' };
+                    cell.fill = {
+                        type: 'pattern',
+                        pattern: 'solid',
+                        fgColor: { argb: 'FF10B981' }
                     };
                 });
                 
+                // 하자 데이터 행
                 projectData.defects.forEach((defect, index) => {
                     const row = detailSheet.getRow(index + 2);
-                    row.height = 40;
-                    
-                    const cell1 = row.getCell(1);
-                    cell1.value = index + 1;
-                    cell1.font = { name: '맑은 고딕', size: 11, bold: true };
-                    cell1.alignment = { vertical: 'middle', horizontal: 'center' };
-                    cell1.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: index % 2 === 0 ? 'FFFFFFFF' : 'FFF9FAFB' } };
-                    cell1.border = {
-                        top: { style: 'thin', color: { argb: 'FFD1D5DB' } },
-                        left: { style: 'medium', color: { argb: 'FF6B7280' } },
-                        bottom: { style: 'thin', color: { argb: 'FFD1D5DB' } },
-                        right: { style: 'thin', color: { argb: 'FFD1D5DB' } }
-                    };
-                    
-                    // 공간 (배열에서 가져오기) ✅ 수정됨
-                    const cell2 = row.getCell(2);
-                    cell2.value = (defect.spaces && defect.spaces.length > 0) ? defect.spaces.join(', ') : '';
-                    cell2.font = { name: '맑은 고딕', size: 11 };
-                    cell2.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
-                    cell2.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: index % 2 === 0 ? 'FFFFFFFF' : 'FFF9FAFB' } };
-                    cell2.border = {
-                        top: { style: 'thin', color: { argb: 'FFD1D5DB' } },
-                        left: { style: 'thin', color: { argb: 'FFD1D5DB' } },
-                        bottom: { style: 'thin', color: { argb: 'FFD1D5DB' } },
-                        right: { style: 'thin', color: { argb: 'FFD1D5DB' } }
-                    };
-                    
-                    // 위치 (배열에서 가져오기) ✅ 수정됨
-                    const cell3 = row.getCell(3);
-                    cell3.value = (defect.locations && defect.locations.length > 0) ? defect.locations.join(', ') : '';
-                    cell3.font = { name: '맑은 고딕', size: 11 };
-                    cell3.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
-                    cell3.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: index % 2 === 0 ? 'FFFFFFFF' : 'FFF9FAFB' } };
-                    cell3.border = {
-                        top: { style: 'thin', color: { argb: 'FFD1D5DB' } },
-                        left: { style: 'thin', color: { argb: 'FFD1D5DB' } },
-                        bottom: { style: 'thin', color: { argb: 'FFD1D5DB' } },
-                        right: { style: 'thin', color: { argb: 'FFD1D5DB' } }
-                    };
-                    
-                    // 하자내용 (배열에서 가져오기) ✅ 수정됨
-                    const cell4 = row.getCell(4);
-                    cell4.value = (defect.types && defect.types.length > 0) ? defect.types.join(', ') : '';
-                    cell4.font = { name: '맑은 고딕', size: 11 };
-                    cell4.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
-                    cell4.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: index % 2 === 0 ? 'FFFFFFFF' : 'FFF9FAFB' } };
-                    cell4.border = {
-                        top: { style: 'thin', color: { argb: 'FFD1D5DB' } },
-                        left: { style: 'thin', color: { argb: 'FFD1D5DB' } },
-                        bottom: { style: 'thin', color: { argb: 'FFD1D5DB' } },
-                        right: { style: 'thin', color: { argb: 'FFD1D5DB' } }
-                    };
-                    
-                    const cell5 = row.getCell(5);
-                    cell5.value = defect.description || '';
-                    cell5.font = { name: '맑은 고딕', size: 10 };
-                    cell5.alignment = { vertical: 'top', horizontal: 'left', wrapText: true, indent: 1 };
-                    cell5.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: index % 2 === 0 ? 'FFFFFFFF' : 'FFF9FAFB' } };
-                    cell5.border = {
-                        top: { style: 'thin', color: { argb: 'FFD1D5DB' } },
-                        left: { style: 'thin', color: { argb: 'FFD1D5DB' } },
-                        bottom: { style: 'thin', color: { argb: 'FFD1D5DB' } },
-                        right: { style: 'medium', color: { argb: 'FF6B7280' } }
-                    };
+                    row.getCell(1).value = index + 1;
+                    row.getCell(2).value = (defect.spaces && defect.spaces.length > 0) ? defect.spaces.join(', ') : '';
+                    row.getCell(3).value = (defect.locations && defect.locations.length > 0) ? defect.locations.join(', ') : '';
+                    row.getCell(4).value = (defect.types && defect.types.length > 0) ? defect.types.join(', ') : '';
+                    row.getCell(5).value = defect.description || '';
                 });
                 
                 // 파일 생성 및 다운로드
@@ -6416,10 +6436,9 @@
                     type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
                 });
                 
-                // ✅ 작성자 정보 포함한 파일명
-                const projectName = `${projectData.apartmentName}_${projectData.dong}_${projectData.ho}`;
-                const authorName = projectData.author ? `_${projectData.author}` : '';
-                const fileName = `${projectName}${authorName}_하자점검리스트_${projectData.inspectionDate || new Date().toISOString().split('T')[0]}.xlsx`;
+                // 파일명 (드라이브와 동일 형식)
+                const projectName = `${projectData.apartmentName}_${projectData.dong}동_${projectData.ho}호_${projectData.author || ''}_${projectData.inspectionDate}`;
+                const fileName = `${projectName}_하자목록.xlsx`;
                 
                 const url = URL.createObjectURL(blob);
                 const link = document.createElement('a');
@@ -8725,6 +8744,12 @@ window.createSummaryFirstPage = function() {
             projectData.inspectionDate = document.getElementById('inspectionDate').value;
             projectData.customerName = document.getElementById('customerName').value;
             projectData.customerPhone = document.getElementById('customerPhone').value;
+            projectData.author = document.getElementById('author').value; // ✅ 작성자 추가
+            
+            // 작성자를 localStorage에 저장 (다음 프로젝트에서도 유지)
+            if (projectData.author && projectData.author.trim()) {
+                localStorage.setItem('lastAuthor', projectData.author.trim());
+            }
             
             // 저장 (이미 debounce 적용)
             saveWithDebounce(500); // 0.5초 지연
@@ -8755,6 +8780,7 @@ window.createSummaryFirstPage = function() {
                     document.getElementById('inspectionDate').value = projectData.inspectionDate || '';
                     document.getElementById('customerName').value = projectData.customerName || '';
                     document.getElementById('customerPhone').value = projectData.customerPhone || '';
+                    document.getElementById('author').value = projectData.author || ''; // ✅ 작성자 로드
                     
                     displayFloorplan();
                     renderDefects();
@@ -8926,770 +8952,8 @@ window.createSummaryFirstPage = function() {
             }
         }
 
-        // ==================== 계약서 관리 기능 ====================
-
-        // 전역 변수
-        let contracts = [];
-        let currentEditingContract = null;
-        let signaturePads = {};
-
-        // 계약서 데이터 로드
-        async function loadContracts() {
-            try {
-                const db = await initContractDB();
-                const tx = db.transaction('contracts', 'readonly');
-                const store = tx.objectStore('contracts');
-                const request = store.getAll();
-                
-                request.onsuccess = () => {
-                    contracts = request.result || [];
-                    displayContractList();
-                };
-            } catch (error) {
-                console.error('계약서 로드 실패:', error);
-                contracts = [];
-                displayContractList();
-            }
-        }
-
-        // IndexedDB에 contracts 저장소 추가
-        async function initContractDB() {
-            return new Promise((resolve, reject) => {
-                const request = indexedDB.open('TheHomeInspectionDB', 3); // 버전 업그레이드
-                
-                request.onerror = () => reject(request.error);
-                request.onsuccess = () => resolve(request.result);
-                
-                request.onupgradeneeded = (event) => {
-                    const db = event.target.result;
-                    
-                    // contracts 저장소가 없으면 생성
-                    if (!db.objectStoreNames.contains('contracts')) {
-                        const contractStore = db.createObjectStore('contracts', { 
-                            keyPath: 'id', 
-                            autoIncrement: true 
-                        });
-                        contractStore.createIndex('name', 'name', { unique: false });
-                        contractStore.createIndex('createdAt', 'createdAt', { unique: false });
-                    }
-                };
-            });
-        }
-
-        // 계약서 목록 표시
-        function displayContractList() {
-            const container = document.getElementById('contractListContainer');
-            
-            if (!container) return;
-            
-            if (contracts.length === 0) {
-                container.innerHTML = `
-                    <div style="text-align: center; padding: 60px 20px; color: var(--text-secondary);">
-                        <div style="font-size: 48px; margin-bottom: 20px;">📄</div>
-                        <p style="font-size: 18px;">작성된 계약서가 없습니다</p>
-                        <p style="font-size: 14px; margin-top: 10px;">
-                            "➕ 새 계약서 작성" 버튼을 클릭하여 첫 계약서를 작성하세요
-                        </p>
-                    </div>
-                `;
-                return;
-            }
-            
-            const sortedContracts = [...contracts].sort((a, b) => 
-                new Date(b.createdAt) - new Date(a.createdAt)
-            );
-            
-            container.innerHTML = sortedContracts.map(contract => `
-                <div class="card" style="margin-bottom: 15px;">
-                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 15px;">
-                        <div style="flex: 1;">
-                            <h3 style="color: var(--primary); margin-bottom: 8px; font-size: 20px;">
-                                ${contract.name}
-                            </h3>
-                            <p style="color: var(--text-secondary); font-size: 14px; margin: 5px 0;">
-                                📅 계약일: ${contract.startDate} ~ ${contract.endDate}
-                            </p>
-                            <p style="color: var(--text-secondary); font-size: 14px; margin: 5px 0;">
-                                💰 단가: ${Number(contract.price).toLocaleString()}원/건
-                            </p>
-                            <p style="color: var(--text-secondary); font-size: 12px; margin-top: 10px;">
-                                작성일: ${new Date(contract.createdAt).toLocaleDateString()}
-                            </p>
-                        </div>
-                        <div style="display: flex; gap: 8px; flex-direction: column;">
-                            <button class="btn btn-primary" onclick="viewContract(${contract.id})" 
-                                style="font-size: 14px; padding: 8px 15px;">
-                                👁️ 보기
-                            </button>
-                            <button class="btn" onclick="downloadContractPDF(${contract.id})" 
-                                style="font-size: 14px; padding: 8px 15px;">
-                                📥 PDF
-                            </button>
-                            <button class="btn" onclick="deleteContract(${contract.id})" 
-                                style="font-size: 14px; padding: 8px 15px; background: var(--danger); color: white;">
-                                🗑️ 삭제
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        // 계약서 검색
-        function searchContracts() {
-            const searchTerm = document.getElementById('contractSearch').value.toLowerCase();
-            const filtered = contracts.filter(c => 
-                c.name.toLowerCase().includes(searchTerm)
-            );
-            
-            const container = document.getElementById('contractListContainer');
-            
-            if (filtered.length === 0) {
-                container.innerHTML = `
-                    <div style="text-align: center; padding: 40px; color: var(--text-secondary);">
-                        <p>검색 결과가 없습니다</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            container.innerHTML = filtered.map(contract => `
-                <div class="card" style="margin-bottom: 15px;">
-                    <h3 style="color: var(--primary);">${contract.name}</h3>
-                    <p style="color: var(--text-secondary); font-size: 14px;">
-                        계약기간: ${contract.startDate} ~ ${contract.endDate}
-                    </p>
-                    <div style="margin-top: 15px; display: flex; gap: 10px;">
-                        <button class="btn btn-primary" onclick="viewContract(${contract.id})">보기</button>
-                        <button class="btn" onclick="downloadContractPDF(${contract.id})">PDF</button>
-                        <button class="btn" onclick="deleteContract(${contract.id})" 
-                            style="background: var(--danger); color: white;">삭제</button>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        // 계약서 작성 폼으로 스크롤
-        window.showContractForm = function() {
-            const contractForm = document.getElementById('contractForm');
-            if (contractForm) {
-                contractForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
-            
-            // 서명 패드 초기화
-            setTimeout(() => {
-                if (typeof initializeSignaturePads === 'function') {
-                    initializeSignaturePads();
-                }
-            }, 300);
-            
-            // 기본 날짜 설정
-            const today = new Date().toISOString().split('T')[0];
-            const nextYear = new Date();
-            nextYear.setFullYear(nextYear.getFullYear() + 1);
-            
-            const startDateEl = document.getElementById('contractStartDate');
-            const endDateEl = document.getElementById('contractEndDate');
-            if (startDateEl && !startDateEl.value) startDateEl.value = today;
-            if (endDateEl && !endDateEl.value) endDateEl.value = nextYear.toISOString().split('T')[0];
-        }
-
-        // 계약서 목록 표시
-        window.showContractList = function() {
-            // 더 이상 목록 기능 없음 - 아무 동작 안 함
-            console.log('계약서 목록 기능이 제거되었습니다.');
-        }
-
-        // 서명 패드 초기화
-        function initializeSignaturePads() {
-            setTimeout(() => {
-                ['CEO', 'Freelancer'].forEach(type => {
-                    const canvas = document.getElementById(`signature${type}`);
-                    if (!canvas) return;
-                    
-                    const ctx = canvas.getContext('2d', { willReadFrequently: true });
-                    let isDrawing = false;
-                    let lastX = 0;
-                    let lastY = 0;
-                    
-                    // 캔버스 크기 설정
-                    const rect = canvas.getBoundingClientRect();
-                    canvas.width = rect.width * 2;
-                    canvas.height = rect.height * 2;
-                    ctx.scale(2, 2);
-                    
-                    // 선 스타일
-                    ctx.strokeStyle = '#000';
-                    ctx.lineWidth = 2;
-                    ctx.lineCap = 'round';
-                    ctx.lineJoin = 'round';
-                    
-                    function startDrawing(e) {
-                        isDrawing = true;
-                        const pos = getPosition(e);
-                        [lastX, lastY] = [pos.x, pos.y];
-                    }
-                    
-                    function draw(e) {
-                        if (!isDrawing) return;
-                        e.preventDefault();
-                        
-                        const pos = getPosition(e);
-                        ctx.beginPath();
-                        ctx.moveTo(lastX, lastY);
-                        ctx.lineTo(pos.x, pos.y);
-                        ctx.stroke();
-                        [lastX, lastY] = [pos.x, pos.y];
-                    }
-                    
-                    function stopDrawing() {
-                        isDrawing = false;
-                    }
-                    
-                    function getPosition(e) {
-                        const rect = canvas.getBoundingClientRect();
-                        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-                        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-                        return {
-                            x: clientX - rect.left,
-                            y: clientY - rect.top
-                        };
-                    }
-                    
-                    // 이벤트 리스너
-                    canvas.addEventListener('mousedown', startDrawing);
-                    canvas.addEventListener('mousemove', draw);
-                    canvas.addEventListener('mouseup', stopDrawing);
-                    canvas.addEventListener('mouseout', stopDrawing);
-                    
-                    canvas.addEventListener('touchstart', startDrawing);
-                    canvas.addEventListener('touchmove', draw);
-                    canvas.addEventListener('touchend', stopDrawing);
-                    
-                    signaturePads[type] = { canvas, ctx };
-                });
-            }, 100);
-        }
-
-        // 서명 지우기
-        window.clearSignature = function(type) {
-            const pad = signaturePads[type];
-            if (pad) {
-                pad.ctx.clearRect(0, 0, pad.canvas.width, pad.canvas.height);
-            }
-        }
-
-        // 캔버스가 비어있는지 확인
-        function isCanvasBlank(canvas) {
-            const context = canvas.getContext('2d', { willReadFrequently: true });
-            const pixelBuffer = new Uint32Array(
-                context.getImageData(0, 0, canvas.width, canvas.height).data.buffer
-            );
-            return !pixelBuffer.some(color => color !== 0);
-        }
-
-        // 계약서 미리보기
-        window.previewContract = function() {
-            // 필수 항목 검증
-            const name = document.getElementById('contractName').value;
-            const address = document.getElementById('contractAddress').value;
-            const jumin1 = document.getElementById('contractJumin1').value;
-            const jumin2 = document.getElementById('contractJumin2').value;
-            const phone = document.getElementById('contractPhone').value;
-            const email = document.getElementById('contractEmail').value;
-            const startDate = document.getElementById('contractStartDate').value;
-            const endDate = document.getElementById('contractEndDate').value;
-            
-            if (!name || !address || !jumin1 || !jumin2 || !phone || !email || 
-                !startDate || !endDate) {
-                alert('필수 항목을 모두 입력해주세요');
-                return;
-            }
-            
-            // 서명 확인
-            const ceoSigned = signaturePads['CEO'] && !isCanvasBlank(signaturePads['CEO'].canvas);
-            const freelancerSigned = signaturePads['Freelancer'] && !isCanvasBlank(signaturePads['Freelancer'].canvas);
-            
-            if (!ceoSigned && !freelancerSigned) {
-                alert('최소 한 명은 서명이 필요합니다');
-                return;
-            }
-            
-            // 미리보기 생성
-            const business = document.getElementById('contractBusiness').value;
-            const notes = document.getElementById('contractNotes').value;
-            
-            // ✅ price와 payDay 정의 추가
-            const price = '일당 1만~50만원 (업무별 상이)';
-            const payDay = '업무 완료 후 1개월 이내';
-            
-            // 서명 이미지 가져오기
-            const signatureCEO = ceoSigned ? signaturePads['CEO'].canvas.toDataURL() : null;
-            const signatureFreelancer = freelancerSigned ? signaturePads['Freelancer'].canvas.toDataURL() : null;
-            
-            const previewHTML = generateContractHTML({
-                name, address, jumin1, jumin2, phone, email, business,
-                startDate, endDate, price, payDay, notes,
-                signatureCEO, signatureFreelancer
-            });
-            
-            document.getElementById('contractPreviewContent').innerHTML = previewHTML;
-            document.getElementById('contractPreviewModal').style.display = 'block';
-        }
-
-        // PDF 다운로드 (HTML을 이미지로 변환)
-        window.downloadContractPDF = async function() {
-            const name = document.getElementById('contractName').value;
-            const address = document.getElementById('contractAddress').value;
-            const jumin1 = document.getElementById('contractJumin1').value;
-            const jumin2 = document.getElementById('contractJumin2').value;
-            const phone = document.getElementById('contractPhone').value;
-            const email = document.getElementById('contractEmail').value;
-            const startDate = document.getElementById('contractStartDate').value;
-            const endDate = document.getElementById('contractEndDate').value;
-            
-            if (!name || !address || !jumin1 || !jumin2 || !phone || !email || !startDate || !endDate) {
-                alert('필수 항목을 모두 입력해주세요');
-                return;
-            }
-            
-            const ceoSigned = signaturePads['CEO'] && !isCanvasBlank(signaturePads['CEO'].canvas);
-            const freelancerSigned = signaturePads['Freelancer'] && !isCanvasBlank(signaturePads['Freelancer'].canvas);
-            
-            if (!ceoSigned && !freelancerSigned) {
-                alert('최소 한 명은 서명이 필요합니다');
-                return;
-            }
-            
-            try {
-                showToast('PDF 생성 중...', 'info');
-                
-                const business = document.getElementById('contractBusiness').value;
-                const notes = document.getElementById('contractNotes').value;
-                const price = '일당 1만~50만원 (업무별 상이)';
-                const payDay = '업무 완료 후 1개월 이내';
-                
-                // 서명 이미지 가져오기
-                const signatureCEO = ceoSigned ? signaturePads['CEO'].canvas.toDataURL() : null;
-                const signatureFreelancer = freelancerSigned ? signaturePads['Freelancer'].canvas.toDataURL() : null;
-                
-                // HTML 생성 (서명 포함)
-                const contractHTML = generateContractHTML({
-                    name, address, jumin1, jumin2, phone, email, business,
-                    startDate, endDate, price, payDay, notes,
-                    signatureCEO, signatureFreelancer
-                });
-                
-                // 임시 div 생성
-                const tempDiv = document.createElement('div');
-                tempDiv.style.position = 'absolute';
-                tempDiv.style.left = '-9999px';
-                tempDiv.style.width = '794px';
-                tempDiv.style.background = 'white';
-                tempDiv.innerHTML = contractHTML;
-                document.body.appendChild(tempDiv);
-                
-                // HTML을 이미지로 변환
-                const canvas = await html2canvas(tempDiv, {
-                    scale: 2,
-                    useCORS: true,
-                    logging: false,
-                    backgroundColor: '#ffffff'
-                });
-                
-                // div 제거
-                document.body.removeChild(tempDiv);
-                
-                // PDF 생성
-                const { jsPDF } = window.jspdf;
-                const imgData = canvas.toDataURL('image/png');
-                const imgWidth = 210; // A4 width in mm
-                const imgHeight = (canvas.height * imgWidth) / canvas.width;
-                
-                const doc = new jsPDF('p', 'mm', 'a4');
-                let heightLeft = imgHeight;
-                let position = 0;
-                
-                // 첫 페이지
-                doc.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-                heightLeft -= 297;
-                
-                // 추가 페이지 (필요시)
-                while (heightLeft > 0) {
-                    position = heightLeft - imgHeight;
-                    doc.addPage();
-                    doc.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-                    heightLeft -= 297;
-                }
-                
-                const fileName = `프리랜서계약서_${name}_${new Date().toISOString().split('T')[0]}.pdf`;
-                doc.save(fileName);
-                
-                showToast('✅ PDF 다운로드 완료!', 'success');
-                
-            } catch (error) {
-                console.error('❌ PDF 생성 실패:', error);
-                alert('PDF 생성 실패: ' + error.message);
-            }
-        }
-
-
-        // 미리보기 닫기
-        window.closePreview = function() {
-            document.getElementById('contractPreviewModal').style.display = 'none';
-        }
-
-        // 계약서 저장
-        window.saveContract = async function() {
-            // 유효성 검사
-            const name = document.getElementById('contractName').value;
-            if (!name) {
-                alert('필수 항목을 입력해주세요');
-                return;
-            }
-            
-            const contractData = {
-                name: document.getElementById('contractName').value,
-                address: document.getElementById('contractAddress').value,
-                jumin1: document.getElementById('contractJumin1').value,
-                jumin2: document.getElementById('contractJumin2').value,
-                phone: document.getElementById('contractPhone').value,
-                email: document.getElementById('contractEmail').value,
-                business: document.getElementById('contractBusiness').value,
-                startDate: document.getElementById('contractStartDate').value,
-                endDate: document.getElementById('contractEndDate').value,
-                price: '일당 1만~50만원 (업무별 상이)',
-                payDay: '업무 완료 후 1개월 이내',
-                notes: document.getElementById('contractNotes').value,
-                signatureCEO: signaturePads['CEO'] ? signaturePads['CEO'].canvas.toDataURL() : null,
-                signatureFreelancer: signaturePads['Freelancer'] ? signaturePads['Freelancer'].canvas.toDataURL() : null,
-                createdAt: new Date().toISOString()
-            };
-            
-            try {
-                const db = await initContractDB();
-                const tx = db.transaction('contracts', 'readwrite');
-                const store = tx.objectStore('contracts');
-                
-                store.add(contractData);
-                
-                tx.oncomplete = () => {
-                    showToast('✅ 계약서가 저장되었습니다!', 'success');
-                    showContractList();
-                };
-                
-                tx.onerror = () => {
-                    throw new Error('저장 실패');
-                };
-            } catch (error) {
-                console.error('저장 실패:', error);
-                alert('저장에 실패했습니다: ' + error.message);
-            }
-        }
-
-        // 계약서 HTML 생성
-        function generateContractHTML(data) {
-            return `
-                <div style="font-family: '맑은 고딕', sans-serif; line-height: 1.6; color: #333; max-width: 800px; margin: 0 auto; padding: 20px;">
-                    <h2 style="text-align: center; margin-bottom: 25px; color: #10b981; font-size: 26px;">
-                        표준 프리랜서 계약서
-                    </h2>
-                    
-                    <div style="margin-bottom: 25px; text-align: justify; line-height: 1.7; font-size: 14px;">
-                        <strong>더홈점검</strong> (이하 "갑"이라 합니다)은 
-                        <strong>${data.name}</strong> (이하 "을"이라 합니다)에게 
-                        아파트사전점검 대행업무를 의뢰하면서 다음과 같이 프리랜서 계약을 체결한다.
-                    </div>
-                    
-                    <h3 style="color: #10b981; margin-top: 20px; margin-bottom: 10px; border-bottom: 2px solid #10b981; padding-bottom: 5px; font-size: 15px;">
-                        제1조 【목적】
-                    </h3>
-                    <p style="text-align: justify; line-height: 1.6; font-size: 13px; margin-bottom: 15px;">
-                        본 계약은 "갑"이 "을"에게 연구 및 용역을 의뢰함에 있어 필요한 사항을 정하는 것을 목적으로 한다.
-                    </p>
-                    
-                    <h3 style="color: #10b981; margin-top: 20px; margin-bottom: 10px; border-bottom: 2px solid #10b981; padding-bottom: 5px; font-size: 15px;">
-                        제2조 【계약업무】
-                    </h3>
-                    <p style="text-align: justify; line-height: 1.6; font-size: 13px; margin-bottom: 5px;">
-                        "을"은 "갑"이 의뢰한 다음 각 호의 과업을 수행하여야 한다.
-                    </p>
-                    <p style="margin-left: 20px; line-height: 1.6; font-size: 13px; margin-bottom: 15px;">
-                        1. 아파트사전점검 대행 서비스
-                    </p>
-                    
-                    <h3 style="color: #10b981; margin-top: 20px; margin-bottom: 10px; border-bottom: 2px solid #10b981; padding-bottom: 5px; font-size: 15px;">
-                        제3조 【계약기간】
-                    </h3>
-                    <p style="text-align: justify; line-height: 1.6; font-size: 13px; margin-bottom: 15px;">
-                        계약기간은 <strong>${data.startDate}</strong>로부터 <strong>${data.endDate}</strong>까지로 하며, 
-                        "갑"과 "을"의 합의 하에 본 계약기간은 연장되거나 해지될 수 있다.
-                    </p>
-                    
-                    <h3 style="color: #10b981; margin-top: 20px; margin-bottom: 10px; border-bottom: 2px solid #10b981; padding-bottom: 5px; font-size: 15px;">
-                        제4조 【근무시간 및 장소】
-                    </h3>
-                    <p style="text-align: justify; line-height: 1.6; font-size: 13px; margin-bottom: 15px;">
-                        "을"은 "갑"이 지정하는 근무시간 및 근무장소에서 업무를 성실히 수행하여야 한다. 
-                        다만, "갑"과 합의하여 근무 시간과 근무장소를 조정할 수 있다.
-                    </p>
-                    
-                    <h3 style="color: #10b981; margin-top: 20px; margin-bottom: 10px; border-bottom: 2px solid #10b981; padding-bottom: 5px; font-size: 15px;">
-                        제5조 【계약금액】
-                    </h3>
-                    <p style="line-height: 1.6; font-size: 13px; margin-bottom: 15px;">
-                        ① 총 계약금액은 일당 1만원~50만원으로 한다. 
-                        <strong style="color: #ef4444;">(업무에 따라 지급비용이 다르게 지급됨)</strong>
-                    </p>
-                    <p style="line-height: 1.6; font-size: 13px; margin-bottom: 15px;">
-                        ② "갑"은 "을"에게 아파트사전점검 업무 완료 후 
-                        <strong style="color: #ef4444;">1개월 이내에</strong> "을" 명의의 계좌로 이체한다.
-                    </p>
-                    <p style="line-height: 1.6; font-size: 13px; margin-bottom: 15px;">
-                        ③ "갑"은 전 항의 보수 중 사업소득세율(3.3%)에 따라 원천징수의무를 이행한 후 
-                        남은 금액을 "을"에게 지급한다.
-                    </p>
-                    
-                    <h3 style="color: #10b981; margin-top: 20px; margin-bottom: 10px; border-bottom: 2px solid #10b981; padding-bottom: 5px; font-size: 15px;">
-                        제6조 【양 당사자의 권리와 의무】
-                    </h3>
-                    <p style="line-height: 1.6; font-size: 13px; margin-bottom: 15px;">
-                        ① "갑"은 "을"이 과업하는데 필요한 자료 및 정보 등을 제공하여야 하며, 
-                        과업수행을 위한 "을"의 요청이 있는 경우 이에 적극적으로 협조하여야 한다.
-                    </p>
-                    <p style="line-height: 1.6; font-size: 13px; margin-bottom: 15px;">
-                        ② "을"은 본 계약상 부담하는 모든 사항을 "갑"과 합의한 대로 이행하여야 하며, 
-                        신의성실의 원칙에 따라 계약 내용을 이행하여야 한다.
-                    </p>
-                    <p style="line-height: 1.6; font-size: 13px; margin-bottom: 15px;">
-                        ③ "갑"은 "을"의 과업과 관련하여 협의할 사항이 있는 경우 "을"에게 협의를 요청할 수 있고 
-                        "을"은 이러한 "갑"의 요구에 최대한 협조한다.
-                    </p>
-                    <p style="line-height: 1.6; font-size: 13px; margin-bottom: 15px;">
-                        ④ "을"은 본 계약 종료 후 지체없이 "갑"으로부터 제공받은 서류, 정보, 데이터 기타 
-                        모든 형태의 자료를 "갑"에게 반환하여야 하고, 반환이 어려운 경우 이를 파기하고 
-                        "갑"의 승인을 받아야 한다.
-                    </p>
-                    
-                    <h3 style="color: #10b981; margin-top: 20px; margin-bottom: 10px; border-bottom: 2px solid #10b981; padding-bottom: 5px; font-size: 15px;">
-                        제7조 【비밀유지 및 지식재산권의 귀속】
-                    </h3>
-                    <p style="line-height: 1.6; font-size: 13px; margin-bottom: 15px;">
-                        ① "을"은 본 계약 및 과업과 관련하여 알게 된 일체의 정보를 외부에 누설하거나 
-                        유출해서는 아니되며, 이로 인해 발생하는 손해에 대해 책임을 지기로 한다.
-                    </p>
-                    <p style="line-height: 1.6; font-size: 13px; margin-bottom: 15px;">
-                        ② "을"은 창조, 개선, 작성, 생산한 모든 결과물의 저작권에 대한 책임을 보증하며, 
-                        본 계약에 의한 결과물의 권리는 "갑"의 소유가 된다.
-                    </p>
-                    
-                    <h3 style="color: #10b981; margin-top: 20px; margin-bottom: 10px; border-bottom: 2px solid #10b981; padding-bottom: 5px; font-size: 15px;">
-                        제8조 【근무조건】
-                    </h3>
-                    <p style="line-height: 1.6; font-size: 13px; margin-bottom: 15px;">
-                        ① 본 계약상의 업무를 수행하기 위하여 필요한 기타사항은 자유로 한다.
-                    </p>
-                    <p style="line-height: 1.6; font-size: 13px; margin-bottom: 15px;">
-                        ② 본 계약 내용 외에도 다른 필요한 업무가 필요한 경우 "갑"은 "을"이 추가로 
-                        작업을 수행하는 부분에 대한 인건비와 계약 기간은 상호 협의 하에 결정한다.
-                    </p>
-                    
-                    <h3 style="color: #10b981; margin-top: 20px; margin-bottom: 10px; border-bottom: 2px solid #10b981; padding-bottom: 5px; font-size: 15px;">
-                        제9조 【권리의 이전·양도·처분·재위탁 금지】
-                    </h3>
-                    <p style="text-align: justify; line-height: 1.6; font-size: 13px; margin-bottom: 15px;">
-                        "갑" 또는 "을"은 서로 상대방의 서면 동의가 있는 경우를 제외하고는 어떠한 이유로도 
-                        본 계약상 자신의 권리나 의무를 다른 제3자에게 이전·양도·처분·재위탁할 수 없다.
-                    </p>
-                    
-                    <h3 style="color: #10b981; margin-top: 20px; margin-bottom: 10px; border-bottom: 2px solid #10b981; padding-bottom: 5px; font-size: 15px;">
-                        제10조 【해지】
-                    </h3>
-                    <p style="line-height: 1.6; font-size: 13px; margin-bottom: 15px;">
-                        ① "갑"과 "을"은 다음 각 호에 해당될 경우 본 계약을 해지할 수 있다.
-                    </p>
-                    <p style="margin-left: 20px; line-height: 1.6; font-size: 13px; margin-bottom: 15px;">
-                        1. 정당한 이유 없이 과업 진행이 이루어지지 않을 때<br>
-                        2. 정당한 이유 없이 계약기간 내에 과업완료가 불가능하다고 판단될 때<br>
-                        3. 상호간에 계약을 해지하기로 서면합의한 때<br>
-                        4. 회생절차, 파산절차의 개시신청, 채무자 회생 및 파산에 관한 법률에 의한 보전처분의 신청, 
-                           기타 이와 유사한 신청, 회사의 해산결의 등의 사유가 발생한 때<br>
-                        5. 압류, 가압류, 가처분, 경매의 집행을 받거나 국세나 지방세 체납, 기타 공법상의 처분을 받고 
-                           7일 이내에 집행취소나 체납 등 처분의 취소를 받지 않은 때<br>
-                        6. 기타 본 계약상의 과업을 수행하는 것이 불가능하다고 객관적으로 판단될 때
-                    </p>
-                    <p style="line-height: 1.6; font-size: 13px; margin-bottom: 15px;">
-                        ② 본 조에 따른 계약의 해지는 계약기간 중 발생한 당사자 간의 권리의무에 따른 
-                        손해배상의 청구에 영향을 미치지 않는다.
-                    </p>
-                    
-                    <h3 style="color: #10b981; margin-top: 20px; margin-bottom: 10px; border-bottom: 2px solid #10b981; padding-bottom: 5px; font-size: 15px;">
-                        제11조 【손해배상】
-                    </h3>
-                    <p style="line-height: 1.6; font-size: 13px; margin-bottom: 15px;">
-                        ① "을"의 귀책사유로 인하여 본 계약이 불이행 되었을 경우 "을"은 "갑"이 제시한 
-                        손해배상의 책임을 진다(이때, 손해배상액은 상호 협의 한다).
-                    </p>
-                    <p style="line-height: 1.6; font-size: 13px; margin-bottom: 15px;">
-                        ② "을"의 귀책사유로 인하여 기타 제3자에게 손해가 발생하는 경우 이는 "을"이 부담하며, 
-                        "갑"이 전부 또는 일부를 배상한 때에는 "갑"이 "을"에게 이를 구상할 수 있다.
-                    </p>
-                    
-                    <h3 style="color: #10b981; margin-top: 20px; margin-bottom: 10px; border-bottom: 2px solid #10b981; padding-bottom: 5px; font-size: 15px;">
-                        제12조 【일부무효】
-                    </h3>
-                    <p style="text-align: justify; line-height: 1.6; font-size: 13px; margin-bottom: 15px;">
-                        본 계약의 일부 조항이 법령 또는 판결에 의하여 무효 또는 불법으로 판정되는 경우에도 
-                        본 계약 전체가 무효로 되는 것은 아니며, 무효로 되지 않는 다른 조항은 법령에 의하여 
-                        허용되는 한도에서 여전히 유효하게 존속하고, 무효 또는 불법조항이 포함되지 않았던 것처럼 해석한다.
-                    </p>
-                    
-                    <h3 style="color: #10b981; margin-top: 20px; margin-bottom: 10px; border-bottom: 2px solid #10b981; padding-bottom: 5px; font-size: 15px;">
-                        제13조 【계약의 변경】
-                    </h3>
-                    <p style="text-align: justify; line-height: 1.6; font-size: 13px; margin-bottom: 15px;">
-                        본 계약은 "갑"과 "을"의 서면합의에 따라 변경될 수 있다.
-                    </p>
-                    
-                    <h3 style="color: #10b981; margin-top: 20px; margin-bottom: 10px; border-bottom: 2px solid #10b981; padding-bottom: 5px; font-size: 15px;">
-                        제14조 【관할】
-                    </h3>
-                    <p style="text-align: justify; line-height: 1.6; font-size: 13px; margin-bottom: 15px;">
-                        본 계약과 관련하여 분쟁이 발생한 경우 당사자의 상호 협의에 의한 해결을 모색하되, 
-                        분쟁에 관한 합의가 이루어지지 아니한 경우에는 "갑"의 본점 소재지 관할법원을 
-                        제1심 관할법원으로 하여 소송을 통해 분쟁을 해결하기로 한다.
-                    </p>
-                    
-                    <div style="margin-top: 40px; padding: 20px; background: #f8f9fa; border-radius: 8px;">
-                        <p style="text-align: center; margin-bottom: 30px; line-height: 1.6; font-size: 13px; margin-bottom: 15px;">
-                            각 당사자는 위 계약을 증명하기 위하여 본 계약서 2통을 작성하여,<br>
-                            각각 서명(또는 기명)날인 후 "갑"과 "을"이 각각 1통씩을 보관한다.
-                        </p>
-                        
-                        <p style="text-align: center; font-size: 20px; font-weight: bold; margin-bottom: 40px;">
-                            ${new Date().getFullYear()}년 ${new Date().getMonth() + 1}월 ${new Date().getDate()}일
-                        </p>
-                        
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 30px;">
-                            <div style="border: 2px solid #10b981; padding: 15px; border-radius: 8px; background: white;">
-                                <h4 style="color: #10b981; margin-bottom: 10px; text-align: center; font-size: 16px;">【갑】</h4>
-                                <p style="line-height: 1.6; font-size: 13px;">
-                                    <strong>대표자:</strong> 박지현 (더홈점검)<br>
-                                    <strong>주소:</strong> 경기도 부천시 원미구 송내대로265번길 23, 201호<br>
-                                    <strong>사업자번호:</strong> 531-42-01293<br>
-                                    <strong>연락처:</strong> 1668-5322
-                                </p>
-                                ${data.signatureCEO ? `
-                                    <div style="margin-top: 10px; text-align: center;">
-                                        <img src="${data.signatureCEO}" style="max-width: 150px; max-height: 60px; border: 1px solid #ddd; padding: 5px; background: white;" alt="CEO 서명">
-                                        <p style="font-size: 11px; color: #333; margin-top: 5px;">(서명)</p>
-                                    </div>
-                                ` : `
-                                    <div style="margin-top: 10px; padding: 30px; border: 1px dashed #ddd; text-align: center; color: #333; font-size: 12px;">
-                                        서명 없음
-                                    </div>
-                                `}
-                            </div>
-                            
-                            <div style="border: 2px solid #10b981; padding: 15px; border-radius: 8px; background: white;">
-                                <h4 style="color: #10b981; margin-bottom: 10px; text-align: center; font-size: 16px;">【을】</h4>
-                                <p style="line-height: 1.6; font-size: 13px;">
-                                    <strong>성명:</strong> ${data.name}<br>
-                                    <strong>주소:</strong> ${data.address}<br>
-                                    <strong>주민등록번호:</strong> ${data.jumin1}-${data.jumin2}******<br>
-                                    <strong>연락처:</strong> ${data.phone}<br>
-                                    <strong>이메일:</strong> ${data.email}
-                                    ${data.business ? `<br><strong>사업자번호:</strong> ${data.business}` : ''}
-                                </p>
-                                ${data.signatureFreelancer ? `
-                                    <div style="margin-top: 10px; text-align: center;">
-                                        <img src="${data.signatureFreelancer}" style="max-width: 150px; max-height: 60px; border: 1px solid #ddd; padding: 5px; background: white;" alt="프리랜서 서명">
-                                        <p style="font-size: 11px; color: #333; margin-top: 5px;">(서명)</p>
-                                    </div>
-                                ` : `
-                                    <div style="margin-top: 10px; padding: 30px; border: 1px dashed #ddd; text-align: center; color: #333; font-size: 12px;">
-                                        서명 없음
-                                    </div>
-                                `}
-                            </div>
-                        </div>
-                    </div>
-                    
-                    ${data.notes ? `
-                        <div style="margin-top: 30px; padding: 20px; background: #fffbeb; border-radius: 8px; border-left: 5px solid #fbbf24;">
-                            <h4 style="color: #92400e; margin-bottom: 10px;">📌 특이사항</h4>
-                            <p style="line-height: 1.6; font-size: 13px; margin-bottom: 15px; color: #92400e;">${data.notes}</p>
-                        </div>
-                    ` : ''}
-                </div>
-            `;
-        }
-
-        // 계약서 보기
-        window.viewContract = async function(id) {
-            try {
-                const db = await initContractDB();
-                const tx = db.transaction('contracts', 'readonly');
-                const store = tx.objectStore('contracts');
-                const request = store.get(id);
-                
-                request.onsuccess = () => {
-                    const contract = request.result;
-                    if (!contract) {
-                        alert('계약서를 찾을 수 없습니다');
-                        return;
-                    }
-                    
-                    const html = generateContractHTML(contract);
-                    document.getElementById('contractPreviewContent').innerHTML = html;
-                    document.getElementById('contractPreviewModal').style.display = 'block';
-                };
-            } catch (error) {
-                console.error('조회 실패:', error);
-                alert('계약서를 불러올 수 없습니다');
-            }
-        }
-
-        // PDF 생성
-        window.generateContractPDF = function() {
-            showToast('📄 인쇄 화면으로 이동합니다', 'info');
-            setTimeout(() => {
-                window.print();
-            }, 500);
-        }
-
-
-
-        // 계약서 삭제
-        window.deleteContract = async function(id) {
-            if (!confirm('정말 이 계약서를 삭제하시겠습니까?')) {
-                return;
-            }
-            
-            try {
-                const db = await initContractDB();
-                const tx = db.transaction('contracts', 'readwrite');
-                const store = tx.objectStore('contracts');
-                
-                store.delete(id);
-                
-                tx.oncomplete = () => {
-                    showToast('삭제되었습니다', 'success');
-                    loadContracts();
-                };
-            } catch (error) {
-                console.error('삭제 실패:', error);
-                alert('삭제에 실패했습니다');
-            }
-        }
-
-        // 페이지 로드 시 계약서 데이터 로드
+        // 페이지 로드 시 테마 설정 불러오기
         document.addEventListener('DOMContentLoaded', () => {
-            if (document.getElementById('contract')) {
-                loadContracts();
-            }
-            
-            // 테마 설정 불러오기
             loadTheme();
         });
 
@@ -10511,6 +9775,399 @@ window.createSummaryFirstPage = function() {
     // 이전 v5.1 패치에 있는 코드가 그대로 유지되어야 합니다.
     // (이 코드 블록은 가이드 페이지 추가용이므로, 만약 앞선 v5.1 패치를 지우셨다면 
     // v5.1 패치 코드 + 이 코드 내용을 합쳐서 넣으셔야 합니다.)
+    
+    // ==================== 튜토리얼 시스템 ====================
+    let currentTutorialStep = 0;
+    const tutorialSteps = [
+        {
+            title: '👋 더홈점검 앱 사용 가이드',
+            content: `
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <div style="font-size: 60px; margin-bottom: 15px;">🏠</div>
+                    <p style="font-size: 16px; color: #666; line-height: 1.6;">
+                        신축 아파트 하자점검을 위한<br/>
+                        <strong>더홈점검 앱</strong> 사용법을 안내합니다.
+                    </p>
+                </div>
+                <div style="background: #f0fdf4; padding: 15px; border-radius: 10px; border-left: 4px solid #10b981;">
+                    <div style="font-weight: bold; color: #059669; margin-bottom: 8px;">📋 점검 흐름</div>
+                    <div style="font-size: 14px; color: #333; line-height: 1.8;">
+                        1️⃣ 프로젝트 정보 입력<br/>
+                        2️⃣ 하자점검 (사진 2장 필수)<br/>
+                        3️⃣ 장비점검 (4구역 촬영)<br/>
+                        4️⃣ 공기질 측정<br/>
+                        5️⃣ 공유드라이브 저장
+                    </div>
+                </div>
+            `
+        },
+        {
+            title: '👔 소장님 vs 매니저 역할',
+            content: `
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div style="background: #fef3c7; padding: 15px; border-radius: 10px;">
+                        <div style="font-weight: bold; color: #d97706; margin-bottom: 10px; font-size: 15px;">👔 소장님 (현장 총괄)</div>
+                        <div style="font-size: 13px; color: #333; line-height: 1.7;">
+                            • 고객 연락 & 세대 동행<br/>
+                            • <strong>육안 하자점검</strong><br/>
+                            • 스티커 부착 (위치 명시)<br/>
+                            • <strong>장비점검</strong> 앱 등록<br/>
+                            • 물고임 확인 사진
+                        </div>
+                    </div>
+                    <div style="background: #dbeafe; padding: 15px; border-radius: 10px;">
+                        <div style="font-weight: bold; color: #2563eb; margin-bottom: 10px; font-size: 15px;">📱 매니저 (기록 및 관리)</div>
+                        <div style="font-size: 13px; color: #333; line-height: 1.7;">
+                            • 프로젝트 정보 입력<br/>
+                            • <strong>하자 사진 촬영</strong> (2장)<br/>
+                            • 하자 정보 터치 입력<br/>
+                            • <strong>공기질 측정</strong> 입력<br/>
+                            • 드라이브 저장
+                        </div>
+                    </div>
+                </div>
+                <div style="margin-top: 15px; padding: 12px; background: #fef2f2; border-radius: 8px; font-size: 13px; color: #dc2626;">
+                    ⚠️ <strong>주의:</strong> 스티커는 발코니/페인트 도장면에 부착 자제!
+                </div>
+            `
+        },
+        {
+            title: '📁 STEP 1: 프로젝트 정보',
+            content: `
+                <div style="background: #f8fafc; padding: 20px; border-radius: 12px; margin-bottom: 15px;">
+                    <div style="font-size: 40px; text-align: center; margin-bottom: 15px;">📁</div>
+                    <div style="font-size: 14px; color: #333; line-height: 1.8;">
+                        <strong>프로젝트 탭</strong>에서 기본 정보를 입력합니다:
+                    </div>
+                </div>
+                <div style="display: grid; gap: 10px;">
+                    <div style="display: flex; align-items: center; gap: 10px; padding: 12px; background: #f0fdf4; border-radius: 8px;">
+                        <span style="font-size: 20px;">🏢</span>
+                        <div><strong>아파트명</strong> - 단지명 입력</div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px; padding: 12px; background: #f0fdf4; border-radius: 8px;">
+                        <span style="font-size: 20px;">🔢</span>
+                        <div><strong>동/호수</strong> - 예: 101동, 1502호</div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px; padding: 12px; background: #f0fdf4; border-radius: 8px;">
+                        <span style="font-size: 20px;">📅</span>
+                        <div><strong>점검일자</strong> - 오늘 날짜</div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px; padding: 12px; background: #fef3c7; border-radius: 8px;">
+                        <span style="font-size: 20px;">✍️</span>
+                        <div><strong>작성자</strong> - 본인 이름 (리포트에 표시)</div>
+                    </div>
+                </div>
+            `
+        },
+        {
+            title: '📸 STEP 2: 하자 사진 촬영',
+            content: `
+                <div style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); padding: 15px; border-radius: 12px; margin-bottom: 15px; text-align: center;">
+                    <div style="font-size: 24px; font-weight: bold; color: #d97706;">⭐ 필수 2장 ⭐</div>
+                    <div style="font-size: 14px; color: #92400e; margin-top: 5px;">원경 1장 + 근경 1장</div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                    <div style="background: #dbeafe; padding: 15px; border-radius: 10px; text-align: center;">
+                        <div style="font-size: 30px; margin-bottom: 8px;">🔭</div>
+                        <div style="font-weight: bold; color: #2563eb;">원경 사진</div>
+                        <div style="font-size: 12px; color: #666; margin-top: 5px;">
+                            하자 위치 + 스티커가<br/>함께 보이도록
+                        </div>
+                    </div>
+                    <div style="background: #fce7f3; padding: 15px; border-radius: 10px; text-align: center;">
+                        <div style="font-size: 30px; margin-bottom: 8px;">🔍</div>
+                        <div style="font-weight: bold; color: #db2777;">근경 사진</div>
+                        <div style="font-size: 12px; color: #666; margin-top: 5px;">
+                            하자 상세 상태를<br/>가까이서 촬영
+                        </div>
+                    </div>
+                </div>
+                <div style="background: #ecfdf5; padding: 12px; border-radius: 8px; font-size: 13px;">
+                    💡 <strong>터치 마커:</strong> 원경 촬영 시 화면을 터치하면 녹색 마커가 표시됩니다!
+                </div>
+            `
+        },
+        {
+            title: '✏️ STEP 3: 하자 정보 입력',
+            content: `
+                <div style="background: #f8fafc; padding: 15px; border-radius: 12px; margin-bottom: 15px;">
+                    <div style="font-size: 14px; color: #333; line-height: 1.8;">
+                        사진 촬영 후, 소장님이 붙인 <strong>스티커를 확인</strong>하여<br/>
+                        터치로 간편하게 입력합니다.
+                    </div>
+                </div>
+                <div style="display: grid; gap: 10px;">
+                    <div style="padding: 12px; background: #dbeafe; border-radius: 8px;">
+                        <strong>1️⃣ 공간 선택</strong> (최대 4개)<br/>
+                        <span style="font-size: 13px; color: #666;">현관, 안방, 침실1, 거실, 주방...</span>
+                    </div>
+                    <div style="padding: 12px; background: #fce7f3; border-radius: 8px;">
+                        <strong>2️⃣ 위치 선택</strong> (최대 4개)<br/>
+                        <span style="font-size: 13px; color: #666;">벽, 바닥, 천장, 문, 창...</span>
+                    </div>
+                    <div style="padding: 12px; background: #fef3c7; border-radius: 8px;">
+                        <strong>3️⃣ 하자내용 선택</strong> (최대 4개)<br/>
+                        <span style="font-size: 13px; color: #666;">유격, 틈새, 단차, 파손, 오염...</span>
+                    </div>
+                </div>
+                <div style="margin-top: 15px; padding: 12px; background: #f0fdf4; border-radius: 8px; font-size: 13px;">
+                    💡 목록에 없는 공간은 <strong>'+' 버튼</strong>으로 직접 입력 가능!
+                </div>
+            `
+        },
+        {
+            title: '📷 STEP 4: 장비점검 (소장님)',
+            content: `
+                <div style="background: #f8fafc; padding: 15px; border-radius: 12px; margin-bottom: 15px;">
+                    <div style="font-size: 14px; color: #333; line-height: 1.6;">
+                        <strong>장비점검 탭</strong>에서 4개 구역별로<br/>측정 사진을 등록합니다.
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
+                    <div style="padding: 12px; background: #fef3c7; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 24px;">🔥</div>
+                        <div style="font-size: 13px; font-weight: bold; margin-top: 5px;">열화상 (단열/난방)</div>
+                    </div>
+                    <div style="padding: 12px; background: #dbeafe; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 24px;">📐</div>
+                        <div style="font-size: 13px; font-weight: bold; margin-top: 5px;">수평계 (벽체/바닥)</div>
+                    </div>
+                    <div style="padding: 12px; background: #e0e7ff; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 24px;">💧</div>
+                        <div style="font-size: 13px; font-weight: bold; margin-top: 5px;">물고임 (욕실/발코니)</div>
+                    </div>
+                    <div style="padding: 12px; background: #fce7f3; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 24px;">🔧</div>
+                        <div style="font-size: 13px; font-weight: bold; margin-top: 5px;">기타 측정</div>
+                    </div>
+                </div>
+                <div style="background: #fef2f2; padding: 12px; border-radius: 8px; font-size: 13px; color: #dc2626;">
+                    ⚠️ <strong>[필수]</strong> 보일러 작동 확인! 난방 미작동 시 열화상 검사 불가 안내
+                </div>
+            `
+        },
+        {
+            title: '🌬️ STEP 5: 공기질 측정 (매니저)',
+            content: `
+                <div style="background: #f8fafc; padding: 15px; border-radius: 12px; margin-bottom: 15px;">
+                    <div style="font-size: 14px; color: #333; line-height: 1.6;">
+                        <strong>공기질 탭</strong>에서 5개 구역의<br/>라돈, 포름알데히드, VOCs를 입력합니다.
+                    </div>
+                </div>
+                <div style="display: grid; gap: 10px; margin-bottom: 15px;">
+                    <div style="display: flex; justify-content: space-between; padding: 12px; background: #ecfdf5; border-radius: 8px;">
+                        <span><strong>거실</strong></span>
+                        <span style="color: #059669;">라돈 + 포름알데히드 + VOCs</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; padding: 12px; background: #ecfdf5; border-radius: 8px;">
+                        <span><strong>침실 (3~4개)</strong></span>
+                        <span style="color: #059669;">라돈 + 포름알데히드 + VOCs</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; padding: 12px; background: #fef3c7; border-radius: 8px;">
+                        <span><strong>욕실</strong></span>
+                        <span style="color: #d97706;">라돈만 체크</span>
+                    </div>
+                </div>
+                <div style="background: #dbeafe; padding: 12px; border-radius: 8px; font-size: 13px;">
+                    💧 <strong>구배 점검:</strong> 욕실/발코니에 물 뿌리기 → 소장님이 물고임 확인
+                </div>
+            `
+        },
+        {
+            title: '☁️ STEP 6: 공유드라이브 저장',
+            content: `
+                <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 20px; border-radius: 12px; margin-bottom: 15px; text-align: center; color: white;">
+                    <div style="font-size: 40px; margin-bottom: 10px;">☁️</div>
+                    <div style="font-size: 18px; font-weight: bold;">점검완료 → 공유드라이브 저장</div>
+                </div>
+                <div style="background: #f0fdf4; padding: 15px; border-radius: 10px; margin-bottom: 15px;">
+                    <div style="font-weight: bold; color: #059669; margin-bottom: 10px;">📦 저장되는 파일:</div>
+                    <div style="font-size: 14px; line-height: 1.8;">
+                        📄 하자점검 보고서 (PDF)<br/>
+                        🔧 장비점검 보고서 (PDF)<br/>
+                        📊 하자목록 (엑셀)<br/>
+                        📷 모든 하자 사진
+                    </div>
+                </div>
+                <div style="background: #fef3c7; padding: 12px; border-radius: 8px; font-size: 13px; color: #92400e;">
+                    ⏰ <strong>마감:</strong> 오후 6시 전까지 드라이브 업로드 완료!
+                </div>
+            `
+        },
+        {
+            title: '✅ 최종 체크리스트',
+            content: `
+                <div style="font-size: 14px; margin-bottom: 10px; color: #666;">점검 완료 전 확인하세요!</div>
+                <div style="display: grid; gap: 8px;">
+                    <div style="display: flex; align-items: center; gap: 10px; padding: 12px; background: #f0fdf4; border-radius: 8px;">
+                        <span style="font-size: 18px;">📸</span>
+                        <div style="font-size: 13px;">모든 하자에 <strong>사진 2장</strong> (원경+근경) 등록?</div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px; padding: 12px; background: #f0fdf4; border-radius: 8px;">
+                        <span style="font-size: 18px;">🔧</span>
+                        <div style="font-size: 13px;"><strong>장비점검</strong> 4구역 사진 등록?</div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px; padding: 12px; background: #f0fdf4; border-radius: 8px;">
+                        <span style="font-size: 18px;">🌬️</span>
+                        <div style="font-size: 13px;"><strong>공기질</strong> 수치 입력?</div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px; padding: 12px; background: #dbeafe; border-radius: 8px;">
+                        <span style="font-size: 18px;">📤</span>
+                        <div style="font-size: 13px;"><strong>고객에게</strong> 하자+장비 보고서 전송?</div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px; padding: 12px; background: #fef3c7; border-radius: 8px;">
+                        <span style="font-size: 18px;">☁️</span>
+                        <div style="font-size: 13px;"><strong>6시 전</strong> 공유드라이브 업로드?</div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px; padding: 12px; background: #fce7f3; border-radius: 8px;">
+                        <span style="font-size: 18px;">💬</span>
+                        <div style="font-size: 13px;">단톡방에 <strong>"종료톡"</strong> 전송?</div>
+                    </div>
+                </div>
+                <div style="margin-top: 15px; padding: 12px; background: #fef2f2; border-radius: 8px; font-size: 13px; color: #dc2626; text-align: center;">
+                    🎒 장비 분실 금지! 점검 후 장비 회수 철저!
+                </div>
+            `
+        }
+    ];
+    
+    function showTutorial(startStep = 0) {
+        currentTutorialStep = startStep;
+        const modal = document.getElementById('tutorialModal');
+        if (modal) {
+            modal.style.display = 'flex';
+            renderTutorialStep();
+        }
+    }
+    
+    function closeTutorial() {
+        const modal = document.getElementById('tutorialModal');
+        if (modal) {
+            modal.style.display = 'none';
+        }
+        // 첫 사용자면 다시 보지 않기 설정
+        localStorage.setItem('tutorial_shown', 'true');
+    }
+    
+    function renderTutorialStep() {
+        const step = tutorialSteps[currentTutorialStep];
+        const titleEl = document.getElementById('tutorialTitle');
+        const contentEl = document.getElementById('tutorialContent');
+        const progressEl = document.getElementById('tutorialProgress');
+        const prevBtn = document.getElementById('tutorialPrevBtn');
+        const nextBtn = document.getElementById('tutorialNextBtn');
+        
+        if (titleEl) titleEl.textContent = step.title;
+        if (contentEl) contentEl.innerHTML = step.content;
+        if (progressEl) progressEl.textContent = `${currentTutorialStep + 1} / ${tutorialSteps.length}`;
+        
+        if (prevBtn) prevBtn.style.visibility = currentTutorialStep === 0 ? 'hidden' : 'visible';
+        if (nextBtn) {
+            nextBtn.textContent = currentTutorialStep === tutorialSteps.length - 1 ? '완료 ✓' : '다음 →';
+        }
+    }
+    
+    function tutorialPrev() {
+        if (currentTutorialStep > 0) {
+            currentTutorialStep--;
+            renderTutorialStep();
+        }
+    }
+    
+    function tutorialNext() {
+        if (currentTutorialStep < tutorialSteps.length - 1) {
+            currentTutorialStep++;
+            renderTutorialStep();
+        } else {
+            closeTutorial();
+        }
+    }
+    
+    // 첫 사용자 튜토리얼 자동 표시
+    function checkFirstTimeUser() {
+        const tutorialShown = localStorage.getItem('tutorial_shown');
+        if (!tutorialShown) {
+            // 업데이트 배너가 있으면 튜토리얼 스킵 (업데이트 먼저)
+            setTimeout(() => {
+                const updateBanner = document.getElementById('updateBanner');
+                if (updateBanner && updateBanner.style.display !== 'none') {
+                    // 업데이트 배너가 표시 중이면 튜토리얼 스킵
+                    return;
+                }
+                showTutorial();
+            }, 2000);
+        }
+    }
+    
+    // ==================== 버전 체크 및 업데이트 시스템 ====================
+    const APP_VERSION = '3.7';
+    
+    function checkForUpdates() {
+        const savedVersion = localStorage.getItem('app_version');
+        
+        if (savedVersion && savedVersion !== APP_VERSION) {
+            // 새 버전 감지 - 업데이트 배너 표시
+            showUpdateBanner();
+        } else if (!savedVersion) {
+            // 첫 설치 - 버전 저장
+            localStorage.setItem('app_version', APP_VERSION);
+        }
+    }
+    
+    function showUpdateBanner() {
+        const banner = document.getElementById('updateBanner');
+        if (banner) {
+            banner.style.display = 'block';
+            // body에 패딩 추가 (배너 높이만큼)
+            document.body.style.paddingTop = '70px';
+        }
+    }
+    
+    function applyUpdate() {
+        // 버전 업데이트 저장
+        localStorage.setItem('app_version', APP_VERSION);
+        
+        // 캐시 삭제 시도
+        if ('caches' in window) {
+            caches.keys().then(names => {
+                names.forEach(name => {
+                    caches.delete(name);
+                });
+            });
+        }
+        
+        // 페이지 새로고침 (캐시 무시)
+        window.location.reload(true);
+    }
+    
+    // 페이지 로드 시 버전 체크
+    document.addEventListener('DOMContentLoaded', function() {
+        checkForUpdates();
+    });
     </script>
+    
+    <!-- 튜토리얼 모달 -->
+    <div id="tutorialModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 100000; justify-content: center; align-items: center; padding: 20px;">
+        <div style="background: white; border-radius: 20px; max-width: 420px; width: 100%; max-height: 85vh; overflow: hidden; display: flex; flex-direction: column;">
+            <!-- 헤더 -->
+            <div style="padding: 20px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; display: flex; justify-content: space-between; align-items: center;">
+                <h3 id="tutorialTitle" style="margin: 0; font-size: 18px;">튜토리얼</h3>
+                <button onclick="closeTutorial()" style="background: rgba(255,255,255,0.2); border: none; color: white; width: 32px; height: 32px; border-radius: 50%; font-size: 18px; cursor: pointer;">✕</button>
+            </div>
+            
+            <!-- 컨텐츠 -->
+            <div id="tutorialContent" style="padding: 20px; overflow-y: auto; flex: 1;">
+                <!-- 동적 컨텐츠 -->
+            </div>
+            
+            <!-- 푸터 -->
+            <div style="padding: 15px 20px; border-top: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center; background: #f9fafb;">
+                <button id="tutorialPrevBtn" onclick="tutorialPrev()" style="padding: 10px 20px; border: 1px solid #d1d5db; background: white; border-radius: 8px; cursor: pointer; font-size: 14px;">← 이전</button>
+                <span id="tutorialProgress" style="color: #6b7280; font-size: 14px;">1 / 9</span>
+                <button id="tutorialNextBtn" onclick="tutorialNext()" style="padding: 10px 20px; border: none; background: #10b981; color: white; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: bold;">다음 →</button>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
