@@ -2587,6 +2587,39 @@
             }
         }
 
+        // 드라이브 앱/웹에서 폴더 열기
+        function openDriveFolder(folderId) {
+            const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+            const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+            const isAndroid = /Android/i.test(navigator.userAgent);
+            
+            const webUrl = `https://drive.google.com/drive/folders/${folderId}`;
+            
+            if (isMobile) {
+                // 모바일: 드라이브 앱 열기 시도
+                let appUrl;
+                
+                if (isIOS) {
+                    // iOS: googledrive 스킴
+                    appUrl = `googledrive://open?id=${folderId}`;
+                } else if (isAndroid) {
+                    // Android: intent 스킴
+                    appUrl = `intent://drive.google.com/drive/folders/${folderId}#Intent;scheme=https;package=com.google.android.apps.docs;end`;
+                }
+                
+                // 앱 열기 시도
+                window.location.href = appUrl;
+                
+                // 앱이 없으면 1.5초 후 웹으로 fallback
+                setTimeout(() => {
+                    window.open(webUrl, '_blank');
+                }, 1500);
+            } else {
+                // PC: 웹 브라우저로 열기
+                window.open(webUrl, '_blank');
+            }
+        }
+
         // 메인 업로드 함수
 
         window.uploadProjectToDrive = async function(projectToUpload = null) {
@@ -2769,8 +2802,8 @@
                     showToast(`✅ 업로드 완료!`);
                     
                     if (!projectToUpload) {
-                        if (confirm(`✅ 장비점검 업로드 완료!\n\n프로젝트: ${projectName}\n🔧 장비점검 보고서\n📷 장비 사진 ${totalPhotos}장\n\n[확인] 드라이브 폴더 열기\n[취소] 닫기`)) {
-                            window.open(`https://drive.google.com/drive/folders/${projectFolderId}`, '_blank');
+                        if (confirm(`✅ 장비점검 업로드 완료!\n\n프로젝트: ${projectName}\n🔧 장비점검 보고서\n📷 장비 사진 ${totalPhotos}장\n\n[확인] 드라이브 앱에서 열기\n[취소] 닫기`)) {
+                            openDriveFolder(projectFolderId);
                         }
                     }
                     return; // 장비만 업로드 후 종료
@@ -3140,8 +3173,8 @@
                 // 동기화 중이 아닐 때만 alert 표시
                 if (!projectToUpload) {
                     const equipmentMsg = equipmentPdfBlob ? '\n🔧 장비점검 보고서' : '';
-                    if (confirm(`✅ 업로드 완료!\n\n프로젝트: ${projectName}\n📄 PDF 보고서${equipmentMsg}\n📊 엑셀 파일\n📷 사진 ${totalPhotos}장\n\n[확인] 드라이브 폴더 열기\n[취소] 닫기`)) {
-                        window.open(`https://drive.google.com/drive/folders/${projectFolderId}`, '_blank');
+                    if (confirm(`✅ 업로드 완료!\n\n프로젝트: ${projectName}\n📄 PDF 보고서${equipmentMsg}\n📊 엑셀 파일\n📷 사진 ${totalPhotos}장\n\n[확인] 드라이브 앱에서 열기\n[취소] 닫기`)) {
+                        openDriveFolder(projectFolderId);
                     }
                 }
                 
