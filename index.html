@@ -1039,6 +1039,51 @@
         </div>
     </div>
     
+    <!-- ==================== 인앱브라우저 감지 모달 ==================== -->
+    <div id="inAppBrowserModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); z-index: 999999; align-items: center; justify-content: center; padding: 20px;">
+        <div style="background: white; border-radius: 20px; max-width: 340px; width: 100%; text-align: center; overflow: hidden;">
+            <div style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); padding: 30px 20px;">
+                <div style="font-size: 50px; margin-bottom: 10px;">⚠️</div>
+                <div style="color: white; font-size: 18px; font-weight: bold;">외부 브라우저에서 열어주세요</div>
+            </div>
+            <div style="padding: 25px 20px;">
+                <p style="color: #666; font-size: 14px; margin-bottom: 20px; line-height: 1.6;">
+                    현재 카카오톡/네이버 등의<br>인앱브라우저에서 접속 중입니다.<br><br>
+                    <strong>Google 로그인</strong>이 정상 작동하려면<br>
+                    외부 브라우저로 열어주세요.
+                </p>
+                <button onclick="openInExternalBrowser()" style="width: 100%; padding: 14px; background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; margin-bottom: 10px;">
+                    🌐 외부 브라우저로 열기
+                </button>
+                <button onclick="closeInAppBrowserModal()" style="width: 100%; padding: 12px; background: #f3f4f6; color: #666; border: none; border-radius: 12px; font-size: 14px; cursor: pointer;">
+                    그냥 계속하기
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- ==================== 홈화면 추가 안내 모달 ==================== -->
+    <div id="pwaInstallModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); z-index: 999998; align-items: center; justify-content: center; padding: 20px;">
+        <div style="background: white; border-radius: 20px; max-width: 340px; width: 100%; text-align: center; overflow: hidden;">
+            <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 30px 20px;">
+                <div style="font-size: 50px; margin-bottom: 10px;">📱</div>
+                <div style="color: white; font-size: 18px; font-weight: bold;">홈 화면에 추가하세요!</div>
+                <div style="color: rgba(255,255,255,0.9); font-size: 13px; margin-top: 8px;">앱처럼 바로 실행할 수 있어요</div>
+            </div>
+            <div style="padding: 25px 20px;">
+                <div id="pwaInstallGuide" style="background: #f8fafc; border-radius: 12px; padding: 15px; margin-bottom: 20px; text-align: left;">
+                    <!-- JS에서 OS별 안내 삽입 -->
+                </div>
+                <button onclick="closePwaInstallModal(false)" style="width: 100%; padding: 14px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; margin-bottom: 10px;">
+                    확인했어요 👍
+                </button>
+                <button onclick="closePwaInstallModal(true)" style="width: 100%; padding: 12px; background: #f3f4f6; color: #666; border: none; border-radius: 12px; font-size: 14px; cursor: pointer;">
+                    다시 보지 않기
+                </button>
+            </div>
+        </div>
+    </div>
+    
     <!-- ==================== 로그인 화면 ==================== -->
     <div id="loginOverlay" class="login-overlay">
         <div class="login-box">
@@ -1378,6 +1423,120 @@
     </div>
 
     <script>
+        // ==================== 인앱브라우저 감지 및 PWA 설치 안내 ====================
+        (function() {
+            // 인앱브라우저 감지
+            function isInAppBrowser() {
+                const ua = navigator.userAgent || navigator.vendor || window.opera;
+                // 카카오톡, 네이버, 페이스북, 인스타그램, 라인 등
+                return /KAKAOTALK|NAVER|FBAN|FBAV|Instagram|Line\//i.test(ua);
+            }
+            
+            // PWA로 실행 중인지 확인 (standalone 모드)
+            function isPWA() {
+                return window.matchMedia('(display-mode: standalone)').matches || 
+                       window.navigator.standalone === true;
+            }
+            
+            // OS 감지
+            function getOS() {
+                const ua = navigator.userAgent;
+                if (/iPhone|iPad|iPod/i.test(ua)) return 'ios';
+                if (/Android/i.test(ua)) return 'android';
+                return 'other';
+            }
+            
+            // 외부 브라우저로 열기
+            window.openInExternalBrowser = function() {
+                const currentUrl = window.location.href;
+                
+                // Android: Intent 사용
+                if (getOS() === 'android') {
+                    window.location.href = 'intent://' + currentUrl.replace(/^https?:\/\//, '') + 
+                        '#Intent;scheme=https;package=com.android.chrome;end';
+                } 
+                // iOS: Safari로 열기 시도
+                else if (getOS() === 'ios') {
+                    // iOS에서는 직접 열 수 없어서 URL 복사 안내
+                    if (navigator.clipboard) {
+                        navigator.clipboard.writeText(currentUrl).then(() => {
+                            alert('📋 URL이 복사되었습니다!\n\nSafari를 열고 붙여넣기 해주세요.');
+                        });
+                    } else {
+                        prompt('아래 URL을 복사해서 Safari에서 열어주세요:', currentUrl);
+                    }
+                }
+            };
+            
+            // 인앱브라우저 모달 닫기
+            window.closeInAppBrowserModal = function() {
+                document.getElementById('inAppBrowserModal').style.display = 'none';
+                // 닫은 후 PWA 설치 안내 표시 (해당되면)
+                setTimeout(showPwaInstallGuide, 1000);
+            };
+            
+            // PWA 설치 모달 닫기
+            window.closePwaInstallModal = function(neverShow) {
+                document.getElementById('pwaInstallModal').style.display = 'none';
+                if (neverShow) {
+                    localStorage.setItem('pwaInstallDismissed', 'true');
+                }
+            };
+            
+            // PWA 설치 안내 표시
+            function showPwaInstallGuide() {
+                // 이미 PWA로 실행 중이면 표시 안 함
+                if (isPWA()) return;
+                
+                // "다시 보지 않기" 선택했으면 표시 안 함
+                if (localStorage.getItem('pwaInstallDismissed') === 'true') return;
+                
+                // 인앱브라우저면 표시 안 함 (먼저 외부 브라우저 안내)
+                if (isInAppBrowser()) return;
+                
+                const os = getOS();
+                const guideContainer = document.getElementById('pwaInstallGuide');
+                
+                let guideHTML = '';
+                if (os === 'ios') {
+                    guideHTML = `
+                        <div style="font-weight: bold; color: #1d4ed8; margin-bottom: 10px;">📍 iPhone (Safari)</div>
+                        <div style="font-size: 13px; color: #374151; line-height: 1.8;">
+                            1. 하단의 <strong>공유 버튼</strong> (□↑) 클릭<br>
+                            2. <strong>"홈 화면에 추가"</strong> 선택<br>
+                            3. <strong>"추가"</strong> 클릭
+                        </div>
+                    `;
+                } else if (os === 'android') {
+                    guideHTML = `
+                        <div style="font-weight: bold; color: #1d4ed8; margin-bottom: 10px;">📍 Android (Chrome)</div>
+                        <div style="font-size: 13px; color: #374151; line-height: 1.8;">
+                            1. 우측 상단 <strong>⋮ 메뉴</strong> 클릭<br>
+                            2. <strong>"홈 화면에 추가"</strong> 선택<br>
+                            3. <strong>"추가"</strong> 클릭
+                        </div>
+                    `;
+                } else {
+                    // PC는 표시 안 함
+                    return;
+                }
+                
+                guideContainer.innerHTML = guideHTML;
+                document.getElementById('pwaInstallModal').style.display = 'flex';
+            }
+            
+            // 페이지 로드 시 실행
+            document.addEventListener('DOMContentLoaded', function() {
+                // 인앱브라우저 감지
+                if (isInAppBrowser()) {
+                    document.getElementById('inAppBrowserModal').style.display = 'flex';
+                } else {
+                    // 일반 브라우저: 2초 후 PWA 설치 안내
+                    setTimeout(showPwaInstallGuide, 2000);
+                }
+            });
+        })();
+        
         // ==================== 로그인 시스템 ====================
         // Google Sheets 공개 URL (CSV 형식)
         // 사용 방법: Google Sheets → 파일 → 공유 → 웹에 게시 → CSV 형식 선택
