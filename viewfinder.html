@@ -6373,21 +6373,23 @@
 
         function updateQuickSaveButton() {
             const btn = document.getElementById('quickSaveBtn');
-            const hasPhotos = quickModeData.photos.far || quickModeData.photos.near;
-            btn.disabled = !hasPhotos;
+            // 원경+근경 둘 다 있어야 저장 가능
+            const hasBothPhotos = quickModeData.photos.far && quickModeData.photos.near;
+            btn.disabled = !hasBothPhotos;
         }
 
         // 단계별 진행 업데이트
         function updateQuickStepProgress() {
-            const hasPhoto = quickModeData.photos.far || quickModeData.photos.near;
-            const hasBothPhotos = quickModeData.photos.far && quickModeData.photos.near;
+            const hasFar = quickModeData.photos.far;
+            const hasNear = quickModeData.photos.near;
+            const hasBothPhotos = hasFar && hasNear;
             const hasSpace = quickModeData.spaces.length > 0;
             
-            // 현재 단계 계산
+            // 현재 단계 계산 (원경+근경 둘 다 필수)
             let currentStep = 1;
             if (hasBothPhotos && hasSpace) {
                 currentStep = 3;
-            } else if (hasPhoto) {
+            } else if (hasBothPhotos) {
                 currentStep = 2;
             }
             
@@ -6417,14 +6419,22 @@
                 }
             });
             
-            // 가이드 메시지 업데이트
+            // 가이드 메시지 업데이트 (상세하게)
             const guideEl = document.getElementById('quickStepGuide');
-            const guides = [
-                '📸 원경/근경 사진을 촬영하세요',
-                '📍 하자가 발견된 공간을 선택하세요',
-                '✅ 저장하거나 추가 정보를 입력하세요'
-            ];
-            guideEl.textContent = guides[currentStep - 1];
+            let guideMsg = '';
+            
+            if (!hasFar && !hasNear) {
+                guideMsg = '📸 원경 사진을 먼저 촬영하세요';
+            } else if (hasFar && !hasNear) {
+                guideMsg = '🔍 근경 사진을 촬영하세요';
+            } else if (!hasFar && hasNear) {
+                guideMsg = '📸 원경 사진을 촬영하세요';
+            } else if (hasBothPhotos && !hasSpace) {
+                guideMsg = '📍 하자가 발견된 공간을 선택하세요';
+            } else {
+                guideMsg = '✅ 저장하거나 추가 정보를 입력하세요';
+            }
+            guideEl.textContent = guideMsg;
             
             // 섹션 활성화/비활성화
             const sectionPhoto = document.getElementById('quickSectionPhoto');
@@ -6435,8 +6445,8 @@
             sectionPhoto.classList.remove('dimmed');
             sectionPhoto.classList.add('active');
             
-            // 공간 섹션: 사진 1장 이상 있으면 활성화
-            if (hasPhoto) {
+            // 공간 섹션: 원경+근경 둘 다 있어야 활성화
+            if (hasBothPhotos) {
                 sectionSpace.classList.remove('dimmed');
                 sectionSpace.classList.add('active');
             } else {
@@ -6445,7 +6455,7 @@
             }
             
             // 선택사항 섹션: 공간 선택 후 활성화
-            if (hasPhoto && hasSpace) {
+            if (hasBothPhotos && hasSpace) {
                 sectionOptional.classList.remove('dimmed');
                 sectionOptional.classList.add('active');
             } else {
@@ -6459,8 +6469,15 @@
         }
 
         function saveQuickDefect() {
-            if (!quickModeData.photos.far && !quickModeData.photos.near) {
-                showToast('사진을 1장 이상 촬영해주세요');
+            // 원경+근경 둘 다 필수
+            if (!quickModeData.photos.far || !quickModeData.photos.near) {
+                if (!quickModeData.photos.far && !quickModeData.photos.near) {
+                    showToast('원경과 근경 사진을 모두 촬영해주세요', 'error');
+                } else if (!quickModeData.photos.far) {
+                    showToast('원경 사진을 촬영해주세요', 'error');
+                } else {
+                    showToast('근경 사진을 촬영해주세요', 'error');
+                }
                 return false;
             }
 
@@ -6495,13 +6512,13 @@
         function saveAndContinueQuick() {
             if (saveQuickDefect()) {
                 const count = getCurrentProject().defects.length;
-                showToast(`#${count} 저장! 다음 하자를 촬영하세요`);
+                showToast(`#${count} 저장완료! 원경부터 촬영하세요 📸`);
                 resetQuickModeData();
                 
                 // 바로 원경 카메라 열기 (연속 촬영)
                 setTimeout(() => {
                     openQuickCamera('far');
-                }, 300);
+                }, 500);
             }
         }
 
