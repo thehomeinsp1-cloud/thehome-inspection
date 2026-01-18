@@ -2315,6 +2315,229 @@
             margin-bottom: 10px;
         }
 
+        /* ==================== 라이선스 인증 화면 ==================== */
+        .license-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, var(--primary) 0%, #0D2137 100%);
+            z-index: 10000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .license-overlay.active {
+            display: flex;
+        }
+
+        .license-container {
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .license-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .license-logo {
+            font-size: 48px;
+            margin-bottom: 12px;
+        }
+
+        .license-title {
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--accent);
+            margin: 0 0 8px 0;
+        }
+
+        .license-subtitle {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin: 0;
+        }
+
+        .license-content {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 24px;
+            border: 1px solid var(--card-border);
+        }
+
+        .license-input-section {
+            margin-bottom: 20px;
+        }
+
+        .license-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 12px;
+        }
+
+        .license-input {
+            width: 100%;
+            padding: 16px;
+            font-size: 20px;
+            font-weight: 700;
+            text-align: center;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            background: var(--primary);
+            border: 2px solid var(--card-border);
+            border-radius: 12px;
+            color: var(--text);
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        .license-input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(0, 212, 170, 0.2);
+        }
+
+        .license-input::placeholder {
+            color: var(--text-muted);
+            letter-spacing: 2px;
+            font-size: 16px;
+        }
+
+        .license-input-hint {
+            font-size: 12px;
+            color: var(--text-muted);
+            text-align: center;
+            margin-top: 8px;
+        }
+
+        .license-btn {
+            width: 100%;
+            padding: 16px;
+            font-size: 16px;
+            font-weight: 700;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-bottom: 12px;
+        }
+
+        .license-btn.primary {
+            background: linear-gradient(135deg, var(--accent), #00B894);
+            color: #000;
+        }
+
+        .license-btn.primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .license-btn.secondary {
+            background: transparent;
+            color: var(--text-muted);
+            border: 1px solid var(--card-border);
+        }
+
+        .license-error {
+            padding: 12px;
+            background: rgba(255, 107, 107, 0.1);
+            border: 1px solid rgba(255, 107, 107, 0.3);
+            border-radius: 8px;
+            color: #FF6B6B;
+            font-size: 13px;
+            text-align: center;
+            margin-bottom: 16px;
+            display: none;
+        }
+
+        .license-error.show {
+            display: block;
+        }
+
+        .license-contact {
+            text-align: center;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid var(--card-border);
+        }
+
+        .license-contact p {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin: 0 0 8px 0;
+        }
+
+        .license-contact a {
+            color: var(--accent);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        /* 라이선스 상태 카드 */
+        .license-status-card {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .license-status-icon {
+            font-size: 48px;
+            margin-bottom: 12px;
+        }
+
+        .license-status-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 20px;
+        }
+
+        .license-status-info {
+            background: var(--primary);
+            border-radius: 12px;
+            padding: 16px;
+        }
+
+        .license-info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--card-border);
+        }
+
+        .license-info-row:last-child {
+            border-bottom: none;
+        }
+
+        .license-info-row.highlight {
+            background: rgba(0, 212, 170, 0.1);
+            margin: 8px -16px -16px -16px;
+            padding: 12px 16px;
+            border-radius: 0 0 12px 12px;
+            border-bottom: none;
+        }
+
+        .license-info-label {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .license-info-value {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .license-info-row.highlight .license-info-value {
+            color: var(--accent);
+            font-size: 16px;
+        }
+
         /* ==================== 로딩 오버레이 본체 ==================== */
         .loading-overlay {
             position: fixed;
@@ -3693,6 +3916,62 @@
             color: var(--warning);
         }
 
+        /* 설정 - 라이선스 정보 */
+        .settings-license-info {
+            background: linear-gradient(135deg, rgba(0, 212, 170, 0.1), rgba(0, 184, 148, 0.05));
+            border: 1px solid var(--accent);
+            border-radius: var(--radius);
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .settings-license-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .settings-license-icon {
+            font-size: 20px;
+        }
+
+        .settings-license-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .settings-license-details {
+            background: var(--card-bg);
+            border-radius: 8px;
+            padding: 12px;
+        }
+
+        .settings-license-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            padding: 6px 0;
+        }
+
+        .settings-license-row:first-child {
+            padding-top: 0;
+        }
+
+        .settings-license-row:last-child {
+            padding-bottom: 0;
+        }
+
+        .settings-license-row span:first-child {
+            color: var(--text-muted);
+        }
+
+        .settings-license-row span:last-child {
+            font-weight: 600;
+            color: var(--text);
+        }
+
         /* ==================== 이메일 전송 모달 ==================== */
         #emailSendModal {
             position: fixed;
@@ -5055,6 +5334,24 @@
                 <button class="settings-close" onclick="closeSettings()">✕</button>
             </div>
             
+            <!-- 라이선스 정보 -->
+            <div class="settings-license-info" id="settingsLicenseInfo">
+                <div class="settings-license-header">
+                    <span class="settings-license-icon">🔐</span>
+                    <span class="settings-license-title">이용권 정보</span>
+                </div>
+                <div class="settings-license-details" id="settingsLicenseDetails">
+                    <div class="settings-license-row">
+                        <span>상태</span>
+                        <span id="settingsLicenseStatus">-</span>
+                    </div>
+                    <div class="settings-license-row">
+                        <span>남은 시간</span>
+                        <span id="settingsLicenseRemaining">-</span>
+                    </div>
+                </div>
+            </div>
+            
             <div class="settings-item" onclick="resetTutorial()">
                 <span class="settings-item-icon">📖</span>
                 <div class="settings-item-content">
@@ -5232,6 +5529,77 @@
         </div>
     </div>
 
+    <!-- ==================== 라이선스 인증 화면 ==================== -->
+    <div class="license-overlay" id="licenseOverlay">
+        <div class="license-container">
+            <div class="license-header">
+                <div class="license-logo">🔍</div>
+                <h1 class="license-title">뷰파인더</h1>
+                <p class="license-subtitle">스마트 셀프 홈체크</p>
+            </div>
+            
+            <!-- 인증 입력 화면 -->
+            <div class="license-content" id="licenseInputView">
+                <div class="license-input-section">
+                    <label class="license-label">🔐 이용권 코드를 입력하세요</label>
+                    <input type="text" 
+                           id="licenseCodeInput" 
+                           class="license-input" 
+                           placeholder="예: ABCD-1234"
+                           maxlength="9"
+                           autocomplete="off"
+                           autocapitalize="characters">
+                    <div class="license-input-hint">대여 시 받은 8자리 코드를 입력해주세요</div>
+                </div>
+                
+                <button class="license-btn primary" id="licenseVerifyBtn" onclick="verifyLicenseCode()">
+                    인증하기
+                </button>
+                
+                <div class="license-error" id="licenseError"></div>
+                
+                <div class="license-contact">
+                    <p>코드를 분실하셨나요?</p>
+                    <a href="tel:010-0000-0000">📞 고객센터 문의</a>
+                </div>
+            </div>
+            
+            <!-- 인증 완료 / 상태 화면 -->
+            <div class="license-content" id="licenseStatusView" style="display: none;">
+                <div class="license-status-card">
+                    <div class="license-status-icon" id="licenseStatusIcon">✅</div>
+                    <div class="license-status-title" id="licenseStatusTitle">이용권 활성화</div>
+                    <div class="license-status-info">
+                        <div class="license-info-row">
+                            <span class="license-info-label">고객명</span>
+                            <span class="license-info-value" id="licenseName">-</span>
+                        </div>
+                        <div class="license-info-row">
+                            <span class="license-info-label">아파트</span>
+                            <span class="license-info-value" id="licenseApartment">-</span>
+                        </div>
+                        <div class="license-info-row">
+                            <span class="license-info-label">이용기간</span>
+                            <span class="license-info-value" id="licensePeriod">-</span>
+                        </div>
+                        <div class="license-info-row highlight">
+                            <span class="license-info-label">남은시간</span>
+                            <span class="license-info-value" id="licenseRemaining">-</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <button class="license-btn primary" onclick="startApp()">
+                    시작하기 →
+                </button>
+                
+                <button class="license-btn secondary" onclick="showLicenseInput()">
+                    다른 코드 입력
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- ==================== 로딩 오버레이 ==================== -->
     <div class="loading-overlay" id="loadingOverlay">
         <div class="loading-spinner"></div>
@@ -5242,6 +5610,207 @@
     <canvas id="photoCanvas" style="display: none;"></canvas>
 
     <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+        // ==================== 라이선스 관리 시스템 ====================
+        
+        // 설정 - 구글시트 Apps Script 웹앱 URL
+        const LICENSE_API_URL = 'https://script.google.com/macros/s/AKfycbzf-TjQar5a6tgzNlK2xQOdflhnnejt0KWwUVCl_rk7nJ8H4TDJGpVccDIs46CbxmdK6A/exec';
+        
+        // 라이선스 상태
+        let licenseData = null;
+        
+        // 기기 ID 생성/조회
+        function getDeviceId() {
+            let deviceId = localStorage.getItem('vf_device_id');
+            if (!deviceId) {
+                deviceId = 'dev_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                localStorage.setItem('vf_device_id', deviceId);
+            }
+            return deviceId;
+        }
+        
+        // 저장된 라이선스 코드 조회
+        function getSavedLicenseCode() {
+            return localStorage.getItem('vf_license_code');
+        }
+        
+        // 라이선스 코드 저장
+        function saveLicenseCode(code) {
+            localStorage.setItem('vf_license_code', code);
+        }
+        
+        // 라이선스 코드 삭제
+        function clearLicenseCode() {
+            localStorage.removeItem('vf_license_code');
+        }
+        
+        // 앱 시작 시 라이선스 체크
+        async function checkLicenseOnStart() {
+            // API URL이 설정되지 않은 경우 라이선스 체크 스킵 (개발 모드)
+            if (!LICENSE_API_URL) {
+                console.log('License API URL not configured - skipping license check');
+                return;
+            }
+            
+            const savedCode = getSavedLicenseCode();
+            const deviceId = getDeviceId();
+            
+            if (!savedCode) {
+                // 저장된 코드 없음 - 인증 화면 표시
+                showLicenseOverlay();
+                return;
+            }
+            
+            // 저장된 코드로 상태 확인
+            try {
+                const response = await fetch(`${LICENSE_API_URL}?action=check&code=${encodeURIComponent(savedCode)}&deviceId=${encodeURIComponent(deviceId)}`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    licenseData = result.license;
+                    // 유효한 라이선스 - 앱 시작
+                    hideLicenseOverlay();
+                } else {
+                    // 무효/만료 - 인증 화면 표시
+                    showLicenseOverlay();
+                    if (result.expired) {
+                        showLicenseError('이용 기간이 만료되었습니다. 연장이 필요하시면 고객센터로 문의해주세요.');
+                    }
+                }
+            } catch (error) {
+                console.error('License check error:', error);
+                // 네트워크 오류 시 오프라인 모드로 진행 (저장된 코드가 있으면)
+                hideLicenseOverlay();
+            }
+        }
+        
+        // 라이선스 코드 인증
+        async function verifyLicenseCode() {
+            const codeInput = document.getElementById('licenseCodeInput');
+            const code = codeInput.value.trim().toUpperCase();
+            
+            if (!code) {
+                showLicenseError('인증코드를 입력해주세요');
+                return;
+            }
+            
+            if (!LICENSE_API_URL) {
+                showLicenseError('라이선스 서버가 설정되지 않았습니다');
+                return;
+            }
+            
+            const deviceId = getDeviceId();
+            const btn = document.getElementById('licenseVerifyBtn');
+            
+            btn.disabled = true;
+            btn.textContent = '확인 중...';
+            hideLicenseError();
+            
+            try {
+                // 1단계: 코드 검증
+                const verifyResponse = await fetch(`${LICENSE_API_URL}?action=verify&code=${encodeURIComponent(code)}&deviceId=${encodeURIComponent(deviceId)}`);
+                const verifyResult = await verifyResponse.json();
+                
+                if (!verifyResult.success) {
+                    showLicenseError(verifyResult.error || '유효하지 않은 코드입니다');
+                    btn.disabled = false;
+                    btn.textContent = '인증하기';
+                    return;
+                }
+                
+                // 2단계: 활성화
+                const activateResponse = await fetch(LICENSE_API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'activate',
+                        code: code,
+                        deviceId: deviceId
+                    })
+                });
+                const activateResult = await activateResponse.json();
+                
+                if (activateResult.success) {
+                    // 코드 저장
+                    saveLicenseCode(code);
+                    licenseData = activateResult.license;
+                    
+                    // 상태 화면 표시
+                    showLicenseStatus(activateResult.license);
+                } else {
+                    showLicenseError(activateResult.error || '활성화에 실패했습니다');
+                }
+            } catch (error) {
+                console.error('License verification error:', error);
+                showLicenseError('서버 연결에 실패했습니다. 잠시 후 다시 시도해주세요.');
+            }
+            
+            btn.disabled = false;
+            btn.textContent = '인증하기';
+        }
+        
+        // 라이선스 상태 화면 표시
+        function showLicenseStatus(license) {
+            document.getElementById('licenseInputView').style.display = 'none';
+            document.getElementById('licenseStatusView').style.display = 'block';
+            
+            document.getElementById('licenseName').textContent = license.name || '-';
+            document.getElementById('licenseApartment').textContent = license.apartment || '-';
+            document.getElementById('licensePeriod').textContent = 
+                license.startDate && license.endDate 
+                    ? `${license.startDate.split(' ')[0]} ~ ${license.endDate.split(' ')[0]}`
+                    : '-';
+            document.getElementById('licenseRemaining').textContent = license.remaining || '-';
+        }
+        
+        // 코드 입력 화면 표시
+        function showLicenseInput() {
+            document.getElementById('licenseInputView').style.display = 'block';
+            document.getElementById('licenseStatusView').style.display = 'none';
+            document.getElementById('licenseCodeInput').value = '';
+            hideLicenseError();
+        }
+        
+        // 라이선스 오버레이 표시
+        function showLicenseOverlay() {
+            document.getElementById('licenseOverlay').classList.add('active');
+        }
+        
+        // 라이선스 오버레이 숨김
+        function hideLicenseOverlay() {
+            document.getElementById('licenseOverlay').classList.remove('active');
+        }
+        
+        // 에러 표시
+        function showLicenseError(message) {
+            const errorEl = document.getElementById('licenseError');
+            errorEl.textContent = message;
+            errorEl.classList.add('show');
+        }
+        
+        // 에러 숨김
+        function hideLicenseError() {
+            document.getElementById('licenseError').classList.remove('show');
+        }
+        
+        // 앱 시작
+        function startApp() {
+            hideLicenseOverlay();
+        }
+        
+        // 코드 입력 시 자동 하이픈 추가
+        document.addEventListener('DOMContentLoaded', function() {
+            const codeInput = document.getElementById('licenseCodeInput');
+            if (codeInput) {
+                codeInput.addEventListener('input', function(e) {
+                    let value = e.target.value.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+                    if (value.length > 4) {
+                        value = value.slice(0, 4) + '-' + value.slice(4, 8);
+                    }
+                    e.target.value = value;
+                });
+            }
+        });
+
         // ==================== 카카오톡 인앱브라우저 감지 ====================
         function checkInAppBrowser() {
             const ua = navigator.userAgent.toLowerCase();
@@ -5826,6 +6395,31 @@
         // ==================== 설정 메뉴 ====================
         function openSettings() {
             document.getElementById('settingsOverlay').classList.add('active');
+            updateSettingsLicenseInfo();
+        }
+        
+        function updateSettingsLicenseInfo() {
+            const statusEl = document.getElementById('settingsLicenseStatus');
+            const remainingEl = document.getElementById('settingsLicenseRemaining');
+            const infoSection = document.getElementById('settingsLicenseInfo');
+            
+            if (!LICENSE_API_URL) {
+                // 라이선스 시스템 미설정 시 숨김
+                if (infoSection) infoSection.style.display = 'none';
+                return;
+            }
+            
+            if (infoSection) infoSection.style.display = 'block';
+            
+            if (licenseData) {
+                statusEl.textContent = '✅ 이용중';
+                statusEl.style.color = 'var(--accent)';
+                remainingEl.textContent = licenseData.remaining || '-';
+            } else {
+                statusEl.textContent = '❌ 미인증';
+                statusEl.style.color = 'var(--warning)';
+                remainingEl.textContent = '-';
+            }
         }
 
         function closeSettings(e) {
@@ -6746,6 +7340,9 @@
 
         // ==================== 초기화 ====================
         document.addEventListener('DOMContentLoaded', () => {
+            // 라이선스 체크 (설정된 경우에만)
+            checkLicenseOnStart();
+            
             // 카카오톡 인앱브라우저 감지
             checkInAppBrowser();
             
