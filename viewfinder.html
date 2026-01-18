@@ -919,6 +919,13 @@
             flex: 1;
         }
 
+        .defect-detail {
+            font-size: 12px;
+            color: var(--accent);
+            font-weight: 500;
+            margin-left: 8px;
+        }
+
         .defect-type {
             padding: 4px 8px;
             background: rgba(255, 184, 0, 0.2);
@@ -1506,14 +1513,14 @@
 
         /* 공간 추가 버튼 */
         .add-space-btn {
-            width: 100%;
-            margin-top: 10px;
-            padding: 12px;
+            display: inline-block;
+            margin-top: 8px;
+            padding: 6px 12px;
             background: transparent;
             border: 1px dashed var(--card-border);
             border-radius: var(--radius);
             color: var(--text-muted);
-            font-size: 13px;
+            font-size: 11px;
             font-weight: 500;
             cursor: pointer;
             transition: all 0.2s ease;
@@ -4661,72 +4668,6 @@
         </div>
     </nav>
 
-    <!-- ==================== 하자 등록 전체화면 ==================== -->
-    <div class="defect-register-screen" id="defectRegisterScreen">
-        <div class="defect-register-header">
-            <h2 class="defect-register-title">하자 추가</h2>
-            <button class="defect-register-close" onclick="closeDefectRegister()">✕</button>
-        </div>
-        
-        <div class="defect-register-body">
-            <!-- 사진 촬영 (퀵모드 스타일) -->
-            <div class="form-section">
-                <div class="form-label">
-                    사진 촬영
-                    <span class="form-sublabel">필수 2장</span>
-                </div>
-                <div class="photo-capture-area-simple">
-                    <div class="photo-box-simple far" id="photoBoxFar" onclick="openCamera('far')">
-                        <span class="photo-box-icon">📸</span>
-                        <span class="photo-box-label">원경</span>
-                        <span class="photo-box-hint">멀리서 전체</span>
-                    </div>
-                    <div class="photo-box-simple near" id="photoBoxNear" onclick="openCamera('near')">
-                        <span class="photo-box-icon">🔍</span>
-                        <span class="photo-box-label">근경</span>
-                        <span class="photo-box-hint">가까이서 상세</span>
-                    </div>
-                </div>
-                <!-- 갤러리 버튼 -->
-                <div class="gallery-buttons">
-                    <button class="gallery-btn" onclick="openGallery('far')">🖼️ 원경 갤러리</button>
-                    <button class="gallery-btn" onclick="openGallery('near')">🖼️ 근경 갤러리</button>
-                </div>
-            </div>
-
-            <!-- 공간 선택 -->
-            <div class="form-section">
-                <div class="form-label">
-                    공간 선택
-                    <span class="form-sublabel selected-count" id="spaceCount">0/4 선택</span>
-                </div>
-                <div class="touch-btn-grid" id="spaceButtons">
-                    <!-- 동적 생성 -->
-                </div>
-                <button class="add-space-btn" onclick="addCustomSpace()">+ 공간 추가</button>
-            </div>
-
-            <!-- 하자 내용 -->
-            <div class="form-section">
-                <div class="form-label">
-                    하자 내용
-                </div>
-                <div class="voice-input-area">
-                    <textarea class="voice-textarea" id="defectDescription" placeholder="하자 내용을 입력하세요"></textarea>
-                </div>
-                <div class="voice-hint">
-                    키보드 음성입력 버튼으로 입력할 수 있습니다
-                </div>
-            </div>
-        </div>
-
-        <div class="defect-register-footer">
-            <button class="save-defect-btn" id="saveDefectBtn" onclick="saveDefect()" ontouchend="saveDefect()">
-                + 하자 추가
-            </button>
-        </div>
-    </div>
-
     <!-- ==================== 퀵모드 오버레이 ==================== -->
     <div class="quick-mode-overlay" id="quickModeOverlay">
         <div class="quick-mode-header">
@@ -4765,7 +4706,24 @@
                 <button class="add-space-btn" onclick="addCustomSpace()">+ 공간 추가</button>
             </div>
 
-            <textarea class="quick-mode-memo" id="quickModeMemo" placeholder="메모 (선택사항)&#10;예: 거실 창문 틀 스크래치"></textarea>
+            <div class="quick-mode-space-select">
+                <div class="quick-mode-space-label">위치 선택 <span id="quickLocationCount" style="color: var(--accent);">0/4 선택</span></div>
+                <div class="touch-btn-grid" id="quickLocationChips">
+                    <!-- 동적 생성 -->
+                </div>
+            </div>
+
+            <div class="quick-mode-space-select">
+                <div class="quick-mode-space-label">하자내용 선택 <span id="quickDefectTypeCount" style="color: var(--accent);">0/4 선택</span></div>
+                <div class="touch-btn-grid" id="quickDefectTypeChips">
+                    <!-- 동적 생성 -->
+                </div>
+            </div>
+
+            <div class="quick-mode-space-select">
+                <div class="quick-mode-space-label">하자내용</div>
+                <textarea class="quick-mode-memo" id="quickModeMemo" placeholder="선택 항목이 자동으로 입력됩니다"></textarea>
+            </div>
         </div>
 
         <div class="quick-mode-footer">
@@ -4891,7 +4849,7 @@
                         <span style="font-size: 24px;">📬</span>
                         <div>
                             <div style="font-size: 13px; font-weight: 700; color: var(--text);">뷰파인더 하자접수팀</div>
-                            <div style="font-size: 12px; color: var(--accent);">foxclubs@gmail.com</div>
+                            <div style="font-size: 12px; color: var(--accent);"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="8ee8e1f6ede2fbecfdcee9e3efe7e2a0ede1e3">[email&#160;protected]</a></div>
                         </div>
                     </div>
                 </div>
@@ -4988,7 +4946,7 @@
     <!-- ==================== 캔버스 (사진 압축용) ==================== -->
     <canvas id="photoCanvas" style="display: none;"></canvas>
 
-    <script>
+    <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
         // ==================== 카카오톡 인앱브라우저 감지 ====================
         function checkInAppBrowser() {
             const ua = navigator.userAgent.toLowerCase();
@@ -5285,18 +5243,21 @@
 
         // 기본 공간 목록
         const DEFAULT_SPACES = [
-            '현관', '안방', '침실1', '침실2', '침실3', '침실4', 
-            '복도', '거실', '주방', '팬트리', '외부', '알파룸',
+            '현관', '현관창고', '안방', '침실1', '침실2', '침실3', '침실4', 
+            '복도', '거실', '주방', '팬트리', '다용도실', '외부', '알파룸',
             '발코니', '대피공간', '실외기실', '파우더룸', 
             '드레스룸', '공용욕실', '부부욕실'
         ];
 
-        // ==================== 현재 등록 중인 하자 ====================
-        let currentDefect = {
-            spaces: [],
-            description: '',
-            photos: { far: null, near: null }
-        };
+        // 기본 위치 목록
+        const DEFAULT_LOCATIONS = [
+            '벽', '바닥', '천장', '도배', '가구', '창', '문', '짝', '틀', '타일', '도장', '줄눈', '코킹'
+        ];
+
+        // 기본 하자내용 목록
+        const DEFAULT_DEFECT_TYPES = [
+            '손상', '찍힘', '들뜸', '오염', '틈새', '단차', '돌출', '마감', '고정', '작동', '수평/수직', '전체', '다수', '불량', '미시공'
+        ];
 
         // ==================== 카메라 관련 ====================
         let cameraStream = null;
@@ -5670,11 +5631,13 @@
             const workbook = new ExcelJS.Workbook();
             const sheet = workbook.addWorksheet('하자목록');
             
-            // 컬럼 설정
+            // 컬럼 설정 (위치, 하자유형 추가)
             sheet.columns = [
                 { header: 'No', key: 'no', width: 8 },
                 { header: '공간', key: 'space', width: 20 },
-                { header: '하자내용', key: 'description', width: 50 },
+                { header: '위치', key: 'location', width: 20 },
+                { header: '하자유형', key: 'defectType', width: 20 },
+                { header: '하자내용', key: 'description', width: 40 },
                 { header: '사진수', key: 'photoCount', width: 10 }
             ];
             
@@ -5688,9 +5651,16 @@
             // 데이터 추가
             getCurrentProject().defects.forEach((defect, idx) => {
                 const photoCount = defect.photos ? defect.photos.filter(p => p).length : 0;
+                // 기존 데이터 호환성
+                const spaces = defect.spaces || [];
+                const locations = defect.locations || [];
+                const defectTypes = defect.defectTypes || [];
+                
                 sheet.addRow({
                     no: idx + 1,
-                    space: defect.spaces.join(', ') || '-',
+                    space: spaces.join(' ') || '-',
+                    location: locations.join(' ') || '-',
+                    defectType: defectTypes.join(' ') || '-',
                     description: defect.description || '-',
                     photoCount: photoCount
                 });
@@ -6046,14 +6016,19 @@
         let quickModeData = {
             photos: { far: null, near: null },
             spaces: [],
+            locations: [],
+            defectTypes: [],
             memo: ''
         };
         let isQuickMode = false;
+        let editingDefectId = null;
 
         function openQuickMode() {
             isQuickMode = true;
             resetQuickModeData();
             renderQuickSpaceChips();
+            renderQuickLocationChips();
+            renderQuickDefectTypeChips();
             updateQuickModeCount();
             document.getElementById('quickModeOverlay').classList.add('active');
             document.body.style.overflow = 'hidden';
@@ -6063,12 +6038,23 @@
             isQuickMode = false;
             document.getElementById('quickModeOverlay').classList.remove('active');
             document.body.style.overflow = '';
+            
+            // 수정 모드였으면 원복
+            if (editingDefectId) {
+                editingDefectId = null;
+                document.querySelector('.quick-mode-btn.continue').textContent = '저장 → 다음 촬영 📸';
+                document.querySelector('.quick-mode-btn.continue').onclick = saveAndContinueQuick;
+                document.querySelector('.quick-mode-btn.save').style.display = '';
+                document.querySelector('.quick-mode-title').textContent = '📸 하자 촬영';
+            }
         }
 
         function resetQuickModeData() {
             quickModeData = {
                 photos: { far: null, near: null },
                 spaces: [],
+                locations: [],
+                defectTypes: [],
                 memo: ''
             };
             
@@ -6094,7 +6080,11 @@
             
             document.getElementById('quickModeMemo').value = '';
             document.getElementById('quickSpaceCount').textContent = '0/4 선택';
+            document.getElementById('quickLocationCount').textContent = '0/4 선택';
+            document.getElementById('quickDefectTypeCount').textContent = '0/4 선택';
             renderQuickSpaceChips();
+            renderQuickLocationChips();
+            renderQuickDefectTypeChips();
             updateQuickSaveButton();
         }
 
@@ -6132,6 +6122,87 @@
             }
             document.getElementById('quickSpaceCount').textContent = `${quickModeData.spaces.length}/4 선택`;
             renderQuickSpaceChips();
+            updateAutoDescription();
+        }
+
+        // 퀵모드 위치 칩 렌더링
+        function renderQuickLocationChips() {
+            const container = document.getElementById('quickLocationChips');
+            if (!container) return;
+            
+            container.innerHTML = DEFAULT_LOCATIONS.map(location => {
+                const isSelected = quickModeData.locations.includes(location);
+                const isDisabled = quickModeData.locations.length >= 4 && !isSelected;
+                
+                return `
+                    <button class="touch-btn ${isSelected ? 'selected' : ''}"
+                            ${isDisabled ? 'disabled' : ''}
+                            onclick="toggleQuickLocation('${location}')">
+                        ${location}
+                    </button>
+                `;
+            }).join('');
+        }
+
+        function toggleQuickLocation(location) {
+            const idx = quickModeData.locations.indexOf(location);
+            if (idx > -1) {
+                quickModeData.locations.splice(idx, 1);
+            } else {
+                if (quickModeData.locations.length >= 4) {
+                    showToast('최대 4개까지 선택 가능합니다', 'error');
+                    return;
+                }
+                quickModeData.locations.push(location);
+            }
+            document.getElementById('quickLocationCount').textContent = `${quickModeData.locations.length}/4 선택`;
+            renderQuickLocationChips();
+            updateAutoDescription();
+        }
+
+        // 퀵모드 하자내용 칩 렌더링
+        function renderQuickDefectTypeChips() {
+            const container = document.getElementById('quickDefectTypeChips');
+            if (!container) return;
+            
+            container.innerHTML = DEFAULT_DEFECT_TYPES.map(defectType => {
+                const isSelected = quickModeData.defectTypes.includes(defectType);
+                const isDisabled = quickModeData.defectTypes.length >= 4 && !isSelected;
+                
+                return `
+                    <button class="touch-btn ${isSelected ? 'selected' : ''}"
+                            ${isDisabled ? 'disabled' : ''}
+                            onclick="toggleQuickDefectType('${defectType}')">
+                        ${defectType}
+                    </button>
+                `;
+            }).join('');
+        }
+
+        function toggleQuickDefectType(defectType) {
+            const idx = quickModeData.defectTypes.indexOf(defectType);
+            if (idx > -1) {
+                quickModeData.defectTypes.splice(idx, 1);
+            } else {
+                if (quickModeData.defectTypes.length >= 4) {
+                    showToast('최대 4개까지 선택 가능합니다', 'error');
+                    return;
+                }
+                quickModeData.defectTypes.push(defectType);
+            }
+            document.getElementById('quickDefectTypeCount').textContent = `${quickModeData.defectTypes.length}/4 선택`;
+            renderQuickDefectTypeChips();
+            updateAutoDescription();
+        }
+
+        // 자동 하자내용 업데이트
+        function updateAutoDescription() {
+            const spacePart = quickModeData.spaces.length > 0 ? quickModeData.spaces.join(' ') : '';
+            const locationPart = quickModeData.locations.length > 0 ? quickModeData.locations.join(' ') : '';
+            const typePart = quickModeData.defectTypes.length > 0 ? quickModeData.defectTypes.join(' ') : '';
+            
+            const description = [spacePart, locationPart, typePart].filter(p => p).join(' ');
+            document.getElementById('quickModeMemo').value = description;
         }
 
         function openQuickCamera(type) {
@@ -6193,13 +6264,21 @@
 
             const memo = document.getElementById('quickModeMemo').value.trim();
             
+            // 자동 설명 생성 - 공간 + 위치 + 하자내용 조합
+            let autoDescription = '하자 촬영';
+            if (quickModeData.spaces.length > 0 || quickModeData.locations.length > 0 || quickModeData.defectTypes.length > 0) {
+                const spacePart = quickModeData.spaces.length > 0 ? quickModeData.spaces.join(' ') : '';
+                const locationPart = quickModeData.locations.length > 0 ? quickModeData.locations.join(' ') : '';
+                const typePart = quickModeData.defectTypes.length > 0 ? quickModeData.defectTypes.join(' ') : '';
+                autoDescription = [spacePart, locationPart, typePart].filter(p => p).join(' ');
+            }
+            
             const newDefect = {
                 id: Date.now(),
                 spaces: quickModeData.spaces.length > 0 ? quickModeData.spaces : ['미지정'],
-                locations: [],
-                types: [],
-                detailLocation: '',
-                description: memo || '하자 촬영',
+                locations: quickModeData.locations.length > 0 ? quickModeData.locations : [],
+                defectTypes: quickModeData.defectTypes.length > 0 ? quickModeData.defectTypes : [],
+                description: memo || autoDescription,
                 photos: [quickModeData.photos.far, quickModeData.photos.near].filter(p => p)
             };
 
@@ -6244,7 +6323,6 @@
             initTutorial();
             
             loadData();
-            renderSpaceButtons();
             renderDefectList();
             renderEquipmentList();
             renderChecklistSpaces();
@@ -6769,63 +6847,6 @@
         }
 
         // ==================== 하자 등록 화면 ====================
-        function openDefectRegister() {
-            // 초기화
-            currentDefect = {
-                spaces: [],
-                description: '',
-                photos: { far: null, near: null }
-            };
-            
-            renderSpaceButtons();
-            resetPhotoBoxes();
-            document.getElementById('defectDescription').value = '';
-            document.getElementById('spaceCount').textContent = '0/4 선택';
-            
-            document.getElementById('defectRegisterScreen').classList.add('active');
-        }
-
-        function closeDefectRegister() {
-            document.getElementById('defectRegisterScreen').classList.remove('active');
-        }
-
-        // ==================== 공간 버튼 렌더링 ====================
-        function renderSpaceButtons() {
-            const container = document.getElementById('spaceButtons');
-            const customSpaces = getCurrentProject().customSpaces || [];
-            const allSpaces = [...DEFAULT_SPACES, ...customSpaces];
-            
-            container.innerHTML = allSpaces.map(space => {
-                const isCustom = customSpaces.includes(space);
-                const isSelected = currentDefect.spaces.includes(space);
-                const isDisabled = currentDefect.spaces.length >= 4 && !isSelected;
-                
-                return `
-                    <button class="touch-btn ${isSelected ? 'selected' : ''} ${isCustom ? 'custom' : ''}"
-                            ${isDisabled ? 'disabled' : ''}
-                            onclick="toggleSpace('${space}')">
-                        ${space}
-                        ${isCustom ? `<span class="delete-custom" onclick="event.stopPropagation(); deleteCustomSpace('${space}')">✕</span>` : ''}
-                    </button>
-                `;
-            }).join('');
-        }
-
-        function toggleSpace(space) {
-            const idx = currentDefect.spaces.indexOf(space);
-            if (idx > -1) {
-                currentDefect.spaces.splice(idx, 1);
-            } else {
-                if (currentDefect.spaces.length >= 4) {
-                    showToast('최대 4개까지 선택 가능합니다', 'error');
-                    return;
-                }
-                currentDefect.spaces.push(space);
-            }
-            document.getElementById('spaceCount').textContent = `${currentDefect.spaces.length}/4 선택`;
-            renderSpaceButtons();
-        }
-
         // ==================== 커스텀 공간 추가/삭제 ====================
         function addCustomSpace() {
             const name = prompt('추가할 공간 이름을 입력하세요:');
@@ -6845,8 +6866,7 @@
             proj.customSpaces.push(spaceName);
             saveData();
             
-            // 양쪽 UI 갱신
-            renderSpaceButtons();
+            // 퀵모드 UI 갱신
             renderQuickSpaceChips();
             
             showToast(`"${spaceName}" 공간이 추가되었습니다`);
@@ -6859,40 +6879,15 @@
             proj.customSpaces = (proj.customSpaces || []).filter(s => s !== space);
             
             // 현재 선택에서도 제거
-            currentDefect.spaces = currentDefect.spaces.filter(s => s !== space);
             quickModeData.spaces = quickModeData.spaces.filter(s => s !== space);
             
             saveData();
             
-            // 양쪽 UI 갱신
-            renderSpaceButtons();
+            // 퀵모드 UI 갱신
             renderQuickSpaceChips();
-            document.getElementById('spaceCount').textContent = `${currentDefect.spaces.length}/4 선택`;
             document.getElementById('quickSpaceCount').textContent = `${quickModeData.spaces.length}/4 선택`;
             
             showToast(`"${space}" 공간이 삭제되었습니다`);
-        }
-
-        // ==================== 사진 박스 초기화 ====================
-        function resetPhotoBoxes() {
-            const farBox = document.getElementById('photoBoxFar');
-            const nearBox = document.getElementById('photoBoxNear');
-            
-            farBox.innerHTML = `
-                <span class="photo-box-icon">📸</span>
-                <span class="photo-box-label">원경</span>
-                <span class="photo-box-hint">멀리서 전체</span>
-            `;
-            farBox.classList.remove('has-photo');
-            farBox.onclick = () => openCamera('far');
-            
-            nearBox.innerHTML = `
-                <span class="photo-box-icon">🔍</span>
-                <span class="photo-box-label">근경</span>
-                <span class="photo-box-hint">가까이서 상세</span>
-            `;
-            nearBox.classList.remove('has-photo');
-            nearBox.onclick = () => openCamera('near');
         }
 
         // ==================== 카메라 ====================
@@ -7246,60 +7241,9 @@
             
             const imageData = canvas.toDataURL('image/jpeg', quality);
             
-            // 퀵모드인 경우 퀵모드 UI 업데이트
-            if (isQuickMode) {
-                updateQuickPhotoBox(currentPhotoType, imageData);
-                closeCamera();
-                return;
-            }
-            
-            // 일반 모드: 사진 저장
-            currentDefect.photos[currentPhotoType] = imageData;
-            
-            // UI 업데이트
-            updatePhotoBox(currentPhotoType, imageData);
-            
+            // 퀵모드 UI 업데이트
+            updateQuickPhotoBox(currentPhotoType, imageData);
             closeCamera();
-        }
-
-        function updatePhotoBox(photoType, imageData) {
-            const box = document.getElementById(photoType === 'far' ? 'photoBoxFar' : 'photoBoxNear');
-            const label = photoType === 'far' ? '원경' : '근경';
-            
-            box.innerHTML = `
-                <img src="${imageData}" alt="${label}">
-                <span class="photo-box-badge">${label}</span>
-                <button class="photo-box-delete" onclick="event.stopPropagation(); deletePhoto('${photoType}')">✕</button>
-            `;
-            box.classList.add('has-photo');
-            box.onclick = () => openCamera(photoType);
-        }
-
-        function retakePhoto(photoType) {
-            currentDefect.photos[photoType] = null;
-            openCamera(photoType);
-        }
-
-        function reattachPhoto(photoType) {
-            currentDefect.photos[photoType] = null;
-            openGallery(photoType);
-        }
-
-        function deletePhoto(photoType) {
-            currentDefect.photos[photoType] = null;
-            
-            const box = document.getElementById(photoType === 'far' ? 'photoBoxFar' : 'photoBoxNear');
-            const icon = photoType === 'far' ? '📸' : '🔍';
-            const label = photoType === 'far' ? '원경' : '근경';
-            const hint = photoType === 'far' ? '멀리서 전체' : '가까이서 상세';
-            
-            box.innerHTML = `
-                <span class="photo-box-icon">${icon}</span>
-                <span class="photo-box-label">${label}</span>
-                <span class="photo-box-hint">${hint}</span>
-            `;
-            box.classList.remove('has-photo');
-            box.onclick = () => openCamera(photoType);
         }
 
         // 갤러리 폴백
@@ -7454,138 +7398,6 @@
             }
         }
 
-        // ==================== 하자 저장 ====================
-        function saveDefect() {
-            // 유효성 검사
-            if (!currentDefect.photos.far || !currentDefect.photos.near) {
-                showToast('원경/근경 사진 2장을 모두 촬영해주세요', 'error');
-                return;
-            }
-            
-            if (currentDefect.spaces.length === 0) {
-                showToast('공간을 1개 이상 선택해주세요', 'error');
-                return;
-            }
-            
-            // 설명 가져오기
-            currentDefect.description = document.getElementById('defectDescription').value;
-            
-            // 자동 설명 생성 (입력 없을 경우)
-            if (!currentDefect.description && currentDefect.spaces.length > 0) {
-                currentDefect.description = currentDefect.spaces.join(', ') + ' 하자';
-            }
-            
-            // 저장
-            const defect = {
-                id: Date.now(),
-                spaces: [...currentDefect.spaces],
-                description: currentDefect.description,
-                photos: [currentDefect.photos.far, currentDefect.photos.near],
-                createdAt: new Date().toISOString()
-            };
-            
-            getCurrentProject().defects.push(defect);
-            saveData();
-            
-            closeDefectRegister();
-            renderDefectList();
-            
-            const count = getCurrentProject().defects.length;
-            
-            // 저장 후 선택 팝업
-            showSaveCompletePopup(count);
-        }
-        
-        function showSaveCompletePopup(count) {
-            // 기존 팝업 제거
-            const existing = document.getElementById('saveCompletePopup');
-            if (existing) existing.remove();
-            
-            const popup = document.createElement('div');
-            popup.id = 'saveCompletePopup';
-            popup.innerHTML = `
-                <div style="
-                    position: fixed;
-                    top: 0; left: 0; right: 0; bottom: 0;
-                    background: rgba(0,0,0,0.7);
-                    z-index: 9999;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    padding: 20px;
-                ">
-                    <div style="
-                        background: var(--card-bg);
-                        border-radius: 20px;
-                        padding: 30px;
-                        text-align: center;
-                        max-width: 320px;
-                        width: 100%;
-                        animation: popIn 0.3s ease;
-                    ">
-                        <div style="font-size: 50px; margin-bottom: 16px;">✅</div>
-                        <div style="font-size: 20px; font-weight: 700; color: var(--text); margin-bottom: 8px;">
-                            하자 #${count} 저장 완료
-                        </div>
-                        <div style="font-size: 14px; color: var(--text-muted); margin-bottom: 24px;">
-                            다음 작업을 선택하세요
-                        </div>
-                        <div style="display: flex; gap: 12px;">
-                            <button onclick="continueAddDefect()" style="
-                                flex: 1;
-                                padding: 16px;
-                                border: none;
-                                border-radius: 12px;
-                                background: linear-gradient(135deg, var(--accent), #00B894);
-                                color: var(--primary);
-                                font-size: 15px;
-                                font-weight: 700;
-                                cursor: pointer;
-                            ">
-                                ⚡ 계속 추가
-                            </button>
-                            <button onclick="closeSavePopupAndView()" style="
-                                flex: 1;
-                                padding: 16px;
-                                border: 1px solid var(--card-border);
-                                border-radius: 12px;
-                                background: var(--primary-light);
-                                color: var(--text);
-                                font-size: 15px;
-                                font-weight: 600;
-                                cursor: pointer;
-                            ">
-                                📋 목록 보기
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            `;
-            document.body.appendChild(popup);
-            
-            // 3초 후 자동 닫힘 (계속 추가로)
-            setTimeout(() => {
-                const p = document.getElementById('saveCompletePopup');
-                if (p) continueAddDefect();
-            }, 5000);
-        }
-        
-        function continueAddDefect() {
-            closeSavePopup();
-            // 계속 촬영
-            openQuickMode();
-        }
-        
-        function closeSavePopupAndView() {
-            closeSavePopup();
-            switchTab('defect');
-        }
-        
-        function closeSavePopup() {
-            const popup = document.getElementById('saveCompletePopup');
-            if (popup) popup.remove();
-        }
-
         // ==================== 하자 목록 렌더링 ====================
         function renderDefectList() {
             const container = document.getElementById('defectList');
@@ -7607,12 +7419,23 @@
                 return;
             }
             
-            container.innerHTML = getCurrentProject().defects.map((defect, index) => `
-                <div class="defect-card">
+            container.innerHTML = getCurrentProject().defects.map((defect, index) => {
+                // 기존 데이터 호환성 처리
+                const spaces = defect.spaces || [];
+                const locations = defect.locations || [];
+                const defectTypes = defect.defectTypes || [];
+                
+                // 위치 + 하자내용 조합 표시
+                const detailParts = [...locations, ...defectTypes];
+                const detailText = detailParts.length > 0 ? detailParts.join(' ') : '';
+                
+                return `
+                <div class="defect-card" onclick="openDefectEdit(${defect.id})">
                     <button class="defect-delete-btn" onclick="event.stopPropagation(); deleteDefect(${defect.id})">🗑️</button>
                     <div class="defect-header">
                         <span class="defect-number">${index + 1}</span>
-                        <span class="defect-location">${defect.spaces.join(', ') || '미지정'}</span>
+                        <span class="defect-location">${spaces.join(' ') || '미지정'}</span>
+                        ${detailText ? `<span class="defect-detail">${detailText}</span>` : ''}
                     </div>
                     <div class="defect-photos">
                         ${defect.photos[0] ? `<img src="${defect.photos[0]}" class="defect-photo" alt="원경">` : ''}
@@ -7620,7 +7443,7 @@
                     </div>
                     ${defect.description ? `<div class="defect-desc">${defect.description}</div>` : ''}
                 </div>
-            `).join('');
+            `}).join('');
             
             updateStepGuide();
             updateHomeDefectCount();
@@ -7639,24 +7462,276 @@
             }
         }
 
+        // ==================== 하자 수정 ====================
+        function openDefectEdit(id) {
+            const defect = getCurrentProject().defects.find(d => d.id === id);
+            if (!defect) return;
+            
+            editingDefectId = id;
+            
+            // 기존 데이터 호환성
+            const spaces = defect.spaces || [];
+            const locations = defect.locations || [];
+            const defectTypes = defect.defectTypes || [];
+            
+            // quickModeData에 로드
+            quickModeData = {
+                photos: { 
+                    far: defect.photos[0] || null, 
+                    near: defect.photos[1] || null 
+                },
+                spaces: [...spaces],
+                locations: [...locations],
+                defectTypes: [...defectTypes],
+                memo: defect.description || ''
+            };
+            
+            // UI 열기
+            document.getElementById('quickModeOverlay').classList.add('active');
+            document.body.style.overflow = 'hidden';
+            
+            // 사진 표시
+            if (quickModeData.photos.far) {
+                updateQuickPhotoBox('far', quickModeData.photos.far);
+            }
+            if (quickModeData.photos.near) {
+                updateQuickPhotoBox('near', quickModeData.photos.near);
+            }
+            
+            // 선택 상태 렌더링
+            renderQuickSpaceChips();
+            renderQuickLocationChips();
+            renderQuickDefectTypeChips();
+            
+            // 카운트 업데이트
+            document.getElementById('quickSpaceCount').textContent = `${spaces.length}/4 선택`;
+            document.getElementById('quickLocationCount').textContent = `${locations.length}/4 선택`;
+            document.getElementById('quickDefectTypeCount').textContent = `${defectTypes.length}/4 선택`;
+            
+            // 하자내용 표시
+            document.getElementById('quickModeMemo').value = defect.description || '';
+            
+            // 버튼 텍스트 변경
+            document.querySelector('.quick-mode-btn.continue').textContent = '수정 완료 ✓';
+            document.querySelector('.quick-mode-btn.continue').onclick = saveDefectEdit;
+            document.querySelector('.quick-mode-btn.save').style.display = 'none';
+            
+            // 타이틀 변경
+            document.querySelector('.quick-mode-title').textContent = '📝 하자 수정';
+            
+            updateQuickModeCount();
+        }
+
+        function saveDefectEdit() {
+            if (!editingDefectId) return;
+            
+            const defect = getCurrentProject().defects.find(d => d.id === editingDefectId);
+            if (!defect) return;
+            
+            // 데이터 업데이트
+            defect.spaces = quickModeData.spaces.length > 0 ? quickModeData.spaces : ['미지정'];
+            defect.locations = quickModeData.locations || [];
+            defect.defectTypes = quickModeData.defectTypes || [];
+            defect.description = document.getElementById('quickModeMemo').value.trim() || '하자 촬영';
+            defect.photos = [quickModeData.photos.far, quickModeData.photos.near].filter(p => p);
+            
+            saveData();
+            closeDefectEdit();
+            renderDefectList();
+            showToast('수정 완료!');
+        }
+
+        function closeDefectEdit() {
+            editingDefectId = null;
+            
+            // 버튼 원복
+            document.querySelector('.quick-mode-btn.continue').textContent = '저장 → 다음 촬영 📸';
+            document.querySelector('.quick-mode-btn.continue').onclick = saveAndContinueQuick;
+            document.querySelector('.quick-mode-btn.save').style.display = '';
+            
+            // 타이틀 원복
+            document.querySelector('.quick-mode-title').textContent = '📸 하자 촬영';
+            
+            closeQuickMode();
+            resetQuickModeData();
+        }
+
         // ==================== 장비 가이드 ====================
         function renderEquipmentList() {
             const equipment = [
-                { name: '열화상 카메라', icon: '🔥', desc: '결로, 누수, 단열 불량 확인' },
-                { name: '라돈 측정기', icon: '☢️', desc: '실내 라돈 농도 측정' },
-                { name: '레이저 레벨기', icon: '📐', desc: '바닥/벽 수평 확인' },
-                { name: '공기질 측정기', icon: '💨', desc: 'PM2.5, CO2, TVOC 측정' }
+                { 
+                    name: '열화상 카메라', 
+                    icon: '🔥', 
+                    desc: '결로, 누수, 단열 불량 확인',
+                    guide: {
+                        purpose: '벽체, 창호, 바닥의 온도 차이를 시각화하여 단열 불량, 결로 위험 구간, 누수 의심 부위를 탐지합니다.',
+                        howToUse: [
+                            '실내외 온도차가 클수록 정확도 상승 (겨울철 난방 가동 시 최적)',
+                            '창문, 출입문 주변의 외기 침투 여부 확인',
+                            '천장/벽면의 온도 변화로 누수 가능성 탐지',
+                            '바닥 난방 시 온수 배관 위치 및 균일성 확인'
+                        ],
+                        checkPoints: [
+                            '창호 프레임 접합부 (열교 현상)',
+                            '외벽과 내벽이 만나는 코너 (결로 취약)',
+                            '욕실/발코니 인접 벽면 (누수 의심)',
+                            '바닥 전체 (난방 불균형 체크)'
+                        ],
+                        tips: '촬영 전 난방을 1~2시간 가동하고, 창문과 문을 닫아 실내 온도를 안정시킨 후 측정하세요.',
+                        standards: '인접 구역 대비 3°C 이상 온도차 발생 시 하자 의심'
+                    }
+                },
+                { 
+                    name: '라돈 측정기', 
+                    icon: '☢️', 
+                    desc: '실내 라돈 농도 측정',
+                    guide: {
+                        purpose: '지반에서 방출되는 방사성 기체인 라돈의 실내 농도를 측정하여 거주 안전성을 확인합니다.',
+                        howToUse: [
+                            '측정기를 바닥에서 1m 높이에 설치',
+                            '창문과 문을 닫고 환기 중단 상태에서 측정',
+                            '최소 24시간~48시간 연속 측정 권장',
+                            '거실, 안방, 화장실 등 주요 공간에서 측정'
+                        ],
+                        checkPoints: [
+                            '거실 (주요 거주 공간)',
+                            '안방 및 침실 (수면 공간)',
+                            '화장실 (배관 관통부 주변)',
+                            '환기가 어려운 밀폐된 공간'
+                        ],
+                        tips: '측정 중에는 환기를 하지 않고, 가능하면 난방을 가동하여 실제 거주 환경과 유사하게 설정하세요.',
+                        standards: '국내 권고 기준: 148 Bq/m³ (4 pCi/L) 이하 / WHO 권고: 100 Bq/m³ 이하'
+                    }
+                },
+                { 
+                    name: '레이저 레벨기', 
+                    icon: '📐', 
+                    desc: '바닥/벽 수평 확인',
+                    guide: {
+                        purpose: '바닥과 벽면의 수평/수직 상태를 정밀하게 측정하여 시공 품질을 확인합니다.',
+                        howToUse: [
+                            '레벨기를 바닥에 안정적으로 설치하고 수평 맞춤',
+                            '360° 레이저 라인으로 전체 공간 스캔',
+                            '줄자로 바닥과 레이저 라인 간 높이차 측정',
+                            '벽면 수직도는 상하 레이저 점 거리로 확인'
+                        ],
+                        checkPoints: [
+                            '거실 및 방 바닥 전체 (기울기 확인)',
+                            '욕실, 발코니 바닥 (배수 구배 확인)',
+                            '문틀 및 창틀 (수직/수평 확인)',
+                            '붙박이장, 신발장 설치면 (수평도)'
+                        ],
+                        tips: '바닥재 시공 전 측정이 가장 정확하며, 완공 후에는 여러 지점에서 줄자로 높이차를 측정하세요.',
+                        standards: '바닥 기울기: 3m당 3mm 이내 / 벽면 수직도: 3m당 3mm 이내'
+                    }
+                }
             ];
             
-            document.getElementById('equipmentList').innerHTML = equipment.map(eq => `
-                <div style="background: var(--card-bg); border: 1px solid var(--card-border); border-radius: var(--radius); padding: 16px; margin-bottom: 12px; display: flex; align-items: center; gap: 16px;">
-                    <div style="width: 48px; height: 48px; background: linear-gradient(135deg, var(--accent), #00A080); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px;">${eq.icon}</div>
-                    <div>
-                        <div style="font-weight: 600; margin-bottom: 4px;">${eq.name}</div>
-                        <div style="font-size: 12px; color: var(--text-muted);">${eq.desc}</div>
+            document.getElementById('equipmentList').innerHTML = equipment.map((eq, idx) => {
+                // guide가 있는 장비만 아코디언 형태로 표시
+                if (eq.guide) {
+                    return `
+                    <div class="equipment-card" style="background: var(--card-bg); border: 1px solid var(--card-border); border-radius: var(--radius); margin-bottom: 12px; overflow: hidden;">
+                        <div style="padding: 16px; display: flex; align-items: center; gap: 16px; cursor: pointer;" onclick="toggleEquipmentGuide(${idx})">
+                            <div style="width: 48px; height: 48px; background: linear-gradient(135deg, var(--accent), #00A080); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0;">${eq.icon}</div>
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600; margin-bottom: 4px;">${eq.name}</div>
+                                <div style="font-size: 12px; color: var(--text-muted);">${eq.desc}</div>
+                            </div>
+                            <div style="color: var(--accent); font-size: 18px; transition: transform 0.3s;" id="eqArrow${idx}">▼</div>
+                        </div>
+                        <div id="eqGuide${idx}" style="display: none; padding: 0 16px 16px 16px; border-top: 1px solid var(--card-border);">
+                            <div style="padding-top: 16px;">
+                                <!-- 용도 -->
+                                <div style="margin-bottom: 16px;">
+                                    <div style="font-size: 13px; font-weight: 700; color: var(--accent); margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                                        <span>🎯</span> 측정 목적
+                                    </div>
+                                    <div style="font-size: 13px; color: var(--text); line-height: 1.6; padding-left: 4px;">
+                                        ${eq.guide.purpose}
+                                    </div>
+                                </div>
+                                
+                                <!-- 사용법 -->
+                                <div style="margin-bottom: 16px;">
+                                    <div style="font-size: 13px; font-weight: 700; color: var(--accent); margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                                        <span>📖</span> 사용 방법
+                                    </div>
+                                    <div style="padding-left: 4px;">
+                                        ${eq.guide.howToUse.map(item => `
+                                            <div style="font-size: 12px; color: var(--text); margin-bottom: 6px; display: flex; gap: 8px; line-height: 1.5;">
+                                                <span style="color: var(--accent);">•</span>
+                                                <span>${item}</span>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                                
+                                <!-- 점검 포인트 -->
+                                <div style="margin-bottom: 16px;">
+                                    <div style="font-size: 13px; font-weight: 700; color: var(--accent); margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                                        <span>📍</span> 주요 점검 포인트
+                                    </div>
+                                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; padding-left: 4px;">
+                                        ${eq.guide.checkPoints.map(point => `
+                                            <div style="font-size: 11px; color: var(--text); background: var(--primary); padding: 8px 10px; border-radius: 6px; display: flex; align-items: center; gap: 6px;">
+                                                <span style="color: var(--accent);">✓</span>
+                                                <span>${point}</span>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                                
+                                <!-- 팁 -->
+                                <div style="margin-bottom: 16px; background: linear-gradient(135deg, rgba(0, 212, 170, 0.1), rgba(0, 180, 148, 0.05)); border-radius: 8px; padding: 12px;">
+                                    <div style="font-size: 12px; font-weight: 700; color: var(--accent); margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+                                        <span>💡</span> 전문가 팁
+                                    </div>
+                                    <div style="font-size: 12px; color: var(--text); line-height: 1.6;">
+                                        ${eq.guide.tips}
+                                    </div>
+                                </div>
+                                
+                                <!-- 기준 -->
+                                <div style="background: var(--primary); border-radius: 8px; padding: 12px; border-left: 3px solid var(--accent);">
+                                    <div style="font-size: 12px; font-weight: 700; color: var(--accent); margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+                                        <span>📊</span> 판정 기준
+                                    </div>
+                                    <div style="font-size: 12px; color: var(--text-muted); line-height: 1.5;">
+                                        ${eq.guide.standards}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                </div>
-            `).join('');
+                    `;
+                } else {
+                    // guide가 없는 장비는 간단하게 표시
+                    return `
+                    <div style="background: var(--card-bg); border: 1px solid var(--card-border); border-radius: var(--radius); padding: 16px; margin-bottom: 12px; display: flex; align-items: center; gap: 16px;">
+                        <div style="width: 48px; height: 48px; background: linear-gradient(135deg, var(--accent), #00A080); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0;">${eq.icon}</div>
+                        <div>
+                            <div style="font-weight: 600; margin-bottom: 4px;">${eq.name}</div>
+                            <div style="font-size: 12px; color: var(--text-muted);">${eq.desc}</div>
+                        </div>
+                    </div>
+                    `;
+                }
+            }).join('');
+        }
+        
+        // 장비 가이드 토글 함수
+        function toggleEquipmentGuide(idx) {
+            const guide = document.getElementById('eqGuide' + idx);
+            const arrow = document.getElementById('eqArrow' + idx);
+            
+            if (guide.style.display === 'none') {
+                guide.style.display = 'block';
+                arrow.style.transform = 'rotate(180deg)';
+            } else {
+                guide.style.display = 'none';
+                arrow.style.transform = 'rotate(0deg)';
+            }
         }
 
         // ==================== 리포트/공유 ====================
@@ -7910,13 +7985,7 @@
                             <div style="text-align: right;">
                                 <div style="font-size: 12px; color: #888;">점검일자</div>
                                 <div style="font-size: 14px; color: #333; font-weight: 600;">${projectInfo.inspectionDate}</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 테이블 -->
-                    <table style="width: 100%; border-collapse: collapse; border: 2px solid #2c5282;">
-                        <thead>
+                               <thead>
                             <tr style="background: #e8f4fc; border-bottom: 2px solid #2c5282;">
                                 <th style="padding: 12px 8px; width: 8%; color: #2c5282; font-size: 14px; font-weight: 700; border-right: 1px solid #2c5282;">No</th>
                                 <th style="padding: 12px 8px; width: 18%; color: #2c5282; font-size: 14px; font-weight: 700; border-right: 1px solid #2c5282;">공간</th>
