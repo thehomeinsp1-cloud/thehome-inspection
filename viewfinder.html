@@ -3189,6 +3189,92 @@
             50% { opacity: 0.7; }
         }
 
+        /* 홈 진행 바 스타일 (간소화) */
+        .home-step-bar-mini {
+            display: flex;
+            justify-content: center;
+            padding: 12px 0;
+            margin-bottom: 12px;
+        }
+
+        .home-step-bar-mini .home-step-progress {
+            display: flex;
+            align-items: center;
+            gap: 0;
+            margin-bottom: 0;
+        }
+
+        .home-step-dot {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: var(--card-bg);
+            border: 2px solid var(--card-border);
+            color: var(--text-muted);
+            font-size: 12px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .home-step-dot.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(0, 212, 170, 0.2);
+            transform: scale(1.1);
+        }
+
+        .home-step-dot.completed {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: var(--primary);
+        }
+
+        .home-step-line {
+            width: 40px;
+            height: 3px;
+            background: var(--card-border);
+            transition: background 0.3s ease;
+        }
+
+        .home-step-line.completed {
+            background: var(--accent);
+        }
+
+        /* 플로우 카드 가이드 */
+        .flow-card-guide {
+            padding: 10px 15px;
+            margin: 0 -15px;
+            background: linear-gradient(135deg, rgba(0, 212, 170, 0.1), rgba(0, 184, 148, 0.05));
+            border-bottom: 1px solid var(--card-border);
+            font-size: 13px;
+            color: var(--accent);
+            font-weight: 500;
+            display: none;
+        }
+
+        .flow-card.home-section-active .flow-card-guide {
+            display: block;
+            animation: pulseText 2s ease-in-out infinite;
+        }
+
+        /* 홈 섹션 활성화/비활성화 */
+        .flow-card.home-section-dimmed {
+            opacity: 0.4;
+            pointer-events: none;
+            transform: scale(0.98);
+        }
+
+        .flow-card.home-section-active {
+            opacity: 1;
+            pointer-events: auto;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px rgba(0, 212, 170, 0.2);
+        }
+
         /* 섹션 스타일 */
         .quick-section {
             transition: all 0.3s ease;
@@ -4471,6 +4557,17 @@
         <!-- ==================== 홈 섹션 ==================== -->
         <section class="section active" id="homeSection">
 
+            <!-- 홈 진행 바 (간소화) -->
+            <div class="home-step-bar-mini">
+                <div class="home-step-progress">
+                    <div class="home-step-dot active" data-step="1">1</div>
+                    <div class="home-step-line"></div>
+                    <div class="home-step-dot" data-step="2">2</div>
+                    <div class="home-step-line"></div>
+                    <div class="home-step-dot" data-step="3">3</div>
+                </div>
+            </div>
+
             <!-- 프로젝트 선택기 -->
             <div class="project-selector" onclick="openProjectModal()">
                 <div class="project-selector-left">
@@ -4483,11 +4580,14 @@
             <!-- ========== 메인 플로우: 3단계 카드 ========== -->
             
             <!-- STEP 1: 점검 정보 -->
-            <div class="flow-card" id="flowCard1">
+            <div class="flow-card home-section-active" id="flowCard1">
                 <div class="flow-card-header">
                     <div class="flow-step-badge">STEP 1</div>
                     <div class="flow-step-title">점검 정보</div>
                     <div class="flow-step-status" id="flow1Status">⏳ 입력 필요</div>
+                </div>
+                <div class="flow-card-guide" id="flowCard1Guide">
+                    💡 아파트명을 입력하면 다음 단계로 진행됩니다
                 </div>
                 <div class="flow-card-body">
                     <input type="text" id="apartmentName" class="project-input full" placeholder="아파트명 (예: 래미안 퍼스트하임)" />
@@ -4500,11 +4600,14 @@
             </div>
 
             <!-- STEP 2: 하자 촬영 -->
-            <div class="flow-card" id="flowCard2">
+            <div class="flow-card home-section-dimmed" id="flowCard2">
                 <div class="flow-card-header">
                     <div class="flow-step-badge">STEP 2</div>
                     <div class="flow-step-title">하자 촬영</div>
                     <div class="flow-step-status" id="flow2Status">0건</div>
+                </div>
+                <div class="flow-card-guide" id="flowCard2Guide">
+                    💡 하자를 발견하면 촬영 버튼을 눌러주세요
                 </div>
                 <div class="flow-card-body">
                     <button class="flow-action-btn" onclick="openQuickMode()">
@@ -4522,11 +4625,14 @@
             </div>
 
             <!-- STEP 3: 리포트 생성 -->
-            <div class="flow-card" id="flowCard3">
+            <div class="flow-card home-section-dimmed" id="flowCard3">
                 <div class="flow-card-header">
                     <div class="flow-step-badge">STEP 3</div>
                     <div class="flow-step-title">리포트 생성</div>
                     <div class="flow-step-status" id="flow3Status">대기</div>
+                </div>
+                <div class="flow-card-guide" id="flowCard3Guide">
+                    💡 PDF 보고서를 생성하고 이메일로 전송하세요
                 </div>
                 <div class="flow-card-body">
                     <button class="flow-action-btn" onclick="showSection('reportSection')" id="reportFlowBtn">
@@ -6598,6 +6704,90 @@
                 flow3Status.textContent = count > 0 ? '생성 가능' : '대기';
                 flow3Status.className = count > 0 ? 'flow-step-status done' : 'flow-step-status';
             }
+            
+            // 홈 스텝 진행 업데이트
+            updateHomeStepProgress();
+        }
+
+        // 홈 화면 단계별 진행 업데이트
+        function updateHomeStepProgress() {
+            const proj = getCurrentProject();
+            const hasInfo = proj.apartmentName && proj.apartmentName.trim() !== '';
+            const hasDefects = proj.defects && proj.defects.length > 0;
+            
+            // 현재 단계 계산
+            let currentStep = 1;
+            if (hasInfo && hasDefects) {
+                currentStep = 3;
+            } else if (hasInfo) {
+                currentStep = 2;
+            }
+            
+            // 진행 바 업데이트
+            const dots = document.querySelectorAll('.home-step-dot');
+            const lines = document.querySelectorAll('.home-step-line');
+            
+            dots.forEach((dot, idx) => {
+                const step = idx + 1;
+                dot.classList.remove('active', 'completed');
+                if (step < currentStep) {
+                    dot.classList.add('completed');
+                    dot.innerHTML = '✓';
+                } else if (step === currentStep) {
+                    dot.classList.add('active');
+                    dot.innerHTML = step;
+                } else {
+                    dot.innerHTML = step;
+                }
+            });
+            
+            lines.forEach((line, idx) => {
+                if (idx < currentStep - 1) {
+                    line.classList.add('completed');
+                } else {
+                    line.classList.remove('completed');
+                }
+            });
+            
+            // 플로우 카드 활성화/비활성화
+            const flowCard1 = document.getElementById('flowCard1');
+            const flowCard2 = document.getElementById('flowCard2');
+            const flowCard3 = document.getElementById('flowCard3');
+            
+            // STEP 1: 항상 활성화
+            flowCard1.classList.remove('home-section-dimmed');
+            flowCard1.classList.add('home-section-active');
+            if (hasInfo) {
+                flowCard1.classList.remove('home-section-active');
+            }
+            
+            // STEP 2: 정보 입력 후 활성화
+            if (hasInfo) {
+                flowCard2.classList.remove('home-section-dimmed');
+                flowCard2.classList.add('home-section-active');
+                if (hasDefects) {
+                    flowCard2.classList.remove('home-section-active');
+                }
+            } else {
+                flowCard2.classList.add('home-section-dimmed');
+                flowCard2.classList.remove('home-section-active');
+            }
+            
+            // STEP 3: 하자 1건 이상 후 활성화
+            if (hasDefects) {
+                flowCard3.classList.remove('home-section-dimmed');
+                flowCard3.classList.add('home-section-active');
+            } else {
+                flowCard3.classList.add('home-section-dimmed');
+                flowCard3.classList.remove('home-section-active');
+            }
+            
+            // STEP 1 상태 표시
+            const flow1Status = document.getElementById('flow1Status');
+            if (flow1Status) {
+                flow1Status.textContent = hasInfo ? '✓ 입력 완료' : '⏳ 입력 필요';
+                flow1Status.className = hasInfo ? 'flow-step-status done' : 'flow-step-status';
+            }
         }
 
         // 프로젝트 정보 자동 저장
@@ -6609,12 +6799,17 @@
                     el.addEventListener('change', () => {
                         saveProjectInfo();
                         updateStepGuide();
+                        updateHomeStepProgress();
                     });
                     el.addEventListener('blur', () => {
                         saveProjectInfo();
                         updateStepGuide();
+                        updateHomeStepProgress();
                     });
-                    el.addEventListener('input', updateStepGuide);
+                    el.addEventListener('input', () => {
+                        updateStepGuide();
+                        updateHomeStepProgress();
+                    });
                 }
             });
         }
