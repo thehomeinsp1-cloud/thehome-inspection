@@ -5292,23 +5292,7 @@
         }
         
         function showAddToHomeOverlay() {
-            const ua = navigator.userAgent.toLowerCase();
-            const isAndroid = /android/i.test(ua);
-            const isIOS = /iphone|ipad|ipod/i.test(ua);
-            
-            // OS에 맞는 가이드만 표시
-            const androidStep = document.getElementById('addHomeStepAndroid');
-            const iosStep = document.getElementById('addHomeStepIOS');
-            
-            if (androidStep && iosStep) {
-                if (isAndroid) {
-                    iosStep.style.display = 'none';
-                } else if (isIOS) {
-                    androidStep.style.display = 'none';
-                }
-                // 둘 다 아니면 둘 다 표시
-            }
-            
+            // OS 구분 없이 둘 다 표시
             document.getElementById('addToHomeOverlay').classList.add('active');
             sessionStorage.setItem('addToHomeShown', 'true');
         }
