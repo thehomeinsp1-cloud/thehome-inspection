@@ -2293,6 +2293,28 @@
             color: var(--text);
         }
 
+        /* 홈화면 추가 안내 스타일 */
+        .add-home-steps {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .add-home-step {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 14px;
+            text-align: left;
+        }
+
+        .add-home-step-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--accent);
+            margin-bottom: 10px;
+        }
+
         /* ==================== 로딩 오버레이 본체 ==================== */
         .loading-overlay {
             position: fixed;
@@ -5164,6 +5186,52 @@
         </div>
     </div>
 
+    <!-- ==================== 홈화면 추가 안내 오버레이 ==================== -->
+    <div class="inapp-browser-overlay" id="addToHomeOverlay">
+        <div class="inapp-browser-popup">
+            <div class="inapp-browser-icon">📱</div>
+            <h2 class="inapp-browser-title">홈 화면에 추가하세요!</h2>
+            <p class="inapp-browser-desc">
+                앱처럼 바로 실행할 수 있어요.<br>
+                더 빠르고 편리하게 사용하세요.
+            </p>
+            
+            <div class="add-home-steps">
+                <div class="add-home-step" id="addHomeStepAndroid">
+                    <div class="add-home-step-title">📍 Android (Chrome)</div>
+                    <div class="inapp-browser-manual-step">
+                        <span class="step-num">1</span>
+                        <span>우측 상단 <b>⋮</b> 메뉴 클릭</span>
+                    </div>
+                    <div class="inapp-browser-manual-step">
+                        <span class="step-num">2</span>
+                        <span><b>"홈 화면에 추가"</b> 선택</span>
+                    </div>
+                </div>
+                <div class="add-home-step" id="addHomeStepIOS">
+                    <div class="add-home-step-title">📍 iPhone (Safari)</div>
+                    <div class="inapp-browser-manual-step">
+                        <span class="step-num">1</span>
+                        <span>하단 <b>공유 버튼 (□↑)</b> 클릭</span>
+                    </div>
+                    <div class="inapp-browser-manual-step">
+                        <span class="step-num">2</span>
+                        <span><b>"홈 화면에 추가"</b> 선택</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="inapp-browser-buttons">
+                <button class="inapp-browser-btn primary" onclick="closeAddToHomeOverlay()">
+                    확인했어요 👍
+                </button>
+                <button class="inapp-browser-btn secondary" onclick="closeAddToHomeOverlay(true)">
+                    다시 보지 않기
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- ==================== 로딩 오버레이 ==================== -->
     <div class="loading-overlay" id="loadingOverlay">
         <div class="loading-spinner"></div>
@@ -5196,6 +5264,59 @@
             
             if (isInApp && !alreadyWarned) {
                 document.getElementById('inappBrowserOverlay').classList.add('active');
+            } else if (!isInApp) {
+                // 일반 브라우저에서 홈화면 추가 안내 체크
+                checkAddToHomePrompt();
+            }
+        }
+        
+        // 홈화면 추가 안내
+        function checkAddToHomePrompt() {
+            // 이미 PWA로 실행 중이면 표시하지 않음
+            const isStandalone = window.matchMedia('(display-mode: standalone)').matches || 
+                                 window.navigator.standalone === true;
+            if (isStandalone) return;
+            
+            // "다시 보지 않기" 선택한 경우
+            const neverShow = localStorage.getItem('addToHomeNeverShow');
+            if (neverShow) return;
+            
+            // 이번 세션에서 이미 본 경우
+            const alreadyShown = sessionStorage.getItem('addToHomeShown');
+            if (alreadyShown) return;
+            
+            // 첫 방문 후 2초 뒤에 표시 (UX 개선)
+            setTimeout(() => {
+                showAddToHomeOverlay();
+            }, 2000);
+        }
+        
+        function showAddToHomeOverlay() {
+            const ua = navigator.userAgent.toLowerCase();
+            const isAndroid = /android/i.test(ua);
+            const isIOS = /iphone|ipad|ipod/i.test(ua);
+            
+            // OS에 맞는 가이드만 표시
+            const androidStep = document.getElementById('addHomeStepAndroid');
+            const iosStep = document.getElementById('addHomeStepIOS');
+            
+            if (androidStep && iosStep) {
+                if (isAndroid) {
+                    iosStep.style.display = 'none';
+                } else if (isIOS) {
+                    androidStep.style.display = 'none';
+                }
+                // 둘 다 아니면 둘 다 표시
+            }
+            
+            document.getElementById('addToHomeOverlay').classList.add('active');
+            sessionStorage.setItem('addToHomeShown', 'true');
+        }
+        
+        function closeAddToHomeOverlay(neverShow = false) {
+            document.getElementById('addToHomeOverlay').classList.remove('active');
+            if (neverShow) {
+                localStorage.setItem('addToHomeNeverShow', 'true');
             }
         }
         
