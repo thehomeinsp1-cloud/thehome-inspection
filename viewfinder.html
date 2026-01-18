@@ -7958,15 +7958,22 @@
             
             for (let idx = startIdx; idx < end; idx++) {
                 const defect = defects[idx];
-                const spaces = defect.spaces.join(', ') || '-';
+                // 기존 데이터 호환성
+                const spaces = (defect.spaces || []).join(' ') || '-';
+                const locations = (defect.locations || []).join(' ') || '';
+                const defectTypes = (defect.defectTypes || []).join(' ') || '';
                 const desc = defect.description || '-';
                 const rowBg = idx % 2 === 0 ? '#ffffff' : '#f5f7fa';
                 
+                // 위치+하자유형 조합
+                const detail = [locations, defectTypes].filter(p => p).join(' ') || '-';
+                
                 tableRows += `
                     <tr style="border-bottom: 1px solid #d0d5dd; background: ${rowBg};">
-                        <td style="padding: 12px 8px; text-align: center; font-weight: 700; color: #2c5282; font-size: 14px; vertical-align: middle; border-right: 1px solid #d0d5dd;">${idx + 1}</td>
-                        <td style="padding: 12px 10px; text-align: center; color: #333; font-weight: 600; font-size: 13px; vertical-align: middle; border-right: 1px solid #d0d5dd;">${spaces}</td>
-                        <td style="padding: 12px 12px; color: #222; font-weight: 500; font-size: 13px; word-break: break-word; white-space: normal; line-height: 1.4; vertical-align: middle;">${desc}</td>
+                        <td style="padding: 10px 6px; text-align: center; font-weight: 700; color: #2c5282; font-size: 13px; vertical-align: middle; border-right: 1px solid #d0d5dd;">${idx + 1}</td>
+                        <td style="padding: 10px 8px; text-align: center; color: #333; font-weight: 600; font-size: 12px; vertical-align: middle; border-right: 1px solid #d0d5dd;">${spaces}</td>
+                        <td style="padding: 10px 8px; text-align: center; color: #00A896; font-weight: 600; font-size: 12px; vertical-align: middle; border-right: 1px solid #d0d5dd;">${detail}</td>
+                        <td style="padding: 10px 10px; color: #222; font-weight: 500; font-size: 12px; word-break: break-word; white-space: normal; line-height: 1.4; vertical-align: middle;">${desc}</td>
                     </tr>
                 `;
             }
@@ -7985,11 +7992,18 @@
                             <div style="text-align: right;">
                                 <div style="font-size: 12px; color: #888;">점검일자</div>
                                 <div style="font-size: 14px; color: #333; font-weight: 600;">${projectInfo.inspectionDate}</div>
-                               <thead>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 테이블 -->
+                    <table style="width: 100%; border-collapse: collapse; border: 1px solid #2c5282;">
+                        <thead>
                             <tr style="background: #e8f4fc; border-bottom: 2px solid #2c5282;">
-                                <th style="padding: 12px 8px; width: 8%; color: #2c5282; font-size: 14px; font-weight: 700; border-right: 1px solid #2c5282;">No</th>
-                                <th style="padding: 12px 8px; width: 18%; color: #2c5282; font-size: 14px; font-weight: 700; border-right: 1px solid #2c5282;">공간</th>
-                                <th style="padding: 12px 10px; width: 74%; color: #2c5282; font-size: 14px; font-weight: 700;">하자 내용</th>
+                                <th style="padding: 10px 6px; width: 6%; color: #2c5282; font-size: 13px; font-weight: 700; border-right: 1px solid #2c5282;">No</th>
+                                <th style="padding: 10px 6px; width: 14%; color: #2c5282; font-size: 13px; font-weight: 700; border-right: 1px solid #2c5282;">공간</th>
+                                <th style="padding: 10px 6px; width: 20%; color: #2c5282; font-size: 13px; font-weight: 700; border-right: 1px solid #2c5282;">위치/유형</th>
+                                <th style="padding: 10px 8px; width: 60%; color: #2c5282; font-size: 13px; font-weight: 700;">하자 내용</th>
                             </tr>
                         </thead>
                         <tbody>${tableRows}</tbody>
@@ -8015,25 +8029,36 @@
             
             defects.forEach((defect, idx) => {
                 const globalIndex = startIndex + idx + 1;
-                const spaces = defect.spaces.join(', ') || '미지정';
+                // 기존 데이터 호환성
+                const spaces = (defect.spaces || []).join(' ') || '미지정';
+                const locations = (defect.locations || []).join(' ') || '';
+                const defectTypes = (defect.defectTypes || []).join(' ') || '';
                 const description = defect.description || '';
                 const farPhoto = defect.photos[0] || '';
                 const nearPhoto = defect.photos[1] || '';
+                
+                // 위치/유형 조합
+                const detail = [locations, defectTypes].filter(p => p).join(' ');
                 
                 // 배지 색상 (샘플과 동일)
                 const badgeColor = '#00D4AA';
                 
                 contentHTML += `
                     <div style="margin-bottom: 30px; page-break-inside: avoid;">
-                        <!-- 하자 번호, 공간, 내용 (한 줄 배치) -->
+                        <!-- 하자 번호, 공간, 위치/유형, 내용 (한 줄 배치) -->
                         <div style="background: #f5f5f5; padding: 12px 15px; margin-bottom: 12px; border-left: 4px solid ${badgeColor};">
-                            <div style="display: flex; align-items: center; gap: 12px;">
+                            <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
                                 <div style="background: ${badgeColor}; color: white; padding: 4px 12px; border-radius: 4px; font-size: 12px; font-weight: bold; flex-shrink: 0;">
                                     #${String(globalIndex).padStart(2, '0')}
                                 </div>
                                 <div style="font-size: 14px; color: #333; font-weight: 700; flex-shrink: 0;">
                                     ${spaces}
                                 </div>
+                                ${detail ? `
+                                    <div style="font-size: 13px; color: #00A896; font-weight: 600; flex-shrink: 0;">
+                                        ${detail}
+                                    </div>
+                                ` : ''}
                                 ${description ? `
                                     <div style="font-size: 14px; color: #000; font-weight: 700; flex: 1;">
                                         ${description}
