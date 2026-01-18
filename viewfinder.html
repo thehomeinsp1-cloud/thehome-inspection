@@ -5706,38 +5706,22 @@
             hideLicenseError();
             
             try {
-                // 1단계: 코드 검증
-                const verifyResponse = await fetch(`${LICENSE_API_URL}?action=verify&code=${encodeURIComponent(code)}&deviceId=${encodeURIComponent(deviceId)}`);
-                const verifyResult = await verifyResponse.json();
+                // 1단계: 코드 검증 및 활성화 (GET으로 통합)
+                const response = await fetch(
+                    `${LICENSE_API_URL}?action=activate&code=${encodeURIComponent(code)}&deviceId=${encodeURIComponent(deviceId)}`,
+                    { method: 'GET' }
+                );
+                const result = await response.json();
                 
-                if (!verifyResult.success) {
-                    showLicenseError(verifyResult.error || '유효하지 않은 코드입니다');
-                    btn.disabled = false;
-                    btn.textContent = '인증하기';
-                    return;
-                }
-                
-                // 2단계: 활성화
-                const activateResponse = await fetch(LICENSE_API_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        action: 'activate',
-                        code: code,
-                        deviceId: deviceId
-                    })
-                });
-                const activateResult = await activateResponse.json();
-                
-                if (activateResult.success) {
+                if (result.success) {
                     // 코드 저장
                     saveLicenseCode(code);
-                    licenseData = activateResult.license;
+                    licenseData = result.license;
                     
                     // 상태 화면 표시
-                    showLicenseStatus(activateResult.license);
+                    showLicenseStatus(result.license);
                 } else {
-                    showLicenseError(activateResult.error || '활성화에 실패했습니다');
+                    showLicenseError(result.error || '유효하지 않은 코드입니다');
                 }
             } catch (error) {
                 console.error('License verification error:', error);
