@@ -3122,6 +3122,102 @@
             justify-content: center;
         }
 
+        /* 진행 바 스타일 */
+        .quick-step-bar {
+            padding: 16px 20px;
+            background: linear-gradient(135deg, rgba(0, 212, 170, 0.1), rgba(0, 184, 148, 0.05));
+            border-bottom: 1px solid var(--card-border);
+        }
+
+        .quick-step-progress {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0;
+            margin-bottom: 12px;
+        }
+
+        .quick-step-dot {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: var(--card-bg);
+            border: 2px solid var(--card-border);
+            color: var(--text-muted);
+            font-size: 12px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .quick-step-dot.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(0, 212, 170, 0.2);
+        }
+
+        .quick-step-dot.completed {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: var(--primary);
+        }
+
+        .quick-step-line {
+            width: 40px;
+            height: 3px;
+            background: var(--card-border);
+            transition: background 0.3s ease;
+        }
+
+        .quick-step-line.completed {
+            background: var(--accent);
+        }
+
+        .quick-step-guide {
+            text-align: center;
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text);
+            animation: pulseText 2s ease-in-out infinite;
+        }
+
+        @keyframes pulseText {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        /* 섹션 스타일 */
+        .quick-section {
+            transition: all 0.3s ease;
+        }
+
+        .quick-section.dimmed {
+            opacity: 0.4;
+            pointer-events: none;
+        }
+
+        .quick-section.dimmed .touch-btn,
+        .quick-section.dimmed .quick-mode-memo {
+            pointer-events: none;
+        }
+
+        .quick-section.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .quick-section-optional-label {
+            text-align: center;
+            font-size: 12px;
+            color: var(--text-muted);
+            padding: 8px 0;
+            border-top: 1px dashed var(--card-border);
+            margin-bottom: 8px;
+        }
+
         .quick-mode-body {
             flex: 1;
             padding: 20px;
@@ -4678,51 +4774,76 @@
             <button class="quick-mode-close" onclick="closeQuickMode()">✕</button>
         </div>
         
+        <!-- 진행 바 -->
+        <div class="quick-step-bar">
+            <div class="quick-step-progress">
+                <div class="quick-step-dot active" data-step="1">1</div>
+                <div class="quick-step-line"></div>
+                <div class="quick-step-dot" data-step="2">2</div>
+                <div class="quick-step-line"></div>
+                <div class="quick-step-dot" data-step="3">3</div>
+            </div>
+            <div class="quick-step-guide" id="quickStepGuide">
+                📸 원경 사진을 촬영하세요
+            </div>
+        </div>
+        
         <div class="quick-mode-body">
-            <div class="quick-mode-photo-area">
-                <div class="quick-mode-photo-box far" id="quickPhotoFar" onclick="openQuickCamera('far')">
-                    <span class="quick-mode-photo-icon">📸</span>
-                    <span class="quick-mode-photo-label">원경</span>
-                    <span class="quick-mode-photo-hint">멀리서 전체</span>
+            <!-- 사진 촬영 섹션 -->
+            <div class="quick-section" id="quickSectionPhoto" data-step="1">
+                <div class="quick-mode-photo-area">
+                    <div class="quick-mode-photo-box far" id="quickPhotoFar" onclick="openQuickCamera('far')">
+                        <span class="quick-mode-photo-icon">📸</span>
+                        <span class="quick-mode-photo-label">원경</span>
+                        <span class="quick-mode-photo-hint">멀리서 전체</span>
+                    </div>
+                    <div class="quick-mode-photo-box near" id="quickPhotoNear" onclick="openQuickCamera('near')">
+                        <span class="quick-mode-photo-icon">🔍</span>
+                        <span class="quick-mode-photo-label">근경</span>
+                        <span class="quick-mode-photo-hint">가까이서 상세</span>
+                    </div>
                 </div>
-                <div class="quick-mode-photo-box near" id="quickPhotoNear" onclick="openQuickCamera('near')">
-                    <span class="quick-mode-photo-icon">🔍</span>
-                    <span class="quick-mode-photo-label">근경</span>
-                    <span class="quick-mode-photo-hint">가까이서 상세</span>
-                </div>
-            </div>
-            
-            <!-- 퀵모드 갤러리 버튼 -->
-            <div style="display: flex; gap: 10px;">
-                <button style="flex: 1; padding: 12px; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: var(--radius); color: var(--text); font-size: 14px; cursor: pointer;" onclick="openQuickGallery('far')">🖼️ 원경 갤러리</button>
-                <button style="flex: 1; padding: 12px; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: var(--radius); color: var(--text); font-size: 14px; cursor: pointer;" onclick="openQuickGallery('near')">🖼️ 근경 갤러리</button>
-            </div>
-
-            <div class="quick-mode-space-select">
-                <div class="quick-mode-space-label">공간 선택 <span id="quickSpaceCount" style="color: var(--accent);">0/4 선택</span></div>
-                <div class="touch-btn-grid" id="quickSpaceChips">
-                    <!-- 동적 생성 -->
-                </div>
-                <button class="add-space-btn" onclick="addCustomSpace()">+ 공간 추가</button>
-            </div>
-
-            <div class="quick-mode-space-select">
-                <div class="quick-mode-space-label">위치 선택 <span id="quickLocationCount" style="color: var(--accent);">0/4 선택</span></div>
-                <div class="touch-btn-grid" id="quickLocationChips">
-                    <!-- 동적 생성 -->
+                
+                <!-- 퀵모드 갤러리 버튼 -->
+                <div style="display: flex; gap: 10px;">
+                    <button style="flex: 1; padding: 12px; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: var(--radius); color: var(--text); font-size: 14px; cursor: pointer;" onclick="openQuickGallery('far')">🖼️ 원경 갤러리</button>
+                    <button style="flex: 1; padding: 12px; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: var(--radius); color: var(--text); font-size: 14px; cursor: pointer;" onclick="openQuickGallery('near')">🖼️ 근경 갤러리</button>
                 </div>
             </div>
 
-            <div class="quick-mode-space-select">
-                <div class="quick-mode-space-label">하자내용 선택 <span id="quickDefectTypeCount" style="color: var(--accent);">0/4 선택</span></div>
-                <div class="touch-btn-grid" id="quickDefectTypeChips">
-                    <!-- 동적 생성 -->
+            <!-- 공간 선택 섹션 -->
+            <div class="quick-section dimmed" id="quickSectionSpace" data-step="2">
+                <div class="quick-mode-space-select">
+                    <div class="quick-mode-space-label">공간 선택 <span id="quickSpaceCount" style="color: var(--accent);">0/4 선택</span></div>
+                    <div class="touch-btn-grid" id="quickSpaceChips">
+                        <!-- 동적 생성 -->
+                    </div>
+                    <button class="add-space-btn" onclick="addCustomSpace()">+ 공간 추가</button>
                 </div>
             </div>
 
-            <div class="quick-mode-space-select">
-                <div class="quick-mode-space-label">하자내용</div>
-                <textarea class="quick-mode-memo" id="quickModeMemo" placeholder="선택 항목이 자동으로 입력됩니다"></textarea>
+            <!-- 선택사항 섹션 -->
+            <div class="quick-section dimmed" id="quickSectionOptional" data-step="3">
+                <div class="quick-section-optional-label">▼ 선택사항 (생략 가능)</div>
+                
+                <div class="quick-mode-space-select">
+                    <div class="quick-mode-space-label">위치 선택 <span id="quickLocationCount" style="color: var(--accent);">0/4 선택</span></div>
+                    <div class="touch-btn-grid" id="quickLocationChips">
+                        <!-- 동적 생성 -->
+                    </div>
+                </div>
+
+                <div class="quick-mode-space-select">
+                    <div class="quick-mode-space-label">하자유형 선택 <span id="quickDefectTypeCount" style="color: var(--accent);">0/4 선택</span></div>
+                    <div class="touch-btn-grid" id="quickDefectTypeChips">
+                        <!-- 동적 생성 -->
+                    </div>
+                </div>
+
+                <div class="quick-mode-space-select">
+                    <div class="quick-mode-space-label">하자내용</div>
+                    <textarea class="quick-mode-memo" id="quickModeMemo" placeholder="선택 항목이 자동으로 입력됩니다"></textarea>
+                </div>
             </div>
         </div>
 
@@ -6030,6 +6151,7 @@
             renderQuickLocationChips();
             renderQuickDefectTypeChips();
             updateQuickModeCount();
+            updateQuickStepProgress();
             document.getElementById('quickModeOverlay').classList.add('active');
             document.body.style.overflow = 'hidden';
         }
@@ -6123,6 +6245,7 @@
             document.getElementById('quickSpaceCount').textContent = `${quickModeData.spaces.length}/4 선택`;
             renderQuickSpaceChips();
             updateAutoDescription();
+            updateQuickStepProgress();
         }
 
         // 퀵모드 위치 칩 렌더링
@@ -6225,6 +6348,7 @@
             box.onclick = () => openQuickCamera(type);
             
             updateQuickSaveButton();
+            updateQuickStepProgress();
         }
 
         function deleteQuickPhoto(type) {
@@ -6244,12 +6368,90 @@
             box.onclick = () => openQuickCamera(type);
             
             updateQuickSaveButton();
+            updateQuickStepProgress();
         }
 
         function updateQuickSaveButton() {
             const btn = document.getElementById('quickSaveBtn');
             const hasPhotos = quickModeData.photos.far || quickModeData.photos.near;
             btn.disabled = !hasPhotos;
+        }
+
+        // 단계별 진행 업데이트
+        function updateQuickStepProgress() {
+            const hasPhoto = quickModeData.photos.far || quickModeData.photos.near;
+            const hasBothPhotos = quickModeData.photos.far && quickModeData.photos.near;
+            const hasSpace = quickModeData.spaces.length > 0;
+            
+            // 현재 단계 계산
+            let currentStep = 1;
+            if (hasBothPhotos && hasSpace) {
+                currentStep = 3;
+            } else if (hasPhoto) {
+                currentStep = 2;
+            }
+            
+            // 진행 바 업데이트
+            const dots = document.querySelectorAll('.quick-step-dot');
+            const lines = document.querySelectorAll('.quick-step-line');
+            
+            dots.forEach((dot, idx) => {
+                const step = idx + 1;
+                dot.classList.remove('active', 'completed');
+                if (step < currentStep) {
+                    dot.classList.add('completed');
+                    dot.innerHTML = '✓';
+                } else if (step === currentStep) {
+                    dot.classList.add('active');
+                    dot.innerHTML = step;
+                } else {
+                    dot.innerHTML = step;
+                }
+            });
+            
+            lines.forEach((line, idx) => {
+                if (idx < currentStep - 1) {
+                    line.classList.add('completed');
+                } else {
+                    line.classList.remove('completed');
+                }
+            });
+            
+            // 가이드 메시지 업데이트
+            const guideEl = document.getElementById('quickStepGuide');
+            const guides = [
+                '📸 원경/근경 사진을 촬영하세요',
+                '📍 하자가 발견된 공간을 선택하세요',
+                '✅ 저장하거나 추가 정보를 입력하세요'
+            ];
+            guideEl.textContent = guides[currentStep - 1];
+            
+            // 섹션 활성화/비활성화
+            const sectionPhoto = document.getElementById('quickSectionPhoto');
+            const sectionSpace = document.getElementById('quickSectionSpace');
+            const sectionOptional = document.getElementById('quickSectionOptional');
+            
+            // 사진 섹션: 항상 활성화
+            sectionPhoto.classList.remove('dimmed');
+            sectionPhoto.classList.add('active');
+            
+            // 공간 섹션: 사진 1장 이상 있으면 활성화
+            if (hasPhoto) {
+                sectionSpace.classList.remove('dimmed');
+                sectionSpace.classList.add('active');
+            } else {
+                sectionSpace.classList.add('dimmed');
+                sectionSpace.classList.remove('active');
+            }
+            
+            // 선택사항 섹션: 공간 선택 후 활성화
+            if (hasPhoto && hasSpace) {
+                sectionOptional.classList.remove('dimmed');
+                sectionOptional.classList.add('active');
+            } else {
+                sectionOptional.classList.add('dimmed');
+                sectionOptional.classList.remove('active');
+            }
         }
 
         function updateQuickModeCount() {
