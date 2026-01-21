@@ -2916,6 +2916,35 @@
                         }));
                     }
                     
+                    // 장비 사진 ZIP 생성 및 업로드
+                    if (equipPhotoTasks.length > 0) {
+                        try {
+                            showToast('🗜️ 사진 ZIP 생성 중...');
+                            
+                            const zip = new JSZip();
+                            for (const task of equipPhotoTasks) {
+                                try {
+                                    const base64Data = task.photo.split(',')[1];
+                                    zip.file(task.fileName, base64Data, { base64: true });
+                                } catch (e) {
+                                    console.error(`ZIP 추가 실패: ${task.fileName}`, e);
+                                }
+                            }
+                            
+                            const zipBlob = await zip.generateAsync({ 
+                                type: 'blob',
+                                compression: 'DEFLATE',
+                                compressionOptions: { level: 6 }
+                            });
+                            
+                            showToast('📤 사진 ZIP 업로드 중...');
+                            const zipFileName = `${projectName}_사진.zip`;
+                            await uploadFileToDrive(projectFolderId, zipBlob, zipFileName, 'application/zip');
+                        } catch (zipError) {
+                            console.error('ZIP 생성/업로드 실패:', zipError);
+                        }
+                    }
+                    
                     // 프로젝트 상태 업데이트
                     project.isUploaded = true;
                     project.uploadedAt = new Date().toISOString();
@@ -2928,7 +2957,8 @@
                     showToast(`✅ 업로드 완료!`);
                     
                     if (!projectToUpload) {
-                        alert(`✅ 장비점검 업로드 완료!\n\n프로젝트: ${projectName}\n🔧 장비점검 보고서\n📷 장비 사진 ${totalPhotos}장`);
+                        const zipMsg = totalPhotos > 0 ? '\n🗜️ 사진 ZIP' : '';
+                        alert(`✅ 장비점검 업로드 완료!\n\n프로젝트: ${projectName}\n🔧 장비점검 보고서\n📷 장비 사진 ${totalPhotos}장${zipMsg}`);
                     }
                     return; // 장비만 업로드 후 종료
                 }
@@ -3282,7 +3312,43 @@
                     }));
                 }
                 
-                // 7. 프로젝트 상태 업데이트
+                // ========== 7. 사진 ZIP 파일 생성 및 업로드 ==========
+                if (photoTasks.length > 0) {
+                    try {
+                        showToast('🗜️ 사진 ZIP 생성 중...');
+                        
+                        const zip = new JSZip();
+                        
+                        // 각 사진을 ZIP에 추가
+                        for (const task of photoTasks) {
+                            try {
+                                // base64 데이터에서 실제 데이터 부분만 추출
+                                const base64Data = task.photo.split(',')[1];
+                                zip.file(task.fileName, base64Data, { base64: true });
+                            } catch (e) {
+                                console.error(`ZIP 추가 실패: ${task.fileName}`, e);
+                            }
+                        }
+                        
+                        // ZIP 생성
+                        const zipBlob = await zip.generateAsync({ 
+                            type: 'blob',
+                            compression: 'DEFLATE',
+                            compressionOptions: { level: 6 }
+                        });
+                        
+                        // ZIP 업로드 (메인 폴더에)
+                        showToast('📤 사진 ZIP 업로드 중...');
+                        const zipFileName = `${projectName}_사진.zip`;
+                        await uploadFileToDrive(projectFolderId, zipBlob, zipFileName, 'application/zip');
+                        
+                    } catch (zipError) {
+                        console.error('ZIP 생성/업로드 실패:', zipError);
+                        // ZIP 실패해도 나머지는 완료된 상태이므로 계속 진행
+                    }
+                }
+                
+                // 8. 프로젝트 상태 업데이트
                 project.isUploaded = true;
                 project.uploadedAt = new Date().toISOString();
                 project.driveFolderId = projectFolderId;
@@ -3297,7 +3363,8 @@
                 // 동기화 중이 아닐 때만 alert 표시
                 if (!projectToUpload) {
                     const equipmentMsg = equipmentPdfBlob ? '\n🔧 장비점검 보고서' : '';
-                    alert(`✅ 업로드 완료!\n\n프로젝트: ${projectName}\n📄 PDF 보고서${equipmentMsg}\n📊 엑셀 파일\n📷 사진 ${totalPhotos}장`);
+                    const zipMsg = totalPhotos > 0 ? '\n🗜️ 사진 ZIP' : '';
+                    alert(`✅ 업로드 완료!\n\n프로젝트: ${projectName}\n📄 PDF 보고서${equipmentMsg}\n📊 엑셀 파일\n📷 사진 ${totalPhotos}장${zipMsg}`);
                 }
                 
             } catch (error) {
