@@ -2873,8 +2873,7 @@
                     showToast('📤 장비점검 보고서 업로드 중...');
                     await uploadFileToDrive(projectFolderId, equipmentPdfBlob, equipmentPdfFileName, 'application/pdf');
                     
-                    // 장비 사진 업로드
-                    const photosFolderId = await createPhotosFolder(projectFolderId);
+                    // 장비 사진 ZIP 생성 및 업로드
                     const equipPhotoTasks = [];
                     
                     for (let equipIndex = 0; equipIndex < equipmentWithPhotos.length; equipIndex++) {
@@ -2893,30 +2892,8 @@
                         }
                     }
                     
-                    // 병렬 업로드 (5개씩)
-                    const BATCH_SIZE = 5;
-                    let uploadedCount = 0;
                     const totalPhotos = equipPhotoTasks.length;
                     
-                    for (let i = 0; i < equipPhotoTasks.length; i += BATCH_SIZE) {
-                        const batch = equipPhotoTasks.slice(i, i + BATCH_SIZE);
-                        await Promise.all(batch.map(async (task) => {
-                            try {
-                                await uploadPhoto(photosFolderId, task.photo, task.fileName);
-                            } catch (error) {
-                                console.log(`재시도: ${task.fileName}`);
-                                try {
-                                    await uploadPhoto(photosFolderId, task.photo, task.fileName);
-                                } catch (retryError) {
-                                    console.error(`업로드 실패: ${task.fileName}`, retryError);
-                                }
-                            }
-                            uploadedCount++;
-                            showToast(`📷 장비 사진 업로드 중... (${uploadedCount}/${totalPhotos})`);
-                        }));
-                    }
-                    
-                    // 장비 사진 ZIP 생성 및 업로드
                     if (equipPhotoTasks.length > 0) {
                         try {
                             showToast('🗜️ 사진 ZIP 생성 중...');
@@ -2957,8 +2934,8 @@
                     showToast(`✅ 업로드 완료!`);
                     
                     if (!projectToUpload) {
-                        const zipMsg = totalPhotos > 0 ? '\n🗜️ 사진 ZIP' : '';
-                        alert(`✅ 장비점검 업로드 완료!\n\n프로젝트: ${projectName}\n🔧 장비점검 보고서\n📷 장비 사진 ${totalPhotos}장${zipMsg}`);
+                        const zipMsg = totalPhotos > 0 ? `\n🗜️ 사진 ZIP (${totalPhotos}장)` : '';
+                        alert(`✅ 장비점검 업로드 완료!\n\n프로젝트: ${projectName}\n🔧 장비점검 보고서${zipMsg}`);
                     }
                     return; // 장비만 업로드 후 종료
                 }
@@ -3235,15 +3212,12 @@
                 showToast('📤 엑셀 업로드 중...');
                 await uploadFileToDrive(projectFolderId, excelBlob, excelFileName, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
                 
-                // ========== 6. 사진 업로드 (병렬 처리) ==========
-                const photosFolderId = await createPhotosFolder(projectFolderId);
-                
+                // ========== 6. 사진 ZIP 파일 생성 및 업로드 ==========
                 // 업로드할 하자 사진 목록 준비
                 const photoTasks = [];
                 for (let defectIndex = 0; defectIndex < project.defects.length; defectIndex++) {
                     const defect = project.defects[defectIndex];
                     if (defect.photos && defect.photos.length > 0) {
-                        // 파일명용 정보 추출
                         const num = String(defectIndex + 1).padStart(2, '0');
                         const space = defect.spaces && defect.spaces.length > 0 ? defect.spaces[0] : '기타';
                         const location = defect.locations && defect.locations.length > 0 ? defect.locations[0] : '';
@@ -3251,7 +3225,6 @@
                         let photoNum = 0;
                         for (const photo of defect.photos) {
                             if (photo !== null) {
-                                // 파일명: 01_현관_벽_원경.jpg, 01_현관_벽_근접.jpg
                                 const photoType = photoNum === 0 ? '원경' : '근접';
                                 const fileName = `${num}_${space}_${location}_${photoType}.jpg`;
                                 photoTasks.push({ photo, fileName });
@@ -3287,42 +3260,17 @@
                     }
                 }
                 
-                // 병렬 업로드 (5개씩)
-                const BATCH_SIZE = 5;
-                let uploadedCount = 0;
                 const totalPhotos = photoTasks.length;
                 
-                for (let i = 0; i < photoTasks.length; i += BATCH_SIZE) {
-                    const batch = photoTasks.slice(i, i + BATCH_SIZE);
-                    
-                    await Promise.all(batch.map(async (task) => {
-                        try {
-                            await uploadPhoto(photosFolderId, task.photo, task.fileName);
-                        } catch (error) {
-                            // 1회 재시도
-                            console.log(`재시도: ${task.fileName}`);
-                            try {
-                                await uploadPhoto(photosFolderId, task.photo, task.fileName);
-                            } catch (retryError) {
-                                console.error(`업로드 실패: ${task.fileName}`, retryError);
-                            }
-                        }
-                        uploadedCount++;
-                        showToast(`📷 사진 업로드 중... (${uploadedCount}/${totalPhotos})`);
-                    }));
-                }
-                
-                // ========== 7. 사진 ZIP 파일 생성 및 업로드 ==========
+                // ZIP 생성 및 업로드
                 if (photoTasks.length > 0) {
                     try {
                         showToast('🗜️ 사진 ZIP 생성 중...');
                         
                         const zip = new JSZip();
                         
-                        // 각 사진을 ZIP에 추가
                         for (const task of photoTasks) {
                             try {
-                                // base64 데이터에서 실제 데이터 부분만 추출
                                 const base64Data = task.photo.split(',')[1];
                                 zip.file(task.fileName, base64Data, { base64: true });
                             } catch (e) {
@@ -3330,25 +3278,22 @@
                             }
                         }
                         
-                        // ZIP 생성
                         const zipBlob = await zip.generateAsync({ 
                             type: 'blob',
                             compression: 'DEFLATE',
                             compressionOptions: { level: 6 }
                         });
                         
-                        // ZIP 업로드 (메인 폴더에)
                         showToast('📤 사진 ZIP 업로드 중...');
                         const zipFileName = `${projectName}_사진.zip`;
                         await uploadFileToDrive(projectFolderId, zipBlob, zipFileName, 'application/zip');
                         
                     } catch (zipError) {
                         console.error('ZIP 생성/업로드 실패:', zipError);
-                        // ZIP 실패해도 나머지는 완료된 상태이므로 계속 진행
                     }
                 }
                 
-                // 8. 프로젝트 상태 업데이트
+                // 7. 프로젝트 상태 업데이트
                 project.isUploaded = true;
                 project.uploadedAt = new Date().toISOString();
                 project.driveFolderId = projectFolderId;
@@ -3363,8 +3308,8 @@
                 // 동기화 중이 아닐 때만 alert 표시
                 if (!projectToUpload) {
                     const equipmentMsg = equipmentPdfBlob ? '\n🔧 장비점검 보고서' : '';
-                    const zipMsg = totalPhotos > 0 ? '\n🗜️ 사진 ZIP' : '';
-                    alert(`✅ 업로드 완료!\n\n프로젝트: ${projectName}\n📄 PDF 보고서${equipmentMsg}\n📊 엑셀 파일\n📷 사진 ${totalPhotos}장${zipMsg}`);
+                    const zipMsg = totalPhotos > 0 ? `\n🗜️ 사진 ZIP (${totalPhotos}장)` : '';
+                    alert(`✅ 업로드 완료!\n\n프로젝트: ${projectName}\n📄 PDF 보고서${equipmentMsg}\n📊 엑셀 파일${zipMsg}`);
                 }
                 
             } catch (error) {
