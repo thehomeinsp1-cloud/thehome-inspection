@@ -628,13 +628,14 @@
 
         #cameraPreview {
             width: 100%;
-            max-width: 600px;
+            /* max-width는 wrapper에서 처리 */
             border-radius: 12px;
             /* Google Lens 자동 실행 방지 */
             user-select: none;
             -webkit-user-select: none;
             -webkit-touch-callout: none;
             pointer-events: auto;
+            display: block; /* iOS: 인라인 요소로 인한 여백 제거 */
         }
 
         .camera-controls {
@@ -1379,17 +1380,20 @@
 
     <!-- 카메라 모달 -->
     <div id="cameraModal" class="camera-modal">
-        <video id="cameraPreview" autoplay playsinline></video>
-        
-        <!-- 터치 포인트 마커 표시용 캔버스 오버레이 -->
-        <canvas id="markerCanvas" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10;"></canvas>
+        <!-- ✅ iOS 터치 마커 좌표 문제 해결: wrapper로 감싸기 -->
+        <div id="cameraWrapper" style="position: relative; width: 100%; max-width: 600px;">
+            <video id="cameraPreview" autoplay playsinline></video>
+            
+            <!-- 터치 포인트 마커 표시용 캔버스 오버레이 -->
+            <canvas id="markerCanvas" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10;"></canvas>
+        </div>
         
         <!-- 줌 레벨 표시 -->
         <div class="zoom-level" id="zoomLevel">줌: 1.0x</div>
         
         <div class="camera-controls">
-            <button class="camera-btn" onclick="capturePhoto()" ontouchend="capturePhoto()">📸</button>
-            <button class="camera-btn close" onclick="closeCameraModal()" ontouchend="closeCameraModal()">✕</button>
+            <button class="camera-btn" onclick="capturePhoto()">📸</button>
+            <button class="camera-btn close" onclick="closeCameraModal()">✕</button>
         </div>
     </div>
 
@@ -2768,6 +2772,21 @@
                 alert('먼저 Google 로그인을 해주세요');
                 return;
             }
+            
+            // ✅ 토큰 유효성 미리 검사
+            try {
+                const tokenCheck = await fetch('https://www.googleapis.com/oauth2/v1/tokeninfo?access_token=' + accessToken);
+                if (!tokenCheck.ok) {
+                    // 토큰 만료 - 자동 로그아웃
+                    accessToken = null;
+                    localStorage.removeItem('google_access_token');
+                    updateGoogleLoginUI();
+                    alert('🔐 Google 인증이 만료되었습니다.\n\n다시 로그인 후 업로드해주세요.');
+                    return;
+                }
+            } catch (e) {
+                console.log('토큰 검사 실패, 업로드 계속 진행');
+            }
 
             // 필수 정보 확인
             if (!project.apartmentName || !project.dong || !project.ho) {
@@ -2845,15 +2864,44 @@
                     
                     const equipDoc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
                     
-                    // 장비점검 표지
+                    // 장비점검 표지 (프로 버전)
                     const equipCoverHTML = `
-                        <div style="width: 210mm; height: 297mm; padding: 20mm; box-sizing: border-box; font-family: 'Malgun Gothic', sans-serif; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;">
-                            <div style="font-size: 36px; font-weight: bold; color: #10b981; margin-bottom: 30px;">🔧 장비점검 보고서</div>
-                            <div style="font-size: 24px; margin-bottom: 50px;">${projectData.apartmentName || ''}</div>
-                            <div style="font-size: 20px; margin-bottom: 10px;">${projectData.dong || ''} ${projectData.ho || ''}</div>
-                            <div style="font-size: 16px; color: #666; margin-bottom: 30px;">점검일: ${projectData.inspectionDate || ''}</div>
-                            <div style="font-size: 14px; color: #999;">점검자: ${projectData.author || ''}</div>
-                            <div style="position: absolute; bottom: 30mm; font-size: 18px; color: #10b981; font-weight: bold;">더홈점검</div>
+                        <div style="width: 794px; height: 1123px; background: #ffffff; display: flex; flex-direction: column; font-family: 'Malgun Gothic', sans-serif; position: relative;">
+                            <div style="height: 8px; background: linear-gradient(90deg, #3498db 0%, #2980b9 100%);"></div>
+                            <div style="position: absolute; left: 0; top: 0; width: 6px; height: 100%; background: linear-gradient(180deg, #3498db 0%, #2980b9 100%);"></div>
+                            <div style="flex: 1; padding: 80px 80px 60px 100px; display: flex; flex-direction: column;">
+                                <div style="margin-bottom: 60px;">
+                                    <div style="display: inline-flex; align-items: center; gap: 12px; padding: 12px 24px; background: #ecf0f1; border-radius: 30px;">
+                                        <div style="width: 8px; height: 8px; background: #3498db; border-radius: 50%;"></div>
+                                        <span style="color: #2c3e50; font-size: 14px; font-weight: 600; letter-spacing: 1px;">EQUIPMENT INSPECTION</span>
+                                    </div>
+                                </div>
+                                <div style="margin-bottom: 80px;">
+                                    <h1 style="font-size: 56px; font-weight: 800; color: #2c3e50; margin: 0 0 20px 0; line-height: 1.2;">장비측정<br/>보고서</h1>
+                                    <div style="width: 80px; height: 5px; background: #3498db; border-radius: 3px;"></div>
+                                </div>
+                                <div style="background: #f8f9fa; border-left: 4px solid #3498db; padding: 40px 35px; margin-bottom: 60px; border-radius: 0 8px 8px 0;">
+                                    <div style="display: flex; flex-direction: column; gap: 20px;">
+                                        <div style="display: flex; align-items: baseline;">
+                                            <span style="color: #7f8c8d; font-size: 14px; width: 100px; font-weight: 600;">PROJECT</span>
+                                            <span style="color: #2c3e50; font-size: 26px; font-weight: 700;">${projectData.apartmentName}</span>
+                                        </div>
+                                        <div style="display: flex; align-items: baseline;">
+                                            <span style="color: #7f8c8d; font-size: 14px; width: 100px; font-weight: 600;">UNIT</span>
+                                            <span style="color: #2c3e50; font-size: 32px; font-weight: 700;">${projectData.dong}동 ${projectData.ho}호</span>
+                                        </div>
+                                        <div style="display: flex; align-items: baseline;">
+                                            <span style="color: #7f8c8d; font-size: 14px; width: 100px; font-weight: 600;">DATE</span>
+                                            <span style="color: #2c3e50; font-size: 20px; font-weight: 600;">${projectData.inspectionDate || ''}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div style="margin-top: auto; display: flex; align-items: center; gap: 15px;">
+                                    <div style="font-size: 22px; font-weight: 700; color: #2c3e50;">더홈점검</div>
+                                    <div style="color: #bdc3c7; font-size: 14px;">|</div>
+                                    <div style="color: #7f8c8d; font-size: 13px;">전문 하자점검 서비스</div>
+                                </div>
+                            </div>
                         </div>
                     `;
                     await window.addHTMLPageToPDF(equipDoc, equipCoverHTML, pageWidth, pageHeight);
@@ -3334,6 +3382,33 @@
                             errorMsg = String(error);
                         }
                     }
+                }
+                
+                // ✅ 인증 오류 감지 (토큰 만료) - 자동 로그아웃 처리
+                const authErrorKeywords = ['invalid authentication', 'Invalid Credentials', 'access_token', 'OAuth', 'unauthorized', '401', '403'];
+                const isAuthError = authErrorKeywords.some(keyword => 
+                    errorMsg.toLowerCase().includes(keyword.toLowerCase())
+                );
+                
+                if (isAuthError) {
+                    // 토큰 무효화
+                    accessToken = null;
+                    localStorage.removeItem('google_access_token');
+                    updateGoogleLoginUI();
+                    
+                    alert('🔐 Google 인증이 만료되었습니다.\n\n다시 로그인 후 업로드해주세요.');
+                    return;
+                }
+                
+                // 네트워크 오류 감지 - 재시도 안내
+                const networkErrorKeywords = ['network error', 'NetworkError', 'Failed to fetch', 'net::'];
+                const isNetworkError = networkErrorKeywords.some(keyword => 
+                    errorMsg.toLowerCase().includes(keyword.toLowerCase())
+                );
+                
+                if (isNetworkError) {
+                    alert('📶 네트워크 오류가 발생했습니다.\n\n인터넷 연결을 확인하고 다시 시도해주세요.');
+                    return;
                 }
                 
                 alert('업로드 중 오류가 발생했습니다:\n' + errorMsg);
@@ -5258,12 +5333,19 @@
                     setTimeout(resolve, 3000);
                 });
                 
+                // ==================== 이벤트 리스너 관리 (메모리 누수 방지) ====================
+                // AbortController로 모든 이벤트를 한 번에 정리 가능
+                const cameraAbortController = new AbortController();
+                window._cameraAbortController = cameraAbortController;
+                const eventSignal = { signal: cameraAbortController.signal };
+                // ==================== 이벤트 리스너 관리 끝 ====================
+                
                 // === 모든 플랫폼 공통: 컨텍스트 메뉴 차단 ===
                 video.addEventListener('contextmenu', (e) => {
                     e.preventDefault();
                     e.stopPropagation();
                     return false;
-                }, { passive: false });
+                }, { passive: false, ...eventSignal });
                 
                 // === 터치 이벤트 최적화 (Android/iOS 모두) ===
                 let touchStartTime = 0;
@@ -5321,11 +5403,26 @@
                 const markerCanvas = document.getElementById('markerCanvas');
                 const markerCtx = markerCanvas.getContext('2d');
                 
-                // 캔버스 크기를 비디오에 맞춤
+                // 캔버스 크기를 비디오에 맞춤 (iOS 좌표 문제 해결)
                 const resizeMarkerCanvas = () => {
                     const rect = video.getBoundingClientRect();
-                    markerCanvas.width = rect.width;
-                    markerCanvas.height = rect.height;
+                    
+                    // ✅ iOS: devicePixelRatio 고려
+                    const dpr = window.devicePixelRatio || 1;
+                    
+                    // 캔버스 실제 픽셀 크기 (고해상도)
+                    markerCanvas.width = rect.width * dpr;
+                    markerCanvas.height = rect.height * dpr;
+                    
+                    // 캔버스 CSS 크기 (화면 표시 크기) - wrapper 내에서 비디오와 동일
+                    markerCanvas.style.width = '100%';
+                    markerCanvas.style.height = '100%';
+                    
+                    // ✅ wrapper 사용으로 left/top 설정 불필요 (항상 0,0)
+                    
+                    // 고해상도 스케일 적용
+                    markerCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+                    
                     redrawMarkers();
                 };
                 
@@ -5346,26 +5443,51 @@
                 
                 // 모든 마커 다시 그리기
                 const redrawMarkers = () => {
+                    // ✅ iOS: transform 초기화 후 clear, 다시 transform 적용
+                    const dpr = window.devicePixelRatio || 1;
+                    markerCtx.setTransform(1, 0, 0, 1, 0, 0); // 초기화
                     markerCtx.clearRect(0, 0, markerCanvas.width, markerCanvas.height);
+                    markerCtx.setTransform(dpr, 0, 0, dpr, 0, 0); // 다시 적용
                     markers.forEach(marker => drawMarker(marker.x, marker.y));
                 };
                 
                 // 마커 초기화 함수
                 window.clearMarkers = () => {
                     markers.length = 0;
+                    const dpr = window.devicePixelRatio || 1;
+                    markerCtx.setTransform(1, 0, 0, 1, 0, 0);
                     markerCtx.clearRect(0, 0, markerCanvas.width, markerCanvas.height);
+                    markerCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
                 };
                 
                 // 마커 배열 가져오기 함수 (capturePhoto에서 사용)
                 window.getMarkers = () => {
+                    // ✅ iOS: devicePixelRatio 고려하여 비율 계산
+                    const dpr = window.devicePixelRatio || 1;
+                    const canvasWidth = markerCanvas.width / dpr;
+                    const canvasHeight = markerCanvas.height / dpr;
+                    
                     return markers.map(m => ({
-                        x: m.x / markerCanvas.width,
-                        y: m.y / markerCanvas.height
+                        x: m.x / canvasWidth,
+                        y: m.y / canvasHeight
                     }));
                 };
                 
-                // 초기 캔버스 크기 설정
-                setTimeout(resizeMarkerCanvas, 100);
+                // 초기 캔버스 크기 설정 (iOS: 비디오 로드 대기)
+                const initMarkerCanvas = () => {
+                    const rect = video.getBoundingClientRect();
+                    if (rect.width > 0 && rect.height > 0) {
+                        resizeMarkerCanvas();
+                    } else {
+                        // 비디오 아직 로드 안됨 - 재시도
+                        setTimeout(initMarkerCanvas, 100);
+                    }
+                };
+                
+                // iOS: loadedmetadata 이벤트 활용
+                video.addEventListener('loadedmetadata', resizeMarkerCanvas);
+                video.addEventListener('playing', resizeMarkerCanvas);
+                setTimeout(initMarkerCanvas, 100);
                 
                 // 화면 회전/크기 변경 시 캔버스 크기 재조정
                 window.addEventListener('resize', resizeMarkerCanvas);
@@ -5389,7 +5511,7 @@
                         touchStartX = e.touches[0].clientX;
                         touchStartY = e.touches[0].clientY;
                     }
-                }, { passive: false });
+                }, { passive: false, ...eventSignal });
                 
                 video.addEventListener('touchmove', (e) => {
                     if (e.touches.length === 2) {
@@ -5430,10 +5552,23 @@
                             e.stopPropagation();
                         }
                     }
-                }, { passive: false });
+                }, { passive: false, ...eventSignal });
                 
+                // 더블 탭 줌 방지용 변수
+                let lastTap = 0;
+                
+                // ✅ touchend 이벤트 통합 (중복 등록 방지)
                 video.addEventListener('touchend', (e) => {
                     const touchDuration = Date.now() - touchStartTime;
+                    const currentTime = new Date().getTime();
+                    const tapLength = currentTime - lastTap;
+                    
+                    // 더블 탭 줌 방지
+                    if (tapLength < 500 && tapLength > 0) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                    }
+                    lastTap = currentTime;
                     
                     // 길게 누르기 차단 (Google Lens 실행 방지)
                     if (touchDuration > 500) {
@@ -5452,37 +5587,37 @@
                         // 드래그가 아닌 경우만 마커 추가 (이동 거리 10px 미만)
                         if (moveX < 10 && moveY < 10) {
                             const rect = video.getBoundingClientRect();
-                            const x = touch.clientX - rect.left;
-                            const y = touch.clientY - rect.top;
                             
-                            // 마커 추가 (최대 10개까지)
-                            if (markers.length < 10) {
-                                markers.push({ x, y });
-                                drawMarker(x, y);
+                            // ✅ iOS: 터치 좌표 계산 (스크롤 고려)
+                            let x, y;
+                            if (deviceInfo.isIOS) {
+                                // iOS: pageX/pageY 사용 + 스크롤 보정
+                                x = touch.pageX - rect.left - window.pageXOffset;
+                                y = touch.pageY - rect.top - window.pageYOffset;
+                            } else {
+                                // Android: clientX/clientY 사용
+                                x = touch.clientX - rect.left;
+                                y = touch.clientY - rect.top;
+                            }
+                            
+                            // 범위 체크 (비디오 영역 내부만)
+                            if (x >= 0 && x <= rect.width && y >= 0 && y <= rect.height) {
+                                // 마커 추가 (최대 10개까지)
+                                if (markers.length < 10) {
+                                    markers.push({ x, y });
+                                    drawMarker(x, y);
+                                }
                             }
                         }
                     }
                     // ==================== 터치 포인트 마커 추가 끝 ====================
-                }, { passive: false });
-                
-                // 더블 탭 줌 방지
-                let lastTap = 0;
-                video.addEventListener('touchend', (e) => {
-                    const currentTime = new Date().getTime();
-                    const tapLength = currentTime - lastTap;
-                    
-                    if (tapLength < 500 && tapLength > 0) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                    }
-                    lastTap = currentTime;
-                }, { passive: false });
+                }, { passive: false, ...eventSignal });
                 
                 // 드래그 방지
                 video.addEventListener('dragstart', (e) => {
                     e.preventDefault();
                     return false;
-                });
+                }, eventSignal);
                 
                 // iOS 특별 처리
                 if (deviceInfo.isIOS) {
@@ -5549,6 +5684,12 @@
         }
 
         window.closeCameraModal = function() {
+            // ✅ 이벤트 리스너 정리 (메모리 누수 방지)
+            if (window._cameraAbortController) {
+                window._cameraAbortController.abort();
+                window._cameraAbortController = null;
+            }
+            
             if (cameraStream) {
                 cameraStream.getTracks().forEach(track => track.stop());
                 cameraStream = null;
@@ -5768,15 +5909,21 @@
             const markers = window.getMarkers ? window.getMarkers() : [];
             
             if (markers.length > 0) {
+                // ✅ iOS: devicePixelRatio 고려하여 마커 캔버스의 CSS 크기 계산
+                const dpr = window.devicePixelRatio || 1;
+                const markerCanvasCSSWidth = markerCanvas.width / dpr;
+                const markerCanvasCSSHeight = markerCanvas.height / dpr;
+                
                 // 마커를 비디오 해상도에 맞게 그리기
                 markers.forEach(marker => {
                     const x = marker.x * canvas.width;
                     const y = marker.y * canvas.height;
-                    const radius = 30 * (canvas.width / markerCanvas.width);
+                    const scale = canvas.width / markerCanvasCSSWidth;
+                    const radius = 30 * scale;
                     
                     // 원형 마커
                     ctx.strokeStyle = '#ef4444';
-                    ctx.lineWidth = 3 * (canvas.width / markerCanvas.width);
+                    ctx.lineWidth = 3 * scale;
                     ctx.beginPath();
                     ctx.arc(x, y, radius, 0, 2 * Math.PI);
                     ctx.stroke();
@@ -5784,7 +5931,7 @@
                     // 중심점
                     ctx.fillStyle = '#ef4444';
                     ctx.beginPath();
-                    ctx.arc(x, y, 5 * (canvas.width / markerCanvas.width), 0, 2 * Math.PI);
+                    ctx.arc(x, y, 5 * scale, 0, 2 * Math.PI);
                     ctx.fill();
                 });
                 
