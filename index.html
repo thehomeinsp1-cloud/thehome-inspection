@@ -8938,60 +8938,137 @@ window.createSummaryFirstPage = function() {
 
         // IndexedDB에 데이터 저장
         async function saveToIndexedDB(key, data) {
-            try {
-                if (!db) await initDB();
-                
+            // ✅ iOS Safari: DB 연결 상태 확인 및 재연결
+            const ensureDBConnection = async () => {
+                try {
+                    // DB가 없거나 연결이 닫혔는지 확인
+                    if (!db || db.objectStoreNames === undefined) {
+                        console.log('🔄 DB 재연결 필요');
+                        db = null;
+                        await initDB();
+                    }
+                    // 트랜잭션 테스트
+                    const testTx = db.transaction([STORE_NAME], 'readonly');
+                    testTx.abort();
+                } catch (e) {
+                    console.log('🔄 DB 연결 끊김 감지, 재초기화:', e.name);
+                    db = null;
+                    await initDB();
+                }
+            };
+            
+            // 저장 시도 함수
+            const attemptSave = () => {
                 return new Promise((resolve, reject) => {
-                    const transaction = db.transaction([STORE_NAME], 'readwrite');
-                    const objectStore = transaction.objectStore(STORE_NAME);
-                    
-                    // ✅ 수정: data를 그대로 저장하되, id를 key로 설정
-                    const finalData = { 
-                        id: key,  // IndexedDB의 키
-                        data: data  // 실제 데이터 (프로젝트 배열 또는 단일 프로젝트)
-                    };
-                    
-                    const request = objectStore.put(finalData);
-                    
-                    request.onsuccess = () => {
-                        console.log('✅ IndexedDB 저장 성공:', key);
-                        resolve();
-                    };
-                    request.onerror = () => reject(request.error);
+                    try {
+                        const transaction = db.transaction([STORE_NAME], 'readwrite');
+                        const objectStore = transaction.objectStore(STORE_NAME);
+                        
+                        const finalData = { 
+                            id: key,
+                            data: data
+                        };
+                        
+                        const request = objectStore.put(finalData);
+                        
+                        request.onsuccess = () => {
+                            console.log('✅ IndexedDB 저장 성공:', key);
+                            resolve();
+                        };
+                        request.onerror = () => reject(request.error);
+                        
+                        // ✅ 트랜잭션 에러 핸들링
+                        transaction.onerror = () => reject(transaction.error);
+                        transaction.onabort = () => reject(new Error('Transaction aborted'));
+                    } catch (e) {
+                        reject(e);
+                    }
                 });
-            } catch (e) {
-                console.error('IndexedDB 저장 오류:', e);
-                throw e;
+            };
+            
+            // ✅ 최대 3번 재시도
+            let lastError;
+            for (let attempt = 1; attempt <= 3; attempt++) {
+                try {
+                    await ensureDBConnection();
+                    await attemptSave();
+                    return; // 성공
+                } catch (e) {
+                    lastError = e;
+                    console.warn(`IndexedDB 저장 시도 ${attempt}/3 실패:`, e.name, e.message);
+                    
+                    // InvalidStateError나 TransactionInactiveError면 DB 재초기화
+                    if (e.name === 'InvalidStateError' || e.name === 'TransactionInactiveError') {
+                        db = null;
+                        await new Promise(r => setTimeout(r, 100 * attempt)); // 점진적 대기
+                    } else {
+                        throw e; // 다른 에러는 바로 throw
+                    }
+                }
             }
+            
+            // 모든 재시도 실패
+            throw lastError;
         }
 
         // IndexedDB에서 데이터 불러오기
         async function loadFromIndexedDB(key) {
-            try {
-                if (!db) await initDB();
-                
-                return new Promise((resolve, reject) => {
-                    const transaction = db.transaction([STORE_NAME], 'readonly');
-                    const objectStore = transaction.objectStore(STORE_NAME);
-                    const request = objectStore.get(key);
+            // ✅ iOS Safari: DB 연결 상태 확인 및 재연결
+            const ensureDBConnection = async () => {
+                try {
+                    if (!db || db.objectStoreNames === undefined) {
+                        db = null;
+                        await initDB();
+                    }
+                    const testTx = db.transaction([STORE_NAME], 'readonly');
+                    testTx.abort();
+                } catch (e) {
+                    console.log('🔄 DB 연결 끊김 감지 (load), 재초기화');
+                    db = null;
+                    await initDB();
+                }
+            };
+            
+            // ✅ 최대 3번 재시도
+            for (let attempt = 1; attempt <= 3; attempt++) {
+                try {
+                    await ensureDBConnection();
                     
-                    request.onsuccess = () => {
-                        const result = request.result;
-                        if (result && result.data) {
-                            // ✅ 수정: data 필드에서 실제 데이터 반환
-                            console.log('✅ IndexedDB 불러오기 성공:', key);
-                            resolve(result.data);
-                        } else {
-                            console.log('ℹ️ IndexedDB에 데이터 없음:', key);
-                            resolve(null);
+                    return new Promise((resolve, reject) => {
+                        try {
+                            const transaction = db.transaction([STORE_NAME], 'readonly');
+                            const objectStore = transaction.objectStore(STORE_NAME);
+                            const request = objectStore.get(key);
+                            
+                            request.onsuccess = () => {
+                                const result = request.result;
+                                if (result && result.data) {
+                                    console.log('✅ IndexedDB 불러오기 성공:', key);
+                                    resolve(result.data);
+                                } else {
+                                    console.log('ℹ️ IndexedDB에 데이터 없음:', key);
+                                    resolve(null);
+                                }
+                            };
+                            request.onerror = () => reject(request.error);
+                            transaction.onerror = () => reject(transaction.error);
+                        } catch (e) {
+                            reject(e);
                         }
-                    };
-                    request.onerror = () => reject(request.error);
-                });
-            } catch (e) {
-                console.error('IndexedDB 불러오기 오류:', e);
-                return null;
+                    });
+                } catch (e) {
+                    console.warn(`IndexedDB 불러오기 시도 ${attempt}/3 실패:`, e.name);
+                    
+                    if (e.name === 'InvalidStateError' || e.name === 'TransactionInactiveError') {
+                        db = null;
+                        await new Promise(r => setTimeout(r, 100 * attempt));
+                    } else if (attempt === 3) {
+                        console.error('IndexedDB 불러오기 최종 실패:', e);
+                        return null;
+                    }
+                }
             }
+            return null;
         }
 
         // IndexedDB에서 모든 프로젝트 가져오기
