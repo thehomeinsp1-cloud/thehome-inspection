@@ -4863,7 +4863,7 @@
                         <label class="form-label">공간 선택 (최대 2개)</label>
                         <div class="selected-count">${(item.spaces || []).length}/2 선택됨</div>
                         <div class="touch-button-grid">
-                            ${['현관','안방','침실1','침실2','침실3','침실4','복도','거실','주방','팬트리','외부','알파룸','발코니','대피공간','실외기실','파우더룸','드레스룸','공용욕실','부부욕실'].map(space => {
+                            ${getSpaceButtons().map(space => {
                                 const spaces = item.spaces || [];
                                 const isSelected = spaces.includes(space);
                                 const isDisabled = spaces.length >= 2 && !isSelected;
@@ -4875,6 +4875,26 @@
                                 </button>
                             `}).join('')}
                         </div>
+                        
+                        <!-- 커스텀 공간 입력 -->
+                        <details style="margin-top: 8px;">
+                            <summary style="cursor: pointer; font-size: 13px; color: var(--text-secondary); padding: 6px 0;">
+                                + 직접 입력
+                            </summary>
+                            <div style="margin-top: 8px;">
+                                <input type="text" 
+                                       id="customSpaceEquip${item.id}" 
+                                       class="form-input" 
+                                       value=""
+                                       placeholder="예: 서재, 다용도실 입력 후 엔터" 
+                                       style="width: 100%; font-size: 14px; margin-bottom: 4px;"
+                                       onkeydown="if(event.key==='Enter' && !event.isComposing){event.preventDefault();addCustomSpaceEquipment(${item.id});}"
+                                       onchange="addCustomSpaceEquipment(${item.id})">
+                                <div style="font-size: 11px; color: var(--text-secondary);">
+                                    💡 입력 후 엔터 또는 다른 곳 클릭
+                                </div>
+                            </div>
+                        </details>
                     </div>
 
                     <div class="form-field">
@@ -5588,17 +5608,10 @@
                         if (moveX < 10 && moveY < 10) {
                             const rect = video.getBoundingClientRect();
                             
-                            // ✅ iOS: 터치 좌표 계산 (스크롤 고려)
-                            let x, y;
-                            if (deviceInfo.isIOS) {
-                                // iOS: pageX/pageY 사용 + 스크롤 보정
-                                x = touch.pageX - rect.left - window.pageXOffset;
-                                y = touch.pageY - rect.top - window.pageYOffset;
-                            } else {
-                                // Android: clientX/clientY 사용
-                                x = touch.clientX - rect.left;
-                                y = touch.clientY - rect.top;
-                            }
+                            // ✅ iOS/Android 공통: clientX/clientY 사용 (viewport 기준)
+                            // getBoundingClientRect()도 viewport 기준이므로 일관성 있음
+                            const x = touch.clientX - rect.left;
+                            const y = touch.clientY - rect.top;
                             
                             // 범위 체크 (비디오 영역 내부만)
                             if (x >= 0 && x <= rect.width && y >= 0 && y <= rect.height) {
@@ -5683,25 +5696,54 @@
             }
         }
 
+        // ✅ 사진 촬영 중복 실행 방지 플래그
+        let isCapturing = false;
+
         window.closeCameraModal = function() {
+            // ✅ 이벤트 전파 방지 (iOS 터치 이슈)
+            if (event) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            
             // ✅ 이벤트 리스너 정리 (메모리 누수 방지)
             if (window._cameraAbortController) {
-                window._cameraAbortController.abort();
+                try {
+                    window._cameraAbortController.abort();
+                } catch (e) {
+                    console.warn('AbortController 정리 중 오류:', e);
+                }
                 window._cameraAbortController = null;
             }
             
             if (cameraStream) {
-                cameraStream.getTracks().forEach(track => track.stop());
+                try {
+                    cameraStream.getTracks().forEach(track => track.stop());
+                } catch (e) {
+                    console.warn('카메라 스트림 정리 중 오류:', e);
+                }
                 cameraStream = null;
             }
             
             // 마커 초기화
             if (window.clearMarkers) {
-                window.clearMarkers();
+                try {
+                    window.clearMarkers();
+                } catch (e) {
+                    console.warn('마커 초기화 중 오류:', e);
+                }
             }
             
-            document.getElementById('cameraModal').classList.remove('active');
+            // ✅ 모달 닫기 (존재 여부 확인)
+            const modal = document.getElementById('cameraModal');
+            if (modal) {
+                modal.classList.remove('active');
+            }
+            
             currentPhotoTarget = null;
+            
+            // ✅ 촬영 플래그도 초기화 (안전장치)
+            isCapturing = false;
         }
 
         // ==================== 이미지 압축 함수 (통합) ====================
@@ -5863,12 +5905,20 @@
         }
 
         window.capturePhoto = async function() {
+            // ✅ 중복 실행 방지
+            if (isCapturing) {
+                console.log('⚠️ 이미 촬영 중입니다');
+                return;
+            }
+            isCapturing = true;
+            
             // 이벤트 전파 방지
             if (event) {
                 event.preventDefault();
                 event.stopPropagation();
             }
             
+            try {
             const video = document.getElementById('cameraPreview');
             const canvas = document.createElement('canvas');
             
@@ -6012,6 +6062,13 @@
             }
             
             closeCameraModal();
+            } catch (err) {
+                console.error('사진 촬영 오류:', err);
+                showToast('사진 촬영 중 오류가 발생했습니다', 'error');
+            } finally {
+                // ✅ 촬영 완료 - 플래그 해제
+                isCapturing = false;
+            }
         }
 
 
@@ -6207,6 +6264,54 @@
             // 입력 필드 초기화 및 재렌더링
             input.value = '';
             renderDefects();
+            showToast(`✅ "${spaceName}" 공간 추가됨`);
+        }
+
+        // ==================== 장비점검 커스텀 공간 추가 ====================
+        window.addCustomSpaceEquipment = function(equipmentId) {
+            const input = document.getElementById(`customSpaceEquip${equipmentId}`);
+            const spaceName = input.value.trim();
+            
+            if (!spaceName) {
+                showToast('공간 이름을 입력해주세요');
+                return;
+            }
+            
+            // 프로젝트에 customSpaces 배열 초기화
+            if (!projectData.customSpaces) {
+                projectData.customSpaces = [];
+            }
+            
+            // 기존 공간 목록 가져오기
+            const allSpaces = getSpaceButtons();
+            
+            // 중복 체크
+            if (allSpaces.includes(spaceName)) {
+                showToast('이미 존재하는 공간입니다');
+                input.value = '';
+                return;
+            }
+            
+            // 프로젝트에 커스텀 공간 저장
+            projectData.customSpaces.push(spaceName);
+            
+            // 현재 장비에 자동 선택
+            const equipment = projectData.equipment.find(e => e.id === equipmentId);
+            if (equipment) {
+                if (!equipment.spaces) equipment.spaces = [];
+                
+                if (equipment.spaces.length < 2) {
+                    equipment.spaces.push(spaceName);
+                } else {
+                    showToast('⚠️ 공간은 최대 2개까지만 선택 가능합니다');
+                }
+            }
+            
+            saveImmediately();
+            
+            // 입력 필드 초기화 및 재렌더링
+            input.value = '';
+            renderEquipment();
             showToast(`✅ "${spaceName}" 공간 추가됨`);
         }
 
@@ -8938,60 +9043,137 @@ window.createSummaryFirstPage = function() {
 
         // IndexedDB에 데이터 저장
         async function saveToIndexedDB(key, data) {
-            try {
-                if (!db) await initDB();
-                
+            // ✅ iOS Safari: DB 연결 상태 확인 및 재연결
+            const ensureDBConnection = async () => {
+                try {
+                    // DB가 없거나 연결이 닫혔는지 확인
+                    if (!db || db.objectStoreNames === undefined) {
+                        console.log('🔄 DB 재연결 필요');
+                        db = null;
+                        await initDB();
+                    }
+                    // 트랜잭션 테스트
+                    const testTx = db.transaction([STORE_NAME], 'readonly');
+                    testTx.abort();
+                } catch (e) {
+                    console.log('🔄 DB 연결 끊김 감지, 재초기화:', e.name);
+                    db = null;
+                    await initDB();
+                }
+            };
+            
+            // 저장 시도 함수
+            const attemptSave = () => {
                 return new Promise((resolve, reject) => {
-                    const transaction = db.transaction([STORE_NAME], 'readwrite');
-                    const objectStore = transaction.objectStore(STORE_NAME);
-                    
-                    // ✅ 수정: data를 그대로 저장하되, id를 key로 설정
-                    const finalData = { 
-                        id: key,  // IndexedDB의 키
-                        data: data  // 실제 데이터 (프로젝트 배열 또는 단일 프로젝트)
-                    };
-                    
-                    const request = objectStore.put(finalData);
-                    
-                    request.onsuccess = () => {
-                        console.log('✅ IndexedDB 저장 성공:', key);
-                        resolve();
-                    };
-                    request.onerror = () => reject(request.error);
+                    try {
+                        const transaction = db.transaction([STORE_NAME], 'readwrite');
+                        const objectStore = transaction.objectStore(STORE_NAME);
+                        
+                        const finalData = { 
+                            id: key,
+                            data: data
+                        };
+                        
+                        const request = objectStore.put(finalData);
+                        
+                        request.onsuccess = () => {
+                            console.log('✅ IndexedDB 저장 성공:', key);
+                            resolve();
+                        };
+                        request.onerror = () => reject(request.error);
+                        
+                        // ✅ 트랜잭션 에러 핸들링
+                        transaction.onerror = () => reject(transaction.error);
+                        transaction.onabort = () => reject(new Error('Transaction aborted'));
+                    } catch (e) {
+                        reject(e);
+                    }
                 });
-            } catch (e) {
-                console.error('IndexedDB 저장 오류:', e);
-                throw e;
+            };
+            
+            // ✅ 최대 3번 재시도
+            let lastError;
+            for (let attempt = 1; attempt <= 3; attempt++) {
+                try {
+                    await ensureDBConnection();
+                    await attemptSave();
+                    return; // 성공
+                } catch (e) {
+                    lastError = e;
+                    console.warn(`IndexedDB 저장 시도 ${attempt}/3 실패:`, e.name, e.message);
+                    
+                    // InvalidStateError나 TransactionInactiveError면 DB 재초기화
+                    if (e.name === 'InvalidStateError' || e.name === 'TransactionInactiveError') {
+                        db = null;
+                        await new Promise(r => setTimeout(r, 100 * attempt)); // 점진적 대기
+                    } else {
+                        throw e; // 다른 에러는 바로 throw
+                    }
+                }
             }
+            
+            // 모든 재시도 실패
+            throw lastError;
         }
 
         // IndexedDB에서 데이터 불러오기
         async function loadFromIndexedDB(key) {
-            try {
-                if (!db) await initDB();
-                
-                return new Promise((resolve, reject) => {
-                    const transaction = db.transaction([STORE_NAME], 'readonly');
-                    const objectStore = transaction.objectStore(STORE_NAME);
-                    const request = objectStore.get(key);
+            // ✅ iOS Safari: DB 연결 상태 확인 및 재연결
+            const ensureDBConnection = async () => {
+                try {
+                    if (!db || db.objectStoreNames === undefined) {
+                        db = null;
+                        await initDB();
+                    }
+                    const testTx = db.transaction([STORE_NAME], 'readonly');
+                    testTx.abort();
+                } catch (e) {
+                    console.log('🔄 DB 연결 끊김 감지 (load), 재초기화');
+                    db = null;
+                    await initDB();
+                }
+            };
+            
+            // ✅ 최대 3번 재시도
+            for (let attempt = 1; attempt <= 3; attempt++) {
+                try {
+                    await ensureDBConnection();
                     
-                    request.onsuccess = () => {
-                        const result = request.result;
-                        if (result && result.data) {
-                            // ✅ 수정: data 필드에서 실제 데이터 반환
-                            console.log('✅ IndexedDB 불러오기 성공:', key);
-                            resolve(result.data);
-                        } else {
-                            console.log('ℹ️ IndexedDB에 데이터 없음:', key);
-                            resolve(null);
+                    return new Promise((resolve, reject) => {
+                        try {
+                            const transaction = db.transaction([STORE_NAME], 'readonly');
+                            const objectStore = transaction.objectStore(STORE_NAME);
+                            const request = objectStore.get(key);
+                            
+                            request.onsuccess = () => {
+                                const result = request.result;
+                                if (result && result.data) {
+                                    console.log('✅ IndexedDB 불러오기 성공:', key);
+                                    resolve(result.data);
+                                } else {
+                                    console.log('ℹ️ IndexedDB에 데이터 없음:', key);
+                                    resolve(null);
+                                }
+                            };
+                            request.onerror = () => reject(request.error);
+                            transaction.onerror = () => reject(transaction.error);
+                        } catch (e) {
+                            reject(e);
                         }
-                    };
-                    request.onerror = () => reject(request.error);
-                });
-            } catch (e) {
-                console.error('IndexedDB 불러오기 오류:', e);
-                return null;
+                    });
+                } catch (e) {
+                    console.warn(`IndexedDB 불러오기 시도 ${attempt}/3 실패:`, e.name);
+                    
+                    if (e.name === 'InvalidStateError' || e.name === 'TransactionInactiveError') {
+                        db = null;
+                        await new Promise(r => setTimeout(r, 100 * attempt));
+                    } else if (attempt === 3) {
+                        console.error('IndexedDB 불러오기 최종 실패:', e);
+                        return null;
+                    }
+                }
             }
+            return null;
         }
 
         // IndexedDB에서 모든 프로젝트 가져오기
