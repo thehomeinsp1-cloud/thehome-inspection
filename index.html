@@ -4863,7 +4863,7 @@
                         <label class="form-label">공간 선택 (최대 2개)</label>
                         <div class="selected-count">${(item.spaces || []).length}/2 선택됨</div>
                         <div class="touch-button-grid">
-                            ${['현관','안방','침실1','침실2','침실3','침실4','복도','거실','주방','팬트리','외부','알파룸','발코니','대피공간','실외기실','파우더룸','드레스룸','공용욕실','부부욕실'].map(space => {
+                            ${getSpaceButtons().map(space => {
                                 const spaces = item.spaces || [];
                                 const isSelected = spaces.includes(space);
                                 const isDisabled = spaces.length >= 2 && !isSelected;
@@ -4875,6 +4875,26 @@
                                 </button>
                             `}).join('')}
                         </div>
+                        
+                        <!-- 커스텀 공간 입력 -->
+                        <details style="margin-top: 8px;">
+                            <summary style="cursor: pointer; font-size: 13px; color: var(--text-secondary); padding: 6px 0;">
+                                + 직접 입력
+                            </summary>
+                            <div style="margin-top: 8px;">
+                                <input type="text" 
+                                       id="customSpaceEquip${item.id}" 
+                                       class="form-input" 
+                                       value=""
+                                       placeholder="예: 서재, 다용도실 입력 후 엔터" 
+                                       style="width: 100%; font-size: 14px; margin-bottom: 4px;"
+                                       onkeydown="if(event.key==='Enter' && !event.isComposing){event.preventDefault();addCustomSpaceEquipment(${item.id});}"
+                                       onchange="addCustomSpaceEquipment(${item.id})">
+                                <div style="font-size: 11px; color: var(--text-secondary);">
+                                    💡 입력 후 엔터 또는 다른 곳 클릭
+                                </div>
+                            </div>
+                        </details>
                     </div>
 
                     <div class="form-field">
@@ -6244,6 +6264,54 @@
             // 입력 필드 초기화 및 재렌더링
             input.value = '';
             renderDefects();
+            showToast(`✅ "${spaceName}" 공간 추가됨`);
+        }
+
+        // ==================== 장비점검 커스텀 공간 추가 ====================
+        window.addCustomSpaceEquipment = function(equipmentId) {
+            const input = document.getElementById(`customSpaceEquip${equipmentId}`);
+            const spaceName = input.value.trim();
+            
+            if (!spaceName) {
+                showToast('공간 이름을 입력해주세요');
+                return;
+            }
+            
+            // 프로젝트에 customSpaces 배열 초기화
+            if (!projectData.customSpaces) {
+                projectData.customSpaces = [];
+            }
+            
+            // 기존 공간 목록 가져오기
+            const allSpaces = getSpaceButtons();
+            
+            // 중복 체크
+            if (allSpaces.includes(spaceName)) {
+                showToast('이미 존재하는 공간입니다');
+                input.value = '';
+                return;
+            }
+            
+            // 프로젝트에 커스텀 공간 저장
+            projectData.customSpaces.push(spaceName);
+            
+            // 현재 장비에 자동 선택
+            const equipment = projectData.equipment.find(e => e.id === equipmentId);
+            if (equipment) {
+                if (!equipment.spaces) equipment.spaces = [];
+                
+                if (equipment.spaces.length < 2) {
+                    equipment.spaces.push(spaceName);
+                } else {
+                    showToast('⚠️ 공간은 최대 2개까지만 선택 가능합니다');
+                }
+            }
+            
+            saveImmediately();
+            
+            // 입력 필드 초기화 및 재렌더링
+            input.value = '';
+            renderEquipment();
             showToast(`✅ "${spaceName}" 공간 추가됨`);
         }
 
