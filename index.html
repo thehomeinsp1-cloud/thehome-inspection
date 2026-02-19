@@ -636,6 +636,7 @@
             -webkit-touch-callout: none;
             pointer-events: auto;
             display: block; /* iOS: 인라인 요소로 인한 여백 제거 */
+            object-fit: contain; /* ✅ iOS: 비디오 콘텐츠 영역 명시 (letterbox 처리) */
         }
 
         .camera-controls {
@@ -1801,10 +1802,10 @@
             }
         }
         
-        // 앱 시작 시 & 30초마다 상태 체크
+        // 앱 시작 시 & 5분마다 상태 체크 (네트워크 부하 최적화)
         document.addEventListener('DOMContentLoaded', () => {
             checkEmployeeStatus();
-            setInterval(checkEmployeeStatus, 30000); // 30초마다
+            setInterval(checkEmployeeStatus, 300000); // 5분마다
         });
         // ==================== 비활성 시 자동 로그아웃 끝 ====================
 
@@ -2930,13 +2931,13 @@
                         const equipName = equip.name || `장비${equipIndex + 1}`;
                         
                         if (equip.photos && typeof equip.photos === 'object') {
-                            const positions = ['좌측상단', '좌측하단', '우측상단', '우측하단'];
-                            for (const pos of positions) {
-                                if (equip.photos[pos]) {
+                            // ✅ 동적 키 처리 (좌측/우측/바닥1/바닥2 또는 좌측상단/좌측하단/우측상단/우측하단 모두 호환)
+                            Object.entries(equip.photos).forEach(([pos, photo]) => {
+                                if (photo && photo !== null) {
                                     const fileName = `장비${num}_${equipName}_${pos}.jpg`;
-                                    equipPhotoTasks.push({ photo: equip.photos[pos], fileName });
+                                    equipPhotoTasks.push({ photo: photo, fileName });
                                 }
-                            }
+                            });
                         }
                     }
                     
@@ -3297,13 +3298,13 @@
                         const equipName = equip.name || `장비${equipIndex + 1}`;
                         
                         if (equip.photos && typeof equip.photos === 'object') {
-                            const positions = ['좌측상단', '좌측하단', '우측상단', '우측하단'];
-                            for (const pos of positions) {
-                                if (equip.photos[pos]) {
+                            // ✅ 동적 키 처리 (신/구 키 모두 호환)
+                            Object.entries(equip.photos).forEach(([pos, photo]) => {
+                                if (photo && photo !== null) {
                                     const fileName = `장비${num}_${equipName}_${pos}.jpg`;
-                                    photoTasks.push({ photo: equip.photos[pos], fileName });
+                                    photoTasks.push({ photo: photo, fileName });
                                 }
-                            }
+                            });
                         }
                     }
                 }
@@ -3872,17 +3873,45 @@
                 clearTimeout(saveTimer);
                 saveTimer = null;
                 
-                // 동기적으로 세션스토리지에 임시 저장
+                // 동기적으로 세션스토리지에 임시 저장 (사진 제외 경량 백업)
                 try {
-                    const backupData = {
-                        projects: projects,
+                    const lightBackup = {
+                        projects: projects.map(p => ({
+                            ...p,
+                            floorplan: p.floorplan ? '[IMAGE]' : null,
+                            defects: p.defects.map(d => ({
+                                ...d,
+                                photos: d.photos ? d.photos.map(ph => ph ? '[IMAGE]' : null) : []
+                            })),
+                            equipment: (p.equipment || []).map(eq => ({
+                                ...eq,
+                                photos: eq.photos ? Object.fromEntries(
+                                    Object.entries(eq.photos).map(([k, v]) => [k, v ? '[IMAGE]' : null])
+                                ) : {},
+                                photo: eq.photo ? '[IMAGE]' : null
+                            }))
+                        })),
                         currentProjectId: currentProjectId,
-                        timestamp: new Date().toISOString()
+                        timestamp: new Date().toISOString(),
+                        isLightBackup: true
                     };
-                    sessionStorage.setItem('thehomein_temp_backup', JSON.stringify(backupData));
-                    console.log('📦 종료 전 임시 백업 완료');
+                    sessionStorage.setItem('thehomein_temp_backup', JSON.stringify(lightBackup));
+                    console.log('📦 종료 전 경량 백업 완료 (사진 제외)');
                 } catch (error) {
                     console.error('임시 백업 실패:', error);
+                }
+            }
+        });
+        
+        // ==================== 탭 전환/최소화 시 안전 저장 (visibilitychange) ====================
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'hidden') {
+                // 탭이 숨겨질 때 pending 저장 즉시 실행
+                if (saveTimer) {
+                    clearTimeout(saveTimer);
+                    saveTimer = null;
+                    saveProjectsToLocalStorage();
+                    console.log('💾 visibilitychange: 탭 숨김 → 즉시 저장');
                 }
             }
         });
@@ -3953,15 +3982,30 @@
                     showToast('⚠️ 저장 실패! 잠시 후 다시 시도해주세요', 'error');
                 }
                 
-                // 임시 백업 (세션 스토리지)
+                // 임시 백업 (세션 스토리지 - 사진 제외 경량 백업)
                 try {
-                    const backupData = {
-                        projects: projects,
+                    const lightBackup = {
+                        projects: projects.map(p => ({
+                            ...p,
+                            floorplan: p.floorplan ? '[IMAGE]' : null,
+                            defects: p.defects.map(d => ({
+                                ...d,
+                                photos: d.photos ? d.photos.map(ph => ph ? '[IMAGE]' : null) : []
+                            })),
+                            equipment: (p.equipment || []).map(eq => ({
+                                ...eq,
+                                photos: eq.photos ? Object.fromEntries(
+                                    Object.entries(eq.photos).map(([k, v]) => [k, v ? '[IMAGE]' : null])
+                                ) : {},
+                                photo: eq.photo ? '[IMAGE]' : null
+                            }))
+                        })),
                         currentProjectId: currentProjectId,
-                        timestamp: new Date().toISOString()
+                        timestamp: new Date().toISOString(),
+                        isLightBackup: true
                     };
-                    sessionStorage.setItem('thehomein_temp_backup', JSON.stringify(backupData));
-                    console.log('📦 임시 백업 완료 (세션 스토리지)');
+                    sessionStorage.setItem('thehomein_temp_backup', JSON.stringify(lightBackup));
+                    console.log('📦 경량 백업 완료 (사진 제외)');
                 } catch (backupError) {
                     console.error('임시 백업도 실패:', backupError);
                 }
@@ -4010,8 +4054,30 @@
                             projects = backupData.projects;
                             currentProjectId = backupData.currentProjectId;
                             
-                            console.log('📦 임시 백업에서 복구:', projects.length + '개');
-                            showToast('📦 임시 백업에서 데이터를 복구했습니다', 'info');
+                            // ✅ 경량 백업인 경우 [IMAGE] 플래그를 null로 변환
+                            if (backupData.isLightBackup) {
+                                projects.forEach(p => {
+                                    if (p.floorplan === '[IMAGE]') p.floorplan = null;
+                                    p.defects.forEach(d => {
+                                        if (d.photos) {
+                                            d.photos = d.photos.map(ph => ph === '[IMAGE]' ? null : ph);
+                                        }
+                                    });
+                                    (p.equipment || []).forEach(eq => {
+                                        if (eq.photos) {
+                                            Object.keys(eq.photos).forEach(k => {
+                                                if (eq.photos[k] === '[IMAGE]') eq.photos[k] = null;
+                                            });
+                                        }
+                                        if (eq.photo === '[IMAGE]') eq.photo = null;
+                                    });
+                                });
+                                console.log('⚠️ 경량 백업 복구: 텍스트 데이터만 복원됨 (사진은 손실)');
+                                showToast('⚠️ 비상 복구: 텍스트만 복원됨 (사진 재촬영 필요)', 'warning');
+                            } else {
+                                console.log('📦 임시 백업에서 복구:', projects.length + '개');
+                                showToast('📦 임시 백업에서 데이터를 복구했습니다', 'info');
+                            }
                             
                             // 복구 후 다시 저장 시도
                             saveProjectsToLocalStorage();
@@ -4045,7 +4111,29 @@
                         const backupData = JSON.parse(tempBackup);
                         projects = backupData.projects;
                         currentProjectId = backupData.currentProjectId;
-                        showToast('✅ 임시 백업에서 복구 성공!', 'success');
+                        
+                        // ✅ 경량 백업 처리
+                        if (backupData.isLightBackup) {
+                            projects.forEach(p => {
+                                if (p.floorplan === '[IMAGE]') p.floorplan = null;
+                                p.defects.forEach(d => {
+                                    if (d.photos) {
+                                        d.photos = d.photos.map(ph => ph === '[IMAGE]' ? null : ph);
+                                    }
+                                });
+                                (p.equipment || []).forEach(eq => {
+                                    if (eq.photos) {
+                                        Object.keys(eq.photos).forEach(k => {
+                                            if (eq.photos[k] === '[IMAGE]') eq.photos[k] = null;
+                                        });
+                                    }
+                                    if (eq.photo === '[IMAGE]') eq.photo = null;
+                                });
+                            });
+                            showToast('⚠️ 비상 복구: 텍스트만 복원됨', 'warning');
+                        } else {
+                            showToast('✅ 임시 백업에서 복구 성공!', 'success');
+                        }
                     } catch (backupError) {
                         // 실패 시 새 프로젝트 생성
                         const newProject = createNewProject();
@@ -4166,14 +4254,25 @@
         }
 
         // Toast 메시지
-        function showToast(message) {
+        // ✅ 타입별 색상 지원: 'success'(초록), 'error'(빨강), 'warning'(주황), 'info'(파랑)
+        function showToast(message, type = 'success') {
             const toast = document.getElementById('toast');
             toast.textContent = message;
+            
+            // 타입별 배경색
+            const colors = {
+                success: 'rgba(16, 185, 129, 0.95)',  // 초록
+                error: 'rgba(239, 68, 68, 0.95)',      // 빨강
+                warning: 'rgba(245, 158, 11, 0.95)',   // 주황
+                info: 'rgba(59, 130, 246, 0.95)'       // 파랑
+            };
+            toast.style.background = colors[type] || colors.success;
+            
             toast.classList.add('show');
             
             setTimeout(() => {
                 toast.classList.remove('show');
-            }, 2000);
+            }, type === 'error' ? 3000 : 2000); // 에러는 3초 표시
         }
 
         // 로딩 표시
@@ -5308,10 +5407,10 @@
                     audio: false
                 };
                 
-                // 안드로이드: 고해상도
+                // 안드로이드: iOS와 동일 해상도 (업로드 속도 최적화, PDF 화질 차이 없음)
                 if (deviceInfo.isAndroid) {
-                    constraints.video.width = { ideal: 1920 };
-                    constraints.video.height = { ideal: 1080 };
+                    constraints.video.width = { ideal: 1280 };
+                    constraints.video.height = { ideal: 720 };
                 }
                 // iOS: 중간 해상도 (배터리/성능 최적화)
                 else if (deviceInfo.isIOS) {
@@ -5419,26 +5518,71 @@
                 // 마커 저장 배열
                 const markers = [];
                 
+                // ✅ iOS 좌표 보정: 비디오 엘리먼트 내 실제 콘텐츠 영역 계산
+                // object-fit: contain 사용 시 letterbox(검은 여백) 오프셋 보정
+                const getVideoContentRect = () => {
+                    const rect = video.getBoundingClientRect();
+                    
+                    // 비디오 스트림 해상도가 아직 없으면 엘리먼트 rect 그대로 사용
+                    if (!video.videoWidth || !video.videoHeight) {
+                        return { left: rect.left, top: rect.top, width: rect.width, height: rect.height };
+                    }
+                    
+                    const videoRatio = video.videoWidth / video.videoHeight;
+                    const elementRatio = rect.width / rect.height;
+                    
+                    // 비율이 거의 같으면 보정 불필요
+                    if (Math.abs(videoRatio - elementRatio) < 0.01) {
+                        return { left: rect.left, top: rect.top, width: rect.width, height: rect.height };
+                    }
+                    
+                    let contentWidth, contentHeight, offsetX, offsetY;
+                    
+                    if (videoRatio > elementRatio) {
+                        // 비디오가 더 넓음 → 위아래 검은 여백
+                        contentWidth = rect.width;
+                        contentHeight = rect.width / videoRatio;
+                        offsetX = 0;
+                        offsetY = (rect.height - contentHeight) / 2;
+                    } else {
+                        // 비디오가 더 높음 → 좌우 검은 여백
+                        contentHeight = rect.height;
+                        contentWidth = rect.height * videoRatio;
+                        offsetX = (rect.width - contentWidth) / 2;
+                        offsetY = 0;
+                    }
+                    
+                    return {
+                        left: rect.left + offsetX,
+                        top: rect.top + offsetY,
+                        width: contentWidth,
+                        height: contentHeight
+                    };
+                };
+                
                 // 마커 캔버스 설정
                 const markerCanvas = document.getElementById('markerCanvas');
                 const markerCtx = markerCanvas.getContext('2d');
                 
                 // 캔버스 크기를 비디오에 맞춤 (iOS 좌표 문제 해결)
                 const resizeMarkerCanvas = () => {
-                    const rect = video.getBoundingClientRect();
+                    const contentRect = getVideoContentRect();
+                    const elementRect = video.getBoundingClientRect();
                     
                     // ✅ iOS: devicePixelRatio 고려
                     const dpr = window.devicePixelRatio || 1;
                     
-                    // 캔버스 실제 픽셀 크기 (고해상도)
-                    markerCanvas.width = rect.width * dpr;
-                    markerCanvas.height = rect.height * dpr;
+                    // 캔버스 실제 픽셀 크기 (고해상도) - 콘텐츠 영역 기준
+                    markerCanvas.width = contentRect.width * dpr;
+                    markerCanvas.height = contentRect.height * dpr;
                     
-                    // 캔버스 CSS 크기 (화면 표시 크기) - wrapper 내에서 비디오와 동일
-                    markerCanvas.style.width = '100%';
-                    markerCanvas.style.height = '100%';
+                    // 캔버스 CSS 크기 - 콘텐츠 영역에 맞춤
+                    markerCanvas.style.width = contentRect.width + 'px';
+                    markerCanvas.style.height = contentRect.height + 'px';
                     
-                    // ✅ wrapper 사용으로 left/top 설정 불필요 (항상 0,0)
+                    // ✅ iOS: letterbox 오프셋 적용 (검은 여백만큼 이동)
+                    markerCanvas.style.left = (contentRect.left - elementRect.left) + 'px';
+                    markerCanvas.style.top = (contentRect.top - elementRect.top) + 'px';
                     
                     // 고해상도 스케일 적용
                     markerCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -5482,14 +5626,12 @@
                 
                 // 마커 배열 가져오기 함수 (capturePhoto에서 사용)
                 window.getMarkers = () => {
-                    // ✅ iOS: devicePixelRatio 고려하여 비율 계산
-                    const dpr = window.devicePixelRatio || 1;
-                    const canvasWidth = markerCanvas.width / dpr;
-                    const canvasHeight = markerCanvas.height / dpr;
+                    // ✅ iOS: 콘텐츠 영역 기준으로 정규화 (0~1 비율)
+                    const contentRect = getVideoContentRect();
                     
                     return markers.map(m => ({
-                        x: m.x / canvasWidth,
-                        y: m.y / canvasHeight
+                        x: m.x / contentRect.width,
+                        y: m.y / contentRect.height
                     }));
                 };
                 
@@ -5606,15 +5748,14 @@
                         
                         // 드래그가 아닌 경우만 마커 추가 (이동 거리 10px 미만)
                         if (moveX < 10 && moveY < 10) {
-                            const rect = video.getBoundingClientRect();
+                            // ✅ iOS 보정: 비디오 콘텐츠 영역 기준 좌표 계산
+                            const contentRect = getVideoContentRect();
                             
-                            // ✅ iOS/Android 공통: clientX/clientY 사용 (viewport 기준)
-                            // getBoundingClientRect()도 viewport 기준이므로 일관성 있음
-                            const x = touch.clientX - rect.left;
-                            const y = touch.clientY - rect.top;
+                            const x = touch.clientX - contentRect.left;
+                            const y = touch.clientY - contentRect.top;
                             
-                            // 범위 체크 (비디오 영역 내부만)
-                            if (x >= 0 && x <= rect.width && y >= 0 && y <= rect.height) {
+                            // 범위 체크 (비디오 콘텐츠 영역 내부만)
+                            if (x >= 0 && x <= contentRect.width && y >= 0 && y <= contentRect.height) {
                                 // 마커 추가 (최대 10개까지)
                                 if (markers.length < 10) {
                                     markers.push({ x, y });
@@ -5725,6 +5866,19 @@
                 cameraStream = null;
             }
             
+            // ✅ 비디오 요소 완전 정리 (iOS 메모리 해제 보장)
+            const video = document.getElementById('cameraPreview');
+            if (video) {
+                video.srcObject = null;
+                video.load(); // iOS에서 메모리 해제 트리거
+                video.style.transform = ''; // CSS 줌 초기화
+            }
+            
+            // ✅ 줌 상태 초기화
+            window.currentZoom = 1.0;
+            const zoomDisplay = document.getElementById('zoomLevel');
+            if (zoomDisplay) zoomDisplay.textContent = '줌: 1.0x';
+            
             // 마커 초기화
             if (window.clearMarkers) {
                 try {
@@ -5751,9 +5905,9 @@
         async function compressImage(input, maxWidth = 1920, quality = 0.85) {
             return new Promise((resolve, reject) => {
                 try {
-                    // 디바이스별 최적 설정
-                    if (deviceInfo.isIOS) {
-                        maxWidth = Math.min(maxWidth, 1280); // iOS 메모리 최적화
+                    // 디바이스별 최적 설정 (iOS/Android 동일: 업로드 속도 최적화)
+                    if (deviceInfo.isIOS || deviceInfo.isAndroid) {
+                        maxWidth = Math.min(maxWidth, 1280); // 모바일 최적화
                         quality = Math.min(quality, 0.8); // 용량 절약
                     }
                     
