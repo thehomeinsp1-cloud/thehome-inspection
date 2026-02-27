@@ -63,11 +63,22 @@
             --text-secondary: #6b7280;
         }
 
+        /* ✅ iOS Safari 러버밴드 바운스 방지 */
+        html {
+            overflow: hidden;
+            height: 100%;
+            position: fixed;
+            width: 100%;
+        }
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
             color: var(--text-primary);
-            min-height: 100vh;
+            height: 100%;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior: none;
             padding: 0;
             overflow-x: hidden;
             transition: background 0.3s ease, color 0.3s ease;
