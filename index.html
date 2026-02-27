@@ -7527,19 +7527,19 @@
                 // 사진 있는 하자만 필터링
                 const defectsWithPhotos = projectData.defects.filter(d => d.photos && d.photos.length > 0);
                 
-                // 1페이지: 프로젝트 정보 + 첫 11개 하자
-                const firstPageDefects = defectsWithPhotos.slice(0, 11);
+                // 1페이지: 프로젝트 정보 + 첫 9개 하자 (하단 짤림 방지)
+                const firstPageDefects = defectsWithPhotos.slice(0, 9);
                 const firstPageHTML = createFieldReportFirstPage(firstPageDefects);
                 await window.addHTMLPageToPDF(doc, firstPageHTML, pageWidth, pageHeight);
 
-                // 2페이지~: 나머지 하자 (12개씩)
-                const itemsPerPage = 12;
-                const remainingDefects = defectsWithPhotos.slice(11);
+                // 2페이지~: 나머지 하자 (10개씩, 하단 짤림 방지)
+                const itemsPerPage = 10;
+                const remainingDefects = defectsWithPhotos.slice(9);
                 
                 for (let i = 0; i < remainingDefects.length; i += itemsPerPage) {
                     doc.addPage();
                     const batch = remainingDefects.slice(i, i + itemsPerPage);
-                    const tableHTML = createFieldReportTablePage(batch, i + 11); // 인덱스는 11부터 시작
+                    const tableHTML = createFieldReportTablePage(batch, i + 9); // 인덱스는 9부터 시작
                     await window.addHTMLPageToPDF(doc, tableHTML, pageWidth, pageHeight);
                 }
 
