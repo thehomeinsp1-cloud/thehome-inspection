@@ -1387,6 +1387,9 @@
             
             <!-- 터치 포인트 마커 표시용 캔버스 오버레이 -->
             <canvas id="markerCanvas" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10;"></canvas>
+            
+            <!-- ✅ 촬영 정보 라벨 (하자번호 + 원경/근경) -->
+            <div id="cameraLabel" style="position: absolute; top: 12px; left: 12px; background: rgba(0, 0, 0, 0.7); color: #fff; padding: 6px 14px; border-radius: 8px; font-size: 15px; font-weight: bold; z-index: 15; pointer-events: none; display: none; letter-spacing: 0.5px;"></div>
         </div>
         
         <!-- 줌 레벨 표시 -->
@@ -5391,6 +5394,57 @@
             }
         }
 
+        // ==================== 카메라 촬영 정보 라벨 ====================
+        function updateCameraLabel() {
+            const label = document.getElementById('cameraLabel');
+            if (!label) return;
+            
+            let text = '';
+            let bgColor = 'rgba(0, 0, 0, 0.7)';
+            
+            if (currentPhotoTarget === 'floorplan') {
+                text = '📐 평면도';
+                bgColor = 'rgba(59, 130, 246, 0.85)'; // 파랑
+            } else if (currentPhotoTarget && typeof currentPhotoTarget === 'object') {
+                if (currentPhotoTarget.defectId) {
+                    // 하자 번호 계산 (defects 배열에서 몇 번째인지)
+                    const defectIndex = projectData.defects.findIndex(d => d.id === currentPhotoTarget.defectId);
+                    const defectNum = defectIndex >= 0 ? defectIndex + 1 : '?';
+                    
+                    // 원경/근경 판별
+                    let photoType = '';
+                    if (currentPhotoTarget.step === 'far' || currentPhotoTarget.photoType === 'far') {
+                        photoType = '원경';
+                        bgColor = 'rgba(16, 185, 129, 0.85)'; // 초록
+                    } else if (currentPhotoTarget.step === 'close' || currentPhotoTarget.photoType === 'close') {
+                        photoType = '근경';
+                        bgColor = 'rgba(239, 68, 68, 0.85)'; // 빨강
+                    }
+                    
+                    // 재촬영 여부
+                    const isRetake = currentPhotoTarget.photoIndex !== undefined;
+                    text = `#${defectNum} ${photoType}${isRetake ? ' (재촬영)' : ''}`;
+                    
+                } else if (currentPhotoTarget.equipmentId) {
+                    // 장비 촬영
+                    const equipIndex = projectData.equipment.findIndex(e => e.id === currentPhotoTarget.equipmentId);
+                    const equipNum = equipIndex >= 0 ? equipIndex + 1 : '?';
+                    const location = currentPhotoTarget.location || '';
+                    text = `🔧 장비${equipNum} ${location}`;
+                    bgColor = 'rgba(245, 158, 11, 0.85)'; // 주황
+                }
+            }
+            
+            if (text) {
+                label.textContent = text;
+                label.style.background = bgColor;
+                label.style.display = 'block';
+            } else {
+                label.style.display = 'none';
+            }
+        }
+        // ==================== 카메라 촬영 정보 라벨 끝 ====================
+
         // ==================== 카메라 기능 ====================
         async function openCamera() {
             try {
@@ -5779,6 +5833,9 @@
                     video.style.webkitTouchCallout = 'none';
                 }
                 
+                // ✅ 촬영 정보 라벨 업데이트 (하자번호 + 원경/근경)
+                updateCameraLabel();
+                
                 // 모달 표시
                 document.getElementById('cameraModal').classList.add('active');
                 
@@ -5893,6 +5950,10 @@
             if (modal) {
                 modal.classList.remove('active');
             }
+            
+            // ✅ 촬영 정보 라벨 숨김
+            const cameraLabel = document.getElementById('cameraLabel');
+            if (cameraLabel) cameraLabel.style.display = 'none';
             
             currentPhotoTarget = null;
             
