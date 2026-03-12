@@ -7563,19 +7563,19 @@
                 // 사진 있는 하자만 필터링
                 const defectsWithPhotos = projectData.defects.filter(d => d.photos && d.photos.length > 0);
                 
-                // 1페이지: 프로젝트 정보 + 첫 11개 하자
-                const firstPageDefects = defectsWithPhotos.slice(0, 11);
+                // 1페이지: 프로젝트 정보 + 첫 9개 하자
+                const firstPageDefects = defectsWithPhotos.slice(0, 9);
                 const firstPageHTML = createFieldReportFirstPage(firstPageDefects);
                 await window.addHTMLPageToPDF(doc, firstPageHTML, pageWidth, pageHeight);
 
-                // 2페이지~: 나머지 하자 (12개씩)
-                const itemsPerPage = 12;
-                const remainingDefects = defectsWithPhotos.slice(11);
+                // 2페이지~: 나머지 하자 (10개씩)
+                const itemsPerPage = 10;
+                const remainingDefects = defectsWithPhotos.slice(9);
                 
                 for (let i = 0; i < remainingDefects.length; i += itemsPerPage) {
                     doc.addPage();
                     const batch = remainingDefects.slice(i, i + itemsPerPage);
-                    const tableHTML = createFieldReportTablePage(batch, i + 11); // 인덱스는 11부터 시작
+                    const tableHTML = createFieldReportTablePage(batch, i + 9); // 인덱스는 9부터 시작
                     await window.addHTMLPageToPDF(doc, tableHTML, pageWidth, pageHeight);
                 }
 
@@ -7614,7 +7614,7 @@
             }
         }
 
-        // 현장출력보고서 첫 페이지 생성 (프로젝트 정보 + 9개 하자, 최적 사진)
+        // 현장출력보고서 첫 페이지 생성 (프로젝트 정보 + 9개 하자, 사진 108x90)
         function createFieldReportFirstPage(defects) {
             const rowsHTML = defects.map((defect, idx) => {
                 const globalIndex = idx + 1;
@@ -7636,10 +7636,10 @@
                             ${defect.date ? `<div style="color: #000; font-size: 10px; margin-top: 3px; font-weight: bold;">${defect.date}</div>` : ''}
                         </td>
                         <td style="padding: 4px; border: 1px solid #000; text-align: center; background: #fff;">
-                            ${photo1 ? `<img src="${photo1}" style="width: 100px; height: 75px; object-fit: cover; display: block; margin: 0 auto; border: 1px solid #000;">` : '<div style="width: 100px; height: 75px; border: 1px solid #000; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #000; margin: 0 auto; font-weight: bold;">사진없음</div>'}
+                            ${photo1 ? `<img src="${photo1}" style="width: 108px; height: 90px; object-fit: cover; display: block; margin: 0 auto; border: 1px solid #000;">` : '<div style="width: 108px; height: 90px; border: 1px solid #000; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #000; margin: 0 auto; font-weight: bold;">사진없음</div>'}
                         </td>
                         <td style="padding: 4px; border: 1px solid #000; text-align: center; background: #fff;">
-                            ${photo2 ? `<img src="${photo2}" style="width: 100px; height: 75px; object-fit: cover; display: block; margin: 0 auto; border: 1px solid #000;">` : '<div style="width: 100px; height: 75px; border: 1px solid #000; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #000; margin: 0 auto; font-weight: bold;">사진없음</div>'}
+                            ${photo2 ? `<img src="${photo2}" style="width: 108px; height: 90px; object-fit: cover; display: block; margin: 0 auto; border: 1px solid #000;">` : '<div style="width: 108px; height: 90px; border: 1px solid #000; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #000; margin: 0 auto; font-weight: bold;">사진없음</div>'}
                         </td>
                     </tr>
                 `;
@@ -7667,8 +7667,8 @@
                                 <th style="padding: 9px 5px; border: 1px solid #000; text-align: center; font-weight: bold; color: #000; width: 58px;">공간</th>
                                 <th style="padding: 9px 5px; border: 1px solid #000; text-align: center; font-weight: bold; color: #000; width: 68px;">하자</th>
                                 <th style="padding: 9px 5px; border: 1px solid #000; text-align: center; font-weight: bold; color: #000;">내용</th>
-                                <th style="padding: 9px 5px; border: 1px solid #000; text-align: center; font-weight: bold; color: #000; width: 108px;">원경</th>
-                                <th style="padding: 9px 5px; border: 1px solid #000; text-align: center; font-weight: bold; color: #000; width: 108px;">근접</th>
+                                <th style="padding: 9px 5px; border: 1px solid #000; text-align: center; font-weight: bold; color: #000; width: 116px;">원경</th>
+                                <th style="padding: 9px 5px; border: 1px solid #000; text-align: center; font-weight: bold; color: #000; width: 116px;">근접</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -7685,7 +7685,7 @@
             `;
         }
 
-        // 현장출력보고서 테이블 페이지 생성 (10개씩, 최적 사진, 흑백 출력 최적화)
+        // 현장출력보고서 테이블 페이지 생성 (10개씩, 사진 108x90, 흑백 출력 최적화)
         function createFieldReportTablePage(defects, startIndex) {
             const rowsHTML = defects.map((defect, idx) => {
                 const globalIndex = startIndex + idx + 1;
@@ -7707,10 +7707,10 @@
                             ${defect.date ? `<div style="color: #000; font-size: 10px; margin-top: 2px; font-weight: bold;">${defect.date}</div>` : ''}
                         </td>
                         <td style="padding: 3px; border: 1px solid #000; text-align: center; background: #fff;">
-                            ${photo1 ? `<img src="${photo1}" style="width: 100px; height: 75px; object-fit: cover; display: block; margin: 0 auto; border: 1px solid #000;">` : '<div style="width: 100px; height: 75px; border: 1px solid #000; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #000; margin: 0 auto; font-weight: bold;">사진없음</div>'}
+                            ${photo1 ? `<img src="${photo1}" style="width: 108px; height: 90px; object-fit: cover; display: block; margin: 0 auto; border: 1px solid #000;">` : '<div style="width: 108px; height: 90px; border: 1px solid #000; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #000; margin: 0 auto; font-weight: bold;">사진없음</div>'}
                         </td>
                         <td style="padding: 3px; border: 1px solid #000; text-align: center; background: #fff;">
-                            ${photo2 ? `<img src="${photo2}" style="width: 100px; height: 75px; object-fit: cover; display: block; margin: 0 auto; border: 1px solid #000;">` : '<div style="width: 100px; height: 75px; border: 1px solid #000; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #000; margin: 0 auto; font-weight: bold;">사진없음</div>'}
+                            ${photo2 ? `<img src="${photo2}" style="width: 108px; height: 90px; object-fit: cover; display: block; margin: 0 auto; border: 1px solid #000;">` : '<div style="width: 108px; height: 90px; border: 1px solid #000; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #000; margin: 0 auto; font-weight: bold;">사진없음</div>'}
                         </td>
                     </tr>
                 `;
@@ -7733,8 +7733,8 @@
                                 <th style="padding: 9px 4px; border: 1px solid #000; text-align: center; font-weight: bold; color: #000; width: 58px;">공간</th>
                                 <th style="padding: 9px 4px; border: 1px solid #000; text-align: center; font-weight: bold; color: #000; width: 68px;">하자</th>
                                 <th style="padding: 9px 5px; border: 1px solid #000; text-align: center; font-weight: bold; color: #000;">내용</th>
-                                <th style="padding: 9px 4px; border: 1px solid #000; text-align: center; font-weight: bold; color: #000; width: 108px;">원경</th>
-                                <th style="padding: 9px 4px; border: 1px solid #000; text-align: center; font-weight: bold; color: #000; width: 108px;">근접</th>
+                                <th style="padding: 9px 4px; border: 1px solid #000; text-align: center; font-weight: bold; color: #000; width: 116px;">원경</th>
+                                <th style="padding: 9px 4px; border: 1px solid #000; text-align: center; font-weight: bold; color: #000; width: 116px;">근접</th>
                             </tr>
                         </thead>
                         <tbody>
