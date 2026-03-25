@@ -7532,204 +7532,211 @@
         }
 
         // ==================== 하자점검리스트 엑셀 생성 ====================
-        // 공종구분 자동 매핑 함수 (v3.1 알고리즘 - room×location×detail 3단 조합)
+        // 공종구분 자동 매핑 함수 (v4.0 알고리즘 - 12,000+건 분석 기반 최종본)
         function detectGongJong(defect) {
-            // 앱 데이터 → 알고리즘 입력값 매핑
-            const r = (defect.spaces || []).join(' ').toLowerCase();          // room (실구분)
-            const l = ((defect.locations || []).join(' ') + ' ' + (defect.types || []).join(' ')).toLowerCase(); // location (위치+하자유형)
-            const d = (defect.description || '').toLowerCase();              // detail (상세내용)
+            const r = (defect.spaces || []).join(' ').toLowerCase();
+            const rawLoc = ((defect.locations || []).join(' ') + ' ' + (defect.types || []).join(' ')).toLowerCase();
+            const l = rawLoc;
+            const locParts = l.split('/');
+            const lLast = locParts[locParts.length - 1] || l;
+            const d = (defect.description || '').toLowerCase();
 
             // ═══════════════════════════════════════
-            // PRIORITY 1: 골조(철근콘크리트) - WT01
+            // RULE 01: 골조 (구조체 결함 - 최우선)
             // ═══════════════════════════════════════
-            const goljoKw = ['골조면 균열', '골조면 균결', '외부골조 균열', '골조면 파손', '골조면 마감', '철근노출', '골조 누수', '옹벽 균열', '옹벽 난간 파손'];
+            const goljoKw = ['골조면 균열','골조면 균결','골조면 파손','골조면 마감','외부골조 균열','외부골조','철근노출','옹벽 균열','옹벽','골조 누수'];
             if (goljoKw.some(kw => d.includes(kw))) return '골조';
-            if (d.includes('크랙') && r.includes('외부')) return '골조';
+            if (d.includes('크랙') && ['외부','발코니','실외기'].some(kw => r.includes(kw)) && !l.includes('도장') && !l.includes('도배')) return '골조';
+            if (d.includes('박리') && d.includes('외부골조')) return '골조';
 
             // ═══════════════════════════════════════
-            // PRIORITY 2: 미장 - WT03
+            // RULE 02: 방수 (누수/결로/곰팡이)
             // ═══════════════════════════════════════
-            const mijiangKw = ['면처리', '바탕면', '석고면', '평활도', '눌림', '곰보', '충진', '석고 늘림', '석고보드 솟음', '석고보드 파손', '석고면처리', '배부름', '메쉬 노출', '채움', '뿜칠'];
+            if (['누수','방수','누수흔적','배관누수','결로','습기'].some(kw => d.includes(kw))) return '방수';
+            if (d.includes('곰팡이') && ['벽','도배','천장'].some(kw => l.includes(kw))) return '방수';
+
+            // ═══════════════════════════════════════
+            // RULE 03: 미장 (바탕면 불량)
+            // ═══════════════════════════════════════
+            const mijiangKw = ['면처리','바탕면','석고면','평활도','눌림','곰보','충진','석고 늘림','석고보드 솟음','석고보드 파손','석고면처리','석고눌림','석고 눌림','배부름','메쉬 노출','패임'];
             if (mijiangKw.some(kw => d.includes(kw))) {
-                if (['벽', '천장', '바닥'].some(kw => l.includes(kw))) {
-                    if (!['타일', '도배', '도장', '코킹', '마감판', '가구'].some(kw => l.includes(kw))) {
-                        return '미장';
-                    }
+                if (['벽','천장','바닥'].some(kw => l.includes(kw))) {
+                    if (!['타일','도장','코킹','마감판','가구'].some(kw => l.includes(kw))) return '미장';
                 }
             }
-            if (d.includes('돌출') && ['벽', '천장'].some(kw => l.includes(kw))) {
-                if (!['도배', '도장', '코킹', '타일', '가구', '마감판'].some(kw => l.includes(kw))) {
-                    return '미장';
+            if (d.includes('돌출') && ['벽','천장'].some(kw => l.includes(kw)) && !['타일','도배','도장','마감판'].some(kw => l.includes(kw))) return '미장';
+
+            // ═══════════════════════════════════════
+            // RULE 04: 타일
+            // ═══════════════════════════════════════
+            if (['타일','줄눈'].some(kw => l.includes(kw))) {
+                if (lLast !== '코킹' && !lLast.includes('코킹')) {
+                    if (!['디딤석','경계석','재료분리대','석재'].some(kw => d.includes(kw))) return '타일';
                 }
             }
+            if (['마블씰','쪼개붙이기','쪼개 붙이기','물넘이턱','간격재 미제거'].some(kw => d.includes(kw))) return '타일';
+            if (d.includes('아트월') && l.includes('타일')) return '타일';
 
             // ═══════════════════════════════════════
-            // PRIORITY 3: 방수 - WT04
+            // RULE 05: 석공사
             // ═══════════════════════════════════════
-            if (['누수', '방수'].some(kw => d.includes(kw))) return '방수';
-
-            // ═══════════════════════════════════════
-            // PRIORITY 4: 타일 - WT05
-            // ═══════════════════════════════════════
-            if (['타일', '줄눈'].some(kw => l.includes(kw))) {
-                if (!l.includes('코킹') || d.includes('마블씰')) {
-                    if (!['디딤석', '경계석', '재료분리대'].some(kw => d.includes(kw))) {
-                        return '타일';
-                    }
-                }
-            }
-            if (['백화', '물넘이턱'].some(kw => d.includes(kw))) {
-                if (l.includes('타일') || l.includes('줄눈') || r.includes('욕실')) return '타일';
-            }
-
-            // ═══════════════════════════════════════
-            // PRIORITY 5: 석공사(돌) - WT06
-            // ═══════════════════════════════════════
-            const seokKw = ['디딤석', '경계석', '재료분리대', '석재', '석걸레받이', '연석', '창대석', '석재 상판', '석재 접합부', '대리석', '화강석'];
+            const seokKw = ['디딤석','경계석','재료분리대','석걸레받이','연석','창대석','석재 상판','석재 접합부','석재 걸레받이','연석 균열','문턱석','디딤석 이음새'];
             if (seokKw.some(kw => d.includes(kw))) return '석공사';
+            if (d.includes('석재') && !l.includes('도배') && !l.includes('가구')) return '석공사';
 
             // ═══════════════════════════════════════
-            // PRIORITY 6: 유리 - WT09
+            // RULE 06: 유리
             // ═══════════════════════════════════════
-            const yuriKw = ['유리 마감', '유리 긁힘', '유리 파손', '유리코킹', '유리외측', '외창유리 코킹', '유리 오염', '유리틀', '유리 가스켓', '유리 떨림', '유리난간 상단레일'];
+            const yuriKw = ['유리 마감','유리 긁힘','유리 파손','유리난간','유리코킹','유리외측 코킹','외창유리 코킹','유리 오염','유리 가스켓','유리 떨림','유리틀','복층창','샤워부스 쫄대'];
             if (yuriKw.some(kw => d.includes(kw))) return '유리';
             if (d.includes('유리') && d.includes('코킹')) return '유리';
+            if (d.includes('거울') && !d.includes('거울장') && ['욕실','파우더','드레스'].some(kw => r.includes(kw)) && !l.includes('가구')) return '유리';
 
             // ═══════════════════════════════════════
-            // PRIORITY 7: PL창호 - WT07
+            // RULE 07: PL창호
             // ═══════════════════════════════════════
-            if (['창/문', '창/짝', '창/틀'].some(kw => l.includes(kw))) {
-                if (!['욕실', '대피', '실외기'].some(kw => r.includes(kw))) {
-                    const plKw = ['개폐', '떨림', '고정', '수평', '긁힘', '찍힘', '오염', '내창', '외창', '분합창', '소음', '스트라이커', '벌어짐', '배연창', '뻑뻑', '오사이', '걸림', '파손', '빡빡', '간섭', '가스켓', '피스캡', '고무커버', '크레센트', '크리센트'];
+            const plLoc = ['창/문','창/짝','창/틀','창/문/틀','창/문/짝'];
+            const plKw = ['개폐','떨림','고정','수평','긁힘','찍힘','오염','소음','스트라이커','벌어짐','걸림','파손','뻑뻑','오사이','크레센트','크리센트','잠금개폐','간섭','가스켓','피스캡','고무커버','틈새','잠금','손잡이'];
+            if (plLoc.some(kw => l.includes(kw))) {
+                if (!['욕실','대피','실외기'].some(kw => r.includes(kw)) && !l.includes('도장') && !lLast.includes('코킹')) {
                     if (plKw.some(kw => d.includes(kw))) return 'PL창호';
                 }
             }
-            if (d.includes('배연창')) return 'PL창호';
-            if (['크레센트', '크리센트'].some(kw => d.includes(kw))) return 'PL창호';
+            if (['배연창','크레센트','크리센트'].some(kw => d.includes(kw))) return 'PL창호';
 
             // ═══════════════════════════════════════
-            // PRIORITY 8: AL창호 - WT08
+            // RULE 08: AL창호 (현관문/방화문)
             // ═══════════════════════════════════════
-            if (r.includes('현관') && l.includes('문') && l.includes('도장')) return 'AL창호';
-            if (r.includes('현관') && l.includes('문/틀')) {
-                if (['하부씰', '하틀', '좌우하틀'].some(kw => d.includes(kw))) return 'AL창호';
+            if (r.includes('현관') && l.includes('문') && !d.includes('중문')) {
+                if (['하부씰','하틀','좌우하틀','도어체크','긁힘','찍힘','틈새','파손','고정','녹','유격'].some(kw => d.includes(kw))) return 'AL창호';
             }
-            if ((['대피', '실외기'].some(kw => r.includes(kw))) && l.includes('문')) {
-                if (['스토퍼', '도어클로저', '손잡이', '파손', '긁힘', '찍힘', '틈새', '고정', '유격'].some(kw => d.includes(kw))) return 'AL창호';
+            if (['대피','실외기'].some(kw => r.includes(kw)) && l.includes('문')) {
+                if (['스토퍼','도어클로저','손잡이','파손','긁힘','찍힘','틈새','고정','하부씰','유격','도어체크'].some(kw => d.includes(kw))) return 'AL창호';
             }
-            if (['도어체크', '도어 체크'].some(kw => d.includes(kw))) {
-                if (['현관', '대피', '실외기', '팬트리'].some(kw => r.includes(kw))) return 'AL창호';
-            }
+            if (d.includes('방화문')) return 'AL창호';
 
             // ═══════════════════════════════════════
-            // PRIORITY 9: 금속 - WT17
+            // RULE 09: 금속
             // ═══════════════════════════════════════
-            const metalKw = ['유리난간 고정', '유리난간 수평', '난간 고정', '난간 파손', '간살 마감', '볼트캡', '핸드레일'];
+            const metalKw = ['유리난간 고정','유리난간 수평','유리난간 파손','난간 고정','난간 파손','간살 마감','하부캡','볼트캡','스토퍼 미시공','연석 파손'];
             if (metalKw.some(kw => d.includes(kw))) return '금속';
-            if (d.includes('난간')) {
-                if (['발코니', '외부', '거실', '테라스', '계단'].some(kw => r.includes(kw))) {
-                    if (!l.includes('도장')) return '금속';
-                }
-            }
+            if (d.includes('난간') && !d.includes('유리난간') && ['발코니','외부','거실','테라스','계단'].some(kw => r.includes(kw))) return '금속';
 
             // ═══════════════════════════════════════
-            // PRIORITY 10: 목창호(도어) - WT10
+            // RULE 10: 목창호 (문/짝 → 무조건 목창호)
             // ═══════════════════════════════════════
-            if (l.includes('문/짝') && !['현관', '대피', '실외기'].some(kw => r.includes(kw))) return '목창호';
-            if (['문/짝', '문/틀'].some(kw => l.includes(kw))) {
-                if (!['도장', '마감판'].some(kw => l.includes(kw))) {
-                    if (!['현관', '대피', '실외기'].some(kw => r.includes(kw))) {
-                        const mokKw = ['밀착', '수평', '개폐', '안닫힘', '걸림', '긁힘', '찍힘', '틈새', '손끼임', '오염', '파손', '고정', '랩핑', '시트지', '자동닫힘', '유격', '밀폐', '멈춤', '소음', '타카핀', '피스커버', '문선', '잠금'];
-                        if (mokKw.some(kw => d.includes(kw))) return '목창호';
-                    }
+            if (l.includes('문/짝') && !['현관','대피','실외기'].some(kw => r.includes(kw))) return '목창호';
+            const mokKw = ['밀착','수평','개폐','안닫힘','걸림','긁힘','찍힘','틈새','손끼임','오염','파손','고정','랩핑','시트지','자동닫힘','유격','밀폐','멈춤','소음','타카핀','피스커버','타카','문선','잠금장치'];
+            if (['문/짝','문/틀'].some(kw => l.includes(kw))) {
+                if (!['도장','마감판'].some(kw => l.includes(kw)) && !['현관','대피','실외기'].some(kw => r.includes(kw))) {
+                    if (mokKw.some(kw => d.includes(kw))) return '목창호';
                 }
             }
             if (r.includes('현관') && d.includes('중문') && !l.includes('도장')) return '목창호';
-            if (['슬라이딩', '폴딩도어', '폴딩 도어'].some(kw => d.includes(kw))) return '목창호';
+            if (l.includes('중문') || d.includes('중문')) {
+                if (!d.includes('디딤석') && !l.includes('코킹')) return '목창호';
+            }
+            if (['슬라이딩 도어','폴딩도어'].some(kw => d.includes(kw)) && !l.includes('가구')) return '목창호';
 
             // ═══════════════════════════════════════
-            // PRIORITY 11: 수장(목공) - WT11
+            // RULE 11: 수장 (목공)
             // ═══════════════════════════════════════
             if (l.includes('마감판') && !l.includes('가구')) return '수장';
-            if (l.includes('천장') && ['우물천장', '몰딩', '타카핀', '천장몰딩'].some(kw => d.includes(kw))) return '수장';
-            if (d.includes('걸레받이') && !l.includes('코킹') && !l.includes('가구') && !d.includes('석걸레받이')) return '수장';
+            const sujangCeilKw = ['몰딩','타카핀','천장몰딩'];
+            if (l.includes('천장') && sujangCeilKw.some(kw => d.includes(kw))) return '수장';
+            if (d.includes('우물천장')) {
+                const dobaeDefect = ['들뜸','이음','찢어짐','찢김','태움','울음','꼬임'];
+                if (dobaeDefect.some(kw => d.includes(kw)) && l.includes('도배')) { /* 도배로 진행 */ }
+                else return '수장';
+            }
+            if (d.includes('걸레받이') && !l.includes('코킹') && !d.includes('석걸레받이')) return '수장';
             if (d.includes('커텐박스') && !l.includes('도배')) return '수장';
-            if (['몰딩과 벽', '몰딩 접합부', '몰딩 틈새', '몰딩 접면'].some(kw => d.includes(kw))) return '수장';
-            const stairKw = ['계단판', '계단 측면', '손스침', '디딤판', '측판', '디딤시', '디딤부'];
+            if (['몰딩과 벽','몰딩 접면','몰딩 틈새','몰딩 접합부','몰딩 태움'].some(kw => d.includes(kw))) return '수장';
+            const stairKw = ['계단판','계단 측면','간살','손스침','디딤판','측판','시트패널','프로파일','프로타일'];
             if (stairKw.some(kw => d.includes(kw)) && !l.includes('도장') && !l.includes('도배')) return '수장';
-            if (['시트패널', '프로타일'].some(kw => d.includes(kw)) && !l.includes('가구')) return '수장';
+            if (d.includes('아트월') && (l.includes('마감판') || l.includes('벽')) && !l.includes('타일')) return '수장';
 
             // ═══════════════════════════════════════
-            // PRIORITY 12: 도장 - WT12
+            // RULE 12: 도장
             // ═══════════════════════════════════════
             if (l.includes('도장')) return '도장';
-            if (['코팅', '피니쉬', '간살 도장', '난간 도장'].some(kw => d.includes(kw))) return '도장';
+            if (['코팅','피니쉬','간살 도장','페인트'].some(kw => d.includes(kw))) return '도장';
+            if (d.includes('박리') && ['발코니','실외기','외부'].some(kw => r.includes(kw))) return '도장';
 
             // ═══════════════════════════════════════
-            // PRIORITY 13: 도배 - WT13
+            // RULE 13: 도배
             // ═══════════════════════════════════════
             if (l.includes('도배')) {
-                const dobaeKw = ['들뜸', '이음', '찢어짐', '태움', '주름', '오염', '틈새', '돌출', '파손', '긁힘', '찍힘', '선현', '울음', '이색', '꼬임', '이격', '습기', '경사면', '경사부', '균힘', '기포', '처짐', '마감'];
+                const dobaeKw = ['들뜸','이음','찢어짐','찢김','태움','주름','오염','틈새','돌출','파손','긁힘','찍힘','선현','울음','이색','꼬임','이격','습기','곰팡이'];
                 if (dobaeKw.some(kw => d.includes(kw))) return '도배';
-                return '도배';
             }
 
             // ═══════════════════════════════════════
-            // PRIORITY 14: 가구 - WT14
+            // RULE 14: 가구
             // ═══════════════════════════════════════
-            if (l.includes('가구')) return '가구';
-            const gaguKw = ['신발장', '옷장', '상부장', '하부장', '키큰장', '밥솥장', '냉장고장', '아일랜드', '씽크볼', '렌지후드', '후드커버', '쿡탑', '빌트인', '장식장', '이너서랍', '오븐'];
-            if (gaguKw.some(kw => d.includes(kw))) return '가구';
+            if (l.includes('가구')) {
+                if (['수전','배관','급수','배수','누수'].some(kw => d.includes(kw))) return '기계설비';
+                return '가구';
+            }
+            const gaguDetailKw = ['후드장','거울장','측면장','냉장고장','아일랜드','씽크대','씽크볼','상부장','하부장','밥솥장','키큰장','드레스룸가구','빌트인'];
+            if (gaguDetailKw.some(kw => d.includes(kw))) return '가구';
 
             // ═══════════════════════════════════════
-            // PRIORITY 15: 바닥재(마루) - WT15
+            // RULE 15: 바닥재
             // ═══════════════════════════════════════
-            if (l.includes('바닥') && !['타일', '줄눈', '코킹', '도장'].some(kw => l.includes(kw))) {
-                const maruKw = ['마루', '들뜸', '찍힘', '틈새', '이색', '이음부', '소음', '장판'];
-                if (maruKw.some(kw => d.includes(kw))) {
-                    if (!['욕실', '발코니', '실외기', '대피'].some(kw => r.includes(kw))) return '바닥재';
-                }
+            if (l.includes('바닥') && !['타일','줄눈','코킹','도장','난방'].some(kw => l.includes(kw))) {
+                const maruKw = ['마루','강마루','온돌마루','장판','들뜸','찍힘','틈새','이색','이음부','소음','패임'];
+                if (maruKw.some(kw => d.includes(kw)) && !['욕실','발코니','실외기','대피'].some(kw => r.includes(kw))) return '바닥재';
             }
 
             // ═══════════════════════════════════════
-            // PRIORITY 16: 실리콘(코킹) - WT16
+            // RULE 16: 실리콘 (코킹)
             // ═══════════════════════════════════════
-            if (l.includes('코킹')) {
-                if (!['디딤석', '석걸레받이'].some(kw => d.includes(kw)) && !d.includes('유리')) return '실리콘';
+            if (l.includes('코킹') || lLast.includes('코킹')) {
+                if (!['디딤석','석걸레받이','연석'].some(kw => d.includes(kw)) && !d.includes('유리')) return '실리콘';
             }
 
             // ═══════════════════════════════════════
-            // PRIORITY 17: 기계설비(배관) - WT18
+            // RULE 17: 기계설비
             // ═══════════════════════════════════════
-            const mechKw = ['수전', '배관', '급수', '배수', '보일러', '밸브', '후드 작동', '물고임', 's/p', '수전 무게추', '급수배관', '급수관 커버', '분배기 가동불가', '수전커버', '배관커버', '배관 커버', '흡입력', '절수패달', '절수페달', '역구배', '보일러 하부', '난방 작동', '청소수전', '드레인 배관', '우수관', '그레이팅', '배수구 역류', '물 빠짐 오시공'];
-            if (mechKw.some(kw => d.includes(kw))) {
-                if (!['가림막', '가림판', '피스커버'].some(kw => d.includes(kw))) return '기계설비';
-            }
+            const mechKw = ['수전','배관','급수','배수','밸브','보일러','물고임','s/p','수전 무게추','급수배관','급수관','분배기 가동불가','수전커버','배관커버','흡입력','절수패달','절수페달','배수 불량','역구배','난방 작동','청소수전','드레인 배관','우수관','그레이팅','트렌치','물 빠짐'];
+            if (mechKw.some(kw => d.includes(kw)) && !['커버(가구)','가림판','가림막','피스커버'].some(kw => d.includes(kw))) return '기계설비';
+            if (d.includes('세면대') && ['욕실','파우더'].some(kw => r.includes(kw)) && ['고정','누수','배수','수전'].some(kw => d.includes(kw))) return '기계설비';
+            if (d.includes('욕조') && ['수전','배수','급수'].some(kw => d.includes(kw))) return '기계설비';
+            if (d.includes('양변기') && l.includes('바닥')) return '기계설비';
+            if (d.includes('구배') && ['욕실','발코니','실외기'].some(kw => r.includes(kw)) && d.includes('불량')) return '기계설비';
+            if (d.includes('바닥난방') && d.includes('불량')) return '기계설비';
+            if (d.includes('후드') && d.includes('작동') && !l.includes('가구')) return '기계설비';
 
             // ═══════════════════════════════════════
-            // PRIORITY 18: 전기 - WT19
+            // RULE 18: 전기
             // ═══════════════════════════════════════
-            const elecKw = ['콘센트', '스위치', '분전반', '분전함', '단자함', '인터폰', '일괄소등', '등 고정', '월패드', '센서등', '와이어선', '매립등', '조명커버', '조명기구', '깜빡거림', '환기 조절기', '환기스위치', '통신커버', '스피커', '조명 고정', '조명밀착', '조명 수평', '터치 작동', '벽부등', '유도등', '오시공', '에어콘', '에어컨 작동', '에어컨 커버', '공기청정기', '디퓨저', '차단기 커버', '전선노출', '초인종', '식탁등', '배전반', '배선 마감 미시공', '감지기 고정'];
+            const elecKw = ['콘센트','스위치','분전반','분전함','단자함','인터폰','일괄소등','등 고정','월패드','센서등','와이어선','매립등','조명커버','깜빡거림','환기 조절기','환기스위치','통신커버','스피커','벽부등','유도등','에어콘','에어컨','공기청정기','디퓨저','차단기 커버','전선노출','배전반','배선 마감','초인종','식탁등'];
             if (elecKw.some(kw => d.includes(kw))) return '전기';
-            if (d.includes('조명') && ['고정', '작동', '밀착', '노출'].some(kw => d.includes(kw))) return '전기';
+            if (d.includes('조명') && ['고정','작동','밀착','노출','수평','틀어짐','깜빡'].some(kw => d.includes(kw))) return '전기';
+            if (d.includes('감지기') && !d.includes('소방')) return '전기';
+            if (d.includes('오시공') && ['스위치','조명','에어컨','작동'].some(kw => d.includes(kw))) return '전기';
 
             // ═══════════════════════════════════════
-            // PRIORITY 19: 잡공사 - WT23
+            // RULE 19: 잡공사
             // ═══════════════════════════════════════
-            const jabKw = ['반달스토퍼', '배수구', '점검구', '단열재', '인덕션 미시공', '센서', '그릴창 홀캡', '방충망', '마개 누락', '에어컨 밀착', '모헤어', '소방감지기', '징크판넬', '블록 마감', '시트커버', '데크판', '천장판', '스프링쿨러', '간격재 미제거', '스프링클러'];
+            const jabKw = ['반달스토퍼','배수구','점검구','단열재','센서','그릴창 홀캡','방충망','마개 누락','에어컨 밀착','모헤어','소방감지기','징크판넬','블록 마감','시트커버','데크판','스프링쿨러','소화전','결로저감','천장판'];
             if (jabKw.some(kw => d.includes(kw))) return '잡공사';
+            if (['단열시공','단열사항'].some(kw => d.includes(kw)) && (d.includes('재점검') || d.includes('불량'))) return '잡공사';
+            if (d.includes('인덕션') && d.includes('미시공')) return '잡공사';
 
             // ═══════════════════════════════════════
-            // PRIORITY 20: 준공청소 - WT22
+            // RULE 20: 준공청소
             // ═══════════════════════════════════════
             if (d.includes('오염')) {
-                const cleanExclude = ['마감', '파손', '들뜸', '균열', '틈새', '단차', '수평', '개폐', '고정', '긁힘', '찍힘', '미시공', '돌출', '불량'];
-                if (!cleanExclude.some(kw => d.includes(kw))) return '준공청소';
+                const cleanExcl = ['마감','파손','들뜸','균열','틈새','단차','수평','개폐','고정','긁힘','찍힘','미시공','돌출','불량','타카핀','피스커버','접합부'];
+                if (!cleanExcl.some(kw => d.includes(kw))) return '준공청소';
             }
-            if (['본드 오염', '준공 청소 불량'].some(kw => d.includes(kw))) return '준공청소';
+            if (['본드 오염','페인트 오염','시멘트 오염','녹 오염','녹발생','준공 청소 불량'].some(kw => d.includes(kw))) return '준공청소';
+            if (d.includes('곰팡이') && ['가구','바닥','코킹'].some(kw => l.includes(kw))) return '준공청소';
 
             // ═══════════════════════════════════════
-            // FALLBACK: 기타공종
+            // FALLBACK
             // ═══════════════════════════════════════
             return '기타공종';
         }
