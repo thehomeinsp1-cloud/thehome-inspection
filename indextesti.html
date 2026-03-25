@@ -7642,6 +7642,8 @@
 
                 // ===== 데이터행 + 사진 =====
                 const ROW_HEIGHT = 80;
+                let photoSuccessCount = 0;
+                let photoFailCount = 0;
 
                 for (let idx = 0; idx < projectData.defects.length; idx++) {
                     const defect = projectData.defects[idx];
@@ -7670,46 +7672,48 @@
                         cell.font = { size: 10 };
                     }
 
-                    // 원경 사진 (G열, col index 6)
-                    if (defect.photos && defect.photos[0] && defect.photos[0] !== null) {
+                    // 원경 사진 (G열)
+                    if (defect.photos && defect.photos[0] && defect.photos[0] !== null && typeof defect.photos[0] === 'string' && defect.photos[0].length > 100) {
                         try {
-                            const photoData = defect.photos[0];
-                            const base64Only = photoData.includes(',') ? photoData.split(',')[1] : photoData;
-                            const ext = photoData.includes('png') ? 'png' : 'jpeg';
-                            // base64 → ArrayBuffer 변환
+                            const photoStr = defect.photos[0];
+                            const base64Only = photoStr.includes(',') ? photoStr.split(',')[1] : photoStr;
                             const binaryStr = atob(base64Only);
                             const bytes = new Uint8Array(binaryStr.length);
-                            for (let b = 0; b < binaryStr.length; b++) bytes[b] = binaryStr.charCodeAt(b);
-                            const imgId = workbook.addImage({ buffer: bytes.buffer, extension: ext });
-                            ws.addImage(imgId, {
+                            for (let i = 0; i < binaryStr.length; i++) bytes[i] = binaryStr.charCodeAt(i);
+                            const imageId = workbook.addImage({ buffer: bytes, extension: 'jpeg' });
+                            ws.addImage(imageId, {
                                 tl: { col: 6, row: rowNum - 1 },
                                 ext: { width: 130, height: 95 }
                             });
+                            photoSuccessCount++;
                         } catch (e) {
-                            console.warn('원경 사진 삽입 오류 (하자' + (idx+1) + '):', e);
+                            photoFailCount++;
+                            console.error('원경사진 삽입실패 하자' + (idx+1), e);
                         }
                     }
 
-                    // 근경 사진 (H열, col index 7)
-                    if (defect.photos && defect.photos[1] && defect.photos[1] !== null) {
+                    // 근경 사진 (H열)
+                    if (defect.photos && defect.photos[1] && defect.photos[1] !== null && typeof defect.photos[1] === 'string' && defect.photos[1].length > 100) {
                         try {
-                            const photoData = defect.photos[1];
-                            const base64Only = photoData.includes(',') ? photoData.split(',')[1] : photoData;
-                            const ext = photoData.includes('png') ? 'png' : 'jpeg';
-                            // base64 → ArrayBuffer 변환
+                            const photoStr = defect.photos[1];
+                            const base64Only = photoStr.includes(',') ? photoStr.split(',')[1] : photoStr;
                             const binaryStr = atob(base64Only);
                             const bytes = new Uint8Array(binaryStr.length);
-                            for (let b = 0; b < binaryStr.length; b++) bytes[b] = binaryStr.charCodeAt(b);
-                            const imgId = workbook.addImage({ buffer: bytes.buffer, extension: ext });
-                            ws.addImage(imgId, {
+                            for (let i = 0; i < binaryStr.length; i++) bytes[i] = binaryStr.charCodeAt(i);
+                            const imageId = workbook.addImage({ buffer: bytes, extension: 'jpeg' });
+                            ws.addImage(imageId, {
                                 tl: { col: 7, row: rowNum - 1 },
                                 ext: { width: 130, height: 95 }
                             });
+                            photoSuccessCount++;
                         } catch (e) {
-                            console.warn('근경 사진 삽입 오류 (하자' + (idx+1) + '):', e);
+                            photoFailCount++;
+                            console.error('근경사진 삽입실패 하자' + (idx+1), e);
                         }
                     }
                 }
+
+                console.log('사진 삽입 결과: 성공=' + photoSuccessCount + ', 실패=' + photoFailCount);
 
                 // ===== 파일 다운로드 =====
                 const buffer = await workbook.xlsx.writeBuffer();
@@ -7738,7 +7742,11 @@
                 }
 
                 hideLoading();
-                showToast('📊 하자점검리스트 엑셀이 다운로드되었습니다!');
+                if (photoFailCount > 0) {
+                    showToast(`📊 엑셀 다운로드 완료! (사진 ${photoSuccessCount}장 성공, ${photoFailCount}장 실패)`);
+                } else {
+                    showToast(`📊 하자점검리스트 엑셀 다운로드! (사진 ${photoSuccessCount}장 포함)`);
+                }
 
             } catch (error) {
                 console.error('하자점검리스트 엑셀 생성 오류:', error);
