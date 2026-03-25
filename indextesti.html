@@ -7532,47 +7532,57 @@
         }
 
         // ==================== 하자점검리스트 엑셀 생성 ====================
-        // 공종구분 자동 매핑 함수
+        // 공종구분 자동 매핑 함수 (키워드 매칭 → 미매칭 시 '기타공종')
         function detectGongJong(defect) {
             const spaces = (defect.spaces || []).join(' ');
             const types = (defect.types || []).join(' ');
+            const locations = (defect.locations || []).join(' ');
             const desc = defect.description || '';
-            const all = (spaces + ' ' + types + ' ' + desc).toLowerCase();
+            const all = (spaces + ' ' + types + ' ' + locations + ' ' + desc);
 
+            // 우선순위 높은 것부터 배치 (구체적 키워드 → 일반 키워드 순)
             const rules = [
-                { no: 1, name: '골조', keywords: ['균열', '크랙', '콘크리트', '철근', '구조체', '타설'] },
-                { no: 2, name: '조적', keywords: ['조적', '벽돌'] },
-                { no: 3, name: '미장', keywords: ['미장', '코너비드', '코너 비드'] },
-                { no: 4, name: '방수', keywords: ['방수', '누수', '누출', '물흔적', '물 흔적'] },
-                { no: 5, name: '타일', keywords: ['타일', '줄눈', '들뜸', '탈락'] },
-                { no: 6, name: '석공사', keywords: ['디딤석', '창대석', '문턱석', '대리석', '화강석', '석재'] },
-                { no: 7, name: 'PL창호', keywords: ['샷시', '샤시', '방충망', '창틀', '기밀', 'pl창'] },
-                { no: 8, name: 'AL창호', keywords: ['현관문', '방화문', 'al창', '알루미늄'] },
-                { no: 9, name: '유리', keywords: ['유리', '복층'] },
-                { no: 10, name: '목창호', keywords: ['실내문', '문틀', '문짝', '도어', '개폐', '처짐'] },
-                { no: 11, name: '수장', keywords: ['걸레받이', '몰딩', '반자돌림', '마감판', '우물천장', '문선', '목공'] },
-                { no: 12, name: '도장', keywords: ['페인트', '도장', '벗겨짐', '얼룩'] },
-                { no: 13, name: '도배', keywords: ['도배', '벽지', '이음새'] },
-                { no: 14, name: '가구', keywords: ['신발장', '붙박이', '싱크대', '주방가구', '드레스룸', '가구', '선반', '서랍', '경첩'] },
-                { no: 15, name: '바닥재', keywords: ['마루', '강마루', '강화마루', '온돌마루', '바닥재', '찍힘', '긁힘'] },
-                { no: 16, name: '실리콘', keywords: ['실리콘', '코킹', '씰링'] },
-                { no: 17, name: '금속', keywords: ['난간', '핸드레일', '금속', '우편함', '물끊기'] },
-                { no: 18, name: '기계설비', keywords: ['배관', '급수', '배수', '난방', '양변기', '세면기', '욕조', '수전', '환기'] },
-                { no: 19, name: '전기', keywords: ['조명', '스위치', '콘센트', '분전반', '배선', '인터폰', '전기', '등기구'] },
-                { no: 20, name: '소방', keywords: ['소화기', '감지기', '스프링클러', '유도등', '소방'] },
-                { no: 21, name: '통신', keywords: ['인터넷', '월패드', '홈네트워크', 'cctv', 'tv', '통신'] },
-                { no: 22, name: '준공청소', keywords: ['청소', '오염'] },
-                { no: 23, name: '잡공사', keywords: ['배수구', '점검구', '환기구', '홈통', '기타'] }
+                { name: '소방', keywords: ['소화기', '감지기', '스프링클러', '유도등', '소방', '화재감지', '연기감지', '비상등', '옥내소화전'] },
+                { name: '통신', keywords: ['인터넷', '월패드', '홈네트워크', 'CCTV', 'TV', '통신', '랜선', 'LAN', '케이블', '공유기', '인터폰', '비디오폰', '도어벨', '세대단자함'] },
+                { name: '전기', keywords: ['조명', '스위치', '콘센트', '분전반', '배선', '전기', '등기구', '전등', '다운라이트', '형광등', 'LED', '차단기', '누전', '접지', '감전', '전선'] },
+                { name: '기계설비', keywords: ['배관', '급수', '배수', '난방', '양변기', '세면기', '욕조', '수전', '환기', '급탕', '온수', '보일러', '밸브', '트랩', '하수', '싱크', '세탁기', '건조기', '에어컨', '냉난방', '덕트', '환풍기', '레인지후드', '후드', '급기', '배기', '통기관', '수압', '동파', '동결'] },
+                { name: 'AL창호', keywords: ['현관문', '방화문', 'AL창', '알루미늄', '대문', '철문', '방범창', '셔터'] },
+                { name: 'PL창호', keywords: ['샷시', '샤시', '방충망', '창틀', '기밀', 'PL창', '플라스틱창', '이중창', '시스템창', '하이샤시', '발코니창', '거실창', '베란다창', '창문', '창호'] },
+                { name: '유리', keywords: ['유리', '복층', '로이유리', '접합유리', '강화유리', '유리막이'] },
+                { name: '석공사', keywords: ['디딤석', '창대석', '문턱석', '대리석', '화강석', '석재', '포천석', '현관석', '돌'] },
+                { name: '타일', keywords: ['타일', '줄눈', '타일들뜸', '타일탈락', '타일균열', '벽타일', '바닥타일', '포세린', '폴리싱', '자기질', '도기질'] },
+                { name: '방수', keywords: ['방수', '누수', '누출', '물흔적', '물 흔적', '곰팡이', '결로', '습기', '물자국', '물얼룩', '우레탄방수', '시트방수', '액체방수'] },
+                { name: '목창호', keywords: ['실내문', '문틀', '문짝', '도어', '개폐불량', '개폐', '처짐', '미닫이', '여닫이', '슬라이딩', '중문', '포켓도어', 'ABS문', '방문', '화장실문'] },
+                { name: '가구', keywords: ['신발장', '붙박이', '싱크대', '주방가구', '드레스룸', '가구', '선반', '서랍', '경첩', '손잡이', '수납장', '상부장', '하부장', '아일랜드', '팬트리', '다용도실장', '거울장', '세면대장', '옷장'] },
+                { name: '바닥재', keywords: ['마루', '강마루', '강화마루', '온돌마루', '바닥재', '찍힘', '긁힘', '장판', '데코타일', '비닐타일', '원목마루', '합판마루', '바닥', '뜯김', '들뜬마루'] },
+                { name: '도배', keywords: ['도배', '벽지', '이음새', '들뜸', '기포', '주름', '풀자국', '접착불량', '실크벽지', '합지벽지', '천장지'] },
+                { name: '도장', keywords: ['페인트', '도장', '벗겨짐', '얼룩', '칠', '오염', '롤러자국', '붓자국', '도료', '래커', '에나멜', '수성페인트', '유성페인트', '천장도장', '벽도장'] },
+                { name: '실리콘', keywords: ['실리콘', '코킹', '씰링', '실란트', '변색실리콘', '곰팡이실리콘', '실리콘끊김', '이격'] },
+                { name: '수장', keywords: ['걸레받이', '몰딩', '반자돌림', '마감판', '우물천장', '문선', '목공', '코너', '마감재', '루버', '탈의실', '다락', '천장몰딩', '굽도리'] },
+                { name: '미장', keywords: ['미장', '코너비드', '코너 비드', '시멘트', '몰탈', '레미탈', '벽면보수', '바닥미장'] },
+                { name: '골조', keywords: ['균열', '크랙', '콘크리트', '철근', '구조체', '타설', '철근노출', '백화', '콘크리트균열', '레이턴스', '박리'] },
+                { name: '조적', keywords: ['조적', '벽돌', '블럭', '시멘트벽돌', '적벽돌'] },
+                { name: '금속', keywords: ['난간', '핸드레일', '금속', '우편함', '물끊기', '스텐', '스테인리스', '철물', '앵글', '브라켓', '금속몰딩'] },
+                { name: '준공청소', keywords: ['청소', '오염', '스티커', '보양지', '보양재', '라벨', '테이프자국', '시멘트자국', '본드자국', '먼지'] },
+                { name: '잡공사', keywords: ['배수구', '점검구', '환기구', '홈통', '기타', '부속', '캡', '커버', '마감캡', '몰딩캡', '코너보호대', '보수'] }
             ];
 
             for (const rule of rules) {
                 for (const kw of rule.keywords) {
-                    if (all.includes(kw)) {
-                        return `${rule.no}.${rule.name}`;
+                    if (all.includes(kw) || all.toLowerCase().includes(kw.toLowerCase())) {
+                        return rule.name;
                     }
                 }
             }
-            return '';
+
+            // 공간(실구분) 기반 2차 추론
+            const spLower = spaces.toLowerCase();
+            if (spLower.includes('욕실') || spLower.includes('화장실') || spLower.includes('샤워')) return '타일';
+            if (spLower.includes('주방') || spLower.includes('부엌')) return '가구';
+            if (spLower.includes('현관')) return '석공사';
+            if (spLower.includes('베란다') || spLower.includes('발코니')) return '도장';
+
+            return '기타공종';
         }
 
         window.generateDefectListExcel = async function() {
@@ -7631,12 +7641,11 @@
                 });
 
                 // ===== 데이터행 + 사진 =====
-                const photoHeight = 90; // 사진 높이 (px)
-                const ROW_HEIGHT = 75;   // 엑셀 행 높이 (pt)
+                const ROW_HEIGHT = 80;
 
                 for (let idx = 0; idx < projectData.defects.length; idx++) {
                     const defect = projectData.defects[idx];
-                    const rowNum = idx + 3; // 1:제목, 2:헤더, 3~:데이터
+                    const rowNum = idx + 3;
                     const row = ws.getRow(rowNum);
                     row.height = ROW_HEIGHT;
 
@@ -7647,8 +7656,8 @@
                     row.getCell(4).value = detectGongJong(defect);
                     row.getCell(5).value = (defect.types || []).join(', ');
                     row.getCell(6).value = defect.description || '';
-                    row.getCell(9).value = '';  // 보수방법 (빈칸)
-                    row.getCell(10).value = ''; // 비고 (빈칸)
+                    row.getCell(9).value = '';
+                    row.getCell(10).value = '';
 
                     // 셀 스타일
                     for (let c = 1; c <= 10; c++) {
@@ -7661,44 +7670,42 @@
                         cell.font = { size: 10 };
                     }
 
-                    // 원경 사진 (col 7)
-                    if (defect.photos && defect.photos[0]) {
+                    // 원경 사진 (G열, col index 6)
+                    if (defect.photos && defect.photos[0] && defect.photos[0] !== null) {
                         try {
-                            const base64Data = defect.photos[0].replace(/^data:image\/\w+;base64,/, '');
+                            const photoData = defect.photos[0];
+                            const base64Only = photoData.includes(',') ? photoData.split(',')[1] : photoData;
+                            const ext = photoData.includes('png') ? 'png' : 'jpeg';
                             const imgId = workbook.addImage({
-                                base64: base64Data,
-                                extension: 'jpeg'
+                                base64: base64Only,
+                                extension: ext
                             });
                             ws.addImage(imgId, {
-                                tl: { col: 6, row: rowNum - 1 },
-                                br: { col: 7, row: rowNum },
-                                editAs: 'oneCell'
+                                tl: { col: 6.1, row: rowNum - 0.9 },
+                                ext: { width: 120, height: 90 }
                             });
                         } catch (e) {
-                            row.getCell(7).value = '사진오류';
+                            console.warn('원경 사진 삽입 오류:', e);
                         }
-                    } else {
-                        row.getCell(7).value = '';
                     }
 
-                    // 근경 사진 (col 8)
-                    if (defect.photos && defect.photos[1]) {
+                    // 근경 사진 (H열, col index 7)
+                    if (defect.photos && defect.photos[1] && defect.photos[1] !== null) {
                         try {
-                            const base64Data = defect.photos[1].replace(/^data:image\/\w+;base64,/, '');
+                            const photoData = defect.photos[1];
+                            const base64Only = photoData.includes(',') ? photoData.split(',')[1] : photoData;
+                            const ext = photoData.includes('png') ? 'png' : 'jpeg';
                             const imgId = workbook.addImage({
-                                base64: base64Data,
-                                extension: 'jpeg'
+                                base64: base64Only,
+                                extension: ext
                             });
                             ws.addImage(imgId, {
-                                tl: { col: 7, row: rowNum - 1 },
-                                br: { col: 8, row: rowNum },
-                                editAs: 'oneCell'
+                                tl: { col: 7.1, row: rowNum - 0.9 },
+                                ext: { width: 120, height: 90 }
                             });
                         } catch (e) {
-                            row.getCell(8).value = '사진오류';
+                            console.warn('근경 사진 삽입 오류:', e);
                         }
-                    } else {
-                        row.getCell(8).value = '';
                     }
                 }
 
