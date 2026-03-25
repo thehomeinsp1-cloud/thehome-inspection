@@ -7688,7 +7688,12 @@
                             photoSuccessCount++;
                         } catch (e) {
                             photoFailCount++;
-                            console.error('원경사진 삽입실패 하자' + (idx+1), e);
+                            if (idx === 0) alert('원경사진 오류 하자1: ' + e.message + '\n데이터앞50자: ' + (defect.photos[0] || '').substring(0, 50));
+                        }
+                    } else {
+                        if (idx === 0) {
+                            const p = defect.photos;
+                            alert('하자1 원경사진 조건미달:\nphotos존재=' + !!p + '\n[0]존재=' + !!(p && p[0]) + '\n타입=' + (p && p[0] ? typeof p[0] : 'N/A') + '\n길이=' + (p && p[0] ? p[0].length : 0) + '\n앞30자=' + (p && p[0] ? String(p[0]).substring(0, 30) : 'null'));
                         }
                     }
 
@@ -7708,15 +7713,23 @@
                             photoSuccessCount++;
                         } catch (e) {
                             photoFailCount++;
-                            console.error('근경사진 삽입실패 하자' + (idx+1), e);
+                            if (idx === 0) alert('근경사진 오류 하자1: ' + e.message);
                         }
                     }
                 }
 
                 console.log('사진 삽입 결과: 성공=' + photoSuccessCount + ', 실패=' + photoFailCount);
+                alert('📊 사진 삽입 결과\n성공: ' + photoSuccessCount + '장\n실패: ' + photoFailCount + '장\n총 하자: ' + projectData.defects.length + '건');
 
                 // ===== 파일 다운로드 =====
-                const buffer = await workbook.xlsx.writeBuffer();
+                let buffer;
+                try {
+                    buffer = await workbook.xlsx.writeBuffer();
+                } catch (wbErr) {
+                    alert('writeBuffer 오류: ' + wbErr.message);
+                    hideLoading();
+                    return;
+                }
                 const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
                 const filename = `${projectData.apartmentName}_${projectData.dong}동_${projectData.ho}호_하자점검리스트.xlsx`;
 
