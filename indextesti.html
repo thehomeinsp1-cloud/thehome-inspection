@@ -7546,13 +7546,13 @@
                 { name: '통신', keywords: ['인터넷', '월패드', '홈네트워크', 'CCTV', 'TV', '통신', '랜선', 'LAN', '케이블', '공유기', '인터폰', '비디오폰', '도어벨', '세대단자함'] },
                 { name: '전기', keywords: ['조명', '스위치', '콘센트', '분전반', '배선', '전기', '등기구', '전등', '다운라이트', '형광등', 'LED', '차단기', '누전', '접지', '감전', '전선'] },
                 { name: '기계설비', keywords: ['배관', '급수', '배수', '난방', '양변기', '세면기', '욕조', '수전', '환기', '급탕', '온수', '보일러', '밸브', '트랩', '하수', '싱크', '세탁기', '건조기', '에어컨', '냉난방', '덕트', '환풍기', '레인지후드', '후드', '급기', '배기', '통기관', '수압', '동파', '동결'] },
-                { name: 'AL창호', keywords: ['현관문', '방화문', 'AL창', '알루미늄', '대문', '철문', '방범창', '셔터'] },
-                { name: 'PL창호', keywords: ['샷시', '샤시', '방충망', '창틀', '기밀', 'PL창', '플라스틱창', '이중창', '시스템창', '하이샤시', '발코니창', '거실창', '베란다창', '창문', '창호'] },
+                { name: '방화문', keywords: ['현관문', '방화문', '대문', '철문', '방범창', '셔터'] },
+                { name: 'PL창호', keywords: ['샷시', '샤시', '방충망', '창틀', '기밀', 'PL창', '플라스틱창', '이중창', '시스템창', '하이샤시', '발코니창', '거실창', '베란다창', '창문', '창호', 'AL창', '알루미늄'] },
                 { name: '유리', keywords: ['유리', '복층', '로이유리', '접합유리', '강화유리', '유리막이'] },
                 { name: '석공사', keywords: ['디딤석', '창대석', '문턱석', '대리석', '화강석', '석재', '포천석', '현관석', '돌'] },
                 { name: '타일', keywords: ['타일', '줄눈', '타일들뜸', '타일탈락', '타일균열', '벽타일', '바닥타일', '포세린', '폴리싱', '자기질', '도기질'] },
                 { name: '방수', keywords: ['방수', '누수', '누출', '물흔적', '물 흔적', '곰팡이', '결로', '습기', '물자국', '물얼룩', '우레탄방수', '시트방수', '액체방수'] },
-                { name: '목창호', keywords: ['실내문', '문틀', '문짝', '도어', '개폐불량', '개폐', '처짐', '미닫이', '여닫이', '슬라이딩', '중문', '포켓도어', 'ABS문', '방문', '화장실문'] },
+                { name: '목창호', keywords: ['실내문', '문틀', '문짝', '도어', '개폐불량', '개폐', '처짐', '미닫이', '여닫이', '슬라이딩', '중문', '포켓도어', 'ABS문', '방문', '화장실문', '문', '문손잡이', '도어락', '도어체크', '도어클로저', '경첩불량', '잠금장치', '도어스토퍼', '문턱', '문풍지'] },
                 { name: '가구', keywords: ['신발장', '붙박이', '싱크대', '주방가구', '드레스룸', '가구', '선반', '서랍', '경첩', '손잡이', '수납장', '상부장', '하부장', '아일랜드', '팬트리', '다용도실장', '거울장', '세면대장', '옷장'] },
                 { name: '바닥재', keywords: ['마루', '강마루', '강화마루', '온돌마루', '바닥재', '찍힘', '긁힘', '장판', '데코타일', '비닐타일', '원목마루', '합판마루', '바닥', '뜯김', '들뜬마루'] },
                 { name: '도배', keywords: ['도배', '벽지', '이음새', '들뜸', '기포', '주름', '풀자국', '접착불량', '실크벽지', '합지벽지', '천장지'] },
@@ -7676,16 +7676,17 @@
                             const photoData = defect.photos[0];
                             const base64Only = photoData.includes(',') ? photoData.split(',')[1] : photoData;
                             const ext = photoData.includes('png') ? 'png' : 'jpeg';
-                            const imgId = workbook.addImage({
-                                base64: base64Only,
-                                extension: ext
-                            });
+                            // base64 → ArrayBuffer 변환
+                            const binaryStr = atob(base64Only);
+                            const bytes = new Uint8Array(binaryStr.length);
+                            for (let b = 0; b < binaryStr.length; b++) bytes[b] = binaryStr.charCodeAt(b);
+                            const imgId = workbook.addImage({ buffer: bytes.buffer, extension: ext });
                             ws.addImage(imgId, {
-                                tl: { col: 6.1, row: rowNum - 0.9 },
-                                ext: { width: 120, height: 90 }
+                                tl: { col: 6, row: rowNum - 1 },
+                                ext: { width: 130, height: 95 }
                             });
                         } catch (e) {
-                            console.warn('원경 사진 삽입 오류:', e);
+                            console.warn('원경 사진 삽입 오류 (하자' + (idx+1) + '):', e);
                         }
                     }
 
@@ -7695,16 +7696,17 @@
                             const photoData = defect.photos[1];
                             const base64Only = photoData.includes(',') ? photoData.split(',')[1] : photoData;
                             const ext = photoData.includes('png') ? 'png' : 'jpeg';
-                            const imgId = workbook.addImage({
-                                base64: base64Only,
-                                extension: ext
-                            });
+                            // base64 → ArrayBuffer 변환
+                            const binaryStr = atob(base64Only);
+                            const bytes = new Uint8Array(binaryStr.length);
+                            for (let b = 0; b < binaryStr.length; b++) bytes[b] = binaryStr.charCodeAt(b);
+                            const imgId = workbook.addImage({ buffer: bytes.buffer, extension: ext });
                             ws.addImage(imgId, {
-                                tl: { col: 7.1, row: rowNum - 0.9 },
-                                ext: { width: 120, height: 90 }
+                                tl: { col: 7, row: rowNum - 1 },
+                                ext: { width: 130, height: 95 }
                             });
                         } catch (e) {
-                            console.warn('근경 사진 삽입 오류:', e);
+                            console.warn('근경 사진 삽입 오류 (하자' + (idx+1) + '):', e);
                         }
                     }
                 }
