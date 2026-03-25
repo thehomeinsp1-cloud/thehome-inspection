@@ -7535,9 +7535,11 @@
         // 공종구분 자동 매핑 함수 (v4.0 알고리즘 - 12,000+건 분석 기반 최종본)
         function detectGongJong(defect) {
             const r = (defect.spaces || []).join(' ').toLowerCase();
-            const rawLoc = ((defect.locations || []).join(' ') + ' ' + (defect.types || []).join(' ')).toLowerCase();
-            const l = rawLoc;
-            const locParts = l.split('/');
+            // locations는 '/'로 합침 (문+짝→문/짝, 창+틀→창/틀, 바닥+타일+줄눈→바닥/타일/줄눈)
+            const locJoined = (defect.locations || []).join('/').toLowerCase();
+            const typesJoined = (defect.types || []).join(' ').toLowerCase();
+            const l = locJoined + ' ' + typesJoined;
+            const locParts = locJoined.split('/');
             const lLast = locParts[locParts.length - 1] || l;
             const d = (defect.description || '').toLowerCase();
 
@@ -7597,7 +7599,8 @@
             // ═══════════════════════════════════════
             const plLoc = ['창/문','창/짝','창/틀','창/문/틀','창/문/짝'];
             const plKw = ['개폐','떨림','고정','수평','긁힘','찍힘','오염','소음','스트라이커','벌어짐','걸림','파손','뻑뻑','오사이','크레센트','크리센트','잠금개폐','간섭','가스켓','피스캡','고무커버','틈새','잠금','손잡이'];
-            if (plLoc.some(kw => l.includes(kw))) {
+            // '창' 단독 선택 또는 창/X 조합
+            if (plLoc.some(kw => l.includes(kw)) || (locParts.includes('창') && !locParts.includes('문'))) {
                 if (!['욕실','대피','실외기'].some(kw => r.includes(kw)) && !l.includes('도장') && !lLast.includes('코킹')) {
                     if (plKw.some(kw => d.includes(kw))) return 'PL창호';
                 }
@@ -7623,9 +7626,11 @@
             if (d.includes('난간') && !d.includes('유리난간') && ['발코니','외부','거실','테라스','계단'].some(kw => r.includes(kw))) return '금속';
 
             // ═══════════════════════════════════════
-            // RULE 10: 목창호 (문/짝 → 무조건 목창호)
+            // RULE 10: 목창호 (문/짝 → 무조건 목창호, 문 단독도 목창호)
             // ═══════════════════════════════════════
             if (l.includes('문/짝') && !['현관','대피','실외기'].some(kw => r.includes(kw))) return '목창호';
+            // '문' 단독 선택 (창이 없고, 현관/대피/실외기 아닐 때)
+            if (locParts.includes('문') && !locParts.includes('창') && !['현관','대피','실외기'].some(kw => r.includes(kw)) && !l.includes('도장') && !l.includes('마감판')) return '목창호';
             const mokKw = ['밀착','수평','개폐','안닫힘','걸림','긁힘','찍힘','틈새','손끼임','오염','파손','고정','랩핑','시트지','자동닫힘','유격','밀폐','멈춤','소음','타카핀','피스커버','타카','문선','잠금장치'];
             if (['문/짝','문/틀'].some(kw => l.includes(kw))) {
                 if (!['도장','마감판'].some(kw => l.includes(kw)) && !['현관','대피','실외기'].some(kw => r.includes(kw))) {
