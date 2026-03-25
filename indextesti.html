@@ -7831,8 +7831,8 @@
                             for (let i = 0; i < binaryStr.length; i++) bytes[i] = binaryStr.charCodeAt(i);
                             const imageId = workbook.addImage({ buffer: bytes, extension: 'jpeg' });
                             ws.addImage(imageId, {
-                                tl: { col: 6.15, row: rowNum - 0.88 },
-                                ext: { width: 110, height: 75 }
+                                tl: { col: 6.05, row: rowNum - 0.95 },
+                                br: { col: 6.95, row: rowNum - 0.05 }
                             });
                             photoSuccessCount++;
                         } catch (e) {
@@ -7851,8 +7851,8 @@
                             for (let i = 0; i < binaryStr.length; i++) bytes[i] = binaryStr.charCodeAt(i);
                             const imageId = workbook.addImage({ buffer: bytes, extension: 'jpeg' });
                             ws.addImage(imageId, {
-                                tl: { col: 7.15, row: rowNum - 0.88 },
-                                ext: { width: 110, height: 75 }
+                                tl: { col: 7.05, row: rowNum - 0.95 },
+                                br: { col: 7.95, row: rowNum - 0.05 }
                             });
                             photoSuccessCount++;
                         } catch (e) {
