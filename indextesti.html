@@ -7761,8 +7761,8 @@
                 ws.getColumn(4).width = 14;  // 공종구분
                 ws.getColumn(5).width = 14;  // 하자유형
                 ws.getColumn(6).width = 35;  // 하자내용
-                ws.getColumn(7).width = 18;  // 원경
-                ws.getColumn(8).width = 18;  // 근경
+                ws.getColumn(7).width = 20;  // 원경
+                ws.getColumn(8).width = 20;  // 근경
                 ws.getColumn(9).width = 14;  // 보수방법
                 ws.getColumn(10).width = 14; // 비고
 
@@ -7821,7 +7821,7 @@
                         cell.font = { size: 10 };
                     }
 
-                    // 원경 사진 (G열) - 셀 중앙 정렬
+                    // 원경 사진 (G열) - 셀 꽉 채우기
                     if (defect.photos && defect.photos[0] && defect.photos[0] !== null && typeof defect.photos[0] === 'string' && defect.photos[0].length > 100) {
                         try {
                             const photoStr = defect.photos[0];
@@ -7831,8 +7831,9 @@
                             for (let i = 0; i < binaryStr.length; i++) bytes[i] = binaryStr.charCodeAt(i);
                             const imageId = workbook.addImage({ buffer: bytes, extension: 'jpeg' });
                             ws.addImage(imageId, {
-                                tl: { col: 6.05, row: rowNum - 0.95 },
-                                br: { col: 6.95, row: rowNum - 0.05 }
+                                tl: { col: 6, row: rowNum - 1 },
+                                br: { col: 7, row: rowNum },
+                                editAs: 'oneCell'
                             });
                             photoSuccessCount++;
                         } catch (e) {
@@ -7841,7 +7842,7 @@
                         }
                     }
 
-                    // 근경 사진 (H열) - 셀 중앙 정렬
+                    // 근경 사진 (H열) - 셀 꽉 채우기
                     if (defect.photos && defect.photos[1] && defect.photos[1] !== null && typeof defect.photos[1] === 'string' && defect.photos[1].length > 100) {
                         try {
                             const photoStr = defect.photos[1];
@@ -7851,8 +7852,9 @@
                             for (let i = 0; i < binaryStr.length; i++) bytes[i] = binaryStr.charCodeAt(i);
                             const imageId = workbook.addImage({ buffer: bytes, extension: 'jpeg' });
                             ws.addImage(imageId, {
-                                tl: { col: 7.05, row: rowNum - 0.95 },
-                                br: { col: 7.95, row: rowNum - 0.05 }
+                                tl: { col: 7, row: rowNum - 1 },
+                                br: { col: 8, row: rowNum },
+                                editAs: 'oneCell'
                             });
                             photoSuccessCount++;
                         } catch (e) {
