@@ -7532,52 +7532,79 @@
         }
 
         // ==================== 하자점검리스트 엑셀 생성 ====================
-        // 공종구분 자동 매핑 함수 (키워드 매칭 → 미매칭 시 '기타공종')
+        // 공종구분 자동 매핑 함수 (마스터데이터 v3.1 키워드사전 기반, 23개 공종 + 기타)
         function detectGongJong(defect) {
             const spaces = (defect.spaces || []).join(' ');
             const types = (defect.types || []).join(' ');
             const locations = (defect.locations || []).join(' ');
             const desc = defect.description || '';
-            const all = (spaces + ' ' + types + ' ' + locations + ' ' + desc);
+            const all = spaces + ' ' + types + ' ' + locations + ' ' + desc;
 
-            // 우선순위 높은 것부터 배치 (구체적 키워드 → 일반 키워드 순)
+            // 우선순위: 구체적 복합키워드 → 단일키워드 순 (마스터데이터 v3.1 키워드사전)
             const rules = [
-                { name: '소방', keywords: ['소화기', '감지기', '스프링클러', '유도등', '소방', '화재감지', '연기감지', '비상등', '옥내소화전'] },
-                { name: '통신', keywords: ['인터넷', '월패드', '홈네트워크', 'CCTV', 'TV', '통신', '랜선', 'LAN', '케이블', '공유기', '인터폰', '비디오폰', '도어벨', '세대단자함'] },
-                { name: '전기', keywords: ['조명', '스위치', '콘센트', '분전반', '배선', '전기', '등기구', '전등', '다운라이트', '형광등', 'LED', '차단기', '누전', '접지', '감전', '전선'] },
-                { name: '기계설비', keywords: ['배관', '급수', '배수', '난방', '양변기', '세면기', '욕조', '수전', '환기', '급탕', '온수', '보일러', '밸브', '트랩', '하수', '싱크', '세탁기', '건조기', '에어컨', '냉난방', '덕트', '환풍기', '레인지후드', '후드', '급기', '배기', '통기관', '수압', '동파', '동결'] },
-                { name: '방화문', keywords: ['현관문', '방화문', '대문', '철문', '방범창', '셔터'] },
-                { name: 'PL창호', keywords: ['샷시', '샤시', '방충망', '창틀', '기밀', 'PL창', '플라스틱창', '이중창', '시스템창', '하이샤시', '발코니창', '거실창', '베란다창', '창문', '창호', 'AL창', '알루미늄'] },
-                { name: '유리', keywords: ['유리', '복층', '로이유리', '접합유리', '강화유리', '유리막이'] },
-                { name: '석공사', keywords: ['디딤석', '창대석', '문턱석', '대리석', '화강석', '석재', '포천석', '현관석', '돌'] },
-                { name: '타일', keywords: ['타일', '줄눈', '타일들뜸', '타일탈락', '타일균열', '벽타일', '바닥타일', '포세린', '폴리싱', '자기질', '도기질'] },
-                { name: '방수', keywords: ['방수', '누수', '누출', '물흔적', '물 흔적', '곰팡이', '결로', '습기', '물자국', '물얼룩', '우레탄방수', '시트방수', '액체방수'] },
-                { name: '목창호', keywords: ['실내문', '문틀', '문짝', '도어', '개폐불량', '개폐', '처짐', '미닫이', '여닫이', '슬라이딩', '중문', '포켓도어', 'ABS문', '방문', '화장실문', '문', '문손잡이', '도어락', '도어체크', '도어클로저', '경첩불량', '잠금장치', '도어스토퍼', '문턱', '문풍지'] },
-                { name: '가구', keywords: ['신발장', '붙박이', '싱크대', '주방가구', '드레스룸', '가구', '선반', '서랍', '경첩', '손잡이', '수납장', '상부장', '하부장', '아일랜드', '팬트리', '다용도실장', '거울장', '세면대장', '옷장'] },
-                { name: '바닥재', keywords: ['마루', '강마루', '강화마루', '온돌마루', '바닥재', '찍힘', '긁힘', '장판', '데코타일', '비닐타일', '원목마루', '합판마루', '바닥', '뜯김', '들뜬마루'] },
-                { name: '도배', keywords: ['도배', '벽지', '이음새', '들뜸', '기포', '주름', '풀자국', '접착불량', '실크벽지', '합지벽지', '천장지'] },
-                { name: '도장', keywords: ['페인트', '도장', '벗겨짐', '얼룩', '칠', '오염', '롤러자국', '붓자국', '도료', '래커', '에나멜', '수성페인트', '유성페인트', '천장도장', '벽도장'] },
-                { name: '실리콘', keywords: ['실리콘', '코킹', '씰링', '실란트', '변색실리콘', '곰팡이실리콘', '실리콘끊김', '이격'] },
-                { name: '수장', keywords: ['걸레받이', '몰딩', '반자돌림', '마감판', '우물천장', '문선', '목공', '코너', '마감재', '루버', '탈의실', '다락', '천장몰딩', '굽도리'] },
-                { name: '미장', keywords: ['미장', '코너비드', '코너 비드', '시멘트', '몰탈', '레미탈', '벽면보수', '바닥미장'] },
-                { name: '골조', keywords: ['균열', '크랙', '콘크리트', '철근', '구조체', '타설', '철근노출', '백화', '콘크리트균열', '레이턴스', '박리'] },
-                { name: '조적', keywords: ['조적', '벽돌', '블럭', '시멘트벽돌', '적벽돌'] },
-                { name: '금속', keywords: ['난간', '핸드레일', '금속', '우편함', '물끊기', '스텐', '스테인리스', '철물', '앵글', '브라켓', '금속몰딩'] },
-                { name: '준공청소', keywords: ['청소', '오염', '스티커', '보양지', '보양재', '라벨', '테이프자국', '시멘트자국', '본드자국', '먼지'] },
-                { name: '잡공사', keywords: ['배수구', '점검구', '환기구', '홈통', '기타', '부속', '캡', '커버', '마감캡', '몰딩캡', '코너보호대', '보수'] }
+                // WT01 골조 (복합키워드 우선)
+                { name: '골조', keywords: ['골조면 균열', '골조면 균결', '외부골조 균열', '골조면 파손', '철근노출', '골조 누수', '옹벽 균열', '크랙(외부)', '콜드조인트', '타설불량', '레벨불량'] },
+                // WT04 방수
+                { name: '방수', keywords: ['누수', '방수', '침투', '방수층파손', '방수불량'] },
+                // WT08 AL창호 (현관문/방화문)
+                { name: 'AL창호', keywords: ['현관문', '방화문', '하부씰', '하틀', '도어체크 유압', '대피공간문', '실외기실문'] },
+                // WT07 PL창호
+                { name: 'PL창호', keywords: ['창/문', '창/짝', '창/틀', '내창', '외창', '분합창', '배연창', '뻑뻑함', '오사이', '크레센트', '크리센트', '샷시', '샤시', '방충망', '창틀', '기밀', '이중창', '시스템창', '하이샤시', '창문', '창호'] },
+                // WT09 유리
+                { name: '유리', keywords: ['유리 마감', '유리 긁힘', '유리 파손', '유리난간', '유리코킹', '유리외측 코킹', '유리 가스켓', '유리 떨림', '유리난간 상단레일', '복층유리', '강화유리', '유리'] },
+                // WT10 목창호(도어)
+                { name: '목창호', keywords: ['문/짝', '문/틀', '밀착', '손끼임', '개폐', '걸림', '랩핑', '시트지', '자동닫힘', '유격', '밀폐', '슬라이딩 도어', '폴딩도어', '댐퍼(중문)', '실내문', '문틀', '문짝', '도어', '방문', '화장실문', '중문', 'ABS문', '포켓도어', '문손잡이', '도어락', '문풍지', '도어스토퍼'] },
+                // WT06 석공사
+                { name: '석공사', keywords: ['디딤석', '경계석', '재료분리대', '석재', '석걸레받이', '연석', '창대석', '석재 상판', '석재 접합부', '디딤석 이음새', '문턱석', '대리석', '화강석', '현관석'] },
+                // WT05 타일
+                { name: '타일', keywords: ['타일', '줄눈', '마블씰', '쪼개붙이기', '물넘이턱', '간격재 미제거', '포세린', '폴리싱'] },
+                // WT14 가구
+                { name: '가구', keywords: ['가구', '신발장', '붙박이장', '상부장', '하부장', '키큰장', '밥솥장', '서랍', '댐퍼', '유압', '씽크볼', '렌지후드', '쿡탑', '빌트인', '다보', '스무버', '이너서랍', '전원커버', '장식장', '싱크대', '주방가구', '드레스룸', '팬트리', '경첩', '아일랜드'] },
+                // WT15 바닥재
+                { name: '바닥재', keywords: ['마루', '강마루', '온돌마루', '장판', '이음부(바닥)', '강화마루', '원목마루', '바닥재', '데코타일', '비닐타일'] },
+                // WT13 도배
+                { name: '도배', keywords: ['도배', '이음새불량', '태움', '주름', '찢어짐', '선현', '울음', '꼬임', '경사면 들뜸', '벽지', '천장지', '기포'] },
+                // WT12 도장
+                { name: '도장', keywords: ['도장', '코팅', '피니쉬', '간살 도장', '뿜칠', '페인트', '롤러자국', '붓자국'] },
+                // WT16 실리콘
+                { name: '실리콘', keywords: ['코킹', '실리콘', '씰링', '실란트'] },
+                // WT11 수장(목공)
+                { name: '수장', keywords: ['마감판', '우물천장', '몰딩', '걸레받이', '커텐박스', '타카핀', '피스커버', '계단판', '계단 측면', '간살', '손스침', '하부캡', '시트패널', '프로파일', '목공', '반자돌림', '문선', '굽도리', '루버'] },
+                // WT03 미장
+                { name: '미장', keywords: ['면처리', '바탕면', '석고면', '평활도', '눌림', '곰보', '충진', '석고 늘림', '석고보드 솟음', '석고보드 파손', '배부름', '메쉬 노출', '석고면처리', '미장', '코너비드'] },
+                // WT17 금속
+                { name: '금속', keywords: ['난간', '핸드레일', '도어클로저', '유리난간 고정', '유리난간 수평', '간살 마감', '하부캡(금속)', '볼트캡', '금속몰딩', '스텐', '철물'] },
+                // WT18 기계설비
+                { name: '기계설비', keywords: ['수전', '배관', '급수', '배수', '보일러', '밸브', '후드 작동', '물고임', 's/p', '절수패달', '절수페달', '수전커버', '배관커버', '분배기', '배수구 역류', '우수관', '그레이팅', '트렌치', '양변기', '세면기', '욕조', '환기', '에어컨', '냉난방', '덕트'] },
+                // WT19 전기
+                { name: '전기', keywords: ['콘센트', '스위치', '분전반', '분전함', '배전반', '단자함', '인터폰', '초인종', '일괄소등', '조명', '월패드', '센서등', '와이어선', '매립등', '조명커버', '깜빡거림', '환기 조절기', '환기스위치', '통신커버', '스피커', '터치 작동', '배선', 'LED', '다운라이트', '전등'] },
+                // WT20 소방
+                { name: '소방', keywords: ['감지기', '스프링클러', '소화기', '유도등', '소방감지기', '소방'] },
+                // WT21 통신
+                { name: '통신', keywords: ['TV단자', '인터넷단자', '홈네트워크', 'CCTV', '월패드(통신)'] },
+                // WT22 준공청소
+                { name: '준공청소', keywords: ['오염(단독)', '본드 오염', '페인트 오염', '시멘트 오염', '먼지', '스티커잔여물', '오염', '청소', '테이프자국', '보양지'] },
+                // WT02 조적 (저빈도)
+                { name: '조적', keywords: ['조적', '파라펫', '벽돌'] },
+                // WT01 골조 (단일키워드 - 낮은 우선순위)
+                { name: '골조', keywords: ['크랙', '백화', '슬래브'] },
+                // WT23 잡공사
+                { name: '잡공사', keywords: ['반달스토퍼', '배수구', '점검구', '단열재', '인덕션 미시공', '센서(잡)', '그릴창 홀캡', '방충망(잡)', '마개 누락', '에어컨 밀착', '모헤어', '징크판넬', '데크판', '기타', '부속'] }
             ];
 
             for (const rule of rules) {
                 for (const kw of rule.keywords) {
-                    if (all.includes(kw) || all.toLowerCase().includes(kw.toLowerCase())) {
-                        return rule.name;
-                    }
+                    if (all.includes(kw)) return rule.name;
+                    if (kw.length >= 2 && all.toLowerCase().includes(kw.toLowerCase())) return rule.name;
                 }
             }
 
-            // 공간(실구분) 기반 2차 추론
-            const spLower = spaces.toLowerCase();
-            if (spLower.includes('욕실') || spLower.includes('화장실') || spLower.includes('샤워')) return '타일';
+            // 단일 글자 '문' 매칭 (창문/현관문/방화문 제외 시 목창호)
+            if (/[^창현방]문/.test(all)) return '목창호';
+
+            // 공간 기반 2차 추론
+            const spLower = (spaces + ' ' + locations).toLowerCase();
+            if (spLower.includes('욕실') || spLower.includes('화장실')) return '타일';
             if (spLower.includes('주방') || spLower.includes('부엌')) return '가구';
             if (spLower.includes('현관')) return '석공사';
             if (spLower.includes('베란다') || spLower.includes('발코니')) return '도장';
@@ -7672,7 +7699,7 @@
                         cell.font = { size: 10 };
                     }
 
-                    // 원경 사진 (G열)
+                    // 원경 사진 (G열) - 셀 중앙 정렬
                     if (defect.photos && defect.photos[0] && defect.photos[0] !== null && typeof defect.photos[0] === 'string' && defect.photos[0].length > 100) {
                         try {
                             const photoStr = defect.photos[0];
@@ -7682,22 +7709,17 @@
                             for (let i = 0; i < binaryStr.length; i++) bytes[i] = binaryStr.charCodeAt(i);
                             const imageId = workbook.addImage({ buffer: bytes, extension: 'jpeg' });
                             ws.addImage(imageId, {
-                                tl: { col: 6, row: rowNum - 1 },
-                                ext: { width: 130, height: 95 }
+                                tl: { col: 6.05, row: rowNum - 0.92 },
+                                ext: { width: 120, height: 85 }
                             });
                             photoSuccessCount++;
                         } catch (e) {
                             photoFailCount++;
-                            if (idx === 0) alert('원경사진 오류 하자1: ' + e.message + '\n데이터앞50자: ' + (defect.photos[0] || '').substring(0, 50));
-                        }
-                    } else {
-                        if (idx === 0) {
-                            const p = defect.photos;
-                            alert('하자1 원경사진 조건미달:\nphotos존재=' + !!p + '\n[0]존재=' + !!(p && p[0]) + '\n타입=' + (p && p[0] ? typeof p[0] : 'N/A') + '\n길이=' + (p && p[0] ? p[0].length : 0) + '\n앞30자=' + (p && p[0] ? String(p[0]).substring(0, 30) : 'null'));
+                            console.error('원경사진 삽입실패 하자' + (idx+1), e);
                         }
                     }
 
-                    // 근경 사진 (H열)
+                    // 근경 사진 (H열) - 셀 중앙 정렬
                     if (defect.photos && defect.photos[1] && defect.photos[1] !== null && typeof defect.photos[1] === 'string' && defect.photos[1].length > 100) {
                         try {
                             const photoStr = defect.photos[1];
@@ -7707,29 +7729,21 @@
                             for (let i = 0; i < binaryStr.length; i++) bytes[i] = binaryStr.charCodeAt(i);
                             const imageId = workbook.addImage({ buffer: bytes, extension: 'jpeg' });
                             ws.addImage(imageId, {
-                                tl: { col: 7, row: rowNum - 1 },
-                                ext: { width: 130, height: 95 }
+                                tl: { col: 7.05, row: rowNum - 0.92 },
+                                ext: { width: 120, height: 85 }
                             });
                             photoSuccessCount++;
                         } catch (e) {
                             photoFailCount++;
-                            if (idx === 0) alert('근경사진 오류 하자1: ' + e.message);
+                            console.error('근경사진 삽입실패 하자' + (idx+1), e);
                         }
                     }
                 }
 
                 console.log('사진 삽입 결과: 성공=' + photoSuccessCount + ', 실패=' + photoFailCount);
-                alert('📊 사진 삽입 결과\n성공: ' + photoSuccessCount + '장\n실패: ' + photoFailCount + '장\n총 하자: ' + projectData.defects.length + '건');
 
                 // ===== 파일 다운로드 =====
-                let buffer;
-                try {
-                    buffer = await workbook.xlsx.writeBuffer();
-                } catch (wbErr) {
-                    alert('writeBuffer 오류: ' + wbErr.message);
-                    hideLoading();
-                    return;
-                }
+                const buffer = await workbook.xlsx.writeBuffer();
                 const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
                 const filename = `${projectData.apartmentName}_${projectData.dong}동_${projectData.ho}호_하자점검리스트.xlsx`;
 
