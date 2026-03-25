@@ -7635,6 +7635,7 @@
             // ═══════════════════════════════════════
             // PRIORITY 10: 목창호(도어) - WT10
             // ═══════════════════════════════════════
+            if (l.includes('문/짝') && !['현관', '대피', '실외기'].some(kw => r.includes(kw))) return '목창호';
             if (['문/짝', '문/틀'].some(kw => l.includes(kw))) {
                 if (!['도장', '마감판'].some(kw => l.includes(kw))) {
                     if (!['현관', '대피', '실외기'].some(kw => r.includes(kw))) {
@@ -7830,8 +7831,8 @@
                             for (let i = 0; i < binaryStr.length; i++) bytes[i] = binaryStr.charCodeAt(i);
                             const imageId = workbook.addImage({ buffer: bytes, extension: 'jpeg' });
                             ws.addImage(imageId, {
-                                tl: { col: 6.05, row: rowNum - 0.92 },
-                                ext: { width: 120, height: 85 }
+                                tl: { col: 6.15, row: rowNum - 0.88 },
+                                ext: { width: 110, height: 75 }
                             });
                             photoSuccessCount++;
                         } catch (e) {
@@ -7850,8 +7851,8 @@
                             for (let i = 0; i < binaryStr.length; i++) bytes[i] = binaryStr.charCodeAt(i);
                             const imageId = workbook.addImage({ buffer: bytes, extension: 'jpeg' });
                             ws.addImage(imageId, {
-                                tl: { col: 7.05, row: rowNum - 0.92 },
-                                ext: { width: 120, height: 85 }
+                                tl: { col: 7.15, row: rowNum - 0.88 },
+                                ext: { width: 110, height: 75 }
                             });
                             photoSuccessCount++;
                         } catch (e) {
