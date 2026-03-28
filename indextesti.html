@@ -7824,6 +7824,7 @@
             // ═══════════════════════════════════════
             return '기타공종';
         }
+        window.detectGongJong = detectGongJong;
 
         window.generateDefectListExcel = async function() {
             if (!projectData.apartmentName || !projectData.dong || !projectData.ho) {
@@ -10387,13 +10388,11 @@
         const totalPhotos = projectData.defects.filter(d => d.photos && d.photos.length > 0).reduce((s, d) => s + d.photos.length, 0);
         const totalDefects = projectData.defects.length;
 
-        // 공종별 하자유형 집계
+        // 공종별 하자유형 집계 (엑셀 공종구분 기준)
         const typeCounts = {};
         projectData.defects.forEach(d => {
-            const types = d.types || (d.type ? [d.type] : []);
-            types.forEach(t => {
-                if (t && t !== '-') typeCounts[t] = (typeCounts[t] || 0) + 1;
-            });
+            const gongJong = window.detectGongJong ? window.detectGongJong(d) : '기타공종';
+            typeCounts[gongJong] = (typeCounts[gongJong] || 0) + 1;
         });
         const sortedTypes = Object.entries(typeCounts).sort((a, b) => b[1] - a[1]);
         const maxCount = sortedTypes.length > 0 ? sortedTypes[0][1] : 1;
