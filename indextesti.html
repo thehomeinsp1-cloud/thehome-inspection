@@ -2873,147 +2873,7 @@
                     const equipDoc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
                     
                     // 장비점검 표지 (도트 패턴 디자인)
-                    const equipCoverHTML = `
-                        <div style="width: 794px; height: 1123px; background: #ffffff; display: flex; flex-direction: column; font-family: 'Malgun Gothic', sans-serif; position: relative; overflow: hidden; box-sizing: border-box;">
-                            <div style="height: 6px; background: #2563eb;"></div>
-                            <div style="position: absolute; left: 0; top: 0; width: 5px; height: 100%; background: #2563eb;"></div>
-                            <!-- 도트 패턴 (CSS) -->
-                            <div style="position:absolute;right:64px;top:237px;width:3px;height:3px;border-radius:50%;background:#2563eb;opacity:0.05;"></div>
-                            <div style="position:absolute;right:63px;top:239px;width:3px;height:3px;border-radius:50%;background:#2563eb;opacity:0.06;"></div>
-                            <div style="position:absolute;right:62px;top:240px;width:3px;height:3px;border-radius:50%;background:#2563eb;opacity:0.06;"></div>
-                            <div style="position:absolute;right:61px;top:242px;width:3px;height:3px;border-radius:50%;background:#2563eb;opacity:0.07;"></div>
-                            <div style="position:absolute;right:60px;top:244px;width:3px;height:3px;border-radius:50%;background:#2563eb;opacity:0.07;"></div>
-                            <div style="position:absolute;right:60px;top:246px;width:3px;height:3px;border-radius:50%;background:#2563eb;opacity:0.08;"></div>
-                            <div style="position:absolute;right:59px;top:248px;width:3px;height:3px;border-radius:50%;background:#2563eb;opacity:0.08;"></div>
-                            <div style="position:absolute;right:59px;top:250px;width:3px;height:3px;border-radius:50%;background:#2563eb;opacity:0.09;"></div>
-                            <div style="position:absolute;right:59px;top:253px;width:3px;height:3px;border-radius:50%;background:#2563eb;opacity:0.09;"></div>
-                            <div style="position:absolute;right:60px;top:255px;width:3px;height:3px;border-radius:50%;background:#2563eb;opacity:0.1;"></div>
-                            <div style="position:absolute;right:60px;top:257px;width:3px;height:3px;border-radius:50%;background:#2563eb;opacity:0.1;"></div>
-                            <div style="position:absolute;right:61px;top:260px;width:3px;height:3px;border-radius:50%;background:#2563eb;opacity:0.1;"></div>
-                            <div style="position:absolute;right:62px;top:262px;width:3px;height:3px;border-radius:50%;background:#2563eb;opacity:0.11;"></div>
-                            <div style="position:absolute;right:63px;top:265px;width:3px;height:3px;border-radius:50%;background:#2563eb;opacity:0.11;"></div>
-                            <div style="position:absolute;right:65px;top:267px;width:3px;height:3px;border-radius:50%;background:#2563eb;opacity:0.12;"></div>
-                            <div style="position:absolute;right:67px;top:269px;width:3px;height:3px;border-radius:50%;background:#2563eb;opacity:0.12;"></div>
-                            <div style="position:absolute;right:69px;top:272px;width:3px;height:3px;border-radius:50%;background:#2563eb;opacity:0.13;"></div>
-                            <div style="position:absolute;right:71px;top:274px;width:3px;height:3px;border-radius:50%;background:#2563eb;opacity:0.13;"></div>
-                            <div style="position:absolute;right:74px;top:276px;width:3px;height:3px;border-radius:50%;background:#2563eb;opacity:0.14;"></div>
-                            <div style="position:absolute;right:77px;top:277px;width:3px;height:3px;border-radius:50%;background:#2563eb;opacity:0.14;"></div>
-                            <div style="position:absolute;right:80px;top:279px;width:3px;height:3px;border-radius:50%;background:#2563eb;opacity:0.15;"></div>
-                            <div style="position:absolute;right:83px;top:280px;width:3px;height:3px;border-radius:50%;background:#2563eb;opacity:0.15;"></div>
-                            <div style="position:absolute;right:86px;top:281px;width:3px;height:3px;border-radius:50%;background:#2563eb;opacity:0.16;"></div>
-                            <div style="position:absolute;right:90px;top:282px;width:3px;height:3px;border-radius:50%;background:#2563eb;opacity:0.16;"></div>
-                            <div style="position:absolute;right:93px;top:283px;width:3px;height:3px;border-radius:50%;background:#2563eb;opacity:0.17;"></div>
-                            <div style="position:absolute;right:97px;top:283px;width:3px;height:3px;border-radius:50%;background:#2563eb;opacity:0.17;"></div>
-                            <div style="position:absolute;right:101px;top:283px;width:3px;height:3px;border-radius:50%;background:#2563eb;opacity:0.18;"></div>
-                            <div style="position:absolute;right:105px;top:283px;width:4px;height:4px;border-radius:50%;background:#2563eb;opacity:0.18;"></div>
-                            <div style="position:absolute;right:109px;top:282px;width:4px;height:4px;border-radius:50%;background:#2563eb;opacity:0.19;"></div>
-                            <div style="position:absolute;right:113px;top:281px;width:4px;height:4px;border-radius:50%;background:#2563eb;opacity:0.19;"></div>
-                            <div style="position:absolute;right:117px;top:280px;width:4px;height:4px;border-radius:50%;background:#2563eb;opacity:0.2;"></div>
-                            <div style="position:absolute;right:121px;top:278px;width:4px;height:4px;border-radius:50%;background:#2563eb;opacity:0.2;"></div>
-                            <div style="position:absolute;right:125px;top:276px;width:4px;height:4px;border-radius:50%;background:#2563eb;opacity:0.21;"></div>
-                            <div style="position:absolute;right:129px;top:273px;width:4px;height:4px;border-radius:50%;background:#2563eb;opacity:0.21;"></div>
-                            <div style="position:absolute;right:133px;top:271px;width:4px;height:4px;border-radius:50%;background:#2563eb;opacity:0.22;"></div>
-                            <div style="position:absolute;right:137px;top:268px;width:4px;height:4px;border-radius:50%;background:#2563eb;opacity:0.22;"></div>
-                            <div style="position:absolute;right:140px;top:264px;width:4px;height:4px;border-radius:50%;background:#2563eb;opacity:0.22;"></div>
-                            <div style="position:absolute;right:143px;top:260px;width:4px;height:4px;border-radius:50%;background:#2563eb;opacity:0.23;"></div>
-                            <div style="position:absolute;right:146px;top:256px;width:4px;height:4px;border-radius:50%;background:#2563eb;opacity:0.23;"></div>
-                            <div style="position:absolute;right:149px;top:252px;width:4px;height:4px;border-radius:50%;background:#2563eb;opacity:0.24;"></div>
-                            <div style="position:absolute;right:152px;top:247px;width:4px;height:4px;border-radius:50%;background:#2563eb;opacity:0.24;"></div>
-                            <div style="position:absolute;right:154px;top:242px;width:4px;height:4px;border-radius:50%;background:#2563eb;opacity:0.25;"></div>
-                            <div style="position:absolute;right:156px;top:237px;width:4px;height:4px;border-radius:50%;background:#2563eb;opacity:0.25;"></div>
-                            <div style="position:absolute;right:157px;top:232px;width:4px;height:4px;border-radius:50%;background:#2563eb;opacity:0.26;"></div>
-                            <div style="position:absolute;right:158px;top:226px;width:4px;height:4px;border-radius:50%;background:#2563eb;opacity:0.26;"></div>
-                            <div style="position:absolute;right:159px;top:221px;width:4px;height:4px;border-radius:50%;background:#2563eb;opacity:0.27;"></div>
-                            <div style="position:absolute;right:159px;top:215px;width:5px;height:5px;border-radius:50%;background:#2563eb;opacity:0.27;"></div>
-                            <div style="position:absolute;right:159px;top:209px;width:5px;height:5px;border-radius:50%;background:#2563eb;opacity:0.28;"></div>
-                            <div style="position:absolute;right:158px;top:203px;width:5px;height:5px;border-radius:50%;background:#2563eb;opacity:0.28;"></div>
-                            <div style="position:absolute;right:157px;top:197px;width:5px;height:5px;border-radius:50%;background:#2563eb;opacity:0.29;"></div>
-                            <div style="position:absolute;right:155px;top:191px;width:5px;height:5px;border-radius:50%;background:#2563eb;opacity:0.29;"></div>
-                            <div style="position:absolute;right:153px;top:185px;width:5px;height:5px;border-radius:50%;background:#2563eb;opacity:0.3;"></div>
-                            <div style="position:absolute;right:151px;top:179px;width:5px;height:5px;border-radius:50%;background:#2563eb;opacity:0.3;"></div>
-                            <div style="position:absolute;right:148px;top:173px;width:5px;height:5px;border-radius:50%;background:#2563eb;opacity:0.31;"></div>
-                            <div style="position:absolute;right:144px;top:167px;width:5px;height:5px;border-radius:50%;background:#2563eb;opacity:0.31;"></div>
-                            <div style="position:absolute;right:140px;top:162px;width:5px;height:5px;border-radius:50%;background:#2563eb;opacity:0.32;"></div>
-                            <div style="position:absolute;right:136px;top:157px;width:5px;height:5px;border-radius:50%;background:#2563eb;opacity:0.32;"></div>
-                            <div style="position:absolute;right:131px;top:152px;width:5px;height:5px;border-radius:50%;background:#2563eb;opacity:0.33;"></div>
-                            <div style="position:absolute;right:126px;top:147px;width:5px;height:5px;border-radius:50%;background:#2563eb;opacity:0.33;"></div>
-                            <div style="position:absolute;right:120px;top:143px;width:5px;height:5px;border-radius:50%;background:#2563eb;opacity:0.34;"></div>
-                            <div style="position:absolute;right:114px;top:139px;width:5px;height:5px;border-radius:50%;background:#2563eb;opacity:0.34;"></div>
-                            <div style="position:absolute;right:108px;top:135px;width:5px;height:5px;border-radius:50%;background:#2563eb;opacity:0.34;"></div>
-                            <div style="position:absolute;right:101px;top:132px;width:5px;height:5px;border-radius:50%;background:#2563eb;opacity:0.35;"></div>
-                            <div style="position:absolute;right:94px;top:129px;width:5px;height:5px;border-radius:50%;background:#2563eb;opacity:0.35;"></div>
-                            <div style="position:absolute;right:87px;top:127px;width:5px;height:5px;border-radius:50%;background:#2563eb;opacity:0.36;"></div>
-                            <div style="position:absolute;right:80px;top:125px;width:6px;height:6px;border-radius:50%;background:#2563eb;opacity:0.36;"></div>
-                            <div style="position:absolute;right:72px;top:124px;width:6px;height:6px;border-radius:50%;background:#2563eb;opacity:0.37;"></div>
-                            <div style="position:absolute;right:64px;top:124px;width:6px;height:6px;border-radius:50%;background:#2563eb;opacity:0.37;"></div>
-                            <div style="position:absolute;right:56px;top:123px;width:6px;height:6px;border-radius:50%;background:#2563eb;opacity:0.38;"></div>
-                            <div style="position:absolute;right:48px;top:124px;width:6px;height:6px;border-radius:50%;background:#2563eb;opacity:0.38;"></div>
-                            <div style="position:absolute;right:40px;top:125px;width:6px;height:6px;border-radius:50%;background:#2563eb;opacity:0.39;"></div>
-                            <div style="position:absolute;right:32px;top:127px;width:6px;height:6px;border-radius:50%;background:#2563eb;opacity:0.39;"></div>
-                            <div style="position:absolute;right:24px;top:129px;width:6px;height:6px;border-radius:50%;background:#2563eb;opacity:0.4;"></div>
-                            <div style="position:absolute;right:16px;top:132px;width:6px;height:6px;border-radius:50%;background:#2563eb;opacity:0.4;"></div>
-                            <div style="position:absolute;right:8px;top:136px;width:6px;height:6px;border-radius:50%;background:#2563eb;opacity:0.41;"></div>
-                            <div style="position:absolute;right:0px;top:140px;width:6px;height:6px;border-radius:50%;background:#2563eb;opacity:0.41;"></div>
-                            <div style="position:absolute;right:20px;top:70px;width:1px;height:200px;background:#2563eb;opacity:0.07;"></div>
-                            <div style="position:absolute;right:45px;top:50px;width:1px;height:250px;background:#2563eb;opacity:0.05;"></div>
-                            <div style="position:absolute;right:70px;top:90px;width:1px;height:180px;background:#2563eb;opacity:0.08;"></div>
-                            <div style="position:absolute;right:95px;top:40px;width:1px;height:160px;background:#2563eb;opacity:0.04;"></div>
-                            <div style="position:absolute;right:120px;top:110px;width:1px;height:140px;background:#2563eb;opacity:0.06;"></div>
-                            <div style="position:absolute;right:15px;top:130px;width:90px;height:1px;background:#2563eb;opacity:0.05;"></div>
-                            <div style="position:absolute;right:30px;top:200px;width:80px;height:1px;background:#2563eb;opacity:0.04;"></div>
-                            <div style="position:absolute;right:50px;top:160px;width:60px;height:1px;background:#2563eb;opacity:0.06;"></div>
-                            <div style="position:absolute;right:10px;top:260px;width:100px;height:1px;background:#2563eb;opacity:0.03;"></div>
-                            <div style="position:absolute;right:60px;top:100px;width:50px;height:1px;background:#2563eb;opacity:0.05;"></div>
-                            <div style="flex: 1; padding: 60px 60px 50px 80px; display: flex; flex-direction: column; position: relative; z-index: 1;">
-                                <div style="margin-bottom: 35px;">
-                                    <div style="display: inline-flex; align-items: center; gap: 10px; padding: 8px 18px; background: #eff6ff; border-radius: 20px;">
-                                        <div style="width: 7px; height: 7px; background: #2563eb; border-radius: 50%;"></div>
-                                        <span style="color: #1e3a8a; font-size: 12px; font-weight: 600; letter-spacing: 1px;">EQUIPMENT INSPECTION</span>
-                                    </div>
-                                </div>
-                                <div style="margin-bottom: 50px;">
-                                    <h1 style="font-size: 46px; font-weight: 800; color: #1a1a1a; margin: 0 0 12px 0; line-height: 1.15; letter-spacing: -1px;">장비측정<br/>보고서</h1>
-                                    <div style="width: 60px; height: 4px; background: #2563eb; border-radius: 2px;"></div>
-                                </div>
-                                <div style="background: #fafafa; border-left: 4px solid #2563eb; padding: 30px 28px; margin-bottom: 50px; border-radius: 0 8px 8px 0;">
-                                    <div style="display: flex; flex-direction: column; gap: 16px;">
-                                        <div style="display: flex; align-items: baseline;">
-                                            <span style="color: #999; font-size: 12px; width: 90px; font-weight: 600;">PROJECT</span>
-                                            <span style="color: #1a1a1a; font-size: 24px; font-weight: 700;">${projectData.apartmentName}</span>
-                                        </div>
-                                        <div style="display: flex; align-items: baseline;">
-                                            <span style="color: #999; font-size: 12px; width: 90px; font-weight: 600;">UNIT</span>
-                                            <span style="color: #1a1a1a; font-size: 30px; font-weight: 700;">${projectData.dong}동 ${projectData.ho}호</span>
-                                        </div>
-                                        <div style="display: flex; align-items: baseline;">
-                                            <span style="color: #999; font-size: 12px; width: 90px; font-weight: 600;">DATE</span>
-                                            <span style="color: #1a1a1a; font-size: 18px; font-weight: 500;">${projectData.inspectionDate || ''}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div style="padding: 15px 0; border-top: 1.5px solid #e5e7eb; border-bottom: 1.5px solid #e5e7eb; margin-bottom: 30px;">
-                                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-                                        <div style="width: 5px; height: 5px; background: #2563eb; border-radius: 50%;"></div>
-                                        <span style="color: #333; font-size: 12px; font-weight: 600;">벽체 수직 및 바닥 수평 측정</span>
-                                    </div>
-                                    <div style="display: flex; align-items: center; gap: 8px;">
-                                        <div style="width: 5px; height: 5px; background: #2563eb; border-radius: 50%;"></div>
-                                        <span style="color: #333; font-size: 12px; font-weight: 600;">열화상 카메라 점검</span>
-                                    </div>
-                                </div>
-                                <div style="margin-top: auto; display: flex; justify-content: space-between; align-items: flex-end;">
-                                    <div>
-                                        <div style="font-size: 22px; font-weight: 700; color: #1a1a1a;">더홈점검</div>
-                                        <div style="font-size: 12px; color: #999;">The Home Inspection</div>
-                                    </div>
-                                    <div style="text-align: right;">
-                                        <div style="font-size: 13px; color: #333; font-weight: 500;">📞 1668-5322</div>
-                                        <div style="font-size: 11px; color: #999;">010-9985-0128</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    `;
+                    const equipCoverHTML = window.createEquipmentCoverPage();
                     await window.addHTMLPageToPDF(equipDoc, equipCoverHTML, pageWidth, pageHeight);
                     
                     // 장비점검 페이지들
@@ -3299,135 +3159,7 @@
                             });
                             
                             // 장비점검 표지 (도트 패턴 디자인)
-                            const equipCoverHTML = `
-                                <div style="width: 794px; height: 1123px; background: #ffffff; display: flex; flex-direction: column; font-family: 'Malgun Gothic', sans-serif; position: relative; overflow: hidden; box-sizing: border-box;">
-                                    <div style="height: 6px; background: #2563eb;"></div>
-                                    <div style="position: absolute; left: 0; top: 0; width: 5px; height: 100%; background: #2563eb;"></div>
-                                    <!-- 도트 패턴 (CSS) -->
-                            <div style="position:absolute;right:64px;top:237px;width:3px;height:3px;border-radius:50%;background:#2563eb;opacity:0.05;"></div>
-                            <div style="position:absolute;right:63px;top:239px;width:3px;height:3px;border-radius:50%;background:#2563eb;opacity:0.06;"></div>
-                            <div style="position:absolute;right:62px;top:240px;width:3px;height:3px;border-radius:50%;background:#2563eb;opacity:0.06;"></div>
-                            <div style="position:absolute;right:61px;top:242px;width:3px;height:3px;border-radius:50%;background:#2563eb;opacity:0.07;"></div>
-                            <div style="position:absolute;right:60px;top:244px;width:3px;height:3px;border-radius:50%;background:#2563eb;opacity:0.07;"></div>
-                            <div style="position:absolute;right:60px;top:246px;width:3px;height:3px;border-radius:50%;background:#2563eb;opacity:0.08;"></div>
-                            <div style="position:absolute;right:59px;top:248px;width:3px;height:3px;border-radius:50%;background:#2563eb;opacity:0.08;"></div>
-                            <div style="position:absolute;right:59px;top:250px;width:3px;height:3px;border-radius:50%;background:#2563eb;opacity:0.09;"></div>
-                            <div style="position:absolute;right:59px;top:253px;width:3px;height:3px;border-radius:50%;background:#2563eb;opacity:0.09;"></div>
-                            <div style="position:absolute;right:60px;top:255px;width:3px;height:3px;border-radius:50%;background:#2563eb;opacity:0.1;"></div>
-                            <div style="position:absolute;right:60px;top:257px;width:3px;height:3px;border-radius:50%;background:#2563eb;opacity:0.1;"></div>
-                            <div style="position:absolute;right:61px;top:260px;width:3px;height:3px;border-radius:50%;background:#2563eb;opacity:0.1;"></div>
-                            <div style="position:absolute;right:62px;top:262px;width:3px;height:3px;border-radius:50%;background:#2563eb;opacity:0.11;"></div>
-                            <div style="position:absolute;right:63px;top:265px;width:3px;height:3px;border-radius:50%;background:#2563eb;opacity:0.11;"></div>
-                            <div style="position:absolute;right:65px;top:267px;width:3px;height:3px;border-radius:50%;background:#2563eb;opacity:0.12;"></div>
-                            <div style="position:absolute;right:67px;top:269px;width:3px;height:3px;border-radius:50%;background:#2563eb;opacity:0.12;"></div>
-                            <div style="position:absolute;right:69px;top:272px;width:3px;height:3px;border-radius:50%;background:#2563eb;opacity:0.13;"></div>
-                            <div style="position:absolute;right:71px;top:274px;width:3px;height:3px;border-radius:50%;background:#2563eb;opacity:0.13;"></div>
-                            <div style="position:absolute;right:74px;top:276px;width:3px;height:3px;border-radius:50%;background:#2563eb;opacity:0.14;"></div>
-                            <div style="position:absolute;right:77px;top:277px;width:3px;height:3px;border-radius:50%;background:#2563eb;opacity:0.14;"></div>
-                            <div style="position:absolute;right:80px;top:279px;width:3px;height:3px;border-radius:50%;background:#2563eb;opacity:0.15;"></div>
-                            <div style="position:absolute;right:83px;top:280px;width:3px;height:3px;border-radius:50%;background:#2563eb;opacity:0.15;"></div>
-                            <div style="position:absolute;right:86px;top:281px;width:3px;height:3px;border-radius:50%;background:#2563eb;opacity:0.16;"></div>
-                            <div style="position:absolute;right:90px;top:282px;width:3px;height:3px;border-radius:50%;background:#2563eb;opacity:0.16;"></div>
-                            <div style="position:absolute;right:93px;top:283px;width:3px;height:3px;border-radius:50%;background:#2563eb;opacity:0.17;"></div>
-                            <div style="position:absolute;right:97px;top:283px;width:3px;height:3px;border-radius:50%;background:#2563eb;opacity:0.17;"></div>
-                            <div style="position:absolute;right:101px;top:283px;width:3px;height:3px;border-radius:50%;background:#2563eb;opacity:0.18;"></div>
-                            <div style="position:absolute;right:105px;top:283px;width:4px;height:4px;border-radius:50%;background:#2563eb;opacity:0.18;"></div>
-                            <div style="position:absolute;right:109px;top:282px;width:4px;height:4px;border-radius:50%;background:#2563eb;opacity:0.19;"></div>
-                            <div style="position:absolute;right:113px;top:281px;width:4px;height:4px;border-radius:50%;background:#2563eb;opacity:0.19;"></div>
-                            <div style="position:absolute;right:117px;top:280px;width:4px;height:4px;border-radius:50%;background:#2563eb;opacity:0.2;"></div>
-                            <div style="position:absolute;right:121px;top:278px;width:4px;height:4px;border-radius:50%;background:#2563eb;opacity:0.2;"></div>
-                            <div style="position:absolute;right:125px;top:276px;width:4px;height:4px;border-radius:50%;background:#2563eb;opacity:0.21;"></div>
-                            <div style="position:absolute;right:129px;top:273px;width:4px;height:4px;border-radius:50%;background:#2563eb;opacity:0.21;"></div>
-                            <div style="position:absolute;right:133px;top:271px;width:4px;height:4px;border-radius:50%;background:#2563eb;opacity:0.22;"></div>
-                            <div style="position:absolute;right:137px;top:268px;width:4px;height:4px;border-radius:50%;background:#2563eb;opacity:0.22;"></div>
-                            <div style="position:absolute;right:140px;top:264px;width:4px;height:4px;border-radius:50%;background:#2563eb;opacity:0.22;"></div>
-                            <div style="position:absolute;right:143px;top:260px;width:4px;height:4px;border-radius:50%;background:#2563eb;opacity:0.23;"></div>
-                            <div style="position:absolute;right:146px;top:256px;width:4px;height:4px;border-radius:50%;background:#2563eb;opacity:0.23;"></div>
-                            <div style="position:absolute;right:149px;top:252px;width:4px;height:4px;border-radius:50%;background:#2563eb;opacity:0.24;"></div>
-                            <div style="position:absolute;right:152px;top:247px;width:4px;height:4px;border-radius:50%;background:#2563eb;opacity:0.24;"></div>
-                            <div style="position:absolute;right:154px;top:242px;width:4px;height:4px;border-radius:50%;background:#2563eb;opacity:0.25;"></div>
-                            <div style="position:absolute;right:156px;top:237px;width:4px;height:4px;border-radius:50%;background:#2563eb;opacity:0.25;"></div>
-                            <div style="position:absolute;right:157px;top:232px;width:4px;height:4px;border-radius:50%;background:#2563eb;opacity:0.26;"></div>
-                            <div style="position:absolute;right:158px;top:226px;width:4px;height:4px;border-radius:50%;background:#2563eb;opacity:0.26;"></div>
-                            <div style="position:absolute;right:159px;top:221px;width:4px;height:4px;border-radius:50%;background:#2563eb;opacity:0.27;"></div>
-                            <div style="position:absolute;right:159px;top:215px;width:5px;height:5px;border-radius:50%;background:#2563eb;opacity:0.27;"></div>
-                            <div style="position:absolute;right:159px;top:209px;width:5px;height:5px;border-radius:50%;background:#2563eb;opacity:0.28;"></div>
-                            <div style="position:absolute;right:158px;top:203px;width:5px;height:5px;border-radius:50%;background:#2563eb;opacity:0.28;"></div>
-                            <div style="position:absolute;right:157px;top:197px;width:5px;height:5px;border-radius:50%;background:#2563eb;opacity:0.29;"></div>
-                            <div style="position:absolute;right:155px;top:191px;width:5px;height:5px;border-radius:50%;background:#2563eb;opacity:0.29;"></div>
-                            <div style="position:absolute;right:153px;top:185px;width:5px;height:5px;border-radius:50%;background:#2563eb;opacity:0.3;"></div>
-                            <div style="position:absolute;right:151px;top:179px;width:5px;height:5px;border-radius:50%;background:#2563eb;opacity:0.3;"></div>
-                            <div style="position:absolute;right:148px;top:173px;width:5px;height:5px;border-radius:50%;background:#2563eb;opacity:0.31;"></div>
-                            <div style="position:absolute;right:144px;top:167px;width:5px;height:5px;border-radius:50%;background:#2563eb;opacity:0.31;"></div>
-                            <div style="position:absolute;right:140px;top:162px;width:5px;height:5px;border-radius:50%;background:#2563eb;opacity:0.32;"></div>
-                            <div style="position:absolute;right:136px;top:157px;width:5px;height:5px;border-radius:50%;background:#2563eb;opacity:0.32;"></div>
-                            <div style="position:absolute;right:131px;top:152px;width:5px;height:5px;border-radius:50%;background:#2563eb;opacity:0.33;"></div>
-                            <div style="position:absolute;right:126px;top:147px;width:5px;height:5px;border-radius:50%;background:#2563eb;opacity:0.33;"></div>
-                            <div style="position:absolute;right:120px;top:143px;width:5px;height:5px;border-radius:50%;background:#2563eb;opacity:0.34;"></div>
-                            <div style="position:absolute;right:114px;top:139px;width:5px;height:5px;border-radius:50%;background:#2563eb;opacity:0.34;"></div>
-                            <div style="position:absolute;right:108px;top:135px;width:5px;height:5px;border-radius:50%;background:#2563eb;opacity:0.34;"></div>
-                            <div style="position:absolute;right:101px;top:132px;width:5px;height:5px;border-radius:50%;background:#2563eb;opacity:0.35;"></div>
-                            <div style="position:absolute;right:94px;top:129px;width:5px;height:5px;border-radius:50%;background:#2563eb;opacity:0.35;"></div>
-                            <div style="position:absolute;right:87px;top:127px;width:5px;height:5px;border-radius:50%;background:#2563eb;opacity:0.36;"></div>
-                            <div style="position:absolute;right:80px;top:125px;width:6px;height:6px;border-radius:50%;background:#2563eb;opacity:0.36;"></div>
-                            <div style="position:absolute;right:72px;top:124px;width:6px;height:6px;border-radius:50%;background:#2563eb;opacity:0.37;"></div>
-                            <div style="position:absolute;right:64px;top:124px;width:6px;height:6px;border-radius:50%;background:#2563eb;opacity:0.37;"></div>
-                            <div style="position:absolute;right:56px;top:123px;width:6px;height:6px;border-radius:50%;background:#2563eb;opacity:0.38;"></div>
-                            <div style="position:absolute;right:48px;top:124px;width:6px;height:6px;border-radius:50%;background:#2563eb;opacity:0.38;"></div>
-                            <div style="position:absolute;right:40px;top:125px;width:6px;height:6px;border-radius:50%;background:#2563eb;opacity:0.39;"></div>
-                            <div style="position:absolute;right:32px;top:127px;width:6px;height:6px;border-radius:50%;background:#2563eb;opacity:0.39;"></div>
-                            <div style="position:absolute;right:24px;top:129px;width:6px;height:6px;border-radius:50%;background:#2563eb;opacity:0.4;"></div>
-                            <div style="position:absolute;right:16px;top:132px;width:6px;height:6px;border-radius:50%;background:#2563eb;opacity:0.4;"></div>
-                            <div style="position:absolute;right:8px;top:136px;width:6px;height:6px;border-radius:50%;background:#2563eb;opacity:0.41;"></div>
-                            <div style="position:absolute;right:0px;top:140px;width:6px;height:6px;border-radius:50%;background:#2563eb;opacity:0.41;"></div>
-                            <div style="position:absolute;right:20px;top:70px;width:1px;height:200px;background:#2563eb;opacity:0.07;"></div>
-                            <div style="position:absolute;right:45px;top:50px;width:1px;height:250px;background:#2563eb;opacity:0.05;"></div>
-                            <div style="position:absolute;right:70px;top:90px;width:1px;height:180px;background:#2563eb;opacity:0.08;"></div>
-                            <div style="position:absolute;right:95px;top:40px;width:1px;height:160px;background:#2563eb;opacity:0.04;"></div>
-                            <div style="position:absolute;right:120px;top:110px;width:1px;height:140px;background:#2563eb;opacity:0.06;"></div>
-                            <div style="position:absolute;right:15px;top:130px;width:90px;height:1px;background:#2563eb;opacity:0.05;"></div>
-                            <div style="position:absolute;right:30px;top:200px;width:80px;height:1px;background:#2563eb;opacity:0.04;"></div>
-                            <div style="position:absolute;right:50px;top:160px;width:60px;height:1px;background:#2563eb;opacity:0.06;"></div>
-                            <div style="position:absolute;right:10px;top:260px;width:100px;height:1px;background:#2563eb;opacity:0.03;"></div>
-                            <div style="position:absolute;right:60px;top:100px;width:50px;height:1px;background:#2563eb;opacity:0.05;"></div>
-                                    <div style="flex: 1; padding: 60px 60px 50px 80px; display: flex; flex-direction: column; position: relative; z-index: 1;">
-                                        <div style="margin-bottom: 35px;">
-                                            <div style="display: inline-flex; align-items: center; gap: 10px; padding: 8px 18px; background: #eff6ff; border-radius: 20px;">
-                                                <div style="width: 7px; height: 7px; background: #2563eb; border-radius: 50%;"></div>
-                                                <span style="color: #1e3a8a; font-size: 12px; font-weight: 600; letter-spacing: 1px;">EQUIPMENT INSPECTION</span>
-                                            </div>
-                                        </div>
-                                        <div style="margin-bottom: 50px;">
-                                            <h1 style="font-size: 46px; font-weight: 800; color: #1a1a1a; margin: 0 0 12px 0; line-height: 1.15; letter-spacing: -1px;">장비측정<br/>보고서</h1>
-                                            <div style="width: 60px; height: 4px; background: #2563eb; border-radius: 2px;"></div>
-                                        </div>
-                                        <div style="background: #fafafa; border-left: 4px solid #2563eb; padding: 30px 28px; margin-bottom: 50px; border-radius: 0 8px 8px 0;">
-                                            <div style="display: flex; flex-direction: column; gap: 16px;">
-                                                <div style="display: flex; align-items: baseline;">
-                                                    <span style="color: #999; font-size: 12px; width: 90px; font-weight: 600;">PROJECT</span>
-                                                    <span style="color: #1a1a1a; font-size: 24px; font-weight: 700;">${projectData.apartmentName}</span>
-                                                </div>
-                                                <div style="display: flex; align-items: baseline;">
-                                                    <span style="color: #999; font-size: 12px; width: 90px; font-weight: 600;">UNIT</span>
-                                                    <span style="color: #1a1a1a; font-size: 30px; font-weight: 700;">${projectData.dong}동 ${projectData.ho}호</span>
-                                                </div>
-                                                <div style="display: flex; align-items: baseline;">
-                                                    <span style="color: #999; font-size: 12px; width: 90px; font-weight: 600;">DATE</span>
-                                                    <span style="color: #1a1a1a; font-size: 18px; font-weight: 500;">${projectData.inspectionDate || ''}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div style="padding: 15px 0; border-top: 1.5px solid #e5e7eb; border-bottom: 1.5px solid #e5e7eb; margin-bottom: 30px;">
-                                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;"><div style="width: 5px; height: 5px; background: #2563eb; border-radius: 50%;"></div><span style="color: #333; font-size: 12px; font-weight: 600;">벽체 수직 및 바닥 수평 측정</span></div>
-                                            <div style="display: flex; align-items: center; gap: 8px;"><div style="width: 5px; height: 5px; background: #2563eb; border-radius: 50%;"></div><span style="color: #333; font-size: 12px; font-weight: 600;">열화상 카메라 점검</span></div>
-                                        </div>
-                                        <div style="margin-top: auto; display: flex; justify-content: space-between; align-items: flex-end;">
-                                            <div><div style="font-size: 22px; font-weight: 700; color: #1a1a1a;">더홈점검</div><div style="font-size: 12px; color: #999;">The Home Inspection</div></div>
-                                            <div style="text-align: right;"><div style="font-size: 13px; color: #333; font-weight: 500;">📞 1668-5322</div><div style="font-size: 11px; color: #999;">010-9985-0128</div></div>
-                                        </div>
-                                    </div>
-                                </div>
-                            `;
+                            const equipCoverHTML = window.createEquipmentCoverPage();
                             await window.addHTMLPageToPDF(equipDoc, equipCoverHTML, pageWidth, pageHeight);
                             
                             // 장비점검 페이지들
@@ -8384,262 +8116,154 @@
         }
 
         // 첫 페이지: 프로젝트 정보 + 하자 목록 10개
-        window.createSummaryFirstPage = function() {
-        // ==================== 사전점검 표지 (도트 패턴 디자인) ====================
-        return `
-            <div style="width: 794px; height: 1123px; background: #ffffff; display: flex; flex-direction: column; font-family: 'Malgun Gothic', sans-serif; position: relative; box-sizing: border-box; overflow: hidden;">
-                
-                <!-- 상단 악센트 바 -->
-                <div style="height: 6px; background: #dc2626;"></div>
-                
-                <!-- 좌측 사이드 악센트 -->
-                <div style="position: absolute; left: 0; top: 0; width: 5px; height: 100%; background: #dc2626;"></div>
-                
-                <!-- 도트 패턴 (CSS) -->
-                <div style="position:absolute;right:64px;top:237px;width:3px;height:3px;border-radius:50%;background:#dc2626;opacity:0.05;"></div>
-                <div style="position:absolute;right:63px;top:239px;width:3px;height:3px;border-radius:50%;background:#dc2626;opacity:0.06;"></div>
-                <div style="position:absolute;right:62px;top:240px;width:3px;height:3px;border-radius:50%;background:#dc2626;opacity:0.06;"></div>
-                <div style="position:absolute;right:61px;top:242px;width:3px;height:3px;border-radius:50%;background:#dc2626;opacity:0.07;"></div>
-                <div style="position:absolute;right:60px;top:244px;width:3px;height:3px;border-radius:50%;background:#dc2626;opacity:0.07;"></div>
-                <div style="position:absolute;right:60px;top:246px;width:3px;height:3px;border-radius:50%;background:#dc2626;opacity:0.08;"></div>
-                <div style="position:absolute;right:59px;top:248px;width:3px;height:3px;border-radius:50%;background:#dc2626;opacity:0.08;"></div>
-                <div style="position:absolute;right:59px;top:250px;width:3px;height:3px;border-radius:50%;background:#dc2626;opacity:0.09;"></div>
-                <div style="position:absolute;right:59px;top:253px;width:3px;height:3px;border-radius:50%;background:#dc2626;opacity:0.09;"></div>
-                <div style="position:absolute;right:60px;top:255px;width:3px;height:3px;border-radius:50%;background:#dc2626;opacity:0.1;"></div>
-                <div style="position:absolute;right:60px;top:257px;width:3px;height:3px;border-radius:50%;background:#dc2626;opacity:0.1;"></div>
-                <div style="position:absolute;right:61px;top:260px;width:3px;height:3px;border-radius:50%;background:#dc2626;opacity:0.1;"></div>
-                <div style="position:absolute;right:62px;top:262px;width:3px;height:3px;border-radius:50%;background:#dc2626;opacity:0.11;"></div>
-                <div style="position:absolute;right:63px;top:265px;width:3px;height:3px;border-radius:50%;background:#dc2626;opacity:0.11;"></div>
-                <div style="position:absolute;right:65px;top:267px;width:3px;height:3px;border-radius:50%;background:#dc2626;opacity:0.12;"></div>
-                <div style="position:absolute;right:67px;top:269px;width:3px;height:3px;border-radius:50%;background:#dc2626;opacity:0.12;"></div>
-                <div style="position:absolute;right:69px;top:272px;width:3px;height:3px;border-radius:50%;background:#dc2626;opacity:0.13;"></div>
-                <div style="position:absolute;right:71px;top:274px;width:3px;height:3px;border-radius:50%;background:#dc2626;opacity:0.13;"></div>
-                <div style="position:absolute;right:74px;top:276px;width:3px;height:3px;border-radius:50%;background:#dc2626;opacity:0.14;"></div>
-                <div style="position:absolute;right:77px;top:277px;width:3px;height:3px;border-radius:50%;background:#dc2626;opacity:0.14;"></div>
-                <div style="position:absolute;right:80px;top:279px;width:3px;height:3px;border-radius:50%;background:#dc2626;opacity:0.15;"></div>
-                <div style="position:absolute;right:83px;top:280px;width:3px;height:3px;border-radius:50%;background:#dc2626;opacity:0.15;"></div>
-                <div style="position:absolute;right:86px;top:281px;width:3px;height:3px;border-radius:50%;background:#dc2626;opacity:0.16;"></div>
-                <div style="position:absolute;right:90px;top:282px;width:3px;height:3px;border-radius:50%;background:#dc2626;opacity:0.16;"></div>
-                <div style="position:absolute;right:93px;top:283px;width:3px;height:3px;border-radius:50%;background:#dc2626;opacity:0.17;"></div>
-                <div style="position:absolute;right:97px;top:283px;width:3px;height:3px;border-radius:50%;background:#dc2626;opacity:0.17;"></div>
-                <div style="position:absolute;right:101px;top:283px;width:3px;height:3px;border-radius:50%;background:#dc2626;opacity:0.18;"></div>
-                <div style="position:absolute;right:105px;top:283px;width:4px;height:4px;border-radius:50%;background:#dc2626;opacity:0.18;"></div>
-                <div style="position:absolute;right:109px;top:282px;width:4px;height:4px;border-radius:50%;background:#dc2626;opacity:0.19;"></div>
-                <div style="position:absolute;right:113px;top:281px;width:4px;height:4px;border-radius:50%;background:#dc2626;opacity:0.19;"></div>
-                <div style="position:absolute;right:117px;top:280px;width:4px;height:4px;border-radius:50%;background:#dc2626;opacity:0.2;"></div>
-                <div style="position:absolute;right:121px;top:278px;width:4px;height:4px;border-radius:50%;background:#dc2626;opacity:0.2;"></div>
-                <div style="position:absolute;right:125px;top:276px;width:4px;height:4px;border-radius:50%;background:#dc2626;opacity:0.21;"></div>
-                <div style="position:absolute;right:129px;top:273px;width:4px;height:4px;border-radius:50%;background:#dc2626;opacity:0.21;"></div>
-                <div style="position:absolute;right:133px;top:271px;width:4px;height:4px;border-radius:50%;background:#dc2626;opacity:0.22;"></div>
-                <div style="position:absolute;right:137px;top:268px;width:4px;height:4px;border-radius:50%;background:#dc2626;opacity:0.22;"></div>
-                <div style="position:absolute;right:140px;top:264px;width:4px;height:4px;border-radius:50%;background:#dc2626;opacity:0.22;"></div>
-                <div style="position:absolute;right:143px;top:260px;width:4px;height:4px;border-radius:50%;background:#dc2626;opacity:0.23;"></div>
-                <div style="position:absolute;right:146px;top:256px;width:4px;height:4px;border-radius:50%;background:#dc2626;opacity:0.23;"></div>
-                <div style="position:absolute;right:149px;top:252px;width:4px;height:4px;border-radius:50%;background:#dc2626;opacity:0.24;"></div>
-                <div style="position:absolute;right:152px;top:247px;width:4px;height:4px;border-radius:50%;background:#dc2626;opacity:0.24;"></div>
-                <div style="position:absolute;right:154px;top:242px;width:4px;height:4px;border-radius:50%;background:#dc2626;opacity:0.25;"></div>
-                <div style="position:absolute;right:156px;top:237px;width:4px;height:4px;border-radius:50%;background:#dc2626;opacity:0.25;"></div>
-                <div style="position:absolute;right:157px;top:232px;width:4px;height:4px;border-radius:50%;background:#dc2626;opacity:0.26;"></div>
-                <div style="position:absolute;right:158px;top:226px;width:4px;height:4px;border-radius:50%;background:#dc2626;opacity:0.26;"></div>
-                <div style="position:absolute;right:159px;top:221px;width:4px;height:4px;border-radius:50%;background:#dc2626;opacity:0.27;"></div>
-                <div style="position:absolute;right:159px;top:215px;width:5px;height:5px;border-radius:50%;background:#dc2626;opacity:0.27;"></div>
-                <div style="position:absolute;right:159px;top:209px;width:5px;height:5px;border-radius:50%;background:#dc2626;opacity:0.28;"></div>
-                <div style="position:absolute;right:158px;top:203px;width:5px;height:5px;border-radius:50%;background:#dc2626;opacity:0.28;"></div>
-                <div style="position:absolute;right:157px;top:197px;width:5px;height:5px;border-radius:50%;background:#dc2626;opacity:0.29;"></div>
-                <div style="position:absolute;right:155px;top:191px;width:5px;height:5px;border-radius:50%;background:#dc2626;opacity:0.29;"></div>
-                <div style="position:absolute;right:153px;top:185px;width:5px;height:5px;border-radius:50%;background:#dc2626;opacity:0.3;"></div>
-                <div style="position:absolute;right:151px;top:179px;width:5px;height:5px;border-radius:50%;background:#dc2626;opacity:0.3;"></div>
-                <div style="position:absolute;right:148px;top:173px;width:5px;height:5px;border-radius:50%;background:#dc2626;opacity:0.31;"></div>
-                <div style="position:absolute;right:144px;top:167px;width:5px;height:5px;border-radius:50%;background:#dc2626;opacity:0.31;"></div>
-                <div style="position:absolute;right:140px;top:162px;width:5px;height:5px;border-radius:50%;background:#dc2626;opacity:0.32;"></div>
-                <div style="position:absolute;right:136px;top:157px;width:5px;height:5px;border-radius:50%;background:#dc2626;opacity:0.32;"></div>
-                <div style="position:absolute;right:131px;top:152px;width:5px;height:5px;border-radius:50%;background:#dc2626;opacity:0.33;"></div>
-                <div style="position:absolute;right:126px;top:147px;width:5px;height:5px;border-radius:50%;background:#dc2626;opacity:0.33;"></div>
-                <div style="position:absolute;right:120px;top:143px;width:5px;height:5px;border-radius:50%;background:#dc2626;opacity:0.34;"></div>
-                <div style="position:absolute;right:114px;top:139px;width:5px;height:5px;border-radius:50%;background:#dc2626;opacity:0.34;"></div>
-                <div style="position:absolute;right:108px;top:135px;width:5px;height:5px;border-radius:50%;background:#dc2626;opacity:0.34;"></div>
-                <div style="position:absolute;right:101px;top:132px;width:5px;height:5px;border-radius:50%;background:#dc2626;opacity:0.35;"></div>
-                <div style="position:absolute;right:94px;top:129px;width:5px;height:5px;border-radius:50%;background:#dc2626;opacity:0.35;"></div>
-                <div style="position:absolute;right:87px;top:127px;width:5px;height:5px;border-radius:50%;background:#dc2626;opacity:0.36;"></div>
-                <div style="position:absolute;right:80px;top:125px;width:6px;height:6px;border-radius:50%;background:#dc2626;opacity:0.36;"></div>
-                <div style="position:absolute;right:72px;top:124px;width:6px;height:6px;border-radius:50%;background:#dc2626;opacity:0.37;"></div>
-                <div style="position:absolute;right:64px;top:124px;width:6px;height:6px;border-radius:50%;background:#dc2626;opacity:0.37;"></div>
-                <div style="position:absolute;right:56px;top:123px;width:6px;height:6px;border-radius:50%;background:#dc2626;opacity:0.38;"></div>
-                <div style="position:absolute;right:48px;top:124px;width:6px;height:6px;border-radius:50%;background:#dc2626;opacity:0.38;"></div>
-                <div style="position:absolute;right:40px;top:125px;width:6px;height:6px;border-radius:50%;background:#dc2626;opacity:0.39;"></div>
-                <div style="position:absolute;right:32px;top:127px;width:6px;height:6px;border-radius:50%;background:#dc2626;opacity:0.39;"></div>
-                <div style="position:absolute;right:24px;top:129px;width:6px;height:6px;border-radius:50%;background:#dc2626;opacity:0.4;"></div>
-                <div style="position:absolute;right:16px;top:132px;width:6px;height:6px;border-radius:50%;background:#dc2626;opacity:0.4;"></div>
-                <div style="position:absolute;right:8px;top:136px;width:6px;height:6px;border-radius:50%;background:#dc2626;opacity:0.41;"></div>
-                <div style="position:absolute;right:0px;top:140px;width:6px;height:6px;border-radius:50%;background:#dc2626;opacity:0.41;"></div>
-                <div style="position:absolute;right:20px;top:70px;width:1px;height:200px;background:#dc2626;opacity:0.07;"></div>
-                <div style="position:absolute;right:45px;top:50px;width:1px;height:250px;background:#dc2626;opacity:0.05;"></div>
-                <div style="position:absolute;right:70px;top:90px;width:1px;height:180px;background:#dc2626;opacity:0.08;"></div>
-                <div style="position:absolute;right:95px;top:40px;width:1px;height:160px;background:#dc2626;opacity:0.04;"></div>
-                <div style="position:absolute;right:120px;top:110px;width:1px;height:140px;background:#dc2626;opacity:0.06;"></div>
-                <div style="position:absolute;right:15px;top:130px;width:90px;height:1px;background:#dc2626;opacity:0.05;"></div>
-                <div style="position:absolute;right:30px;top:200px;width:80px;height:1px;background:#dc2626;opacity:0.04;"></div>
-                <div style="position:absolute;right:50px;top:160px;width:60px;height:1px;background:#dc2626;opacity:0.06;"></div>
-                <div style="position:absolute;right:10px;top:260px;width:100px;height:1px;background:#dc2626;opacity:0.03;"></div>
-                <div style="position:absolute;right:60px;top:100px;width:50px;height:1px;background:#dc2626;opacity:0.05;"></div>
-                
-                <!-- 메인 컨텐츠 -->
-                <div style="flex: 1; padding: 50px 55px 40px 70px; display: flex; flex-direction: column; position: relative; z-index: 1;">
-                    
-                    <!-- 뱃지 -->
-                    <div style="margin-bottom: 25px;">
-                        <div style="display: inline-flex; align-items: center; gap: 10px; padding: 8px 18px; background: #fef2f2; border-radius: 20px;">
-                            <div style="width: 7px; height: 7px; background: #dc2626; border-radius: 50%;"></div>
-                            <span style="color: #991b1b; font-size: 12px; font-weight: 600; letter-spacing: 1px;">INSPECTION REPORT</span>
-                        </div>
-                    </div>
-                    
-                    <!-- 타이틀 -->
-                    <div style="margin-bottom: 30px;">
-                        <h1 style="font-size: 46px; font-weight: 800; color: #1a1a1a; margin: 0 0 12px 0; line-height: 1.15; letter-spacing: -1px;">
-                            사전점검<br/>보고서
-                        </h1>
-                        <div style="width: 60px; height: 4px; background: #dc2626; border-radius: 2px;"></div>
-                    </div>
-                    
-                    <!-- 프로젝트 정보 + 평면도 -->
-                    ${projectData.floorplan ? `
-                        <div style="display: flex; gap: 18px; margin-bottom: 22px;">
-                            <div style="flex: 1; background: #fafafa; border-left: 4px solid #dc2626; padding: 22px; border-radius: 0 8px 8px 0;">
-                                <div style="display: flex; flex-direction: column; gap: 12px;">
-                                    <div style="display: flex; align-items: baseline;">
-                                        <span style="color: #999; font-size: 11px; width: 75px; font-weight: 600;">PROJECT</span>
-                                        <span style="color: #1a1a1a; font-size: 20px; font-weight: 700;">${projectData.apartmentName}</span>
-                                    </div>
-                                    <div style="display: flex; align-items: baseline;">
-                                        <span style="color: #999; font-size: 11px; width: 75px; font-weight: 600;">UNIT</span>
-                                        <span style="color: #1a1a1a; font-size: 24px; font-weight: 700;">${projectData.dong}동 ${projectData.ho}호</span>
-                                    </div>
-                                    <div style="display: flex; align-items: baseline;">
-                                        <span style="color: #999; font-size: 11px; width: 75px; font-weight: 600;">DATE</span>
-                                        <span style="color: #1a1a1a; font-size: 15px; font-weight: 500;">${projectData.inspectionDate || '-'}</span>
-                                    </div>
-                                    <div style="display: flex; align-items: baseline;">
-                                        <span style="color: #999; font-size: 11px; width: 75px; font-weight: 600;">CLIENT</span>
-                                        <span style="color: #1a1a1a; font-size: 15px; font-weight: 500;">${projectData.customerName || '-'}</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div style="flex: 1; border: 1.5px solid #f3f4f6; border-radius: 10px; overflow: hidden; display: flex; align-items: center; justify-content: center; background: #fafafa;">
-                                <img src="${projectData.floorplan}" style="width: 100%; height: 200px; object-fit: contain;" />
-                            </div>
-                        </div>
-                    ` : `
-                        <div style="margin-bottom: 22px;">
-                            <div style="background: #fafafa; border-left: 4px solid #dc2626; padding: 28px 30px; border-radius: 0 8px 8px 0;">
-                                <div style="display: flex; flex-direction: column; gap: 16px;">
-                                    <div style="display: flex; align-items: baseline;">
-                                        <span style="color: #999; font-size: 12px; width: 90px; font-weight: 600;">PROJECT</span>
-                                        <span style="color: #1a1a1a; font-size: 24px; font-weight: 700;">${projectData.apartmentName}</span>
-                                    </div>
-                                    <div style="display: flex; align-items: baseline;">
-                                        <span style="color: #999; font-size: 12px; width: 90px; font-weight: 600;">UNIT</span>
-                                        <span style="color: #1a1a1a; font-size: 30px; font-weight: 700;">${projectData.dong}동 ${projectData.ho}호</span>
-                                    </div>
-                                    <div style="display: flex; align-items: baseline;">
-                                        <span style="color: #999; font-size: 12px; width: 90px; font-weight: 600;">DATE</span>
-                                        <span style="color: #1a1a1a; font-size: 18px; font-weight: 500;">${projectData.inspectionDate || '-'}</span>
-                                    </div>
-                                    <div style="display: flex; align-items: baseline;">
-                                        <span style="color: #999; font-size: 12px; width: 90px; font-weight: 600;">CLIENT</span>
-                                        <span style="color: #1a1a1a; font-size: 18px; font-weight: 500;">${projectData.customerName || '-'}</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    `}
-                    
-                    <!-- 하자 요약 -->
-                    ${(() => {
-                        let criticalCount = 0;
-                        let normalCount = 0;
-                        projectData.defects.forEach(defect => {
-                            const desc = (defect.description || '').toLowerCase();
-                            if (desc.includes('누수')) criticalCount++;
-                            else normalCount++;
-                        });
-                        const totalPhotos = projectData.defects.filter(d => d.photos && d.photos.length > 0).reduce((sum, d) => sum + d.photos.length, 0);
-                        return `
-                    <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 10px; padding: 16px 20px; margin-bottom: 18px;">
-                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
-                            <div style="width: 18px; height: 18px; background: #dc2626; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 11px;">!</div>
-                            <span style="color: #991b1b; font-size: 13px; font-weight: 700;">입주 전 사전점검 완료</span>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; padding: 10px 6px; background: white; border-radius: 8px; margin-bottom: 8px;">
-                            <div style="text-align: center; flex: 1; border-right: 1px solid #fee2e2;">
-                                <div style="color: #dc2626; font-size: 10px; font-weight: 700; margin-bottom: 2px;">🚨 중대하자</div>
-                                <div style="color: #dc2626; font-size: 24px; font-weight: 800;">${criticalCount}</div>
-                                <div style="color: #aaa; font-size: 8px;">누수</div>
-                            </div>
-                            <div style="text-align: center; flex: 1; border-right: 1px solid #fee2e2;">
-                                <div style="color: #333; font-size: 10px; font-weight: 700; margin-bottom: 2px;">📋 일반하자</div>
-                                <div style="color: #333; font-size: 24px; font-weight: 800;">${normalCount}</div>
-                                <div style="color: #aaa; font-size: 8px;">마감·기능 등</div>
-                            </div>
-                            <div style="text-align: center; flex: 1;">
-                                <div style="color: #666; font-size: 10px; font-weight: 700; margin-bottom: 2px;">📷 사진</div>
-                                <div style="color: #666; font-size: 24px; font-weight: 800;">${totalPhotos}</div>
-                                <div style="color: #aaa; font-size: 8px;">총 ${projectData.defects.length}건</div>
-                            </div>
-                        </div>
-                        <p style="color: #b91c1c; font-size: 10px; margin: 0; line-height: 1.4; text-align: center;">
-                            전문 장비를 활용한 꼼꼼한 하자 점검으로 안심하고 입주하실 수 있도록 도와드립니다.
-                        </p>
-                    </div>`;
-                    })()}
-                    
-                    <!-- 점검 항목 -->
-                    <div style="padding: 12px 0; border-top: 1.5px solid #e5e7eb; border-bottom: 1.5px solid #e5e7eb; margin-bottom: 16px;">
-                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-                            <div style="width: 5px; height: 5px; background: #dc2626; border-radius: 50%;"></div>
-                            <span style="color: #333; font-size: 12px; font-weight: 600;">벽체 수직 및 바닥 수평 점검</span>
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-                            <div style="width: 5px; height: 5px; background: #dc2626; border-radius: 50%;"></div>
-                            <span style="color: #333; font-size: 12px; font-weight: 600;">실내 공기질 측정</span>
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <div style="width: 5px; height: 5px; background: #dc2626; border-radius: 50%;"></div>
-                            <span style="color: #333; font-size: 12px; font-weight: 600;">마감 품질 및 시공 상태 점검</span>
-                        </div>
-                    </div>
-                    
-                    <!-- 사후 관리 안내 -->
-                    <div style="background: #fef9c3; border: 1px solid #fcd34d; border-radius: 8px; padding: 10px 14px; margin-bottom: 12px;">
-                        <div style="display: flex; align-items: flex-start; gap: 8px;">
-                            <span style="font-size: 13px;">⚠️</span>
-                            <div>
-                                <span style="color: #92400e; font-size: 10px; font-weight: 700;">사후 관리 안내</span>
-                                <p style="color: #78350f; font-size: 9px; margin: 3px 0 0 0; line-height: 1.5;">
-                                    하자사항은 준공 이후에도 주기적으로 발생할 수 있으므로, 하자담보책임기간 내 정기적인 점검과 관리를 권장드립니다.
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- 하단 회사 정보 -->
-                    <div style="margin-top: auto;">
-                        <div style="display: flex; justify-content: space-between; align-items: flex-end;">
-                            <div>
-                                <h3 style="font-size: 22px; font-weight: 700; color: #1a1a1a; margin: 0 0 4px 0;">더홈점검</h3>
-                                <p style="font-size: 12px; color: #999; margin: 0;">The Home Inspection</p>
-                            </div>
-                            <div style="text-align: right;">
-                                <p style="font-size: 13px; color: #333; margin: 3px 0; font-weight: 500;">📞 1668-5322</p>
-                                <p style="font-size: 11px; color: #999; margin: 3px 0;">010-9985-0128</p>
-                            </div>
-                        </div>
-                    </div>
-                    
-                </div>
-            </div>
-        `;
+
+    window.createSummaryFirstPage = function() {
+        function genRedDots() {
+            const colors = ['#e05a4e','#e8745a','#e08860','#5a8fa0','#3a6e82','#2c5a6e','#c8a050','#d4b468','#4a7a8a','#b84a3e','#d46050','#486878'];
+            let d = '';
+            const rings = [
+                {r:155, n:10, sa:-62, ea:-20},
+                {r:168, n:12, sa:-68, ea:-18},
+                {r:182, n:15, sa:-72, ea:-12},
+                {r:196, n:17, sa:-76, ea:-8},
+                {r:210, n:20, sa:-79, ea:-4},
+                {r:224, n:22, sa:-81, ea:0},
+                {r:238, n:25, sa:-82, ea:4},
+                {r:252, n:27, sa:-83, ea:8},
+                {r:266, n:29, sa:-83, ea:12},
+                {r:280, n:31, sa:-83, ea:16},
+                {r:294, n:33, sa:-82, ea:20},
+                {r:308, n:35, sa:-81, ea:24},
+                {r:322, n:36, sa:-80, ea:28},
+                {r:336, n:37, sa:-78, ea:32},
+                {r:350, n:38, sa:-76, ea:35},
+                {r:364, n:38, sa:-74, ea:38},
+                {r:378, n:37, sa:-71, ea:40},
+                {r:392, n:36, sa:-68, ea:42},
+                {r:406, n:34, sa:-64, ea:43},
+                {r:420, n:31, sa:-60, ea:44}
+            ];
+            const cx = 794, cy = 350;
+            rings.forEach(function(ring, ri) {
+                const step = (ring.ea - ring.sa) / Math.max(ring.n - 1, 1);
+                for (let i = 0; i < ring.n; i++) {
+                    const a = ring.sa + step * i;
+                    const rad = (a * Math.PI) / 180;
+                    const x = cx + ring.r * Math.cos(rad);
+                    const y = cy + ring.r * Math.sin(rad);
+                    const progress = ri / 19;
+                    let colorIdx;
+                    if (progress < 0.33) colorIdx = Math.floor(progress * 3 * 3);
+                    else if (progress < 0.66) colorIdx = 3 + Math.floor((progress - 0.33) * 3 * 3);
+                    else colorIdx = 6 + Math.floor((progress - 0.66) * 3 * 3);
+                    colorIdx = Math.min(colorIdx, 11);
+                    const c = colors[colorIdx];
+                    const sz = 7 + ri * 0.4;
+                    if (x > 200 && x < 850 && y > 0 && y < 720)
+                        d += '<div style="position:absolute;left:' + x.toFixed(1) + 'px;top:' + y.toFixed(1) + 'px;width:' + sz.toFixed(1) + 'px;height:' + sz.toFixed(1) + 'px;border-radius:50%;background:' + c + ';transform:translate(-50%,-50%);"></div>';
+                }
+            });
+            return d;
         }
+        function genBuilding() {
+            return '<svg style="position:absolute;right:0;bottom:0;width:420px;height:580px;opacity:1;" viewBox="0 0 420 580" fill="none" xmlns="http://www.w3.org/2000/svg">'
+            // Main tall building (center-right)
+            + '<line x1="220" y1="580" x2="220" y2="120" stroke="#c0392b" stroke-width="1.2"/>'
+            + '<line x1="340" y1="580" x2="340" y2="120" stroke="#1a3a5c" stroke-width="1.2"/>'
+            + '<line x1="220" y1="120" x2="340" y2="120" stroke="#1a3a5c" stroke-width="1.2"/>'
+            // Floors main building
+            + '<line x1="220" y1="165" x2="340" y2="165" stroke="#1a3a5c" stroke-width="0.6"/>'
+            + '<line x1="220" y1="210" x2="340" y2="210" stroke="#1a3a5c" stroke-width="0.6"/>'
+            + '<line x1="220" y1="255" x2="340" y2="255" stroke="#1a3a5c" stroke-width="0.6"/>'
+            + '<line x1="220" y1="300" x2="340" y2="300" stroke="#1a3a5c" stroke-width="0.6"/>'
+            + '<line x1="220" y1="345" x2="340" y2="345" stroke="#1a3a5c" stroke-width="0.6"/>'
+            + '<line x1="220" y1="390" x2="340" y2="390" stroke="#1a3a5c" stroke-width="0.6"/>'
+            + '<line x1="220" y1="435" x2="340" y2="435" stroke="#1a3a5c" stroke-width="0.6"/>'
+            + '<line x1="220" y1="480" x2="340" y2="480" stroke="#1a3a5c" stroke-width="0.6"/>'
+            + '<line x1="220" y1="525" x2="340" y2="525" stroke="#1a3a5c" stroke-width="0.6"/>'
+            // Vertical divisions main building
+            + '<line x1="260" y1="120" x2="260" y2="580" stroke="#1a3a5c" stroke-width="0.6"/>'
+            + '<line x1="300" y1="120" x2="300" y2="580" stroke="#1a3a5c" stroke-width="0.6"/>'
+            // Perspective top of main building
+            + '<line x1="220" y1="120" x2="190" y2="90" stroke="#c0392b" stroke-width="0.9"/>'
+            + '<line x1="340" y1="120" x2="370" y2="90" stroke="#1a3a5c" stroke-width="0.9"/>'
+            + '<line x1="190" y1="90" x2="370" y2="90" stroke="#1a3a5c" stroke-width="0.9"/>'
+            + '<line x1="340" y1="580" x2="370" y2="550" stroke="#1a3a5c" stroke-width="0.9"/>'
+            + '<line x1="370" y1="90" x2="370" y2="550" stroke="#1a3a5c" stroke-width="0.9"/>'
+            + '<line x1="260" y1="120" x2="290" y2="90" stroke="#1a3a5c" stroke-width="0.4"/>'
+            + '<line x1="300" y1="120" x2="330" y2="90" stroke="#1a3a5c" stroke-width="0.4"/>'
+            // Second building (left of main)
+            + '<line x1="100" y1="580" x2="100" y2="200" stroke="#c0392b" stroke-width="1.0"/>'
+            + '<line x1="210" y1="580" x2="210" y2="200" stroke="#1a3a5c" stroke-width="1.0"/>'
+            + '<line x1="100" y1="200" x2="210" y2="200" stroke="#1a3a5c" stroke-width="1.0"/>'
+            + '<line x1="100" y1="245" x2="210" y2="245" stroke="#1a3a5c" stroke-width="0.5"/>'
+            + '<line x1="100" y1="290" x2="210" y2="290" stroke="#1a3a5c" stroke-width="0.5"/>'
+            + '<line x1="100" y1="335" x2="210" y2="335" stroke="#1a3a5c" stroke-width="0.5"/>'
+            + '<line x1="100" y1="380" x2="210" y2="380" stroke="#1a3a5c" stroke-width="0.5"/>'
+            + '<line x1="100" y1="425" x2="210" y2="425" stroke="#1a3a5c" stroke-width="0.5"/>'
+            + '<line x1="100" y1="470" x2="210" y2="470" stroke="#1a3a5c" stroke-width="0.5"/>'
+            + '<line x1="100" y1="515" x2="210" y2="515" stroke="#1a3a5c" stroke-width="0.5"/>'
+            + '<line x1="155" y1="200" x2="155" y2="580" stroke="#1a3a5c" stroke-width="0.5"/>'
+            + '<line x1="100" y1="200" x2="75" y2="172" stroke="#c0392b" stroke-width="0.7"/>'
+            + '<line x1="210" y1="200" x2="235" y2="172" stroke="#1a3a5c" stroke-width="0.7"/>'
+            + '<line x1="75" y1="172" x2="235" y2="172" stroke="#1a3a5c" stroke-width="0.7"/>'
+            + '<line x1="210" y1="580" x2="235" y2="555" stroke="#1a3a5c" stroke-width="0.7"/>'
+            + '<line x1="235" y1="172" x2="235" y2="555" stroke="#1a3a5c" stroke-width="0.7"/>'
+            // Third small building far left
+            + '<line x1="20" y1="580" x2="20" y2="310" stroke="#c0392b" stroke-width="0.8"/>'
+            + '<line x1="90" y1="580" x2="90" y2="310" stroke="#1a3a5c" stroke-width="0.8"/>'
+            + '<line x1="20" y1="310" x2="90" y2="310" stroke="#1a3a5c" stroke-width="0.8"/>'
+            + '<line x1="20" y1="360" x2="90" y2="360" stroke="#1a3a5c" stroke-width="0.4"/>'
+            + '<line x1="20" y1="410" x2="90" y2="410" stroke="#1a3a5c" stroke-width="0.4"/>'
+            + '<line x1="20" y1="460" x2="90" y2="460" stroke="#1a3a5c" stroke-width="0.4"/>'
+            + '<line x1="20" y1="510" x2="90" y2="510" stroke="#1a3a5c" stroke-width="0.4"/>'
+            + '<line x1="55" y1="310" x2="55" y2="580" stroke="#1a3a5c" stroke-width="0.4"/>'
+            + '<line x1="20" y1="310" x2="5" y2="293" stroke="#c0392b" stroke-width="0.6"/>'
+            + '<line x1="90" y1="310" x2="105" y2="293" stroke="#1a3a5c" stroke-width="0.6"/>'
+            + '<line x1="5" y1="293" x2="105" y2="293" stroke="#1a3a5c" stroke-width="0.6"/>'
+            + '<line x1="90" y1="580" x2="105" y2="564" stroke="#1a3a5c" stroke-width="0.6"/>'
+            + '<line x1="105" y1="293" x2="105" y2="564" stroke="#1a3a5c" stroke-width="0.6"/>'
+            + '</svg>';
+        }
+        const infoBox = '<div style="position:absolute;left:55px;bottom:145px;background:rgba(255,255,255,0.92);border:1px solid #e0e0e0;border-radius:3px;padding:20px 28px;min-width:280px;z-index:20;">'
+            + '<div style="display:flex;align-items:center;margin-bottom:10px;">'
+            + '<span style="color:#888;font-size:11px;width:70px;font-weight:600;letter-spacing:0.8px;font-family:\'Arial\',sans-serif;">PROJECT</span>'
+            + '<span style="color:#1a1a2e;font-size:15px;font-weight:700;font-family:\'Malgun Gothic\',sans-serif;">' + (projectData.apartmentName||'-') + '</span>'
+            + '</div>'
+            + '<div style="display:flex;align-items:center;margin-bottom:10px;">'
+            + '<span style="color:#888;font-size:11px;width:70px;font-weight:600;letter-spacing:0.8px;font-family:\'Arial\',sans-serif;">UNIT</span>'
+            + '<span style="color:#1a1a2e;font-size:15px;font-weight:700;font-family:\'Malgun Gothic\',sans-serif;">' + (projectData.dong||'-') + '동 ' + (projectData.ho||'-') + '호</span>'
+            + '</div>'
+            + '<div style="display:flex;align-items:center;margin-bottom:10px;">'
+            + '<span style="color:#888;font-size:11px;width:70px;font-weight:600;letter-spacing:0.8px;font-family:\'Arial\',sans-serif;">DATE</span>'
+            + '<span style="color:#1a1a2e;font-size:14px;font-weight:500;font-family:\'Malgun Gothic\',sans-serif;">' + (projectData.inspectionDate||'-') + '</span>'
+            + '</div>'
+            + '<div style="display:flex;align-items:center;">'
+            + '<span style="color:#888;font-size:11px;width:70px;font-weight:600;letter-spacing:0.8px;font-family:\'Arial\',sans-serif;">CLIENT</span>'
+            + '<span style="color:#1a1a2e;font-size:14px;font-weight:500;font-family:\'Malgun Gothic\',sans-serif;">' + (projectData.customerName||'-') + '</span>'
+            + '</div>'
+            + '</div>';
+        return '<div style="width:794px;height:1123px;background:#ffffff;font-family:\'Malgun Gothic\',sans-serif;position:relative;box-sizing:border-box;overflow:hidden;">'
+            + '<div style="position:absolute;left:0;top:0;width:5px;height:100%;background:#dc2626;z-index:30;"></div>'
+            + genBuilding()
+            + '<div style="position:absolute;left:0;top:0;width:794px;height:720px;overflow:hidden;">' + genRedDots() + '</div>'
+            + '<div style="position:absolute;left:55px;top:52px;z-index:20;">'
+            + '<div style="font-size:32px;font-weight:800;color:#dc2626;letter-spacing:-0.5px;font-family:\'Malgun Gothic\',sans-serif;line-height:1;">더홈점검</div>'
+            + '<div style="font-size:12px;color:#888;margin-top:5px;letter-spacing:0.3px;font-family:\'Arial\',sans-serif;">The Home Inspection</div>'
+            + '</div>'
+            + '<div style="position:absolute;left:55px;top:200px;z-index:20;">'
+            + '<div style="font-size:68px;font-weight:900;color:#1a1a2e;line-height:1.1;letter-spacing:-2px;font-family:\'Malgun Gothic\',sans-serif;">사전점검<br/>보고서</div>'
+            + '<div style="font-size:18px;color:#555;margin-top:14px;letter-spacing:0.5px;font-family:\'Arial\',sans-serif;">Pre-Inspection Report</div>'
+            + '</div>'
+            + infoBox
+            + '<div style="position:absolute;left:55px;bottom:60px;right:55px;z-index:20;border-top:1px solid #ddd;padding-top:16px;">'
+            + '<div style="display:flex;gap:28px;align-items:center;">'
+            + '<span style="font-size:15px;font-weight:700;color:#222;letter-spacing:0.5px;font-family:\'Arial\',sans-serif;">1668-5322</span>'
+            + '<span style="font-size:15px;font-weight:400;color:#666;letter-spacing:0.5px;font-family:\'Arial\',sans-serif;">010-9985-0128</span>'
+            + '</div>'
+            + '</div>'
+            + '</div>';
+    }
 
 
 
@@ -10696,261 +10320,153 @@
 
     // [하자점검 관련 함수들 - 기존 디자인 유지]
     // v5.1과 동일하므로 간략히 포함 (필수)
+
     window.createSummaryFirstPage = function() {
-        // ==================== 사전점검 표지 (도트 패턴 디자인) ====================
-        return `
-            <div style="width: 794px; height: 1123px; background: #ffffff; display: flex; flex-direction: column; font-family: 'Malgun Gothic', sans-serif; position: relative; box-sizing: border-box; overflow: hidden;">
-                
-                <!-- 상단 악센트 바 -->
-                <div style="height: 6px; background: #dc2626;"></div>
-                
-                <!-- 좌측 사이드 악센트 -->
-                <div style="position: absolute; left: 0; top: 0; width: 5px; height: 100%; background: #dc2626;"></div>
-                
-                <!-- 도트 패턴 (CSS) -->
-                <div style="position:absolute;right:64px;top:237px;width:3px;height:3px;border-radius:50%;background:#dc2626;opacity:0.05;"></div>
-                <div style="position:absolute;right:63px;top:239px;width:3px;height:3px;border-radius:50%;background:#dc2626;opacity:0.06;"></div>
-                <div style="position:absolute;right:62px;top:240px;width:3px;height:3px;border-radius:50%;background:#dc2626;opacity:0.06;"></div>
-                <div style="position:absolute;right:61px;top:242px;width:3px;height:3px;border-radius:50%;background:#dc2626;opacity:0.07;"></div>
-                <div style="position:absolute;right:60px;top:244px;width:3px;height:3px;border-radius:50%;background:#dc2626;opacity:0.07;"></div>
-                <div style="position:absolute;right:60px;top:246px;width:3px;height:3px;border-radius:50%;background:#dc2626;opacity:0.08;"></div>
-                <div style="position:absolute;right:59px;top:248px;width:3px;height:3px;border-radius:50%;background:#dc2626;opacity:0.08;"></div>
-                <div style="position:absolute;right:59px;top:250px;width:3px;height:3px;border-radius:50%;background:#dc2626;opacity:0.09;"></div>
-                <div style="position:absolute;right:59px;top:253px;width:3px;height:3px;border-radius:50%;background:#dc2626;opacity:0.09;"></div>
-                <div style="position:absolute;right:60px;top:255px;width:3px;height:3px;border-radius:50%;background:#dc2626;opacity:0.1;"></div>
-                <div style="position:absolute;right:60px;top:257px;width:3px;height:3px;border-radius:50%;background:#dc2626;opacity:0.1;"></div>
-                <div style="position:absolute;right:61px;top:260px;width:3px;height:3px;border-radius:50%;background:#dc2626;opacity:0.1;"></div>
-                <div style="position:absolute;right:62px;top:262px;width:3px;height:3px;border-radius:50%;background:#dc2626;opacity:0.11;"></div>
-                <div style="position:absolute;right:63px;top:265px;width:3px;height:3px;border-radius:50%;background:#dc2626;opacity:0.11;"></div>
-                <div style="position:absolute;right:65px;top:267px;width:3px;height:3px;border-radius:50%;background:#dc2626;opacity:0.12;"></div>
-                <div style="position:absolute;right:67px;top:269px;width:3px;height:3px;border-radius:50%;background:#dc2626;opacity:0.12;"></div>
-                <div style="position:absolute;right:69px;top:272px;width:3px;height:3px;border-radius:50%;background:#dc2626;opacity:0.13;"></div>
-                <div style="position:absolute;right:71px;top:274px;width:3px;height:3px;border-radius:50%;background:#dc2626;opacity:0.13;"></div>
-                <div style="position:absolute;right:74px;top:276px;width:3px;height:3px;border-radius:50%;background:#dc2626;opacity:0.14;"></div>
-                <div style="position:absolute;right:77px;top:277px;width:3px;height:3px;border-radius:50%;background:#dc2626;opacity:0.14;"></div>
-                <div style="position:absolute;right:80px;top:279px;width:3px;height:3px;border-radius:50%;background:#dc2626;opacity:0.15;"></div>
-                <div style="position:absolute;right:83px;top:280px;width:3px;height:3px;border-radius:50%;background:#dc2626;opacity:0.15;"></div>
-                <div style="position:absolute;right:86px;top:281px;width:3px;height:3px;border-radius:50%;background:#dc2626;opacity:0.16;"></div>
-                <div style="position:absolute;right:90px;top:282px;width:3px;height:3px;border-radius:50%;background:#dc2626;opacity:0.16;"></div>
-                <div style="position:absolute;right:93px;top:283px;width:3px;height:3px;border-radius:50%;background:#dc2626;opacity:0.17;"></div>
-                <div style="position:absolute;right:97px;top:283px;width:3px;height:3px;border-radius:50%;background:#dc2626;opacity:0.17;"></div>
-                <div style="position:absolute;right:101px;top:283px;width:3px;height:3px;border-radius:50%;background:#dc2626;opacity:0.18;"></div>
-                <div style="position:absolute;right:105px;top:283px;width:4px;height:4px;border-radius:50%;background:#dc2626;opacity:0.18;"></div>
-                <div style="position:absolute;right:109px;top:282px;width:4px;height:4px;border-radius:50%;background:#dc2626;opacity:0.19;"></div>
-                <div style="position:absolute;right:113px;top:281px;width:4px;height:4px;border-radius:50%;background:#dc2626;opacity:0.19;"></div>
-                <div style="position:absolute;right:117px;top:280px;width:4px;height:4px;border-radius:50%;background:#dc2626;opacity:0.2;"></div>
-                <div style="position:absolute;right:121px;top:278px;width:4px;height:4px;border-radius:50%;background:#dc2626;opacity:0.2;"></div>
-                <div style="position:absolute;right:125px;top:276px;width:4px;height:4px;border-radius:50%;background:#dc2626;opacity:0.21;"></div>
-                <div style="position:absolute;right:129px;top:273px;width:4px;height:4px;border-radius:50%;background:#dc2626;opacity:0.21;"></div>
-                <div style="position:absolute;right:133px;top:271px;width:4px;height:4px;border-radius:50%;background:#dc2626;opacity:0.22;"></div>
-                <div style="position:absolute;right:137px;top:268px;width:4px;height:4px;border-radius:50%;background:#dc2626;opacity:0.22;"></div>
-                <div style="position:absolute;right:140px;top:264px;width:4px;height:4px;border-radius:50%;background:#dc2626;opacity:0.22;"></div>
-                <div style="position:absolute;right:143px;top:260px;width:4px;height:4px;border-radius:50%;background:#dc2626;opacity:0.23;"></div>
-                <div style="position:absolute;right:146px;top:256px;width:4px;height:4px;border-radius:50%;background:#dc2626;opacity:0.23;"></div>
-                <div style="position:absolute;right:149px;top:252px;width:4px;height:4px;border-radius:50%;background:#dc2626;opacity:0.24;"></div>
-                <div style="position:absolute;right:152px;top:247px;width:4px;height:4px;border-radius:50%;background:#dc2626;opacity:0.24;"></div>
-                <div style="position:absolute;right:154px;top:242px;width:4px;height:4px;border-radius:50%;background:#dc2626;opacity:0.25;"></div>
-                <div style="position:absolute;right:156px;top:237px;width:4px;height:4px;border-radius:50%;background:#dc2626;opacity:0.25;"></div>
-                <div style="position:absolute;right:157px;top:232px;width:4px;height:4px;border-radius:50%;background:#dc2626;opacity:0.26;"></div>
-                <div style="position:absolute;right:158px;top:226px;width:4px;height:4px;border-radius:50%;background:#dc2626;opacity:0.26;"></div>
-                <div style="position:absolute;right:159px;top:221px;width:4px;height:4px;border-radius:50%;background:#dc2626;opacity:0.27;"></div>
-                <div style="position:absolute;right:159px;top:215px;width:5px;height:5px;border-radius:50%;background:#dc2626;opacity:0.27;"></div>
-                <div style="position:absolute;right:159px;top:209px;width:5px;height:5px;border-radius:50%;background:#dc2626;opacity:0.28;"></div>
-                <div style="position:absolute;right:158px;top:203px;width:5px;height:5px;border-radius:50%;background:#dc2626;opacity:0.28;"></div>
-                <div style="position:absolute;right:157px;top:197px;width:5px;height:5px;border-radius:50%;background:#dc2626;opacity:0.29;"></div>
-                <div style="position:absolute;right:155px;top:191px;width:5px;height:5px;border-radius:50%;background:#dc2626;opacity:0.29;"></div>
-                <div style="position:absolute;right:153px;top:185px;width:5px;height:5px;border-radius:50%;background:#dc2626;opacity:0.3;"></div>
-                <div style="position:absolute;right:151px;top:179px;width:5px;height:5px;border-radius:50%;background:#dc2626;opacity:0.3;"></div>
-                <div style="position:absolute;right:148px;top:173px;width:5px;height:5px;border-radius:50%;background:#dc2626;opacity:0.31;"></div>
-                <div style="position:absolute;right:144px;top:167px;width:5px;height:5px;border-radius:50%;background:#dc2626;opacity:0.31;"></div>
-                <div style="position:absolute;right:140px;top:162px;width:5px;height:5px;border-radius:50%;background:#dc2626;opacity:0.32;"></div>
-                <div style="position:absolute;right:136px;top:157px;width:5px;height:5px;border-radius:50%;background:#dc2626;opacity:0.32;"></div>
-                <div style="position:absolute;right:131px;top:152px;width:5px;height:5px;border-radius:50%;background:#dc2626;opacity:0.33;"></div>
-                <div style="position:absolute;right:126px;top:147px;width:5px;height:5px;border-radius:50%;background:#dc2626;opacity:0.33;"></div>
-                <div style="position:absolute;right:120px;top:143px;width:5px;height:5px;border-radius:50%;background:#dc2626;opacity:0.34;"></div>
-                <div style="position:absolute;right:114px;top:139px;width:5px;height:5px;border-radius:50%;background:#dc2626;opacity:0.34;"></div>
-                <div style="position:absolute;right:108px;top:135px;width:5px;height:5px;border-radius:50%;background:#dc2626;opacity:0.34;"></div>
-                <div style="position:absolute;right:101px;top:132px;width:5px;height:5px;border-radius:50%;background:#dc2626;opacity:0.35;"></div>
-                <div style="position:absolute;right:94px;top:129px;width:5px;height:5px;border-radius:50%;background:#dc2626;opacity:0.35;"></div>
-                <div style="position:absolute;right:87px;top:127px;width:5px;height:5px;border-radius:50%;background:#dc2626;opacity:0.36;"></div>
-                <div style="position:absolute;right:80px;top:125px;width:6px;height:6px;border-radius:50%;background:#dc2626;opacity:0.36;"></div>
-                <div style="position:absolute;right:72px;top:124px;width:6px;height:6px;border-radius:50%;background:#dc2626;opacity:0.37;"></div>
-                <div style="position:absolute;right:64px;top:124px;width:6px;height:6px;border-radius:50%;background:#dc2626;opacity:0.37;"></div>
-                <div style="position:absolute;right:56px;top:123px;width:6px;height:6px;border-radius:50%;background:#dc2626;opacity:0.38;"></div>
-                <div style="position:absolute;right:48px;top:124px;width:6px;height:6px;border-radius:50%;background:#dc2626;opacity:0.38;"></div>
-                <div style="position:absolute;right:40px;top:125px;width:6px;height:6px;border-radius:50%;background:#dc2626;opacity:0.39;"></div>
-                <div style="position:absolute;right:32px;top:127px;width:6px;height:6px;border-radius:50%;background:#dc2626;opacity:0.39;"></div>
-                <div style="position:absolute;right:24px;top:129px;width:6px;height:6px;border-radius:50%;background:#dc2626;opacity:0.4;"></div>
-                <div style="position:absolute;right:16px;top:132px;width:6px;height:6px;border-radius:50%;background:#dc2626;opacity:0.4;"></div>
-                <div style="position:absolute;right:8px;top:136px;width:6px;height:6px;border-radius:50%;background:#dc2626;opacity:0.41;"></div>
-                <div style="position:absolute;right:0px;top:140px;width:6px;height:6px;border-radius:50%;background:#dc2626;opacity:0.41;"></div>
-                <div style="position:absolute;right:20px;top:70px;width:1px;height:200px;background:#dc2626;opacity:0.07;"></div>
-                <div style="position:absolute;right:45px;top:50px;width:1px;height:250px;background:#dc2626;opacity:0.05;"></div>
-                <div style="position:absolute;right:70px;top:90px;width:1px;height:180px;background:#dc2626;opacity:0.08;"></div>
-                <div style="position:absolute;right:95px;top:40px;width:1px;height:160px;background:#dc2626;opacity:0.04;"></div>
-                <div style="position:absolute;right:120px;top:110px;width:1px;height:140px;background:#dc2626;opacity:0.06;"></div>
-                <div style="position:absolute;right:15px;top:130px;width:90px;height:1px;background:#dc2626;opacity:0.05;"></div>
-                <div style="position:absolute;right:30px;top:200px;width:80px;height:1px;background:#dc2626;opacity:0.04;"></div>
-                <div style="position:absolute;right:50px;top:160px;width:60px;height:1px;background:#dc2626;opacity:0.06;"></div>
-                <div style="position:absolute;right:10px;top:260px;width:100px;height:1px;background:#dc2626;opacity:0.03;"></div>
-                <div style="position:absolute;right:60px;top:100px;width:50px;height:1px;background:#dc2626;opacity:0.05;"></div>
-                
-                <!-- 메인 컨텐츠 -->
-                <div style="flex: 1; padding: 50px 55px 40px 70px; display: flex; flex-direction: column; position: relative; z-index: 1;">
-                    
-                    <!-- 뱃지 -->
-                    <div style="margin-bottom: 25px;">
-                        <div style="display: inline-flex; align-items: center; gap: 10px; padding: 8px 18px; background: #fef2f2; border-radius: 20px;">
-                            <div style="width: 7px; height: 7px; background: #dc2626; border-radius: 50%;"></div>
-                            <span style="color: #991b1b; font-size: 12px; font-weight: 600; letter-spacing: 1px;">INSPECTION REPORT</span>
-                        </div>
-                    </div>
-                    
-                    <!-- 타이틀 -->
-                    <div style="margin-bottom: 30px;">
-                        <h1 style="font-size: 46px; font-weight: 800; color: #1a1a1a; margin: 0 0 12px 0; line-height: 1.15; letter-spacing: -1px;">
-                            사전점검<br/>보고서
-                        </h1>
-                        <div style="width: 60px; height: 4px; background: #dc2626; border-radius: 2px;"></div>
-                    </div>
-                    
-                    <!-- 프로젝트 정보 + 평면도 -->
-                    ${projectData.floorplan ? `
-                        <div style="display: flex; gap: 18px; margin-bottom: 22px;">
-                            <div style="flex: 1; background: #fafafa; border-left: 4px solid #dc2626; padding: 22px; border-radius: 0 8px 8px 0;">
-                                <div style="display: flex; flex-direction: column; gap: 12px;">
-                                    <div style="display: flex; align-items: baseline;">
-                                        <span style="color: #999; font-size: 11px; width: 75px; font-weight: 600;">PROJECT</span>
-                                        <span style="color: #1a1a1a; font-size: 20px; font-weight: 700;">${projectData.apartmentName}</span>
-                                    </div>
-                                    <div style="display: flex; align-items: baseline;">
-                                        <span style="color: #999; font-size: 11px; width: 75px; font-weight: 600;">UNIT</span>
-                                        <span style="color: #1a1a1a; font-size: 24px; font-weight: 700;">${projectData.dong}동 ${projectData.ho}호</span>
-                                    </div>
-                                    <div style="display: flex; align-items: baseline;">
-                                        <span style="color: #999; font-size: 11px; width: 75px; font-weight: 600;">DATE</span>
-                                        <span style="color: #1a1a1a; font-size: 15px; font-weight: 500;">${projectData.inspectionDate || '-'}</span>
-                                    </div>
-                                    <div style="display: flex; align-items: baseline;">
-                                        <span style="color: #999; font-size: 11px; width: 75px; font-weight: 600;">CLIENT</span>
-                                        <span style="color: #1a1a1a; font-size: 15px; font-weight: 500;">${projectData.customerName || '-'}</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div style="flex: 1; border: 1.5px solid #f3f4f6; border-radius: 10px; overflow: hidden; display: flex; align-items: center; justify-content: center; background: #fafafa;">
-                                <img src="${projectData.floorplan}" style="width: 100%; height: 200px; object-fit: contain;" />
-                            </div>
-                        </div>
-                    ` : `
-                        <div style="margin-bottom: 22px;">
-                            <div style="background: #fafafa; border-left: 4px solid #dc2626; padding: 28px 30px; border-radius: 0 8px 8px 0;">
-                                <div style="display: flex; flex-direction: column; gap: 16px;">
-                                    <div style="display: flex; align-items: baseline;">
-                                        <span style="color: #999; font-size: 12px; width: 90px; font-weight: 600;">PROJECT</span>
-                                        <span style="color: #1a1a1a; font-size: 24px; font-weight: 700;">${projectData.apartmentName}</span>
-                                    </div>
-                                    <div style="display: flex; align-items: baseline;">
-                                        <span style="color: #999; font-size: 12px; width: 90px; font-weight: 600;">UNIT</span>
-                                        <span style="color: #1a1a1a; font-size: 30px; font-weight: 700;">${projectData.dong}동 ${projectData.ho}호</span>
-                                    </div>
-                                    <div style="display: flex; align-items: baseline;">
-                                        <span style="color: #999; font-size: 12px; width: 90px; font-weight: 600;">DATE</span>
-                                        <span style="color: #1a1a1a; font-size: 18px; font-weight: 500;">${projectData.inspectionDate || '-'}</span>
-                                    </div>
-                                    <div style="display: flex; align-items: baseline;">
-                                        <span style="color: #999; font-size: 12px; width: 90px; font-weight: 600;">CLIENT</span>
-                                        <span style="color: #1a1a1a; font-size: 18px; font-weight: 500;">${projectData.customerName || '-'}</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    `}
-                    
-                    <!-- 하자 요약 -->
-                    ${(() => {
-                        let criticalCount = 0;
-                        let normalCount = 0;
-                        projectData.defects.forEach(defect => {
-                            const desc = (defect.description || '').toLowerCase();
-                            if (desc.includes('누수')) criticalCount++;
-                            else normalCount++;
-                        });
-                        const totalPhotos = projectData.defects.filter(d => d.photos && d.photos.length > 0).reduce((sum, d) => sum + d.photos.length, 0);
-                        return `
-                    <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 10px; padding: 16px 20px; margin-bottom: 18px;">
-                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
-                            <div style="width: 18px; height: 18px; background: #dc2626; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 11px;">!</div>
-                            <span style="color: #991b1b; font-size: 13px; font-weight: 700;">입주 전 사전점검 완료</span>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; padding: 10px 6px; background: white; border-radius: 8px; margin-bottom: 8px;">
-                            <div style="text-align: center; flex: 1; border-right: 1px solid #fee2e2;">
-                                <div style="color: #dc2626; font-size: 10px; font-weight: 700; margin-bottom: 2px;">🚨 중대하자</div>
-                                <div style="color: #dc2626; font-size: 24px; font-weight: 800;">${criticalCount}</div>
-                                <div style="color: #aaa; font-size: 8px;">누수</div>
-                            </div>
-                            <div style="text-align: center; flex: 1; border-right: 1px solid #fee2e2;">
-                                <div style="color: #333; font-size: 10px; font-weight: 700; margin-bottom: 2px;">📋 일반하자</div>
-                                <div style="color: #333; font-size: 24px; font-weight: 800;">${normalCount}</div>
-                                <div style="color: #aaa; font-size: 8px;">마감·기능 등</div>
-                            </div>
-                            <div style="text-align: center; flex: 1;">
-                                <div style="color: #666; font-size: 10px; font-weight: 700; margin-bottom: 2px;">📷 사진</div>
-                                <div style="color: #666; font-size: 24px; font-weight: 800;">${totalPhotos}</div>
-                                <div style="color: #aaa; font-size: 8px;">총 ${projectData.defects.length}건</div>
-                            </div>
-                        </div>
-                        <p style="color: #b91c1c; font-size: 10px; margin: 0; line-height: 1.4; text-align: center;">
-                            전문 장비를 활용한 꼼꼼한 하자 점검으로 안심하고 입주하실 수 있도록 도와드립니다.
-                        </p>
-                    </div>`;
-                    })()}
-                    
-                    <!-- 점검 항목 -->
-                    <div style="padding: 12px 0; border-top: 1.5px solid #e5e7eb; border-bottom: 1.5px solid #e5e7eb; margin-bottom: 16px;">
-                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-                            <div style="width: 5px; height: 5px; background: #dc2626; border-radius: 50%;"></div>
-                            <span style="color: #333; font-size: 12px; font-weight: 600;">벽체 수직 및 바닥 수평 점검</span>
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-                            <div style="width: 5px; height: 5px; background: #dc2626; border-radius: 50%;"></div>
-                            <span style="color: #333; font-size: 12px; font-weight: 600;">실내 공기질 측정</span>
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <div style="width: 5px; height: 5px; background: #dc2626; border-radius: 50%;"></div>
-                            <span style="color: #333; font-size: 12px; font-weight: 600;">마감 품질 및 시공 상태 점검</span>
-                        </div>
-                    </div>
-                    
-                    <!-- 사후 관리 안내 -->
-                    <div style="background: #fef9c3; border: 1px solid #fcd34d; border-radius: 8px; padding: 10px 14px; margin-bottom: 12px;">
-                        <div style="display: flex; align-items: flex-start; gap: 8px;">
-                            <span style="font-size: 13px;">⚠️</span>
-                            <div>
-                                <span style="color: #92400e; font-size: 10px; font-weight: 700;">사후 관리 안내</span>
-                                <p style="color: #78350f; font-size: 9px; margin: 3px 0 0 0; line-height: 1.5;">
-                                    하자사항은 준공 이후에도 주기적으로 발생할 수 있으므로, 하자담보책임기간 내 정기적인 점검과 관리를 권장드립니다.
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- 하단 회사 정보 -->
-                    <div style="margin-top: auto;">
-                        <div style="display: flex; justify-content: space-between; align-items: flex-end;">
-                            <div>
-                                <h3 style="font-size: 22px; font-weight: 700; color: #1a1a1a; margin: 0 0 4px 0;">더홈점검</h3>
-                                <p style="font-size: 12px; color: #999; margin: 0;">The Home Inspection</p>
-                            </div>
-                            <div style="text-align: right;">
-                                <p style="font-size: 13px; color: #333; margin: 3px 0; font-weight: 500;">📞 1668-5322</p>
-                                <p style="font-size: 11px; color: #999; margin: 3px 0;">010-9985-0128</p>
-                            </div>
-                        </div>
-                    </div>
-                    
-                </div>
-            </div>
-        `;
+        function genRedDots() {
+            const colors = ['#e05a4e','#e8745a','#e08860','#5a8fa0','#3a6e82','#2c5a6e','#c8a050','#d4b468','#4a7a8a','#b84a3e','#d46050','#486878'];
+            let d = '';
+            const rings = [
+                {r:155, n:10, sa:-62, ea:-20},
+                {r:168, n:12, sa:-68, ea:-18},
+                {r:182, n:15, sa:-72, ea:-12},
+                {r:196, n:17, sa:-76, ea:-8},
+                {r:210, n:20, sa:-79, ea:-4},
+                {r:224, n:22, sa:-81, ea:0},
+                {r:238, n:25, sa:-82, ea:4},
+                {r:252, n:27, sa:-83, ea:8},
+                {r:266, n:29, sa:-83, ea:12},
+                {r:280, n:31, sa:-83, ea:16},
+                {r:294, n:33, sa:-82, ea:20},
+                {r:308, n:35, sa:-81, ea:24},
+                {r:322, n:36, sa:-80, ea:28},
+                {r:336, n:37, sa:-78, ea:32},
+                {r:350, n:38, sa:-76, ea:35},
+                {r:364, n:38, sa:-74, ea:38},
+                {r:378, n:37, sa:-71, ea:40},
+                {r:392, n:36, sa:-68, ea:42},
+                {r:406, n:34, sa:-64, ea:43},
+                {r:420, n:31, sa:-60, ea:44}
+            ];
+            const cx = 794, cy = 350;
+            rings.forEach(function(ring, ri) {
+                const step = (ring.ea - ring.sa) / Math.max(ring.n - 1, 1);
+                for (let i = 0; i < ring.n; i++) {
+                    const a = ring.sa + step * i;
+                    const rad = (a * Math.PI) / 180;
+                    const x = cx + ring.r * Math.cos(rad);
+                    const y = cy + ring.r * Math.sin(rad);
+                    const progress = ri / 19;
+                    let colorIdx;
+                    if (progress < 0.33) colorIdx = Math.floor(progress * 3 * 3);
+                    else if (progress < 0.66) colorIdx = 3 + Math.floor((progress - 0.33) * 3 * 3);
+                    else colorIdx = 6 + Math.floor((progress - 0.66) * 3 * 3);
+                    colorIdx = Math.min(colorIdx, 11);
+                    const c = colors[colorIdx];
+                    const sz = 7 + ri * 0.4;
+                    if (x > 200 && x < 850 && y > 0 && y < 720)
+                        d += '<div style="position:absolute;left:' + x.toFixed(1) + 'px;top:' + y.toFixed(1) + 'px;width:' + sz.toFixed(1) + 'px;height:' + sz.toFixed(1) + 'px;border-radius:50%;background:' + c + ';transform:translate(-50%,-50%);"></div>';
+                }
+            });
+            return d;
+        }
+        function genBuilding() {
+            return '<svg style="position:absolute;right:0;bottom:0;width:420px;height:580px;opacity:1;" viewBox="0 0 420 580" fill="none" xmlns="http://www.w3.org/2000/svg">'
+            // Main tall building (center-right)
+            + '<line x1="220" y1="580" x2="220" y2="120" stroke="#c0392b" stroke-width="1.2"/>'
+            + '<line x1="340" y1="580" x2="340" y2="120" stroke="#1a3a5c" stroke-width="1.2"/>'
+            + '<line x1="220" y1="120" x2="340" y2="120" stroke="#1a3a5c" stroke-width="1.2"/>'
+            // Floors main building
+            + '<line x1="220" y1="165" x2="340" y2="165" stroke="#1a3a5c" stroke-width="0.6"/>'
+            + '<line x1="220" y1="210" x2="340" y2="210" stroke="#1a3a5c" stroke-width="0.6"/>'
+            + '<line x1="220" y1="255" x2="340" y2="255" stroke="#1a3a5c" stroke-width="0.6"/>'
+            + '<line x1="220" y1="300" x2="340" y2="300" stroke="#1a3a5c" stroke-width="0.6"/>'
+            + '<line x1="220" y1="345" x2="340" y2="345" stroke="#1a3a5c" stroke-width="0.6"/>'
+            + '<line x1="220" y1="390" x2="340" y2="390" stroke="#1a3a5c" stroke-width="0.6"/>'
+            + '<line x1="220" y1="435" x2="340" y2="435" stroke="#1a3a5c" stroke-width="0.6"/>'
+            + '<line x1="220" y1="480" x2="340" y2="480" stroke="#1a3a5c" stroke-width="0.6"/>'
+            + '<line x1="220" y1="525" x2="340" y2="525" stroke="#1a3a5c" stroke-width="0.6"/>'
+            // Vertical divisions main building
+            + '<line x1="260" y1="120" x2="260" y2="580" stroke="#1a3a5c" stroke-width="0.6"/>'
+            + '<line x1="300" y1="120" x2="300" y2="580" stroke="#1a3a5c" stroke-width="0.6"/>'
+            // Perspective top of main building
+            + '<line x1="220" y1="120" x2="190" y2="90" stroke="#c0392b" stroke-width="0.9"/>'
+            + '<line x1="340" y1="120" x2="370" y2="90" stroke="#1a3a5c" stroke-width="0.9"/>'
+            + '<line x1="190" y1="90" x2="370" y2="90" stroke="#1a3a5c" stroke-width="0.9"/>'
+            + '<line x1="340" y1="580" x2="370" y2="550" stroke="#1a3a5c" stroke-width="0.9"/>'
+            + '<line x1="370" y1="90" x2="370" y2="550" stroke="#1a3a5c" stroke-width="0.9"/>'
+            + '<line x1="260" y1="120" x2="290" y2="90" stroke="#1a3a5c" stroke-width="0.4"/>'
+            + '<line x1="300" y1="120" x2="330" y2="90" stroke="#1a3a5c" stroke-width="0.4"/>'
+            // Second building (left of main)
+            + '<line x1="100" y1="580" x2="100" y2="200" stroke="#c0392b" stroke-width="1.0"/>'
+            + '<line x1="210" y1="580" x2="210" y2="200" stroke="#1a3a5c" stroke-width="1.0"/>'
+            + '<line x1="100" y1="200" x2="210" y2="200" stroke="#1a3a5c" stroke-width="1.0"/>'
+            + '<line x1="100" y1="245" x2="210" y2="245" stroke="#1a3a5c" stroke-width="0.5"/>'
+            + '<line x1="100" y1="290" x2="210" y2="290" stroke="#1a3a5c" stroke-width="0.5"/>'
+            + '<line x1="100" y1="335" x2="210" y2="335" stroke="#1a3a5c" stroke-width="0.5"/>'
+            + '<line x1="100" y1="380" x2="210" y2="380" stroke="#1a3a5c" stroke-width="0.5"/>'
+            + '<line x1="100" y1="425" x2="210" y2="425" stroke="#1a3a5c" stroke-width="0.5"/>'
+            + '<line x1="100" y1="470" x2="210" y2="470" stroke="#1a3a5c" stroke-width="0.5"/>'
+            + '<line x1="100" y1="515" x2="210" y2="515" stroke="#1a3a5c" stroke-width="0.5"/>'
+            + '<line x1="155" y1="200" x2="155" y2="580" stroke="#1a3a5c" stroke-width="0.5"/>'
+            + '<line x1="100" y1="200" x2="75" y2="172" stroke="#c0392b" stroke-width="0.7"/>'
+            + '<line x1="210" y1="200" x2="235" y2="172" stroke="#1a3a5c" stroke-width="0.7"/>'
+            + '<line x1="75" y1="172" x2="235" y2="172" stroke="#1a3a5c" stroke-width="0.7"/>'
+            + '<line x1="210" y1="580" x2="235" y2="555" stroke="#1a3a5c" stroke-width="0.7"/>'
+            + '<line x1="235" y1="172" x2="235" y2="555" stroke="#1a3a5c" stroke-width="0.7"/>'
+            // Third small building far left
+            + '<line x1="20" y1="580" x2="20" y2="310" stroke="#c0392b" stroke-width="0.8"/>'
+            + '<line x1="90" y1="580" x2="90" y2="310" stroke="#1a3a5c" stroke-width="0.8"/>'
+            + '<line x1="20" y1="310" x2="90" y2="310" stroke="#1a3a5c" stroke-width="0.8"/>'
+            + '<line x1="20" y1="360" x2="90" y2="360" stroke="#1a3a5c" stroke-width="0.4"/>'
+            + '<line x1="20" y1="410" x2="90" y2="410" stroke="#1a3a5c" stroke-width="0.4"/>'
+            + '<line x1="20" y1="460" x2="90" y2="460" stroke="#1a3a5c" stroke-width="0.4"/>'
+            + '<line x1="20" y1="510" x2="90" y2="510" stroke="#1a3a5c" stroke-width="0.4"/>'
+            + '<line x1="55" y1="310" x2="55" y2="580" stroke="#1a3a5c" stroke-width="0.4"/>'
+            + '<line x1="20" y1="310" x2="5" y2="293" stroke="#c0392b" stroke-width="0.6"/>'
+            + '<line x1="90" y1="310" x2="105" y2="293" stroke="#1a3a5c" stroke-width="0.6"/>'
+            + '<line x1="5" y1="293" x2="105" y2="293" stroke="#1a3a5c" stroke-width="0.6"/>'
+            + '<line x1="90" y1="580" x2="105" y2="564" stroke="#1a3a5c" stroke-width="0.6"/>'
+            + '<line x1="105" y1="293" x2="105" y2="564" stroke="#1a3a5c" stroke-width="0.6"/>'
+            + '</svg>';
+        }
+        const infoBox = '<div style="position:absolute;left:55px;bottom:145px;background:rgba(255,255,255,0.92);border:1px solid #e0e0e0;border-radius:3px;padding:20px 28px;min-width:280px;z-index:20;">'
+            + '<div style="display:flex;align-items:center;margin-bottom:10px;">'
+            + '<span style="color:#888;font-size:11px;width:70px;font-weight:600;letter-spacing:0.8px;font-family:\'Arial\',sans-serif;">PROJECT</span>'
+            + '<span style="color:#1a1a2e;font-size:15px;font-weight:700;font-family:\'Malgun Gothic\',sans-serif;">' + (projectData.apartmentName||'-') + '</span>'
+            + '</div>'
+            + '<div style="display:flex;align-items:center;margin-bottom:10px;">'
+            + '<span style="color:#888;font-size:11px;width:70px;font-weight:600;letter-spacing:0.8px;font-family:\'Arial\',sans-serif;">UNIT</span>'
+            + '<span style="color:#1a1a2e;font-size:15px;font-weight:700;font-family:\'Malgun Gothic\',sans-serif;">' + (projectData.dong||'-') + '동 ' + (projectData.ho||'-') + '호</span>'
+            + '</div>'
+            + '<div style="display:flex;align-items:center;margin-bottom:10px;">'
+            + '<span style="color:#888;font-size:11px;width:70px;font-weight:600;letter-spacing:0.8px;font-family:\'Arial\',sans-serif;">DATE</span>'
+            + '<span style="color:#1a1a2e;font-size:14px;font-weight:500;font-family:\'Malgun Gothic\',sans-serif;">' + (projectData.inspectionDate||'-') + '</span>'
+            + '</div>'
+            + '<div style="display:flex;align-items:center;">'
+            + '<span style="color:#888;font-size:11px;width:70px;font-weight:600;letter-spacing:0.8px;font-family:\'Arial\',sans-serif;">CLIENT</span>'
+            + '<span style="color:#1a1a2e;font-size:14px;font-weight:500;font-family:\'Malgun Gothic\',sans-serif;">' + (projectData.customerName||'-') + '</span>'
+            + '</div>'
+            + '</div>';
+        return '<div style="width:794px;height:1123px;background:#ffffff;font-family:\'Malgun Gothic\',sans-serif;position:relative;box-sizing:border-box;overflow:hidden;">'
+            + '<div style="position:absolute;left:0;top:0;width:5px;height:100%;background:#dc2626;z-index:30;"></div>'
+            + genBuilding()
+            + '<div style="position:absolute;left:0;top:0;width:794px;height:720px;overflow:hidden;">' + genRedDots() + '</div>'
+            + '<div style="position:absolute;left:55px;top:52px;z-index:20;">'
+            + '<div style="font-size:32px;font-weight:800;color:#dc2626;letter-spacing:-0.5px;font-family:\'Malgun Gothic\',sans-serif;line-height:1;">더홈점검</div>'
+            + '<div style="font-size:12px;color:#888;margin-top:5px;letter-spacing:0.3px;font-family:\'Arial\',sans-serif;">The Home Inspection</div>'
+            + '</div>'
+            + '<div style="position:absolute;left:55px;top:200px;z-index:20;">'
+            + '<div style="font-size:68px;font-weight:900;color:#1a1a2e;line-height:1.1;letter-spacing:-2px;font-family:\'Malgun Gothic\',sans-serif;">사전점검<br/>보고서</div>'
+            + '<div style="font-size:18px;color:#555;margin-top:14px;letter-spacing:0.5px;font-family:\'Arial\',sans-serif;">Pre-Inspection Report</div>'
+            + '</div>'
+            + infoBox
+            + '<div style="position:absolute;left:55px;bottom:60px;right:55px;z-index:20;border-top:1px solid #ddd;padding-top:16px;">'
+            + '<div style="display:flex;gap:28px;align-items:center;">'
+            + '<span style="font-size:15px;font-weight:700;color:#222;letter-spacing:0.5px;font-family:\'Arial\',sans-serif;">1668-5322</span>'
+            + '<span style="font-size:15px;font-weight:400;color:#666;letter-spacing:0.5px;font-family:\'Arial\',sans-serif;">010-9985-0128</span>'
+            + '</div>'
+            + '</div>'
+            + '</div>';
     }
 
 
@@ -11657,7 +11173,151 @@
     document.addEventListener('DOMContentLoaded', function() {
         checkForUpdates();
     });
-    </script>
+    
+    // ==================== 장비측정 보고서 표지 ====================
+    window.createEquipmentCoverPage = function() {
+        function genBlueDots() {
+            const colors = ['#2563eb','#3b82f6','#1d4ed8','#0ea5e9','#0284c7','#0369a1','#06b6d4','#0891b2','#1e40af','#1e3a8a','#6366f1','#4338ca'];
+            let d = '';
+            const rings = [
+                {r:155, n:10, sa:-62, ea:-20},
+                {r:168, n:12, sa:-68, ea:-18},
+                {r:182, n:15, sa:-72, ea:-12},
+                {r:196, n:17, sa:-76, ea:-8},
+                {r:210, n:20, sa:-79, ea:-4},
+                {r:224, n:22, sa:-81, ea:0},
+                {r:238, n:25, sa:-82, ea:4},
+                {r:252, n:27, sa:-83, ea:8},
+                {r:266, n:29, sa:-83, ea:12},
+                {r:280, n:31, sa:-83, ea:16},
+                {r:294, n:33, sa:-82, ea:20},
+                {r:308, n:35, sa:-81, ea:24},
+                {r:322, n:36, sa:-80, ea:28},
+                {r:336, n:37, sa:-78, ea:32},
+                {r:350, n:38, sa:-76, ea:35},
+                {r:364, n:38, sa:-74, ea:38},
+                {r:378, n:37, sa:-71, ea:40},
+                {r:392, n:36, sa:-68, ea:42},
+                {r:406, n:34, sa:-64, ea:43},
+                {r:420, n:31, sa:-60, ea:44}
+            ];
+            const cx = 794, cy = 350;
+            rings.forEach(function(ring, ri) {
+                const step = (ring.ea - ring.sa) / Math.max(ring.n - 1, 1);
+                for (let i = 0; i < ring.n; i++) {
+                    const a = ring.sa + step * i;
+                    const rad = (a * Math.PI) / 180;
+                    const x = cx + ring.r * Math.cos(rad);
+                    const y = cy + ring.r * Math.sin(rad);
+                    const progress = ri / 19;
+                    let colorIdx;
+                    if (progress < 0.33) colorIdx = Math.floor(progress * 3 * 3);
+                    else if (progress < 0.66) colorIdx = 3 + Math.floor((progress - 0.33) * 3 * 3);
+                    else colorIdx = 6 + Math.floor((progress - 0.66) * 3 * 3);
+                    colorIdx = Math.min(colorIdx, 11);
+                    const c = colors[colorIdx];
+                    const sz = 7 + ri * 0.4;
+                    if (x > 200 && x < 850 && y > 0 && y < 720)
+                        d += '<div style="position:absolute;left:' + x.toFixed(1) + 'px;top:' + y.toFixed(1) + 'px;width:' + sz.toFixed(1) + 'px;height:' + sz.toFixed(1) + 'px;border-radius:50%;background:' + c + ';transform:translate(-50%,-50%);"></div>';
+                }
+            });
+            return d;
+        }
+        function genBuilding() {
+            return '<svg style="position:absolute;right:0;bottom:0;width:420px;height:580px;opacity:1;" viewBox="0 0 420 580" fill="none" xmlns="http://www.w3.org/2000/svg">'
+            + '<line x1="220" y1="580" x2="220" y2="120" stroke="#2563eb" stroke-width="1.2"/>'
+            + '<line x1="340" y1="580" x2="340" y2="120" stroke="#1a3a5c" stroke-width="1.2"/>'
+            + '<line x1="220" y1="120" x2="340" y2="120" stroke="#1a3a5c" stroke-width="1.2"/>'
+            + '<line x1="220" y1="165" x2="340" y2="165" stroke="#1a3a5c" stroke-width="0.6"/>'
+            + '<line x1="220" y1="210" x2="340" y2="210" stroke="#1a3a5c" stroke-width="0.6"/>'
+            + '<line x1="220" y1="255" x2="340" y2="255" stroke="#1a3a5c" stroke-width="0.6"/>'
+            + '<line x1="220" y1="300" x2="340" y2="300" stroke="#1a3a5c" stroke-width="0.6"/>'
+            + '<line x1="220" y1="345" x2="340" y2="345" stroke="#1a3a5c" stroke-width="0.6"/>'
+            + '<line x1="220" y1="390" x2="340" y2="390" stroke="#1a3a5c" stroke-width="0.6"/>'
+            + '<line x1="220" y1="435" x2="340" y2="435" stroke="#1a3a5c" stroke-width="0.6"/>'
+            + '<line x1="220" y1="480" x2="340" y2="480" stroke="#1a3a5c" stroke-width="0.6"/>'
+            + '<line x1="220" y1="525" x2="340" y2="525" stroke="#1a3a5c" stroke-width="0.6"/>'
+            + '<line x1="260" y1="120" x2="260" y2="580" stroke="#1a3a5c" stroke-width="0.6"/>'
+            + '<line x1="300" y1="120" x2="300" y2="580" stroke="#1a3a5c" stroke-width="0.6"/>'
+            + '<line x1="220" y1="120" x2="190" y2="90" stroke="#2563eb" stroke-width="0.9"/>'
+            + '<line x1="340" y1="120" x2="370" y2="90" stroke="#1a3a5c" stroke-width="0.9"/>'
+            + '<line x1="190" y1="90" x2="370" y2="90" stroke="#1a3a5c" stroke-width="0.9"/>'
+            + '<line x1="340" y1="580" x2="370" y2="550" stroke="#1a3a5c" stroke-width="0.9"/>'
+            + '<line x1="370" y1="90" x2="370" y2="550" stroke="#1a3a5c" stroke-width="0.9"/>'
+            + '<line x1="260" y1="120" x2="290" y2="90" stroke="#1a3a5c" stroke-width="0.4"/>'
+            + '<line x1="300" y1="120" x2="330" y2="90" stroke="#1a3a5c" stroke-width="0.4"/>'
+            + '<line x1="100" y1="580" x2="100" y2="200" stroke="#2563eb" stroke-width="1.0"/>'
+            + '<line x1="210" y1="580" x2="210" y2="200" stroke="#1a3a5c" stroke-width="1.0"/>'
+            + '<line x1="100" y1="200" x2="210" y2="200" stroke="#1a3a5c" stroke-width="1.0"/>'
+            + '<line x1="100" y1="245" x2="210" y2="245" stroke="#1a3a5c" stroke-width="0.5"/>'
+            + '<line x1="100" y1="290" x2="210" y2="290" stroke="#1a3a5c" stroke-width="0.5"/>'
+            + '<line x1="100" y1="335" x2="210" y2="335" stroke="#1a3a5c" stroke-width="0.5"/>'
+            + '<line x1="100" y1="380" x2="210" y2="380" stroke="#1a3a5c" stroke-width="0.5"/>'
+            + '<line x1="100" y1="425" x2="210" y2="425" stroke="#1a3a5c" stroke-width="0.5"/>'
+            + '<line x1="100" y1="470" x2="210" y2="470" stroke="#1a3a5c" stroke-width="0.5"/>'
+            + '<line x1="100" y1="515" x2="210" y2="515" stroke="#1a3a5c" stroke-width="0.5"/>'
+            + '<line x1="155" y1="200" x2="155" y2="580" stroke="#1a3a5c" stroke-width="0.5"/>'
+            + '<line x1="100" y1="200" x2="75" y2="172" stroke="#2563eb" stroke-width="0.7"/>'
+            + '<line x1="210" y1="200" x2="235" y2="172" stroke="#1a3a5c" stroke-width="0.7"/>'
+            + '<line x1="75" y1="172" x2="235" y2="172" stroke="#1a3a5c" stroke-width="0.7"/>'
+            + '<line x1="210" y1="580" x2="235" y2="555" stroke="#1a3a5c" stroke-width="0.7"/>'
+            + '<line x1="235" y1="172" x2="235" y2="555" stroke="#1a3a5c" stroke-width="0.7"/>'
+            + '<line x1="20" y1="580" x2="20" y2="310" stroke="#2563eb" stroke-width="0.8"/>'
+            + '<line x1="90" y1="580" x2="90" y2="310" stroke="#1a3a5c" stroke-width="0.8"/>'
+            + '<line x1="20" y1="310" x2="90" y2="310" stroke="#1a3a5c" stroke-width="0.8"/>'
+            + '<line x1="20" y1="360" x2="90" y2="360" stroke="#1a3a5c" stroke-width="0.4"/>'
+            + '<line x1="20" y1="410" x2="90" y2="410" stroke="#1a3a5c" stroke-width="0.4"/>'
+            + '<line x1="20" y1="460" x2="90" y2="460" stroke="#1a3a5c" stroke-width="0.4"/>'
+            + '<line x1="20" y1="510" x2="90" y2="510" stroke="#1a3a5c" stroke-width="0.4"/>'
+            + '<line x1="55" y1="310" x2="55" y2="580" stroke="#1a3a5c" stroke-width="0.4"/>'
+            + '<line x1="20" y1="310" x2="5" y2="293" stroke="#2563eb" stroke-width="0.6"/>'
+            + '<line x1="90" y1="310" x2="105" y2="293" stroke="#1a3a5c" stroke-width="0.6"/>'
+            + '<line x1="5" y1="293" x2="105" y2="293" stroke="#1a3a5c" stroke-width="0.6"/>'
+            + '<line x1="90" y1="580" x2="105" y2="564" stroke="#1a3a5c" stroke-width="0.6"/>'
+            + '<line x1="105" y1="293" x2="105" y2="564" stroke="#1a3a5c" stroke-width="0.6"/>'
+            + '</svg>';
+        }
+        const infoBox = '<div style="position:absolute;left:55px;bottom:145px;background:rgba(255,255,255,0.92);border:1px solid #e0e0e0;border-radius:3px;padding:20px 28px;min-width:280px;z-index:20;">'
+            + '<div style="display:flex;align-items:center;margin-bottom:10px;">'
+            + '<span style="color:#888;font-size:11px;width:70px;font-weight:600;letter-spacing:0.8px;font-family:\'Arial\',sans-serif;">PROJECT</span>'
+            + '<span style="color:#1a1a2e;font-size:15px;font-weight:700;font-family:\'Malgun Gothic\',sans-serif;">' + (projectData.apartmentName||'-') + '</span>'
+            + '</div>'
+            + '<div style="display:flex;align-items:center;margin-bottom:10px;">'
+            + '<span style="color:#888;font-size:11px;width:70px;font-weight:600;letter-spacing:0.8px;font-family:\'Arial\',sans-serif;">UNIT</span>'
+            + '<span style="color:#1a1a2e;font-size:15px;font-weight:700;font-family:\'Malgun Gothic\',sans-serif;">' + (projectData.dong||'-') + '동 ' + (projectData.ho||'-') + '호</span>'
+            + '</div>'
+            + '<div style="display:flex;align-items:center;margin-bottom:10px;">'
+            + '<span style="color:#888;font-size:11px;width:70px;font-weight:600;letter-spacing:0.8px;font-family:\'Arial\',sans-serif;">DATE</span>'
+            + '<span style="color:#1a1a2e;font-size:14px;font-weight:500;font-family:\'Malgun Gothic\',sans-serif;">' + (projectData.inspectionDate||'-') + '</span>'
+            + '</div>'
+            + '<div style="display:flex;align-items:center;">'
+            + '<span style="color:#888;font-size:11px;width:70px;font-weight:600;letter-spacing:0.8px;font-family:\'Arial\',sans-serif;">CLIENT</span>'
+            + '<span style="color:#1a1a2e;font-size:14px;font-weight:500;font-family:\'Malgun Gothic\',sans-serif;">' + (projectData.customerName||'-') + '</span>'
+            + '</div>'
+            + '</div>';
+        return '<div style="width:794px;height:1123px;background:#ffffff;font-family:\'Malgun Gothic\',sans-serif;position:relative;box-sizing:border-box;overflow:hidden;">'
+            + '<div style="position:absolute;left:0;top:0;width:5px;height:100%;background:#2563eb;z-index:30;"></div>'
+            + genBuilding()
+            + '<div style="position:absolute;left:0;top:0;width:794px;height:720px;overflow:hidden;">' + genBlueDots() + '</div>'
+            + '<div style="position:absolute;left:55px;top:52px;z-index:20;">'
+            + '<div style="font-size:32px;font-weight:800;color:#dc2626;letter-spacing:-0.5px;font-family:\'Malgun Gothic\',sans-serif;line-height:1;">더홈점검</div>'
+            + '<div style="font-size:12px;color:#888;margin-top:5px;letter-spacing:0.3px;font-family:\'Arial\',sans-serif;">The Home Inspection</div>'
+            + '</div>'
+            + '<div style="position:absolute;left:55px;top:200px;z-index:20;">'
+            + '<div style="font-size:68px;font-weight:900;color:#1a1a2e;line-height:1.1;letter-spacing:-2px;font-family:\'Malgun Gothic\',sans-serif;">장비측정<br/>보고서</div>'
+            + '<div style="font-size:18px;color:#555;margin-top:14px;letter-spacing:0.5px;font-family:\'Arial\',sans-serif;">Equipment Inspection Report</div>'
+            + '</div>'
+            + infoBox
+            + '<div style="position:absolute;left:55px;bottom:60px;right:55px;z-index:20;border-top:1px solid #ddd;padding-top:16px;">'
+            + '<div style="display:flex;gap:28px;align-items:center;">'
+            + '<span style="font-size:15px;font-weight:700;color:#222;letter-spacing:0.5px;font-family:\'Arial\',sans-serif;">1668-5322</span>'
+            + '<span style="font-size:15px;font-weight:400;color:#666;letter-spacing:0.5px;font-family:\'Arial\',sans-serif;">010-9985-0128</span>'
+            + '</div>'
+            + '</div>'
+            + '</div>';
+    }
+
+</script>
     
     <!-- 튜토리얼 모달 -->
     <div id="tutorialModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 100000; justify-content: center; align-items: center; padding: 20px;">
