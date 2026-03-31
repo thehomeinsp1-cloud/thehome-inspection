@@ -1043,13 +1043,13 @@
     
     <!-- ==================== 인앱브라우저 감지 모달 ==================== -->
     <div id="inAppBrowserModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); z-index: 999999; align-items: center; justify-content: center; padding: 20px;">
-        <div style="background: white; border-radius: 20px; max-width: 340px; width: 100%; text-align: center; overflow: hidden;">
+        <div style="background: white; border-radius: 20px; max-width: 340px; width: 100%; text-align: center; overflow: hidden; color: #1a1a1a;">
             <div style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); padding: 30px 20px;">
                 <div style="font-size: 50px; margin-bottom: 10px;">⚠️</div>
                 <div style="color: white; font-size: 18px; font-weight: bold;">외부 브라우저에서 열어주세요</div>
             </div>
             <div style="padding: 25px 20px;">
-                <p style="color: #666; font-size: 14px; margin-bottom: 20px; line-height: 1.6;">
+                <p style="color: #1a1a1a; font-size: 14px; margin-bottom: 20px; line-height: 1.6;">
                     현재 카카오톡/네이버 등의<br>인앱브라우저에서 접속 중입니다.<br><br>
                     <strong>Google 로그인</strong>이 정상 작동하려면<br>
                     외부 브라우저로 열어주세요.
@@ -1057,7 +1057,7 @@
                 <button onclick="openInExternalBrowser()" style="width: 100%; padding: 14px; background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; margin-bottom: 10px;">
                     🌐 외부 브라우저로 열기
                 </button>
-                <button onclick="closeInAppBrowserModal()" style="width: 100%; padding: 12px; background: #f3f4f6; color: #666; border: none; border-radius: 12px; font-size: 14px; cursor: pointer;">
+                <button onclick="closeInAppBrowserModal()" style="width: 100%; padding: 12px; background: #f3f4f6; color: #1a1a1a; border: none; border-radius: 12px; font-size: 14px; cursor: pointer;">
                     그냥 계속하기
                 </button>
             </div>
@@ -1066,7 +1066,7 @@
     
     <!-- ==================== 홈화면 추가 안내 모달 ==================== -->
     <div id="pwaInstallModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); z-index: 999998; align-items: center; justify-content: center; padding: 20px;">
-        <div style="background: white; border-radius: 20px; max-width: 340px; width: 100%; text-align: center; overflow: hidden;">
+        <div style="background: white; border-radius: 20px; max-width: 340px; width: 100%; text-align: center; overflow: hidden; color: #1a1a1a;">
             <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 30px 20px;">
                 <div style="font-size: 50px; margin-bottom: 10px;">📱</div>
                 <div style="color: white; font-size: 18px; font-weight: bold;">홈 화면에 추가하세요!</div>
@@ -1079,7 +1079,7 @@
                 <button onclick="closePwaInstallModal(false)" style="width: 100%; padding: 14px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; margin-bottom: 10px;">
                     확인했어요 👍
                 </button>
-                <button onclick="closePwaInstallModal(true)" style="width: 100%; padding: 12px; background: #f3f4f6; color: #666; border: none; border-radius: 12px; font-size: 14px; cursor: pointer;">
+                <button onclick="closePwaInstallModal(true)" style="width: 100%; padding: 12px; background: #f3f4f6; color: #1a1a1a; border: none; border-radius: 12px; font-size: 14px; cursor: pointer;">
                     다시 보지 않기
                 </button>
             </div>
@@ -11020,14 +11020,14 @@
             content: `
                 <div style="text-align: center; margin-bottom: 20px;">
                     <div style="font-size: 60px; margin-bottom: 15px;">🏠</div>
-                    <p style="font-size: 16px; color: #666; line-height: 1.6;">
+                    <p style="font-size: 16px; color: #1a1a1a; line-height: 1.6;">
                         신축 아파트 하자점검을 위한<br/>
                         <strong>더홈점검 앱</strong> 사용법을 안내합니다.
                     </p>
                 </div>
                 <div style="background: #f0fdf4; padding: 15px; border-radius: 10px; border-left: 4px solid #10b981;">
                     <div style="font-weight: bold; color: #059669; margin-bottom: 8px;">📋 점검 흐름</div>
-                    <div style="font-size: 14px; color: #333; line-height: 1.8;">
+                    <div style="font-size: 14px; color: #1a1a1a; line-height: 1.8;">
                         1️⃣ 프로젝트 정보 입력<br/>
                         2️⃣ 하자점검 (사진 2장 필수)<br/>
                         3️⃣ 장비점검 (4구역 촬영)<br/>
@@ -11043,7 +11043,7 @@
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
                     <div style="background: #fef3c7; padding: 15px; border-radius: 10px;">
                         <div style="font-weight: bold; color: #d97706; margin-bottom: 10px; font-size: 15px;">👔 소장님 (현장 총괄)</div>
-                        <div style="font-size: 13px; color: #333; line-height: 1.7;">
+                        <div style="font-size: 13px; color: #1a1a1a; line-height: 1.7;">
                             • 고객 연락 & 세대 동행<br/>
                             • <strong>육안 하자점검</strong><br/>
                             • 스티커 부착 (위치 명시)<br/>
@@ -11053,7 +11053,7 @@
                     </div>
                     <div style="background: #dbeafe; padding: 15px; border-radius: 10px;">
                         <div style="font-weight: bold; color: #2563eb; margin-bottom: 10px; font-size: 15px;">📱 매니저 (기록 및 관리)</div>
-                        <div style="font-size: 13px; color: #333; line-height: 1.7;">
+                        <div style="font-size: 13px; color: #1a1a1a; line-height: 1.7;">
                             • 프로젝트 정보 입력<br/>
                             • <strong>하자 사진 촬영</strong> (2장)<br/>
                             • 하자 정보 터치 입력<br/>
@@ -11072,7 +11072,7 @@
             content: `
                 <div style="background: #f8fafc; padding: 20px; border-radius: 12px; margin-bottom: 15px;">
                     <div style="font-size: 40px; text-align: center; margin-bottom: 15px;">📁</div>
-                    <div style="font-size: 14px; color: #333; line-height: 1.8;">
+                    <div style="font-size: 14px; color: #1a1a1a; line-height: 1.8;">
                         <strong>프로젝트 탭</strong>에서 기본 정보를 입력합니다:
                     </div>
                 </div>
@@ -11107,14 +11107,14 @@
                     <div style="background: #dbeafe; padding: 15px; border-radius: 10px; text-align: center;">
                         <div style="font-size: 30px; margin-bottom: 8px;">🔭</div>
                         <div style="font-weight: bold; color: #2563eb;">원경 사진</div>
-                        <div style="font-size: 12px; color: #666; margin-top: 5px;">
+                        <div style="font-size: 12px; color: #1a1a1a; margin-top: 5px;">
                             하자 위치 + 스티커가<br/>함께 보이도록
                         </div>
                     </div>
                     <div style="background: #fce7f3; padding: 15px; border-radius: 10px; text-align: center;">
                         <div style="font-size: 30px; margin-bottom: 8px;">🔍</div>
                         <div style="font-weight: bold; color: #db2777;">근경 사진</div>
-                        <div style="font-size: 12px; color: #666; margin-top: 5px;">
+                        <div style="font-size: 12px; color: #1a1a1a; margin-top: 5px;">
                             하자 상세 상태를<br/>가까이서 촬영
                         </div>
                     </div>
@@ -11128,7 +11128,7 @@
             title: '✏️ STEP 3: 하자 정보 입력',
             content: `
                 <div style="background: #f8fafc; padding: 15px; border-radius: 12px; margin-bottom: 15px;">
-                    <div style="font-size: 14px; color: #333; line-height: 1.8;">
+                    <div style="font-size: 14px; color: #1a1a1a; line-height: 1.8;">
                         사진 촬영 후, 소장님이 붙인 <strong>스티커를 확인</strong>하여<br/>
                         터치로 간편하게 입력합니다.
                     </div>
@@ -11136,15 +11136,15 @@
                 <div style="display: grid; gap: 10px;">
                     <div style="padding: 12px; background: #dbeafe; border-radius: 8px;">
                         <strong>1️⃣ 공간 선택</strong> (최대 4개)<br/>
-                        <span style="font-size: 13px; color: #666;">현관, 안방, 침실1, 거실, 주방...</span>
+                        <span style="font-size: 13px; color: #1a1a1a;">현관, 안방, 침실1, 거실, 주방...</span>
                     </div>
                     <div style="padding: 12px; background: #fce7f3; border-radius: 8px;">
                         <strong>2️⃣ 위치 선택</strong> (최대 4개)<br/>
-                        <span style="font-size: 13px; color: #666;">벽, 바닥, 천장, 문, 창...</span>
+                        <span style="font-size: 13px; color: #1a1a1a;">벽, 바닥, 천장, 문, 창...</span>
                     </div>
                     <div style="padding: 12px; background: #fef3c7; border-radius: 8px;">
                         <strong>3️⃣ 하자내용 선택</strong> (최대 4개)<br/>
-                        <span style="font-size: 13px; color: #666;">유격, 틈새, 단차, 파손, 오염...</span>
+                        <span style="font-size: 13px; color: #1a1a1a;">유격, 틈새, 단차, 파손, 오염...</span>
                     </div>
                 </div>
                 <div style="margin-top: 15px; padding: 12px; background: #f0fdf4; border-radius: 8px; font-size: 13px;">
@@ -11156,7 +11156,7 @@
             title: '📷 STEP 4: 장비점검 (소장님)',
             content: `
                 <div style="background: #f8fafc; padding: 15px; border-radius: 12px; margin-bottom: 15px;">
-                    <div style="font-size: 14px; color: #333; line-height: 1.6;">
+                    <div style="font-size: 14px; color: #1a1a1a; line-height: 1.6;">
                         <strong>장비점검 탭</strong>에서 4개 구역별로<br/>측정 사진을 등록합니다.
                     </div>
                 </div>
@@ -11187,7 +11187,7 @@
             title: '🌬️ STEP 5: 공기질 측정 (매니저)',
             content: `
                 <div style="background: #f8fafc; padding: 15px; border-radius: 12px; margin-bottom: 15px;">
-                    <div style="font-size: 14px; color: #333; line-height: 1.6;">
+                    <div style="font-size: 14px; color: #1a1a1a; line-height: 1.6;">
                         <strong>공기질 탭</strong>에서 5개 구역의<br/>라돈, 포름알데히드, VOCs를 입력합니다.
                     </div>
                 </div>
@@ -11234,7 +11234,7 @@
         {
             title: '✅ 최종 체크리스트',
             content: `
-                <div style="font-size: 14px; margin-bottom: 10px; color: #666;">점검 완료 전 확인하세요!</div>
+                <div style="font-size: 14px; margin-bottom: 10px; color: #1a1a1a;">점검 완료 전 확인하세요!</div>
                 <div style="display: grid; gap: 8px;">
                     <div style="display: flex; align-items: center; gap: 10px; padding: 12px; background: #f0fdf4; border-radius: 8px;">
                         <span style="font-size: 18px;">📸</span>
@@ -11385,7 +11385,7 @@
     
     <!-- 튜토리얼 모달 -->
     <div id="tutorialModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 100000; justify-content: center; align-items: center; padding: 20px;">
-        <div style="background: white; border-radius: 20px; max-width: 420px; width: 100%; max-height: 85vh; overflow: hidden; display: flex; flex-direction: column;">
+        <div style="background: white; border-radius: 20px; max-width: 420px; width: 100%; max-height: 85vh; overflow: hidden; display: flex; flex-direction: column; color: #1a1a1a;">
             <!-- 헤더 -->
             <div style="padding: 20px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; display: flex; justify-content: space-between; align-items: center;">
                 <h3 id="tutorialTitle" style="margin: 0; font-size: 18px;">튜토리얼</h3>
@@ -11398,9 +11398,9 @@
             </div>
             
             <!-- 푸터 -->
-            <div style="padding: 15px 20px; border-top: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center; background: #f9fafb;">
-                <button id="tutorialPrevBtn" onclick="tutorialPrev()" style="padding: 10px 20px; border: 1px solid #d1d5db; background: white; border-radius: 8px; cursor: pointer; font-size: 14px;">← 이전</button>
-                <span id="tutorialProgress" style="color: #6b7280; font-size: 14px;">1 / 9</span>
+            <div style="padding: 15px 20px; border-top: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center; background: #f9fafb; color: #1a1a1a;">
+                <button id="tutorialPrevBtn" onclick="tutorialPrev()" style="padding: 10px 20px; border: 1px solid #d1d5db; background: white; border-radius: 8px; cursor: pointer; font-size: 14px; color: #1a1a1a;">← 이전</button>
+                <span id="tutorialProgress" style="color: #1a1a1a; font-size: 14px;">1 / 9</span>
                 <button id="tutorialNextBtn" onclick="tutorialNext()" style="padding: 10px 20px; border: none; background: #10b981; color: white; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: bold;">다음 →</button>
             </div>
         </div>
