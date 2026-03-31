@@ -9092,15 +9092,15 @@
         // ==================== 견적서 페이지 생성 ====================
         window.createQuotationPage = function(apartmentName, dong, ho, date) {
             return `
-                <div style="width: 794px; height: 1123px; background: #ffffff; font-family: 'Malgun Gothic', sans-serif; padding: 26px 32px 18px 32px; position: relative; box-sizing: border-box; overflow: hidden;">
+                <div style="width: 794px; height: 1123px; background: #ffffff; font-family: 'Malgun Gothic', sans-serif; padding: 35px 35px 20px 35px; position: relative; box-sizing: border-box; overflow: hidden;">
                     <!-- 헤더 -->
-                    <div style="text-align: center; margin-bottom: 14px; padding-bottom: 10px; border-bottom: 3px solid #1e293b;">
+                    <div style="text-align: center; margin-bottom: 20px; padding-bottom: 14px; border-bottom: 3px solid #1e293b;">
                         <div style="font-size: 32px; font-weight: 900; color: #1e293b; letter-spacing: 5px;">더홈점검 견적서</div>
                         <div style="font-size: 10px; color: #777; margin-top: 4px; letter-spacing: 1px;">신뢰할 수 있는 입주 전 홈케어 서비스 | www.thehomeinsp.com</div>
                     </div>
 
                     <!-- 수신자 정보 -->
-                    <div style="display: flex; justify-content: space-between; align-items: center; background: #1e293b; color: white; padding: 9px 18px; border-radius: 6px; margin-bottom: 12px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; background: #1e293b; color: white; padding: 12px 20px; border-radius: 6px; margin-bottom: 20px;">
                         <div style="font-size: 14px; font-weight: 700;">📍 ${apartmentName} ${dong}동 ${ho}호</div>
                         <div style="font-size: 11px; opacity: 0.85;">발행일: ${date}</div>
                     </div>
@@ -9111,14 +9111,14 @@
                     </div>
 
                     <!-- 2단 레이아웃 -->
-                    <div style="display: flex; gap: 14px;">
+                    <div style="display: flex; gap: 18px; flex: 1;">
                         <!-- 좌측 -->
                         <div style="flex: 1;">
                             <!-- 입주청소 -->
                             <div style="margin-bottom: 10px;">
-                                <div style="display: inline-block; background: #1e293b; color: white; padding: 3px 10px; font-size: 10.5px; font-weight: 700; border-radius: 4px;">입주청소</div>
+                                <div style="display: inline-block; background: #1e293b; color: white; padding: 3px 10px; font-size: 12px; font-weight: 700; border-radius: 4px;">입주청소</div>
                                 <span style="font-size: 8px; color: #777; margin-left: 5px;">청소전문팀</span>
-                                <div style="font-size: 10.5px; padding-left: 2px; margin-top: 5px;">
+                                <div style="font-size: 12px; padding-left: 2px; margin-top: 5px;">
                                     <div style="display: flex; justify-content: space-between; padding: 3px 0; border-bottom: 1px solid #eee;">
                                         <span style="font-weight: 600;">20평 이하</span><span style="font-weight: 800; color: #dc2626;">250,000원</span>
                                     </div>
@@ -9127,8 +9127,8 @@
                                         <div style="text-align: right; font-weight: 800; color: #dc2626;">____평 × 13,000원</div>
                                     </div>
                                 </div>
-                                <div style="font-size: 10.5px; font-weight: 700; color: #333; margin: 5px 0 3px 2px;">● 선택 옵션</div>
-                                <div style="font-size: 10.5px; padding-left: 2px;">
+                                <div style="font-size: 12px; font-weight: 700; color: #333; margin: 5px 0 3px 2px;">● 선택 옵션</div>
+                                <div style="font-size: 12px; padding-left: 2px;">
                                     <div style="display: flex; justify-content: space-between; padding: 2px 0;"><span>가전청소 (내/외측)</span><span style="font-weight: 800; color: #dc2626;">20,000원</span></div>
                                     <div style="display: flex; justify-content: space-between; padding: 2px 0;"><span>큰 붙박이장 (안방 외)</span><span style="font-weight: 800; color: #dc2626;">50,000원</span></div>
                                     <div style="display: flex; justify-content: space-between; padding: 2px 0;"><span>에어컨청소 (외부/필터)</span><span style="font-weight: 800; color: #dc2626;">20,000원</span></div>
@@ -9137,20 +9137,20 @@
                             </div>
 
                             <!-- 새집증후군 -->
-                            <div style="margin-bottom: 10px;">
-                                <div style="display: inline-block; background: #1e293b; color: white; padding: 3px 10px; font-size: 10.5px; font-weight: 700; border-radius: 4px; margin-bottom: 4px;">새집증후군 시공</div>
+                            <div style="margin-bottom: 16px;">
+                                <div style="display: inline-block; background: #1e293b; color: white; padding: 3px 10px; font-size: 12px; font-weight: 700; border-radius: 4px; margin-bottom: 4px;">새집증후군 시공</div>
                                 <div style="display: flex; gap: 12px; margin-top: 4px;">
                                     <div style="flex: 1;">
-                                        <div style="font-size: 10.5px; font-weight: 700; color: #333; margin-bottom: 2px;">● 건식</div>
-                                        <div style="font-size: 10.5px;">
+                                        <div style="font-size: 12px; font-weight: 700; color: #333; margin-bottom: 2px;">● 건식</div>
+                                        <div style="font-size: 12px;">
                                             <div style="display: flex; justify-content: space-between; padding: 2px 0;"><span>59타입</span><span style="font-weight: 800; color: #dc2626;">250,000원</span></div>
                                             <div style="display: flex; justify-content: space-between; padding: 2px 0;"><span>74타입</span><span style="font-weight: 800; color: #dc2626;">280,000원</span></div>
                                             <div style="display: flex; justify-content: space-between; padding: 2px 0;"><span>84타입</span><span style="font-weight: 800; color: #dc2626;">310,000원</span></div>
                                         </div>
                                     </div>
                                     <div style="flex: 1;">
-                                        <div style="font-size: 10.5px; font-weight: 700; color: #333; margin-bottom: 2px;">● 프리미엄</div>
-                                        <div style="font-size: 10.5px;">
+                                        <div style="font-size: 12px; font-weight: 700; color: #333; margin-bottom: 2px;">● 프리미엄</div>
+                                        <div style="font-size: 12px;">
                                             <div style="display: flex; justify-content: space-between; padding: 2px 0;"><span>59타입</span><span style="font-weight: 800; color: #dc2626;">300,000원</span></div>
                                             <div style="display: flex; justify-content: space-between; padding: 2px 0;"><span>74타입</span><span style="font-weight: 800; color: #dc2626;">350,000원</span></div>
                                             <div style="display: flex; justify-content: space-between; padding: 2px 0;"><span>84타입</span><span style="font-weight: 800; color: #dc2626;">400,000원</span></div>
@@ -9161,13 +9161,13 @@
 
                             <!-- 줄눈공사 -->
                             <div>
-                                <div style="display: inline-block; background: #1e293b; color: white; padding: 3px 10px; font-size: 10.5px; font-weight: 700; border-radius: 4px;">줄눈공사</div>
+                                <div style="display: inline-block; background: #1e293b; color: white; padding: 3px 10px; font-size: 12px; font-weight: 700; border-radius: 4px;">줄눈공사</div>
                                 <span style="font-size: 8px; color: #777; margin-left: 5px;">10년 경력 전문팀</span>
 
                                 <!-- 폴리우레아 -->
                                 <div style="border: 1px solid #ddd; border-radius: 5px; padding: 6px 8px; margin-top: 5px; margin-bottom: 5px;">
-                                    <div style="font-size: 10.5px; font-weight: 800; color: #1e293b; margin-bottom: 3px;">◆ 폴리우레아</div>
-                                    <div style="font-size: 10.5px;">
+                                    <div style="font-size: 12px; font-weight: 800; color: #1e293b; margin-bottom: 3px;">◆ 폴리우레아</div>
+                                    <div style="font-size: 12px;">
                                         <div style="display: flex; justify-content: space-between; padding: 2px 0; border-bottom: 1px dashed #eee;">
                                             <div><span style="font-weight: 700;">패키지1</span> <span style="font-size: 8.5px; color: #555;">현관+욕실2곳바닥+실리콘오염방지</span></div>
                                             <span style="font-weight: 800; color: #dc2626; white-space: nowrap; margin-left: 6px;">320,000원</span>
@@ -9185,8 +9185,8 @@
 
                                 <!-- 케라폭시 -->
                                 <div style="border: 1px solid #ddd; border-radius: 5px; padding: 6px 8px;">
-                                    <div style="font-size: 10.5px; font-weight: 800; color: #1e293b; margin-bottom: 3px;">◆ 케라폭시 <span style="font-size: 8.5px; font-weight: 500; color: #777;">(현관은 폴리우레아)</span></div>
-                                    <div style="font-size: 10.5px;">
+                                    <div style="font-size: 12px; font-weight: 800; color: #1e293b; margin-bottom: 3px;">◆ 케라폭시 <span style="font-size: 8.5px; font-weight: 500; color: #777;">(현관은 폴리우레아)</span></div>
+                                    <div style="font-size: 12px;">
                                         <div style="display: flex; justify-content: space-between; padding: 2px 0; border-bottom: 1px dashed #eee;">
                                             <div><span style="font-weight: 700;">패키지1</span> <span style="font-size: 8.5px; color: #555;">현관+욕실2곳바닥+실리콘오염방지</span></div>
                                             <span style="font-weight: 800; color: #dc2626; white-space: nowrap; margin-left: 6px;">700,000원</span>
@@ -9207,46 +9207,46 @@
                         <!-- 우측 -->
                         <div style="flex: 1;">
                             <!-- 탄성코트 -->
-                            <div style="margin-bottom: 10px; border: 1px solid #ddd; border-radius: 5px; padding: 7px 10px;">
-                                <div style="display: inline-block; background: #1e293b; color: white; padding: 3px 10px; font-size: 10.5px; font-weight: 700; border-radius: 4px;">탄성코트</div>
+                            <div style="margin-bottom: 16px; border: 1px solid #ddd; border-radius: 5px; padding: 7px 10px;">
+                                <div style="display: inline-block; background: #1e293b; color: white; padding: 3px 10px; font-size: 12px; font-weight: 700; border-radius: 4px;">탄성코트</div>
                                 <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px;">
                                     <div>
-                                        <div style="font-size: 10.5px; font-weight: 600;">기본 패키지</div>
-                                        <div style="font-size: 9px; color: #777;">베란다 1개 + 세탁실 1개</div>
+                                        <div style="font-size: 12px; font-weight: 600;">기본 패키지</div>
+                                        <div style="font-size: 10px; color: #777;">베란다 1개 + 세탁실 1개</div>
                                     </div>
-                                    <div style="font-size: 10.5px; font-weight: 800; color: #dc2626;">500,000원</div>
+                                    <div style="font-size: 12px; font-weight: 800; color: #dc2626;">500,000원</div>
                                 </div>
                             </div>
 
                             <!-- 나노코팅 -->
-                            <div style="margin-bottom: 10px; border: 1px solid #ddd; border-radius: 5px; padding: 7px 10px;">
+                            <div style="margin-bottom: 16px; border: 1px solid #ddd; border-radius: 5px; padding: 7px 10px;">
                                 <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 5px;">
-                                    <span style="display: inline-block; background: #1e293b; color: white; padding: 3px 10px; font-size: 10.5px; font-weight: 700; border-radius: 4px;">나노코팅 / UV코팅</span>
+                                    <span style="display: inline-block; background: #1e293b; color: white; padding: 3px 10px; font-size: 12px; font-weight: 700; border-radius: 4px;">나노코팅 / UV코팅</span>
                                     <span style="font-size: 8px; color: #dc2626; font-weight: 700;">⭐ 점검고객 특가</span>
                                 </div>
-                                <div style="font-size: 10.5px; font-weight: 700; color: #333;">● 주방 나노코팅 (UV코팅)</div>
-                                <div style="font-size: 9.5px; color: #555; padding-left: 8px; line-height: 1.5; margin-bottom: 4px;">
+                                <div style="font-size: 12px; font-weight: 700; color: #333;">● 주방 나노코팅 (UV코팅)</div>
+                                <div style="font-size: 11px; color: #555; padding-left: 8px; line-height: 1.5; margin-bottom: 4px;">
                                     주방상판 + 아일랜드<br>
                                     <span style="font-weight: 600;">✓ 서비스: 인덕션 · 수전 · 싱크볼</span>
                                 </div>
-                                <div style="font-size: 10.5px; font-weight: 700; color: #333;">● 욕실 나노코팅</div>
-                                <div style="font-size: 9.5px; color: #555; padding-left: 8px; line-height: 1.5;">
+                                <div style="font-size: 12px; font-weight: 700; color: #333;">● 욕실 나노코팅</div>
+                                <div style="font-size: 11px; color: #555; padding-left: 8px; line-height: 1.5;">
                                     세면기 2 + 양변기 2 + 샤워부스파티션 + 양쪽욕실 거울 2<br>
                                     <span style="font-weight: 600;">✓ 서비스: 수건걸이 · 휴지걸이 · 코너선반 · 젠다이 · 수전</span>
                                 </div>
                                 <div style="background: #f1f5f9; border-radius: 5px; padding: 5px 10px; margin-top: 5px; display: flex; justify-content: space-between; align-items: center;">
-                                    <span style="font-size: 10.5px; font-weight: 800;">주방+욕실 통합</span>
+                                    <span style="font-size: 12px; font-weight: 800;">주방+욕실 통합</span>
                                     <div>
-                                        <span style="font-size: 9px; color: #777; text-decoration: line-through;">600,000원</span>
-                                        <span style="font-size: 10.5px; font-weight: 800; color: #dc2626; margin-left: 4px;">450,000원</span>
+                                        <span style="font-size: 10px; color: #777; text-decoration: line-through;">600,000원</span>
+                                        <span style="font-size: 12px; font-weight: 800; color: #dc2626; margin-left: 4px;">450,000원</span>
                                     </div>
                                 </div>
                             </div>
 
                             <!-- 무상서비스 -->
-                            <div style="border: 1.5px solid #333; border-radius: 5px; padding: 7px 10px; margin-bottom: 10px;">
-                                <div style="font-size: 11px; font-weight: 800; color: #333; margin-bottom: 4px;">🎁 무상서비스</div>
-                                <div style="font-size: 10.5px;">
+                            <div style="border: 1.5px solid #333; border-radius: 5px; padding: 9px 12px; margin-bottom: 16px;">
+                                <div style="font-size: 12px; font-weight: 800; color: #333; margin-bottom: 6px;">🎁 무상서비스</div>
+                                <div style="font-size: 12px;">
                                     <div style="display: flex; justify-content: space-between; padding: 2px 0;">
                                         <span style="font-weight: 600;">사후점검서비스</span>
                                         <div><span style="font-size: 8.5px; color: #777; text-decoration: line-through; margin-right: 4px;">60,000원</span><span style="background: #dc2626; color: white; padding: 2px 7px; border-radius: 6px; font-size: 8px; font-weight: 700;">무상</span></div>
@@ -9269,8 +9269,8 @@
 
                             <!-- 안내사항 -->
                             <div style="border: 1px solid #ddd; border-radius: 5px; padding: 7px 10px;">
-                                <div style="font-size: 10.5px; font-weight: 700; color: #333; margin-bottom: 3px;">📋 안내사항</div>
-                                <div style="font-size: 9.5px; color: #555; line-height: 1.6;">
+                                <div style="font-size: 12px; font-weight: 700; color: #333; margin-bottom: 3px;">📋 안내사항</div>
+                                <div style="font-size: 11px; color: #555; line-height: 1.6;">
                                     <div>· V.A.T 별도 · 견적 유효기간 30일</div>
                                     <div>· 줄눈공사 2년 하자보수 · 고객요청외 추가요금없음</div>
                                     <div>· 케라폭시 가격은 별도 조율사항</div>
@@ -9280,14 +9280,14 @@
                     </div>
 
                     <!-- 상담 CTA -->
-                    <div style="background: #1e293b; border-radius: 6px; padding: 10px 18px; margin-top: 6px; display: flex; justify-content: space-between; align-items: center;">
+                    <div style="background: #1e293b; border-radius: 6px; padding: 12px 20px; margin-top: 12px; display: flex; justify-content: space-between; align-items: center;">
                         <div>
                             <div style="font-size: 12px; font-weight: 700; color: white;">상담 및 견적문의</div>
                             <div style="font-size: 8px; color: rgba(255,255,255,0.5); margin-top: 2px;">더홈점검 | 신뢰할 수 있는 입주 전 홈케어 서비스</div>
                         </div>
                         <div style="text-align: right;">
                             <div style="font-size: 18px; font-weight: 900; color: white;">📞 010-9985-0128</div>
-                            <div style="font-size: 9px; color: rgba(255,255,255,0.7);">카카오톡 채널 "더홈점검" | www.thehomeinsp.com</div>
+                            <div style="font-size: 10px; color: rgba(255,255,255,0.7);">카카오톡 채널 "더홈점검" | www.thehomeinsp.com</div>
                         </div>
                     </div>
                 </div>
