@@ -9092,26 +9092,21 @@
         // ==================== 견적서 페이지 생성 ====================
         window.createQuotationPage = function(apartmentName, dong, ho, date) {
             return `
-                <div style="width: 794px; height: 1123px; background: #ffffff; font-family: 'Malgun Gothic', sans-serif; padding: 35px 35px 20px 35px; position: relative; box-sizing: border-box; overflow: hidden;">
+                <div style="width: 794px; height: 1123px; background: #ffffff; font-family: 'Malgun Gothic', sans-serif; padding: 30px 32px 20px 32px; position: relative; box-sizing: border-box; overflow: hidden; display: flex; flex-direction: column;">
                     <!-- 헤더 -->
-                    <div style="text-align: center; margin-bottom: 20px; padding-bottom: 14px; border-bottom: 3px solid #1e293b;">
+                    <div style="text-align: center; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 3px solid #1e293b;">
                         <div style="font-size: 32px; font-weight: 900; color: #1e293b; letter-spacing: 5px;">더홈점검 견적서</div>
                         <div style="font-size: 10px; color: #777; margin-top: 4px; letter-spacing: 1px;">신뢰할 수 있는 입주 전 홈케어 서비스 | www.thehomeinsp.com</div>
                     </div>
 
                     <!-- 수신자 정보 -->
-                    <div style="display: flex; justify-content: space-between; align-items: center; background: #1e293b; color: white; padding: 12px 20px; border-radius: 6px; margin-bottom: 20px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; background: #1e293b; color: white; padding: 10px 18px; border-radius: 6px; margin-bottom: 16px;">
                         <div style="font-size: 14px; font-weight: 700;">📍 ${apartmentName} ${dong}동 ${ho}호</div>
                         <div style="font-size: 11px; opacity: 0.85;">발행일: ${date}</div>
                     </div>
 
-                    
-                    <!-- 서비스 항목별 상세 가격 -->
-
-                    </div>
-
                     <!-- 2단 레이아웃 -->
-                    <div style="display: flex; gap: 18px; flex: 1;">
+                    <div style="display: flex; gap: 16px; flex: 1; min-height: 0;">
                         <!-- 좌측 -->
                         <div style="flex: 1;">
                             <!-- 입주청소 -->
@@ -9280,7 +9275,7 @@
                     </div>
 
                     <!-- 상담 CTA -->
-                    <div style="background: #1e293b; border-radius: 6px; padding: 12px 20px; margin-top: 12px; display: flex; justify-content: space-between; align-items: center;">
+                    <div style="background: #1e293b; border-radius: 6px; padding: 12px 20px; margin-top: auto; display: flex; justify-content: space-between; align-items: center;">
                         <div>
                             <div style="font-size: 12px; font-weight: 700; color: white;">상담 및 견적문의</div>
                             <div style="font-size: 8px; color: rgba(255,255,255,0.5); margin-top: 2px;">더홈점검 | 신뢰할 수 있는 입주 전 홈케어 서비스</div>
