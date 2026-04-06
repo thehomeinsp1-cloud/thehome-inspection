@@ -3380,7 +3380,7 @@
                 await uploadFileToDrive(projectFolderId, excelBlob, excelFileName, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
                 
                 // ========== 6. 사진 ZIP 파일 생성 및 업로드 ==========
-                // 업로드할 하자 사진 목록 준비
+                // 업로드할 하자 사진 목록 준비 (워터마크 텍스트 포함)
                 const photoTasks = [];
                 for (let defectIndex = 0; defectIndex < project.defects.length; defectIndex++) {
                     const defect = project.defects[defectIndex];
@@ -3388,20 +3388,28 @@
                         const num = String(defectIndex + 1).padStart(2, '0');
                         const space = defect.spaces && defect.spaces.length > 0 ? defect.spaces[0] : '기타';
                         const location = defect.locations && defect.locations.length > 0 ? defect.locations[0] : '';
+                        const dongHo = `${project.dong}동${project.ho}호`;
                         
                         let photoNum = 0;
                         for (const photo of defect.photos) {
                             if (photo !== null) {
                                 const photoType = photoNum === 0 ? '원경' : '근접';
                                 const fileName = `${num}_${space}_${location}_${photoType}.jpg`;
-                                // 워터마크 추가 (동호수 포함)
-                                const dongHo = `${project.dong}동${project.ho}호`;
                                 const wmText = photoNum === 0 ? `${dongHo}_${defectIndex + 1}` : `${dongHo}_${defectIndex + 1}-1`;
-                                const photoWithWM = await window.addWatermarkToPhoto(photo, wmText);
-                                photoTasks.push({ photo: photoWithWM, fileName });
+                                photoTasks.push({ photo, fileName, wmText });
                                 photoNum++;
                             }
                         }
+                    }
+                }
+                
+                // 워터마크 병렬 처리 (10장씩 배치)
+                const BATCH = 10;
+                for (let i = 0; i < photoTasks.length; i += BATCH) {
+                    const batch = photoTasks.slice(i, i + BATCH);
+                    const results = await Promise.all(batch.map(t => window.addWatermarkToPhoto(t.photo, t.wmText)));
+                    for (let j = 0; j < batch.length; j++) {
+                        batch[j].photo = results[j];
                     }
                 }
                 
@@ -6974,33 +6982,36 @@
                 // 하자 사진
                 if (projectData.defects && projectData.defects.length > 0) {
                     const defectFolder = zip.folder('하자사진');
+                    const dongHo = `${projectData.dong}동${projectData.ho}호`;
                     
+                    // 작업 목록 생성
+                    const wmTasks = [];
                     for (let index = 0; index < projectData.defects.length; index++) {
                         const defect = projectData.defects[index];
                         if (defect.photos && defect.photos.length > 0) {
                             const defectNum = String(index + 1).padStart(2, '0');
-                            // ✅ 배열에서 첫 번째 값 가져오기
                             const spaceName = (defect.spaces && defect.spaces.length > 0) ? defect.spaces[0] : '미지정';
                             const locationName = (defect.locations && defect.locations.length > 0) ? defect.locations[0] : '미지정';
                             
                             for (let photoIndex = 0; photoIndex < defect.photos.length; photoIndex++) {
                                 const photo = defect.photos[photoIndex];
-                                
-                                // null 사진 건너뛰기
                                 if (photo === null) continue;
-                                
                                 const photoType = photoIndex === 0 ? '원경' : '근접';
-                                
-                                // 워터마크 추가 (동호수 포함)
-                                const dongHo = `${projectData.dong}동${projectData.ho}호`;
-                                const watermarkText = photoIndex === 0 ? `${dongHo}_${index + 1}` : `${dongHo}_${index + 1}-1`;
-                                const photoWithWatermark = await window.addWatermarkToPhoto(photo, watermarkText);
-                                
-                                const photoData = photoWithWatermark.split(',')[1];
+                                const wmText = photoIndex === 0 ? `${dongHo}_${index + 1}` : `${dongHo}_${index + 1}-1`;
                                 const fileName = `${defectNum}_${spaceName}_${locationName}_${photoType}.jpg`.replace(/\//g, '-');
-                                defectFolder.file(fileName, photoData, { base64: true });
-                                photoCount++;
+                                wmTasks.push({ photo, wmText, fileName });
                             }
+                        }
+                    }
+                    
+                    // 10장씩 병렬 처리
+                    for (let i = 0; i < wmTasks.length; i += 10) {
+                        const batch = wmTasks.slice(i, i + 10);
+                        const results = await Promise.all(batch.map(t => window.addWatermarkToPhoto(t.photo, t.wmText)));
+                        for (let j = 0; j < batch.length; j++) {
+                            const photoData = results[j].split(',')[1];
+                            defectFolder.file(batch[j].fileName, photoData, { base64: true });
+                            photoCount++;
                         }
                     }
                 }
@@ -7218,33 +7229,34 @@
                 // 2. 하자 사진 (순번대로, 폴더 없이)
                 if (projectData.defects && projectData.defects.length > 0) {
                     const defectFolder = zip.folder('하자사진');
+                    const dongHo = `${projectData.dong}동${projectData.ho}호`;
                     
+                    const wmTasks2 = [];
                     for (let index = 0; index < projectData.defects.length; index++) {
                         const defect = projectData.defects[index];
                         if (defect.photos && defect.photos.length > 0) {
-                            const defectNum = String(index + 1).padStart(2, '0'); // 01, 02, 03...
-                            // ✅ 배열에서 첫 번째 값 가져오기
+                            const defectNum = String(index + 1).padStart(2, '0');
                             const spaceName = (defect.spaces && defect.spaces.length > 0) ? defect.spaces[0] : '미지정';
                             const locationName = (defect.locations && defect.locations.length > 0) ? defect.locations[0] : '미지정';
                             
                             for (let photoIndex = 0; photoIndex < defect.photos.length; photoIndex++) {
                                 const photo = defect.photos[photoIndex];
-                                
-                                // null 사진 건너뛰기
                                 if (photo === null) continue;
-                                
                                 const photoType = photoIndex === 0 ? '원경' : '근접';
-                                
-                                // 워터마크 추가 (동호수 포함)
-                                const dongHo = `${projectData.dong}동${projectData.ho}호`;
-                                const watermarkText = photoIndex === 0 ? `${dongHo}_${index + 1}` : `${dongHo}_${index + 1}-1`;
-                                const photoWithWatermark = await window.addWatermarkToPhoto(photo, watermarkText);
-                                
-                                const photoData = photoWithWatermark.split(',')[1];
+                                const wmText = photoIndex === 0 ? `${dongHo}_${index + 1}` : `${dongHo}_${index + 1}-1`;
                                 const fileName = `${defectNum}_${spaceName}_${locationName}_${photoType}.jpg`.replace(/\//g, '-');
-                                defectFolder.file(fileName, photoData, { base64: true });
-                                photoCount++;
+                                wmTasks2.push({ photo, wmText, fileName });
                             }
+                        }
+                    }
+                    
+                    for (let i = 0; i < wmTasks2.length; i += 10) {
+                        const batch = wmTasks2.slice(i, i + 10);
+                        const results = await Promise.all(batch.map(t => window.addWatermarkToPhoto(t.photo, t.wmText)));
+                        for (let j = 0; j < batch.length; j++) {
+                            const photoData = results[j].split(',')[1];
+                            defectFolder.file(batch[j].fileName, photoData, { base64: true });
+                            photoCount++;
                         }
                     }
                 }
