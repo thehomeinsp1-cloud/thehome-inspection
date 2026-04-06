@@ -8485,72 +8485,42 @@
 
         // 📷 사진에 워터마크 추가하는 함수
         window.addWatermarkToPhoto = async function(imageDataUrl, text) {
+            if (!imageDataUrl || !text) return imageDataUrl || '';
             return new Promise((resolve) => {
                 try {
                     const img = new Image();
-                    img.onload = () => {
+                    img.onload = function() {
                         try {
-                            const canvas = document.createElement('canvas');
+                            var canvas = document.createElement('canvas');
                             canvas.width = img.width;
                             canvas.height = img.height;
-                            
-                            const ctx = canvas.getContext('2d');
-                            
-                            // 원본 이미지 그리기
+                            var ctx = canvas.getContext('2d');
                             ctx.drawImage(img, 0, 0);
                             
-                            // 워터마크 배지 크기 (이미지 높이의 6%)
-                            const badgeHeight = Math.max(img.height * 0.06, 30);
-                            const fontSize = Math.max(badgeHeight * 0.5, 14);
+                            var fSize = Math.max(Math.round(img.height * 0.03), 16);
+                            ctx.font = 'bold ' + fSize + 'px Arial';
+                            var tw = ctx.measureText(text).width;
+                            var bw = tw + fSize;
+                            var bh = fSize * 2;
                             
-                            // 텍스트 너비 측정
-                            ctx.font = `bold ${fontSize}px Arial`;
-                            const textWidth = ctx.measureText(text).width;
-                            const badgeWidth = textWidth + badgeHeight * 0.6;
-                            const x = 20;
-                            const y = 20;
-                            const r = Math.min(12, badgeHeight * 0.3);
+                            ctx.fillStyle = 'rgba(0,0,0,0.7)';
+                            ctx.fillRect(15, 15, bw, bh);
                             
-                            // 반투명 검은색 배경 (roundRect 호환)
-                            ctx.beginPath();
-                            ctx.moveTo(x + r, y);
-                            ctx.lineTo(x + badgeWidth - r, y);
-                            ctx.arcTo(x + badgeWidth, y, x + badgeWidth, y + r, r);
-                            ctx.lineTo(x + badgeWidth, y + badgeHeight - r);
-                            ctx.arcTo(x + badgeWidth, y + badgeHeight, x + badgeWidth - r, y + badgeHeight, r);
-                            ctx.lineTo(x + r, y + badgeHeight);
-                            ctx.arcTo(x, y + badgeHeight, x, y + badgeHeight - r, r);
-                            ctx.lineTo(x, y + r);
-                            ctx.arcTo(x, y, x + r, y, r);
-                            ctx.closePath();
-                            
-                            ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
-                            ctx.fill();
-                            
-                            ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
-                            ctx.lineWidth = 3;
-                            ctx.stroke();
-                            
-                            // 흰색 텍스트
                             ctx.fillStyle = '#FFFFFF';
-                            ctx.font = `bold ${fontSize}px Arial`;
+                            ctx.font = 'bold ' + fSize + 'px Arial';
                             ctx.textAlign = 'center';
                             ctx.textBaseline = 'middle';
-                            ctx.fillText(text, x + badgeWidth / 2, y + badgeHeight / 2);
+                            ctx.fillText(text, 15 + bw / 2, 15 + bh / 2);
                             
-                            resolve(canvas.toDataURL('image/jpeg', 0.95));
-                        } catch (e) {
-                            console.error('워터마크 렌더링 오류:', e);
+                            resolve(canvas.toDataURL('image/jpeg', 0.92));
+                        } catch(e) {
+                            console.error('워터마크 렌더링 실패:', e);
                             resolve(imageDataUrl);
                         }
                     };
-                    img.onerror = () => {
-                        console.error('워터마크 이미지 로드 실패');
-                        resolve(imageDataUrl);
-                    };
+                    img.onerror = function() { resolve(imageDataUrl); };
                     img.src = imageDataUrl;
-                } catch (e) {
-                    console.error('워터마크 함수 오류:', e);
+                } catch(e) {
                     resolve(imageDataUrl);
                 }
             });
