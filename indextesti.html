@@ -3394,7 +3394,11 @@
                             if (photo !== null) {
                                 const photoType = photoNum === 0 ? '원경' : '근접';
                                 const fileName = `${num}_${space}_${location}_${photoType}.jpg`;
-                                photoTasks.push({ photo, fileName });
+                                // 워터마크 추가 (동호수 포함)
+                                const dongHo = `${project.dong}동${project.ho}호`;
+                                const wmText = photoNum === 0 ? `${dongHo}_${defectIndex + 1}` : `${dongHo}_${defectIndex + 1}-1`;
+                                const photoWithWM = await window.addWatermarkToPhoto(photo, wmText);
+                                photoTasks.push({ photo: photoWithWM, fileName });
                                 photoNum++;
                             }
                         }
