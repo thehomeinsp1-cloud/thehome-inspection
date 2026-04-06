@@ -3380,7 +3380,7 @@
                 await uploadFileToDrive(projectFolderId, excelBlob, excelFileName, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
                 
                 // ========== 6. 사진 ZIP 파일 생성 및 업로드 ==========
-                // 업로드할 하자 사진 목록 준비
+                // 업로드할 하자 사진 목록 준비 (워터마크 텍스트 포함)
                 const photoTasks = [];
                 for (let defectIndex = 0; defectIndex < project.defects.length; defectIndex++) {
                     const defect = project.defects[defectIndex];
@@ -3388,16 +3388,28 @@
                         const num = String(defectIndex + 1).padStart(2, '0');
                         const space = defect.spaces && defect.spaces.length > 0 ? defect.spaces[0] : '기타';
                         const location = defect.locations && defect.locations.length > 0 ? defect.locations[0] : '';
+                        const dongHo = `${project.dong}동${project.ho}호`;
                         
                         let photoNum = 0;
                         for (const photo of defect.photos) {
                             if (photo !== null) {
                                 const photoType = photoNum === 0 ? '원경' : '근접';
                                 const fileName = `${num}_${space}_${location}_${photoType}.jpg`;
-                                photoTasks.push({ photo, fileName });
+                                const wmText = photoNum === 0 ? `${dongHo}_${String(defectIndex + 1).padStart(2, '0')} 원경` : `${dongHo}_${String(defectIndex + 1).padStart(2, '0')} 근경`;
+                                photoTasks.push({ photo, fileName, wmText });
                                 photoNum++;
                             }
                         }
+                    }
+                }
+                
+                // 워터마크 병렬 처리 (10장씩 배치)
+                const BATCH = 10;
+                for (let i = 0; i < photoTasks.length; i += BATCH) {
+                    const batch = photoTasks.slice(i, i + BATCH);
+                    const results = await Promise.all(batch.map(t => window.addWatermarkToPhoto(t.photo, t.wmText)));
+                    for (let j = 0; j < batch.length; j++) {
+                        batch[j].photo = results[j];
                     }
                 }
                 
@@ -6970,33 +6982,36 @@
                 // 하자 사진
                 if (projectData.defects && projectData.defects.length > 0) {
                     const defectFolder = zip.folder('하자사진');
+                    const dongHo = `${projectData.dong}동${projectData.ho}호`;
                     
+                    // 작업 목록 생성
+                    const wmTasks = [];
                     for (let index = 0; index < projectData.defects.length; index++) {
                         const defect = projectData.defects[index];
                         if (defect.photos && defect.photos.length > 0) {
                             const defectNum = String(index + 1).padStart(2, '0');
-                            // ✅ 배열에서 첫 번째 값 가져오기
                             const spaceName = (defect.spaces && defect.spaces.length > 0) ? defect.spaces[0] : '미지정';
                             const locationName = (defect.locations && defect.locations.length > 0) ? defect.locations[0] : '미지정';
                             
                             for (let photoIndex = 0; photoIndex < defect.photos.length; photoIndex++) {
                                 const photo = defect.photos[photoIndex];
-                                
-                                // null 사진 건너뛰기
                                 if (photo === null) continue;
-                                
                                 const photoType = photoIndex === 0 ? '원경' : '근접';
-                                
-                                // 워터마크 추가 (동호수 포함)
-                                const dongHo = `${projectData.dong}동${projectData.ho}호`;
-                                const watermarkText = photoIndex === 0 ? `${dongHo}_${index + 1}` : `${dongHo}_${index + 1}-1`;
-                                const photoWithWatermark = await window.addWatermarkToPhoto(photo, watermarkText);
-                                
-                                const photoData = photoWithWatermark.split(',')[1];
+                                const wmText = photoIndex === 0 ? `${dongHo}_${String(index + 1).padStart(2, '0')} 원경` : `${dongHo}_${String(index + 1).padStart(2, '0')} 근경`;
                                 const fileName = `${defectNum}_${spaceName}_${locationName}_${photoType}.jpg`.replace(/\//g, '-');
-                                defectFolder.file(fileName, photoData, { base64: true });
-                                photoCount++;
+                                wmTasks.push({ photo, wmText, fileName });
                             }
+                        }
+                    }
+                    
+                    // 10장씩 병렬 처리
+                    for (let i = 0; i < wmTasks.length; i += 10) {
+                        const batch = wmTasks.slice(i, i + 10);
+                        const results = await Promise.all(batch.map(t => window.addWatermarkToPhoto(t.photo, t.wmText)));
+                        for (let j = 0; j < batch.length; j++) {
+                            const photoData = results[j].split(',')[1];
+                            defectFolder.file(batch[j].fileName, photoData, { base64: true });
+                            photoCount++;
                         }
                     }
                 }
@@ -7214,33 +7229,34 @@
                 // 2. 하자 사진 (순번대로, 폴더 없이)
                 if (projectData.defects && projectData.defects.length > 0) {
                     const defectFolder = zip.folder('하자사진');
+                    const dongHo = `${projectData.dong}동${projectData.ho}호`;
                     
+                    const wmTasks2 = [];
                     for (let index = 0; index < projectData.defects.length; index++) {
                         const defect = projectData.defects[index];
                         if (defect.photos && defect.photos.length > 0) {
-                            const defectNum = String(index + 1).padStart(2, '0'); // 01, 02, 03...
-                            // ✅ 배열에서 첫 번째 값 가져오기
+                            const defectNum = String(index + 1).padStart(2, '0');
                             const spaceName = (defect.spaces && defect.spaces.length > 0) ? defect.spaces[0] : '미지정';
                             const locationName = (defect.locations && defect.locations.length > 0) ? defect.locations[0] : '미지정';
                             
                             for (let photoIndex = 0; photoIndex < defect.photos.length; photoIndex++) {
                                 const photo = defect.photos[photoIndex];
-                                
-                                // null 사진 건너뛰기
                                 if (photo === null) continue;
-                                
                                 const photoType = photoIndex === 0 ? '원경' : '근접';
-                                
-                                // 워터마크 추가 (동호수 포함)
-                                const dongHo = `${projectData.dong}동${projectData.ho}호`;
-                                const watermarkText = photoIndex === 0 ? `${dongHo}_${index + 1}` : `${dongHo}_${index + 1}-1`;
-                                const photoWithWatermark = await window.addWatermarkToPhoto(photo, watermarkText);
-                                
-                                const photoData = photoWithWatermark.split(',')[1];
+                                const wmText = photoIndex === 0 ? `${dongHo}_${String(index + 1).padStart(2, '0')} 원경` : `${dongHo}_${String(index + 1).padStart(2, '0')} 근경`;
                                 const fileName = `${defectNum}_${spaceName}_${locationName}_${photoType}.jpg`.replace(/\//g, '-');
-                                defectFolder.file(fileName, photoData, { base64: true });
-                                photoCount++;
+                                wmTasks2.push({ photo, wmText, fileName });
                             }
+                        }
+                    }
+                    
+                    for (let i = 0; i < wmTasks2.length; i += 10) {
+                        const batch = wmTasks2.slice(i, i + 10);
+                        const results = await Promise.all(batch.map(t => window.addWatermarkToPhoto(t.photo, t.wmText)));
+                        for (let j = 0; j < batch.length; j++) {
+                            const photoData = results[j].split(',')[1];
+                            defectFolder.file(batch[j].fileName, photoData, { base64: true });
+                            photoCount++;
                         }
                     }
                 }
@@ -8485,49 +8501,44 @@
 
         // 📷 사진에 워터마크 추가하는 함수
         window.addWatermarkToPhoto = async function(imageDataUrl, text) {
+            if (!imageDataUrl || !text) return imageDataUrl || '';
             return new Promise((resolve) => {
-                const img = new Image();
-                img.onload = () => {
-                    const canvas = document.createElement('canvas');
-                    canvas.width = img.width;
-                    canvas.height = img.height;
-                    
-                    const ctx = canvas.getContext('2d');
-                    
-                    // 원본 이미지 그리기
-                    ctx.drawImage(img, 0, 0);
-                    
-                    // 워터마크 배지 크기 (이미지 높이의 6%로 축소)
-                    const badgeHeight = img.height * 0.06; // 이미지 높이의 6% (더 작게)
-                    const fontSize = badgeHeight * 0.5; // 배지 높이의 50%
-                    
-                    // 텍스트 너비 측정
-                    ctx.font = `bold ${fontSize}px Arial`;
-                    const textWidth = ctx.measureText(text).width;
-                    const badgeWidth = textWidth + badgeHeight * 0.4; // 좌우 여백 줄임
-                    const padding = badgeHeight * 0.2; // 여백 비율
-                    
-                    // 반투명 검은색 배경 (직사각형)
-                    ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
-                    ctx.roundRect(20, 20, badgeWidth, badgeHeight, 12);
-                    ctx.fill();
-                    
-                    // 흰색 테두리
-                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
-                    ctx.lineWidth = 3;
-                    ctx.roundRect(20, 20, badgeWidth, badgeHeight, 12);
-                    ctx.stroke();
-                    
-                    // 흰색 텍스트
-                    ctx.fillStyle = '#FFFFFF';
-                    ctx.font = `bold ${fontSize}px Arial`;
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
-                    ctx.fillText(text, 20 + badgeWidth / 2, 20 + badgeHeight / 2);
-                    
-                    resolve(canvas.toDataURL('image/jpeg', 0.95));
-                };
-                img.src = imageDataUrl;
+                try {
+                    const img = new Image();
+                    img.onload = function() {
+                        try {
+                            var canvas = document.createElement('canvas');
+                            canvas.width = img.width;
+                            canvas.height = img.height;
+                            var ctx = canvas.getContext('2d');
+                            ctx.drawImage(img, 0, 0);
+                            
+                            var fSize = Math.max(Math.round(img.height * 0.03), 16);
+                            ctx.font = 'bold ' + fSize + 'px Arial';
+                            var tw = ctx.measureText(text).width;
+                            var bw = tw + fSize;
+                            var bh = fSize * 2;
+                            
+                            ctx.fillStyle = 'rgba(0,0,0,0.7)';
+                            ctx.fillRect(15, 15, bw, bh);
+                            
+                            ctx.fillStyle = '#FFFFFF';
+                            ctx.font = 'bold ' + fSize + 'px Arial';
+                            ctx.textAlign = 'center';
+                            ctx.textBaseline = 'middle';
+                            ctx.fillText(text, 15 + bw / 2, 15 + bh / 2);
+                            
+                            resolve(canvas.toDataURL('image/jpeg', 0.92));
+                        } catch(e) {
+                            console.error('워터마크 렌더링 실패:', e);
+                            resolve(imageDataUrl);
+                        }
+                    };
+                    img.onerror = function() { resolve(imageDataUrl); };
+                    img.src = imageDataUrl;
+                } catch(e) {
+                    resolve(imageDataUrl);
+                }
             });
         }
 
@@ -8544,8 +8555,8 @@
                 
                 // 워터마크 추가된 사진 (동호수 포함)
                 const dongHo = `${projectData.dong}동${projectData.ho}호`;
-                const farPhoto = farPhotoOriginal ? await window.addWatermarkToPhoto(farPhotoOriginal, `${dongHo}_${globalIndex}`) : '';
-                const closePhoto = closePhotoOriginal ? await window.addWatermarkToPhoto(closePhotoOriginal, `${dongHo}_${globalIndex}-1`) : '';
+                const farPhoto = farPhotoOriginal ? await window.addWatermarkToPhoto(farPhotoOriginal, `${dongHo}_${String(globalIndex).padStart(2, '0')} 원경`) : '';
+                const closePhoto = closePhotoOriginal ? await window.addWatermarkToPhoto(closePhotoOriginal, `${dongHo}_${String(globalIndex).padStart(2, '0')} 근경`) : '';
                 
                 // 배열을 문자열로 변환 (하위 호환성)
                 const spaces = defect.spaces ? defect.spaces.join(', ') : (defect.space || '-');
@@ -10704,8 +10715,8 @@
             const defect = defects[idx];
             const globalIndex = startIndex + idx + 1;
             const dongHo = `${projectData.dong}동${projectData.ho}호`;
-            const farPhoto = defect.photos && defect.photos[0] ? await window.addWatermarkToPhoto(defect.photos[0], `${dongHo}_${globalIndex}`) : '';
-            const closePhoto = defect.photos && defect.photos[1] ? await window.addWatermarkToPhoto(defect.photos[1], `${dongHo}_${globalIndex}-1`) : '';
+            const farPhoto = defect.photos && defect.photos[0] ? await window.addWatermarkToPhoto(defect.photos[0], `${dongHo}_${String(globalIndex).padStart(2, '0')} 원경`) : '';
+            const closePhoto = defect.photos && defect.photos[1] ? await window.addWatermarkToPhoto(defect.photos[1], `${dongHo}_${String(globalIndex).padStart(2, '0')} 근경`) : '';
             const spaces = defect.spaces ? defect.spaces.join(', ') : '-';
             const description = defect.description || '-';
             contentHTML += `<div style="margin-bottom:25px;break-inside:avoid;background:white;border:1px solid ${R_THEME.border};border-radius:8px;overflow:hidden;"><div style="display:flex;align-items:center;padding:10px 15px;background:${R_THEME.bg};border-bottom:1px solid ${R_THEME.border};"><div style="background:${R_THEME.primary};color:white;font-weight:800;font-size:12px;padding:3px 10px;border-radius:20px;margin-right:15px;">#${String(globalIndex).padStart(2,'0')}</div><div style="font-size:15px;font-weight:800;color:${R_THEME.dark};margin-right:12px;">${spaces}</div><div style="color:#cbd5e1;margin-right:12px;">|</div><div style="font-size:13px;color:#1a1a1a;font-weight:700;flex:1;">${description}</div></div><div style="display:flex;gap:2px;padding:2px;background:${R_THEME.border};"><div style="flex:1;background:white;position:relative;height:280px;">${farPhoto?`<img src="${farPhoto}" style="width:100%;height:100%;object-fit:contain;"/>`:`<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#ccc;font-size:12px;">사진 없음</div>`}<div style="position:absolute;bottom:8px;left:8px;background:rgba(0,0,0,0.7);color:white;font-size:11px;padding:3px 8px;border-radius:4px;font-weight:700;">원경</div></div><div style="flex:1;background:white;position:relative;height:280px;">${closePhoto?`<img src="${closePhoto}" style="width:100%;height:100%;object-fit:contain;"/>`:`<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#ccc;font-size:12px;">사진 없음</div>`}<div style="position:absolute;bottom:8px;left:8px;background:${R_THEME.primary};color:white;font-size:11px;padding:3px 8px;border-radius:4px;font-weight:700;">근경</div></div></div></div>`;
