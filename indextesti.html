@@ -10418,42 +10418,68 @@
         const totalPhotos = projectData.defects.filter(d => d.photos && d.photos.length > 0).reduce((s, d) => s + d.photos.length, 0);
         const totalDefects = projectData.defects.length;
 
-        // 공종별 하자유형 집계 (엑셀 공종구분 기준)
+        // 공종별 하자유형 집계
         const typeCounts = {};
         projectData.defects.forEach(d => {
             const gongJong = window.detectGongJong ? window.detectGongJong(d) : '기타공종';
             typeCounts[gongJong] = (typeCounts[gongJong] || 0) + 1;
         });
         const sortedTypes = Object.entries(typeCounts).sort((a, b) => b[1] - a[1]);
-        const maxCount = sortedTypes.length > 0 ? sortedTypes[0][1] : 1;
+        const maxTypeCount = sortedTypes.length > 0 ? sortedTypes[0][1] : 1;
         const barColors = ['#E84848','#1A2744','#2A9D8F','#D4A853','#6366f1','#ec4899','#f97316','#06b6d4','#84cc16','#a855f7'];
 
-        // 바 차트 HTML 생성
-        let chartBarsHTML = '';
-        sortedTypes.slice(0, 10).forEach((item, i) => {
-            const pct = Math.round((item[1] / maxCount) * 100);
-            const color = barColors[i % barColors.length];
-            chartBarsHTML += `
-                <div style="display:flex;align-items:center;gap:8px;margin-bottom:9px;">
-                    <div style="width:85px;font-size:13px;font-weight:600;color:#1a1a1a;text-align:right;flex-shrink:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">${item[0]}</div>
-                    <div style="flex:1;height:28px;background:#f1f5f9;border-radius:4px;overflow:hidden;">
-                        <div style="width:${pct}%;height:100%;background:${color};border-radius:4px;min-width:20px;"></div>
-                    </div>
-                    <div style="width:30px;font-size:14px;font-weight:800;color:${color};text-align:right;flex-shrink:0;">${item[1]}</div>
-                </div>`;
+        // 위치별(공간별) 하자 집계
+        const spaceCounts = {};
+        projectData.defects.forEach(d => {
+            const spaces = d.spaces && d.spaces.length > 0 ? d.spaces : ['미지정'];
+            spaces.forEach(s => {
+                spaceCounts[s] = (spaceCounts[s] || 0) + 1;
+            });
         });
+        const sortedSpaces = Object.entries(spaceCounts).sort((a, b) => b[1] - a[1]);
+        const maxSpaceCount = sortedSpaces.length > 0 ? sortedSpaces[0][1] : 1;
 
+        // 공종별 바 차트 HTML
+        let chartBarsHTML = '';
+        sortedTypes.slice(0, 8).forEach((item, i) => {
+            const pct = Math.round((item[1] / maxTypeCount) * 100);
+            const color = barColors[i % barColors.length];
+            chartBarsHTML += '<div style="display:flex;align-items:center;gap:6px;margin-bottom:7px;"><div style="width:70px;font-size:11px;font-weight:600;color:#1a1a1a;text-align:right;flex-shrink:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">' + item[0] + '</div><div style="flex:1;height:22px;background:#f1f5f9;border-radius:4px;overflow:hidden;"><div style="width:' + pct + '%;height:100%;background:' + color + ';border-radius:4px;min-width:16px;"></div></div><div style="width:24px;font-size:12px;font-weight:800;color:' + color + ';text-align:right;flex-shrink:0;">' + item[1] + '</div></div>';
+        });
         if (sortedTypes.length === 0) {
-            chartBarsHTML = '<div style="text-align:center;color:#1a1a1a;font-size:12px;padding:30px 0;">등록된 하자가 없습니다</div>';
+            chartBarsHTML = '<div style="text-align:center;color:#1a1a1a;font-size:12px;padding:20px 0;">등록된 하자가 없습니다</div>';
         }
+
+        // 위치별 바 차트 HTML
+        let spaceBarsHTML = '';
+        sortedSpaces.slice(0, 8).forEach((item, i) => {
+            const pct = Math.round((item[1] / maxSpaceCount) * 100);
+            const color = barColors[i % barColors.length];
+            spaceBarsHTML += '<div style="display:flex;align-items:center;gap:6px;margin-bottom:7px;"><div style="width:70px;font-size:11px;font-weight:600;color:#1a1a1a;text-align:right;flex-shrink:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">' + item[0] + '</div><div style="flex:1;height:22px;background:#f1f5f9;border-radius:4px;overflow:hidden;"><div style="width:' + pct + '%;height:100%;background:' + color + ';border-radius:4px;min-width:16px;"></div></div><div style="width:24px;font-size:12px;font-weight:800;color:' + color + ';text-align:right;flex-shrink:0;">' + item[1] + '</div></div>';
+        });
+        if (sortedSpaces.length === 0) {
+            spaceBarsHTML = '<div style="text-align:center;color:#1a1a1a;font-size:12px;padding:20px 0;">등록된 하자가 없습니다</div>';
+        }
+
+        // 평면도 HTML
+        const floorplanHTML = projectData.floorplan ? `
+                    <div style="margin-bottom:18px;">
+                        <div style="font-size:13px;font-weight:700;color:#1A2744;margin-bottom:10px;display:flex;align-items:center;gap:6px;">
+                            <div style="width:4px;height:16px;background:#E84848;border-radius:2px;"></div>
+                            평면도
+                        </div>
+                        <div style="border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;background:#fafafa;padding:10px;display:flex;align-items:center;justify-content:center;max-height:220px;">
+                            <img src="${projectData.floorplan}" style="width:100%;max-height:200px;object-fit:contain;" />
+                        </div>
+                    </div>` : '';
 
         return `
             <div style="width:794px;height:1123px;background:#fff;font-family:'Malgun Gothic',sans-serif;position:relative;box-sizing:border-box;overflow:hidden;">
                 <div style="position:absolute;left:0;top:0;width:8px;height:100%;background:linear-gradient(180deg,#E84848 0%,#D43F3F 100%);"></div>
-                <div style="position:relative;z-index:2;padding:45px 45px 45px 60px;height:100%;box-sizing:border-box;display:flex;flex-direction:column;">
+                <div style="position:relative;z-index:2;padding:40px 40px 35px 55px;height:100%;box-sizing:border-box;display:flex;flex-direction:column;">
 
                     <!-- 페이지 헤더 -->
-                    <div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:18px;border-bottom:2px solid #f1f5f9;margin-bottom:25px;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:16px;border-bottom:2px solid #f1f5f9;margin-bottom:20px;">
                         <div style="display:flex;align-items:center;gap:10px;">
                             <div style="font-size:20px;font-weight:800;color:#E84848;">더홈점검</div>
                             <div style="height:14px;width:1px;background:#e2e8f0;"></div>
@@ -10463,54 +10489,54 @@
                     </div>
 
                     <!-- 하자 요약 카드 -->
-                    <div style="display:flex;gap:14px;margin-bottom:24px;">
-                        <div style="flex:1;background:#FEF2F2;border-radius:10px;padding:18px 14px;text-align:center;border:1px solid #FECACA;">
-                            <div style="color:#E84848;font-size:13px;font-weight:600;letter-spacing:1px;margin-bottom:6px;">총 하자</div>
-                            <div style="color:#E84848;font-size:30px;font-weight:900;">${totalDefects}</div>
+                    <div style="display:flex;gap:12px;margin-bottom:20px;">
+                        <div style="flex:1;background:#FEF2F2;border-radius:10px;padding:14px 10px;text-align:center;border:1px solid #FECACA;">
+                            <div style="color:#E84848;font-size:12px;font-weight:600;letter-spacing:1px;margin-bottom:4px;">총 하자</div>
+                            <div style="color:#E84848;font-size:28px;font-weight:900;">${totalDefects}</div>
                         </div>
-                        <div style="flex:1;background:#FEF2F2;border-radius:10px;padding:18px 14px;text-align:center;border:1px solid #FECACA;">
-                            <div style="color:#DC2626;font-size:13px;font-weight:600;letter-spacing:1px;margin-bottom:6px;">중대하자</div>
-                            <div style="color:#DC2626;font-size:30px;font-weight:900;">${criticalCount}</div>
+                        <div style="flex:1;background:#FEF2F2;border-radius:10px;padding:14px 10px;text-align:center;border:1px solid #FECACA;">
+                            <div style="color:#DC2626;font-size:12px;font-weight:600;letter-spacing:1px;margin-bottom:4px;">중대하자</div>
+                            <div style="color:#DC2626;font-size:28px;font-weight:900;">${criticalCount}</div>
                         </div>
-                        <div style="flex:1;background:#F8FAFC;border-radius:10px;padding:18px 14px;text-align:center;border:1px solid #E2E8F0;">
-                            <div style="color:#1A2744;font-size:13px;font-weight:600;letter-spacing:1px;margin-bottom:6px;">일반하자</div>
-                            <div style="color:#1A2744;font-size:30px;font-weight:900;">${normalCount}</div>
+                        <div style="flex:1;background:#F8FAFC;border-radius:10px;padding:14px 10px;text-align:center;border:1px solid #E2E8F0;">
+                            <div style="color:#1A2744;font-size:12px;font-weight:600;letter-spacing:1px;margin-bottom:4px;">일반하자</div>
+                            <div style="color:#1A2744;font-size:28px;font-weight:900;">${normalCount}</div>
                         </div>
-                        <div style="flex:1;background:#F8FAFC;border-radius:10px;padding:18px 14px;text-align:center;border:1px solid #E2E8F0;">
-                            <div style="color:#1a1a1a;font-size:13px;font-weight:600;letter-spacing:1px;margin-bottom:6px;">촬영 사진</div>
-                            <div style="color:#1e293b;font-size:30px;font-weight:900;">${totalPhotos}</div>
+                        <div style="flex:1;background:#F8FAFC;border-radius:10px;padding:14px 10px;text-align:center;border:1px solid #E2E8F0;">
+                            <div style="color:#1a1a1a;font-size:12px;font-weight:600;letter-spacing:1px;margin-bottom:4px;">촬영 사진</div>
+                            <div style="color:#1e293b;font-size:28px;font-weight:900;">${totalPhotos}</div>
                         </div>
                     </div>
 
-                    <!-- 평면도 + 공종별 하자유형 차트 (평면도 유무에 따라 자동 레이아웃) -->
-                    <div style="display:flex;gap:16px;margin-bottom:24px;">
-                        ${projectData.floorplan ? `
-                        <!-- 좌: 평면도 -->
+                    <!-- 공종별 + 위치별 차트 (2열) -->
+                    <div style="display:flex;gap:14px;margin-bottom:18px;">
                         <div style="flex:1;display:flex;flex-direction:column;">
-                            <div style="font-size:13px;font-weight:700;color:#1A2744;margin-bottom:10px;display:flex;align-items:center;gap:6px;">
-                                <div style="width:4px;height:16px;background:#E84848;border-radius:2px;"></div>
-                                평면도
-                            </div>
-                            <div style="border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;background:#fafafa;padding:10px;display:flex;align-items:center;justify-content:center;max-height:280px;">
-                                <img src="${projectData.floorplan}" style="width:100%;max-height:100%;object-fit:contain;" />
-                            </div>
-                        </div>` : ``}
-                        <!-- 공종별 하자유형 그래프 -->
-                        <div style="flex:1;display:flex;flex-direction:column;">
-                            <div style="font-size:13px;font-weight:700;color:#1A2744;margin-bottom:10px;display:flex;align-items:center;gap:6px;">
+                            <div style="font-size:13px;font-weight:700;color:#1A2744;margin-bottom:8px;display:flex;align-items:center;gap:6px;">
                                 <div style="width:4px;height:16px;background:#E84848;border-radius:2px;"></div>
                                 공종별 하자 현황
                             </div>
-                            <div style="border:1px solid #e2e8f0;border-radius:10px;padding:14px;background:#fff;">
+                            <div style="border:1px solid #e2e8f0;border-radius:10px;padding:12px;background:#fff;">
                                 ${chartBarsHTML}
-                                <div style="font-size:9px;color:#888;margin-top:8px;text-align:center;">※ 공종 구분은 점검 내용 기반 자동 분류이며, 시공사의 실제 공종 기준과 다를 수 있습니다.</div>
+                                <div style="font-size:8px;color:#888;margin-top:6px;text-align:center;">※ 공종 구분은 점검 내용 기반 자동 분류이며, 시공사의 실제 공종 기준과 다를 수 있습니다.</div>
+                            </div>
+                        </div>
+                        <div style="flex:1;display:flex;flex-direction:column;">
+                            <div style="font-size:13px;font-weight:700;color:#1A2744;margin-bottom:8px;display:flex;align-items:center;gap:6px;">
+                                <div style="width:4px;height:16px;background:#2A9D8F;border-radius:2px;"></div>
+                                위치별 하자 현황
+                            </div>
+                            <div style="border:1px solid #e2e8f0;border-radius:10px;padding:12px;background:#fff;">
+                                ${spaceBarsHTML}
                             </div>
                         </div>
                     </div>
 
+                    <!-- 평면도 (있을 때만) -->
+                    ${floorplanHTML}
+
                     <!-- 점검 항목 -->
-                    <div style="margin-bottom:20px;flex:1;">
-                        <div style="font-size:13px;font-weight:700;color:#1A2744;margin-bottom:10px;display:flex;align-items:center;gap:6px;">
+                    <div style="margin-bottom:14px;flex:1;">
+                        <div style="font-size:13px;font-weight:700;color:#1A2744;margin-bottom:8px;display:flex;align-items:center;gap:6px;">
                             <div style="width:4px;height:16px;background:#E84848;border-radius:2px;"></div>
                             점검 항목
                         </div>
@@ -10543,7 +10569,7 @@
                     </div>
 
                     <!-- 사후관리 안내 -->
-                    <div style="background:#FEF9C3;border:1px solid #FDE68A;border-radius:8px;padding:12px 14px;margin-bottom:12px;">
+                    <div style="background:#FEF9C3;border:1px solid #FDE68A;border-radius:8px;padding:12px 14px;margin-bottom:10px;">
                         <div style="display:flex;align-items:flex-start;gap:6px;">
                             <span style="font-size:12px;line-height:1;">⚠️</span>
                             <div>
@@ -10554,7 +10580,7 @@
                     </div>
 
                     <!-- 푸터 -->
-                    <div style="margin-top:auto;padding-top:15px;border-top:1px solid #eee;display:flex;justify-content:space-between;align-items:center;color:#1a1a1a;font-size:11px;">
+                    <div style="margin-top:auto;padding-top:12px;border-top:1px solid #eee;display:flex;justify-content:space-between;align-items:center;color:#1a1a1a;font-size:11px;">
                         <div style="font-weight:800;">THE HOME INSPECTION</div>
                         <div style="font-weight:800;">1668-5322</div>
                     </div>
