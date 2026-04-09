@@ -4481,9 +4481,9 @@
             input.onchange = async (e) => {
                 const file = e.target.files[0];
                 if (file) {
-                    // 평면도는 더 높은 해상도 사용 (글씨 선명도 개선)
-                    const maxWidth = deviceInfo.isIOS ? 1920 : 2560;
-                    const quality = 0.9;
+                    // 평면도는 최대 해상도 + 고품질 사용 (글씨 선명도 확보)
+                    const maxWidth = deviceInfo.isIOS ? 2560 : 3840;
+                    const quality = 0.95;
                     const compressed = await compressImage(file, maxWidth, quality);
                     const project = getCurrentProject(); // ✅ 현재 프로젝트 가져오기
                     
@@ -6318,9 +6318,9 @@
             // 이미지 압축 (평면도는 더 높은 해상도 사용)
             let imageData;
             if (currentPhotoTarget === 'floorplan') {
-                // 평면도: 더 높은 해상도로 글씨 선명도 개선
-                const maxWidth = deviceInfo.isIOS ? 1920 : 2560;
-                const quality = 0.9;
+                // 평면도: 최대 해상도 + 고품질로 글씨 선명도 확보
+                const maxWidth = deviceInfo.isIOS ? 2560 : 3840;
+                const quality = 0.95;
                 imageData = await compressImage(originalImage, maxWidth, quality);
             } else {
                 // 일반 사진: 기본 설정
