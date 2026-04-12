@@ -2583,7 +2583,7 @@
                         defect.spaces.join(', '),
                         defect.locations.join(', '),
                         defect.types.join(', '),
-                        description || '-'
+                        String(index + 1).padStart(2, '0') + '_' + (description || '-')
                     ];
                 });
 
@@ -3223,7 +3223,7 @@
                         space: defect.spaces ? defect.spaces.join(', ') : '',
                         location: defect.locations ? defect.locations.join(', ') : '',
                         type: defect.types ? defect.types.join(', ') : '',
-                        description: defect.description || ''
+                        description: String(index + 1).padStart(2, '0') + '_' + (defect.description || '')
                     });
                 });
                 
@@ -6958,7 +6958,7 @@
                     row.getCell(2).value = (defect.spaces && defect.spaces.length > 0) ? defect.spaces.join(', ') : '';
                     row.getCell(3).value = (defect.locations && defect.locations.length > 0) ? defect.locations.join(', ') : '';
                     row.getCell(4).value = (defect.types && defect.types.length > 0) ? defect.types.join(', ') : '';
-                    row.getCell(5).value = defect.description || '';
+                    row.getCell(5).value = String(index + 1).padStart(2, '0') + '_' + (defect.description || '');
                 });
                 
                 // 엑셀 파일을 ZIP에 추가
@@ -7175,7 +7175,7 @@
                     row.getCell(2).value = (defect.spaces && defect.spaces.length > 0) ? defect.spaces.join(', ') : '';
                     row.getCell(3).value = (defect.locations && defect.locations.length > 0) ? defect.locations.join(', ') : '';
                     row.getCell(4).value = (defect.types && defect.types.length > 0) ? defect.types.join(', ') : '';
-                    row.getCell(5).value = defect.description || '';
+                    row.getCell(5).value = String(index + 1).padStart(2, '0') + '_' + (defect.description || '');
                 });
                 
                 // 파일 생성 및 다운로드
@@ -7922,19 +7922,20 @@
                 const ws = workbook.addWorksheet('하자점검리스트');
 
                 // ===== 컬럼 너비 설정 =====
-                ws.getColumn(1).width = 10;  // 동구분
-                ws.getColumn(2).width = 10;  // 호구분
-                ws.getColumn(3).width = 12;  // 실구분
-                ws.getColumn(4).width = 14;  // 공종구분
-                ws.getColumn(5).width = 14;  // 하자유형
-                ws.getColumn(6).width = 35;  // 하자내용
-                ws.getColumn(7).width = 20;  // 원경
-                ws.getColumn(8).width = 20;  // 근경
-                ws.getColumn(9).width = 14;  // 보수방법
-                ws.getColumn(10).width = 14; // 비고
+                ws.getColumn(1).width = 7;   // No
+                ws.getColumn(2).width = 10;  // 동구분
+                ws.getColumn(3).width = 10;  // 호구분
+                ws.getColumn(4).width = 12;  // 실구분
+                ws.getColumn(5).width = 14;  // 공종구분
+                ws.getColumn(6).width = 14;  // 하자유형
+                ws.getColumn(7).width = 35;  // 하자내용
+                ws.getColumn(8).width = 20;  // 원경
+                ws.getColumn(9).width = 20;  // 근경
+                ws.getColumn(10).width = 14; // 보수방법
+                ws.getColumn(11).width = 14; // 비고
 
                 // ===== 제목행 =====
-                ws.mergeCells('A1:J1');
+                ws.mergeCells('A1:K1');
                 const titleCell = ws.getCell('A1');
                 titleCell.value = '세대 하자점검 LIST';
                 titleCell.font = { size: 18, bold: true, color: { argb: 'FF000000' } };
@@ -7942,7 +7943,7 @@
                 ws.getRow(1).height = 40;
 
                 // ===== 헤더행 =====
-                const headers = ['동구분', '호구분', '실구분', '공종구분', '하자유형', '하자내용', '원경', '근경', '보수방법', '비고'];
+                const headers = ['No', '동구분', '호구분', '실구분', '공종구분', '하자유형', '하자내용', '원경', '근경', '보수방법', '비고'];
                 const headerRow = ws.getRow(2);
                 headerRow.height = 25;
                 headers.forEach((h, i) => {
@@ -7968,19 +7969,20 @@
                     row.height = ROW_HEIGHT;
 
                     // 텍스트 데이터
-                    row.getCell(1).value = projectData.dong || '';
-                    row.getCell(2).value = projectData.ho || '';
-                    row.getCell(3).value = (defect.spaces || []).join(', ');
-                    row.getCell(4).value = detectGongJong(defect);
-                    row.getCell(5).value = (defect.types || []).join(', ');
-                    row.getCell(6).value = defect.description || '';
-                    row.getCell(9).value = '';
+                    row.getCell(1).value = idx + 1;
+                    row.getCell(2).value = projectData.dong || '';
+                    row.getCell(3).value = projectData.ho || '';
+                    row.getCell(4).value = (defect.spaces || []).join(', ');
+                    row.getCell(5).value = detectGongJong(defect);
+                    row.getCell(6).value = (defect.types || []).join(', ');
+                    row.getCell(7).value = defect.description || '';
                     row.getCell(10).value = '';
+                    row.getCell(11).value = '';
 
                     // 셀 스타일
-                    for (let c = 1; c <= 10; c++) {
+                    for (let c = 1; c <= 11; c++) {
                         const cell = row.getCell(c);
-                        cell.alignment = { vertical: 'middle', horizontal: c === 6 ? 'left' : 'center', wrapText: true };
+                        cell.alignment = { vertical: 'middle', horizontal: c === 7 ? 'left' : 'center', wrapText: true };
                         cell.border = {
                             top: { style: 'thin' }, bottom: { style: 'thin' },
                             left: { style: 'thin' }, right: { style: 'thin' }
@@ -7998,8 +8000,8 @@
                             for (let i = 0; i < binaryStr.length; i++) bytes[i] = binaryStr.charCodeAt(i);
                             const imageId = workbook.addImage({ buffer: bytes, extension: 'jpeg' });
                             ws.addImage(imageId, {
-                                tl: { col: 6, row: rowNum - 1 },
-                                br: { col: 7, row: rowNum },
+                                tl: { col: 7, row: rowNum - 1 },
+                                br: { col: 8, row: rowNum },
                                 editAs: 'oneCell'
                             });
                             photoSuccessCount++;
@@ -8019,8 +8021,8 @@
                             for (let i = 0; i < binaryStr.length; i++) bytes[i] = binaryStr.charCodeAt(i);
                             const imageId = workbook.addImage({ buffer: bytes, extension: 'jpeg' });
                             ws.addImage(imageId, {
-                                tl: { col: 7, row: rowNum - 1 },
-                                br: { col: 8, row: rowNum },
+                                tl: { col: 8, row: rowNum - 1 },
+                                br: { col: 9, row: rowNum },
                                 editAs: 'oneCell'
                             });
                             photoSuccessCount++;
