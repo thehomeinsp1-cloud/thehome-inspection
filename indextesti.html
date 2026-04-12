@@ -2583,7 +2583,7 @@
                         defect.spaces.join(', '),
                         defect.locations.join(', '),
                         defect.types.join(', '),
-                        description || '-'
+                        String(index + 1).padStart(2, '0') + '_' + (description || '-')
                     ];
                 });
 
@@ -3223,7 +3223,7 @@
                         space: defect.spaces ? defect.spaces.join(', ') : '',
                         location: defect.locations ? defect.locations.join(', ') : '',
                         type: defect.types ? defect.types.join(', ') : '',
-                        description: defect.description || ''
+                        description: String(index + 1).padStart(2, '0') + '_' + (defect.description || '')
                     });
                 });
                 
@@ -6958,7 +6958,7 @@
                     row.getCell(2).value = (defect.spaces && defect.spaces.length > 0) ? defect.spaces.join(', ') : '';
                     row.getCell(3).value = (defect.locations && defect.locations.length > 0) ? defect.locations.join(', ') : '';
                     row.getCell(4).value = (defect.types && defect.types.length > 0) ? defect.types.join(', ') : '';
-                    row.getCell(5).value = defect.description || '';
+                    row.getCell(5).value = String(index + 1).padStart(2, '0') + '_' + (defect.description || '');
                 });
                 
                 // 엑셀 파일을 ZIP에 추가
@@ -7175,7 +7175,7 @@
                     row.getCell(2).value = (defect.spaces && defect.spaces.length > 0) ? defect.spaces.join(', ') : '';
                     row.getCell(3).value = (defect.locations && defect.locations.length > 0) ? defect.locations.join(', ') : '';
                     row.getCell(4).value = (defect.types && defect.types.length > 0) ? defect.types.join(', ') : '';
-                    row.getCell(5).value = defect.description || '';
+                    row.getCell(5).value = String(index + 1).padStart(2, '0') + '_' + (defect.description || '');
                 });
                 
                 // 파일 생성 및 다운로드
