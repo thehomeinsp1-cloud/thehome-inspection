@@ -936,11 +936,17 @@ function mAns(i){if(mLk||!thinkDone)return;mLk=true;
         else{showFB(0,'정답: '+m.o[m.a]);speakWrong()}
     }
     G.totalPlayed++;
-    const delay=isCorrect?1200:(isFastWrong?5000:3500);
-    setTimeout(()=>{mLk=false;
-        if(mI<mData.length-1){mI++;rMQ()}
-        else{if(window._advMode){advComplete('mission');window._advMode=false}else{G['ch'+curChap].mission=true}G.missionScore=mSc;showT(`⚔️ 완료! ${mSc}/${mData.length}`);nav('home')}
-    },delay)}
+    if(isCorrect){
+        setTimeout(()=>{mLk=false;
+            if(mI<mData.length-1){mI++;rMQ()}
+            else{if(window._advMode){advComplete('mission');window._advMode=false}else{G['ch'+curChap].mission=true}G.missionScore=mSc;showT(`⚔️ 완료! ${mSc}/${mData.length}`);nav('home')}
+        },1200);
+    }else{
+        addNextBtn('mission-c',()=>{mLk=false;
+            if(mI<mData.length-1){mI++;rMQ()}
+            else{if(window._advMode){advComplete('mission');window._advMode=false}else{G['ch'+curChap].mission=true}G.missionScore=mSc;showT(`⚔️ 완료! ${mSc}/${mData.length}`);nav('home')}
+        });
+    }}
 
 // ══════════════ BOSS ══════════════
 let bH=5,bI=0,bLk=false,pH=3;
@@ -1693,6 +1699,18 @@ function starMsg(stars){
     return '⭐×1';
 }
 
+function addNextBtn(containerId,callback){
+    const el=document.getElementById(containerId);
+    if(!el)return;
+    const btn=document.createElement('button');
+    btn.className='btn btn-blue btn-lg btn-block';
+    btn.style.cssText='margin-top:16px;font-size:16px;animation:fadeIn .3s';
+    btn.textContent='👉 다음 문제로';
+    btn.onclick=()=>{snd('click');callback()};
+    el.appendChild(btn);
+    setTimeout(()=>btn.scrollIntoView({behavior:'smooth'}),300);
+}
+
 function checkFastWrong(elapsed,correct){
     if(!correct && elapsed<2){
         fastWrongStreak++;
@@ -1774,14 +1792,12 @@ function pracQAns(i){
         if(isFastWrong){
             showFB(0,'🚫 천천히 생각하고 풀어봐요!');
             speak('천천히 생각하고 풀어봐요!');
-            showStepSolve({q:q.q,o:q.o,a:q.a},'pracquiz-c');
             fastWrongStreak=0;
-            setTimeout(()=>{pracQLk=false;pracQI++;renderPracQ()},5000);
         }else{
             showFB(0,'정답: '+q.o[q.a]);speakWrong();
-            showStepSolve({q:q.q,o:q.o,a:q.a},'pracquiz-c');
-            setTimeout(()=>{pracQLk=false;pracQI++;renderPracQ()},3500);
         }
+        showStepSolve({q:q.q,o:q.o,a:q.a},'pracquiz-c');
+        addNextBtn('pracquiz-c',()=>{pracQLk=false;pracQI++;renderPracQ()});
     }
 }
 
