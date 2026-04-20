@@ -211,7 +211,7 @@
     <div id="scr-onboard" class="screen" style="background:linear-gradient(180deg,#1565C0,#42A5F5,#E3F2FD)">
         <div class="content-area" id="onboard-c" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100%"></div>
     </div>
-    <div id="scr-home" class="screen"><div class="topbar"><span class="topbar-title">🗺️ 모험 지도</span><div class="stars-pill">⭐<span id="h-s">0</span><span style="color:var(--gray);font-size:10px" id="h-l">Lv.1</span></div><button class="tts-btn ${ttsOn?'on':''}" onclick="ttsOn=!ttsOn;this.classList.toggle('on');this.textContent=ttsOn?'🔊':'🔇'" style="margin-left:4px">${ttsOn?'🔊':'🔇'}</button></div><div class="content-area" id="home-c"></div><div class="bnav" id="bnav-main"></div></div>
+    <div id="scr-home" class="screen"><div class="topbar"><span class="topbar-title">🗺️ 모험 지도</span><div class="stars-pill">⭐<span id="h-s">0</span><span style="color:var(--gray);font-size:10px" id="h-l">Lv.1</span></div><button class="tts-btn on" id="tts-toggle" onclick="ttsOn=!ttsOn;this.classList.toggle('on');this.textContent=ttsOn?'🔊':'🔇'" style="margin-left:4px">🔊</button></div><div class="content-area" id="home-c"></div><div class="bnav" id="bnav-main"></div></div>
     <div id="scr-comic" class="screen"><div class="topbar"><button class="topbar-back" onclick="nav('home')">←</button><span class="topbar-title" id="comic-t">📖 만화</span><div class="stars-pill">⭐<span class="ss">0</span></div></div><div class="content-area" id="comic-c"></div></div>
     <div id="scr-concept" class="screen"><div class="topbar"><button class="topbar-back" onclick="nav('home')">←</button><span class="topbar-title" id="concept-t">🔍 개념</span><div class="stars-pill">⭐<span class="ss">0</span></div></div><div class="content-area" id="concept-c"></div></div>
     <div id="scr-mission" class="screen"><div class="topbar"><button class="topbar-back" onclick="nav('home')">←</button><span class="topbar-title" id="mission-t">⚔️ 미션</span><div class="stars-pill">⭐<span class="ss">0</span></div></div><div class="content-area" id="mission-c"></div></div>
@@ -296,7 +296,8 @@ function upS(){document.querySelectorAll('.ss,[id$="-s"]').forEach(e=>e.textCont
 function showT(m,c='#2E7D32'){const t=document.getElementById('toast');t.textContent=m;t.style.background=c;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200)}
 function showOL(e,t,d=0){const o=document.getElementById('overlay');document.getElementById('overlay-box').innerHTML=`<div style="font-size:52px;margin-bottom:10px">${e}</div><div style="font-family:var(--font-t);font-size:22px;color:var(--blue)">${t}</div>`;o.classList.add('show');if(d>0)setTimeout(()=>o.classList.remove('show'),d)}
 function hideOL(){document.getElementById('overlay').classList.remove('show')}
-function showFB(ok,t){const f=document.getElementById('feedback');f.className='fb '+(ok?'fb-ok':'fb-no');f.textContent=t;f.style.display='block';setTimeout(()=>f.style.display='none',1200)}
+function showFB(ok,t,autoHide=true){const f=document.getElementById('feedback');f.className='fb '+(ok?'fb-ok':'fb-no');f.textContent=t;f.style.display='block';if(autoHide)setTimeout(()=>f.style.display='none',1200)}
+function hideFB(){document.getElementById('feedback').style.display='none'}
 
 
 // ══════════════ SVG ICON SYSTEM (이모지 → SVG 일러스트) ══════════════
@@ -932,8 +933,8 @@ function mAns(i){if(mLk||!thinkDone)return;mLk=true;
         document.getElementById('mo-'+i).classList.add('wrong');
         if(m.a>=0)document.getElementById('mo-'+m.a)?.classList.add('correct');
         snd('no');showStepSolve(m,'mission-c');
-        if(isFastWrong){showFB(0,'🚫 천천히 생각하고 풀어봐요!');speak('천천히 생각하고 풀어봐요!');fastWrongStreak=0}
-        else{showFB(0,'정답: '+m.o[m.a]);speakWrong()}
+        if(isFastWrong){showFB(0,'🚫 천천히 생각하고 풀어봐요!',false);speak('천천히 생각하고 풀어봐요!');fastWrongStreak=0}
+        else{showFB(0,'정답: '+m.o[m.a],false);speakWrong()}
     }
     G.totalPlayed++;
     if(isCorrect){
@@ -942,7 +943,7 @@ function mAns(i){if(mLk||!thinkDone)return;mLk=true;
             else{if(window._advMode){advComplete('mission');window._advMode=false}else{G['ch'+curChap].mission=true}G.missionScore=mSc;showT(`⚔️ 완료! ${mSc}/${mData.length}`);nav('home')}
         },1200);
     }else{
-        addNextBtn('mission-c',()=>{mLk=false;
+        addNextBtn('mission-c',()=>{hideFB();mLk=false;
             if(mI<mData.length-1){mI++;rMQ()}
             else{if(window._advMode){advComplete('mission');window._advMode=false}else{G['ch'+curChap].mission=true}G.missionScore=mSc;showT(`⚔️ 완료! ${mSc}/${mData.length}`);nav('home')}
         });
@@ -957,7 +958,10 @@ function rBQ(){if(bH<=0){rBWin();return}if(pH<=0){rBLose();return}const bData=wi
     <div style="font-size:11px;font-weight:700;color:var(--blue)">💙 ${G.playerName||"나"} HP</div><div class="hpbar" style="margin-bottom:12px;border-color:var(--blue)"><div class="hpfill" style="width:${(pH/3)*100}%;background:var(--blue)"></div></div>
     <div class="card" style="border:3px solid var(--red)"><div style="font-family:var(--font-t);font-size:16px;color:var(--red)">💥 공격 ${bI+1}/${bData.length}</div><div style="font-size:17px;font-weight:700;margin-top:4px">${q.q}</div></div>
     <div style="display:flex;flex-direction:column;gap:7px;margin-top:8px">${q.o.map((o,i)=>`<button class="opt" id="bo-${i}" onclick="bAns(${i})" style="border-color:#FFCDD2">${o}</button>`).join('')}</div>`}
-function bAns(i){if(bLk)return;bLk=true;const bData=window._advMode&&window._advBoss?window._advBoss.qs:CH[curChap]?.boss||[];const q=bData[bI];if(!q){rBWin();return}if(i===q.a){document.getElementById('bo-'+i).classList.add('correct');snd('ok');bH--;addS(2);showFB(1,'💥 공격! ⭐+2')}else{document.getElementById('bo-'+i).classList.add('wrong');snd('no');pH--;showFB(0,'🔥 반격!')}setTimeout(()=>{bLk=false;if(bH<=0){rBWin();return}if(pH<=0){rBLose();return}if(bI<bData.length-1)bI++;rBQ()},1300)}
+function bAns(i){if(bLk)return;bLk=true;const bData=window._advMode&&window._advBoss?window._advBoss.qs:CH[curChap]?.boss||[];const q=bData[bI];if(!q){rBWin();return}
+    const goNext=()=>{bLk=false;if(bH<=0){rBWin();return}if(pH<=0){rBLose();return}if(bI<bData.length-1)bI++;rBQ()};
+    if(i===q.a){document.getElementById('bo-'+i).classList.add('correct');snd('ok');bH--;addS(2);showFB(1,'💥 공격! ⭐+2');setTimeout(goNext,1200)}
+    else{document.getElementById('bo-'+i).classList.add('wrong');snd('no');pH--;showFB(0,'🔥 반격! 정답: '+q.o[q.a],false);showStepSolve({q:q.q,o:q.o,a:q.a},'boss-c');addNextBtn('boss-c',()=>{hideFB();goNext()})}}
 function rBWin(){snd('win');if(window._advMode){advComplete('boss');window._advMode=false}else{G['ch'+curChap].boss=true};addB(curChap===1?'dragon_slayer':curChap===2?'shape_master':'calc_hero');saveG();document.getElementById('boss-c').innerHTML=`<div style="text-align:center;padding-top:20px" class="af"><div style="font-size:48px" class="ab">🎊🏆🎊</div><h1 style="font-family:var(--font-t);font-size:28px;color:var(--green);margin:10px 0">${window._advBoss?.ch?.boss||CH_INFO[curChap]?.boss||'보스'} 격파!</h1><div class="ap">${svgD(70)}</div><div class="card ap" style="display:inline-block;padding:8px 18px;margin:12px 0">🏅 <span style="font-family:var(--font-t);color:var(--gold)">${curChap===1?'드래곤 슬레이어':curChap===2?'도형 마스터':'계산 영웅'} 뱃지!</span></div><div style="display:flex;gap:12px;justify-content:center">${svgS(50)} ${svgM(40)}</div><button class="btn btn-green btn-lg btn-block" style="margin-top:16px" onclick="nav('home')">🗺️ 모험 지도로</button></div>`}
 function rBLose(){document.getElementById('boss-c').innerHTML=`<div style="text-align:center;padding-top:30px" class="af"><div style="font-size:42px">😢</div><h2 style="font-family:var(--font-t);font-size:22px;color:var(--red);margin:10px 0">다음에 다시!</h2><p style="font-size:15px;margin-bottom:16px">멀티: "괜찮아! 다시 도전하면 돼!"</p><button class="btn btn-orange btn-lg btn-block" onclick="bH=5;bI=0;bLk=false;pH=3;renderBoss()">🔄 다시 도전!</button><button class="btn btn-outline btn-block" style="margin-top:8px" onclick="nav('home')">← 모험 지도</button></div>`}
 
@@ -967,7 +971,9 @@ function renderHidden(){if(!window._advMode){hI=0;hLk=false}rHQ()}
 function rHQ(){const hData=window._advMode&&window._advHidden?window._advHidden:CH[curChap]?.hidden||[];if(hI>=hData.length){rHDone();return}const q=hData[hI];if(!q){rHDone();return}document.getElementById('hidden-c').innerHTML=`
     <div class="card af" style="border:3px solid var(--purple);background:var(--purple-l)"><div style="text-align:center;font-size:28px;margin-bottom:6px" class="ab">🗝️</div><div style="font-family:var(--font-t);font-size:16px;color:var(--purple)">비밀 문제 ${hI+1}/${hData.length}</div><div style="font-size:16px;font-weight:700;line-height:1.4;margin-top:6px">${q.q}</div></div>
     <div style="display:flex;flex-direction:column;gap:8px;margin-top:10px">${q.o.map((o,i)=>`<button class="opt" id="ho-${i}" onclick="hAns(${i})" style="border-color:#CE93D8">${o}</button>`).join('')}</div>`}
-function hAns(i){if(hLk)return;hLk=true;const hData=window._advMode&&window._advHidden?window._advHidden:CH[curChap]?.hidden||[];const q=hData[hI];if(!q){rHDone();return}if(i===q.a){document.getElementById('ho-'+i).classList.add('correct');snd('ok');addS(3);showFB(1,'🎉 ⭐+3')}else{document.getElementById('ho-'+i).classList.add('wrong');snd('no');showFB(0,'정답: '+q.o[q.a])}setTimeout(()=>{hLk=false;hI++;rHQ()},1300)}
+function hAns(i){if(hLk)return;hLk=true;const hData=window._advMode&&window._advHidden?window._advHidden:CH[curChap]?.hidden||[];const q=hData[hI];if(!q){rHDone();return}
+    if(i===q.a){document.getElementById('ho-'+i).classList.add('correct');snd('ok');addS(3);showFB(1,'🎉 ⭐+3');setTimeout(()=>{hLk=false;hI++;rHQ()},1200)}
+    else{document.getElementById('ho-'+i).classList.add('wrong');snd('no');showFB(0,'정답: '+q.o[q.a],false);showStepSolve({q:q.q,o:q.o,a:q.a},'hidden-c');addNextBtn('hidden-c',()=>{hideFB();hLk=false;hI++;rHQ()})}}
 function rHDone(){if(window._advMode){advComplete('hidden');window._advMode=false}else{G['ch'+curChap].hidden=true};addB(curChap===1?'explorer':curChap===2?'shape_explorer':'calc_explorer');snd('win');saveG();document.getElementById('hidden-c').innerHTML=`<div style="text-align:center;padding-top:20px" class="af"><div style="font-size:48px" class="ab">🎊🗝️🎊</div><h2 style="font-family:var(--font-t);font-size:24px;color:var(--purple);margin:10px 0">히든미션 클리어!</h2><div class="card ap" style="display:inline-block;padding:8px 18px;margin:10px 0">🏅 <span style="font-family:var(--font-t);color:var(--gold)">"100의 성 탐험가" 뱃지!</span></div><button class="btn btn-green btn-lg btn-block" style="margin-top:16px" onclick="nav('home')">🗺️ 모험 지도</button></div>`}
 
 // ══════════════ MINI GAMES ══════════════
@@ -1702,13 +1708,17 @@ function starMsg(stars){
 function addNextBtn(containerId,callback){
     const el=document.getElementById(containerId);
     if(!el)return;
+    const wrap=document.createElement('div');
+    wrap.style.cssText='text-align:center;margin-top:20px;padding:16px;background:var(--blue-l);border-radius:var(--r);border:2px solid var(--blue)';
+    wrap.innerHTML=`<div style="font-size:13px;color:var(--blue);margin-bottom:8px;font-family:var(--font-t)">📝 풀이를 다 읽었으면 눌러주세요!</div>`;
     const btn=document.createElement('button');
     btn.className='btn btn-blue btn-lg btn-block';
-    btn.style.cssText='margin-top:16px;font-size:16px;animation:fadeIn .3s';
+    btn.style.cssText='font-size:18px;padding:14px;min-height:52px';
     btn.textContent='👉 다음 문제로';
     btn.onclick=()=>{snd('click');callback()};
-    el.appendChild(btn);
-    setTimeout(()=>btn.scrollIntoView({behavior:'smooth'}),300);
+    wrap.appendChild(btn);
+    el.appendChild(wrap);
+    setTimeout(()=>wrap.scrollIntoView({behavior:'smooth',block:'center'}),400);
 }
 
 function checkFastWrong(elapsed,correct){
@@ -1790,14 +1800,14 @@ function pracQAns(i){
         snd('no');adaptRecord(pracTopic,false);
         G.totalPlayed++;
         if(isFastWrong){
-            showFB(0,'🚫 천천히 생각하고 풀어봐요!');
+            showFB(0,'🚫 천천히 생각하고 풀어봐요!',false);
             speak('천천히 생각하고 풀어봐요!');
             fastWrongStreak=0;
         }else{
-            showFB(0,'정답: '+q.o[q.a]);speakWrong();
+            showFB(0,'정답: '+q.o[q.a],false);speakWrong();
         }
         showStepSolve({q:q.q,o:q.o,a:q.a},'pracquiz-c');
-        addNextBtn('pracquiz-c',()=>{pracQLk=false;pracQI++;renderPracQ()});
+        addNextBtn('pracquiz-c',()=>{hideFB();pracQLk=false;pracQI++;renderPracQ()});
     }
 }
 
