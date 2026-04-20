@@ -129,7 +129,42 @@
         .level-card .lc-desc{font-size:10px;color:var(--gray);margin-top:2px}
         .prac-q-area{margin-top:14px}
         .prac-score{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;font-family:var(--font-t);font-size:14px}
-            /* Memory Match */
+    
+        /* TTS toggle */
+        .tts-btn{width:36px;height:36px;border-radius:50%;border:2px solid #E0E0E0;background:white;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+        .tts-btn.on{border-color:var(--blue);background:var(--blue-l)}
+        .tts-reading{animation:pulse 1s ease-in-out infinite}
+        /* Handwriting Canvas */
+        .hw-wrap{text-align:center;margin:10px 0}
+        .hw-canvas{border:3px solid var(--blue);border-radius:var(--r);background:white;touch-action:none;cursor:crosshair}
+        .hw-result{font-family:var(--font-t);font-size:48px;color:var(--blue);min-height:56px;margin:6px 0}
+        .hw-btns{display:flex;gap:8px;justify-content:center;margin-top:8px}
+        /* Difficulty indicator */
+        .diff-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700}
+        .diff-easy{background:#C8E6C9;color:#2E7D32}
+        .diff-normal{background:#BBDEFB;color:#1565C0}
+        .diff-hard{background:#FFCCBC;color:#BF360C}
+    
+
+
+        /* Think Timer */
+        .opt.locked{opacity:.4;pointer-events:none}
+        .think-bar{height:4px;border-radius:2px;background:var(--blue-l);margin-bottom:12px;overflow:hidden}
+        .think-fill{height:100%;background:var(--blue);border-radius:2px;transition:width 1s linear}
+        .think-msg{text-align:center;font-family:var(--font-t);font-size:14px;color:var(--blue);margin-bottom:8px;min-height:22px}
+        .star-bonus{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;margin-left:4px}
+        .star-bonus.s1{background:#FFECB3;color:#F57F17}
+        .star-bonus.s2{background:#C8E6C9;color:#2E7D32}
+        .star-bonus.s3{background:#E1BEE7;color:#6A1B9A}
+    
+        /* Lucky Wheel */
+        .wheel-wrap{text-align:center;margin:12px 0}
+        .wheel-container{position:relative;width:240px;height:240px;margin:0 auto}
+        .wheel-svg{width:240px;height:240px;transition:transform 4s cubic-bezier(0.17,0.67,0.12,0.99)}
+        .wheel-pointer{position:absolute;top:-8px;left:50%;transform:translateX(-50%);font-size:28px;z-index:10;filter:drop-shadow(0 2px 4px rgba(0,0,0,.3))}
+        .wheel-spin-btn{margin-top:14px}
+    
+        /* Memory Match */
         .mem-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:10px 0}
         .mem-card{aspect-ratio:1;border-radius:var(--r);cursor:pointer;transition:transform .3s;transform-style:preserve-3d;position:relative}
         .mem-card.flipped{transform:rotateY(180deg)}
@@ -176,7 +211,7 @@
     <div id="scr-onboard" class="screen" style="background:linear-gradient(180deg,#1565C0,#42A5F5,#E3F2FD)">
         <div class="content-area" id="onboard-c" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100%"></div>
     </div>
-    <div id="scr-home" class="screen"><div class="topbar"><span class="topbar-title">🗺️ 모험 지도</span><div class="stars-pill">⭐<span id="h-s">0</span><span style="color:var(--gray);font-size:10px" id="h-l">Lv.1</span></div></div><div class="content-area" id="home-c"></div><div class="bnav" id="bnav-main"></div></div>
+    <div id="scr-home" class="screen"><div class="topbar"><span class="topbar-title">🗺️ 모험 지도</span><div class="stars-pill">⭐<span id="h-s">0</span><span style="color:var(--gray);font-size:10px" id="h-l">Lv.1</span></div><button class="tts-btn ${ttsOn?'on':''}" onclick="ttsOn=!ttsOn;this.classList.toggle('on');this.textContent=ttsOn?'🔊':'🔇'" style="margin-left:4px">${ttsOn?'🔊':'🔇'}</button></div><div class="content-area" id="home-c"></div><div class="bnav" id="bnav-main"></div></div>
     <div id="scr-comic" class="screen"><div class="topbar"><button class="topbar-back" onclick="nav('home')">←</button><span class="topbar-title" id="comic-t">📖 만화</span><div class="stars-pill">⭐<span class="ss">0</span></div></div><div class="content-area" id="comic-c"></div></div>
     <div id="scr-concept" class="screen"><div class="topbar"><button class="topbar-back" onclick="nav('home')">←</button><span class="topbar-title" id="concept-t">🔍 개념</span><div class="stars-pill">⭐<span class="ss">0</span></div></div><div class="content-area" id="concept-c"></div></div>
     <div id="scr-mission" class="screen"><div class="topbar"><button class="topbar-back" onclick="nav('home')">←</button><span class="topbar-title" id="mission-t">⚔️ 미션</span><div class="stars-pill">⭐<span class="ss">0</span></div></div><div class="content-area" id="mission-c"></div></div>
@@ -218,8 +253,8 @@ let G = {
     ch1:{comic:false,concept:false,mission:false,boss:false,hidden:false},
     ch2:{comic:false,concept:false,mission:false,boss:false,hidden:false},
     ch3:{comic:false,concept:false,mission:false,boss:false,hidden:false},
-    missionScore:0, missionScores:{1:0,2:0,3:0}, totalCorrect:0, totalPlayed:0, streak:0,timedBest:0,
-    inventory:[], equipped:{hat:null,top:null,acc:null,bg:null},
+    missionScore:0, missionScores:{1:0,2:0,3:0}, totalCorrect:0, totalPlayed:0, streak:0,timedBest:0,adapt:{},streakByTopic:{},
+    inventory:[], equipped:{hat:null,top:null,acc:null,pet:null,bg:null},
     parentChance:{tokens:0,earned:[],requests:[]},
     parentPin:'1234',
     createdAt:Date.now(), lastPlayedAt:Date.now()
@@ -235,6 +270,25 @@ async function loadG(){if(!db)return;return new Promise(res=>{try{const r=db.tra
 // ══════════════ SOUND ══════════════
 function snd(t){try{const c=new(window.AudioContext||window.webkitAudioContext)(),o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);g.gain.value=.1;const S={click:[800,.06,'sine'],ok:[523,.12,'sine',[523,659,784]],no:[200,.18,'sawtooth'],star:[1047,.1,'sine'],lvl:[440,.1,'sine',[440,554,659,880]],boss:[150,.25,'square'],win:[523,.1,'sine',[523,659,784,1047]],buy:[880,.08,'sine',[880,1047,1319]],lock:[300,.15,'square']};const s=S[t]||S.click;o.type=s[2];if(s[3]){s[3].forEach((f,i)=>o.frequency.setValueAtTime(f,c.currentTime+i*.1));g.gain.setValueAtTime(.1,c.currentTime);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+s[1]*s[3].length);o.start();o.stop(c.currentTime+s[1]*s[3].length)}else{o.frequency.value=s[0];g.gain.exponentialRampToValueAtTime(.001,c.currentTime+s[1]);o.start();o.stop(c.currentTime+s[1])}}catch(e){}}
 
+
+// ══════════════ TTS (음성 읽어주기) ══════════════
+let ttsOn=true;
+function speak(text,rate=0.9){
+    if(!ttsOn||!window.speechSynthesis)return;
+    window.speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance(text.replace(/[=?+\-×÷□○●★⭐🍎🌟💎🔵🟡🍊]/g,' '));
+    u.lang='ko-KR';u.rate=rate;u.pitch=1.1;u.volume=0.8;
+    // Try to find Korean voice
+    const voices=window.speechSynthesis.getVoices();
+    const koVoice=voices.find(v=>v.lang.startsWith('ko'));
+    if(koVoice)u.voice=koVoice;
+    window.speechSynthesis.speak(u);
+}
+function speakQ(q){speak(q.replace(/\//g,' 분의 ').replace(/×/g,' 곱하기 ').replace(/÷/g,' 나누기 ').replace(/\+/g,' 더하기 ').replace(/-/g,' 빼기 '))}
+function speakPraise(){const p=['잘했어!','대단해!','멋져!','천재다!','최고야!','훌륭해!'];speak(p[Math.floor(Math.random()*p.length)])}
+function speakWrong(){const p=['괜찮아! 다시 해보자!','아깝다! 다음엔 맞출 수 있어!','힘내! 풀이를 잘 봐봐!'];speak(p[Math.floor(Math.random()*p.length)])}
+function ttsToggleHTML(){return `<button class="tts-btn ${ttsOn?'on':''}" onclick="ttsOn=!ttsOn;renderHome?.()" title="${ttsOn?'음성 끄기':'음성 켜기'}">${ttsOn?'🔊':'🔇'}</button>`}
+
 // ══════════════ REWARDS ══════════════
 function addS(n){G.stars+=n;G.exp+=n*10;snd('star');if(G.exp>=G.level*100){G.exp-=G.level*100;G.level++;snd('lvl');showOL('🎊',`레벨 ${G.level} 달성!`,2e3)}upS();saveG();checkPCTokens()}
 function addB(id){if(!G.badges.includes(id)){G.badges.push(id);saveG()}}
@@ -244,6 +298,84 @@ function showOL(e,t,d=0){const o=document.getElementById('overlay');document.get
 function hideOL(){document.getElementById('overlay').classList.remove('show')}
 function showFB(ok,t){const f=document.getElementById('feedback');f.className='fb '+(ok?'fb-ok':'fb-no');f.textContent=t;f.style.display='block';setTimeout(()=>f.style.display='none',1200)}
 
+
+// ══════════════ SVG ICON SYSTEM (이모지 → SVG 일러스트) ══════════════
+function svgIcon(id,sz=36){
+    const s=sz,h=s;const ic=ICON_DB[id];
+    if(!ic)return `<svg width="${s}" height="${h}" viewBox="0 0 40 40"><circle cx="20" cy="20" r="16" fill="#E0E0E0"/><text x="20" y="24" text-anchor="middle" font-size="14" fill="#9E9E9E">?</text></svg>`;
+    return `<svg width="${s}" height="${h}" viewBox="0 0 40 40">${ic}</svg>`;
+}
+const ICON_DB={
+// ── 캐릭터 ──
+char_0:'<circle cx="20" cy="20" r="16" fill="#E3F2FD"/><circle cx="20" cy="17" r="9" fill="#FFCC80"/><path d="M11 14Q14 8 20 7Q26 8 29 14" fill="#5D4037"/><circle cx="17" cy="16" r="2" fill="#37474F"/><circle cx="23" cy="16" r="2" fill="#37474F"/><path d="M17 21Q20 24 23 21" fill="none" stroke="#37474F" stroke-width="1.2"/><rect x="15" y="26" width="10" height="12" rx="3" fill="#42A5F5"/><rect x="13" y="38" width="5" height="3" rx="2" fill="#1565C0"/><rect x="22" y="38" width="5" height="3" rx="2" fill="#1565C0"/>',
+char_1:'<circle cx="20" cy="20" r="16" fill="#F3E5F5"/><circle cx="20" cy="18" r="8" fill="#FFCC80"/><path d="M12 13L20 5L28 13Z" fill="#7B1FA2"/><circle cx="20" cy="8" r="2.5" fill="#FFD600"/><circle cx="17" cy="17" r="1.8" fill="#4A148C"/><circle cx="23" cy="17" r="1.8" fill="#4A148C"/><path d="M17 21Q20 24 23 21" fill="none" stroke="#4A148C" stroke-width="1"/><rect x="15" y="26" width="10" height="11" rx="3" fill="#7B1FA2"/><line x1="28" y1="30" x2="34" y2="22" stroke="#795548" stroke-width="2" stroke-linecap="round"/><circle cx="35" cy="21" r="2.5" fill="#FFD600"/>',
+char_2:'<circle cx="20" cy="20" r="16" fill="#FFEBEE"/><circle cx="20" cy="17" r="8" fill="#FFCC80"/><rect x="12" y="10" width="16" height="6" rx="2" fill="#9E9E9E"/><rect x="14" y="8" width="3" height="4" rx="1" fill="#9E9E9E"/><circle cx="17" cy="16" r="1.8" fill="#37474F"/><circle cx="23" cy="16" r="1.8" fill="#37474F"/><path d="M17 21Q20 23 23 21" fill="none" stroke="#37474F" stroke-width="1"/><rect x="14" y="25" width="12" height="13" rx="3" fill="#78909C"/><path d="M14 28L12 26L14 25" fill="#FFD600"/><rect x="26" y="30" width="8" height="3" rx="1" fill="#9E9E9E"/>',
+char_3:'<circle cx="20" cy="20" r="16" fill="#E8F5E9"/><circle cx="20" cy="17" r="8" fill="#FFCC80"/><path d="M11 13Q20 10 29 13L29 15Q20 12 11 15Z" fill="#5D4037"/><circle cx="17" cy="16" r="1.8" fill="#1B5E20"/><circle cx="23" cy="16" r="1.8" fill="#1B5E20"/><path d="M18 20Q20 22 22 20" fill="none" stroke="#37474F" stroke-width="1"/><rect x="15" y="25" width="10" height="12" rx="3" fill="#4CAF50"/><circle cx="30" cy="28" r="5" fill="#BBDEFB" stroke="#90CAF9" stroke-width="1"/><circle cx="30" cy="28" r="2" fill="#E3F2FD"/>',
+char_4:'<circle cx="20" cy="20" r="16" fill="#ECEFF1"/><circle cx="20" cy="17" r="8" fill="#FFCC80"/><rect x="12" y="9" width="16" height="5" rx="1" fill="#212121"/><rect x="16" y="14" width="8" height="3" fill="#212121"/><circle cx="17" cy="17" r="1.5" fill="#37474F"/><circle cx="23" cy="17" r="1.5" fill="#37474F"/><path d="M18 21Q20 22 22 21" fill="none" stroke="#37474F" stroke-width="1"/><rect x="15" y="25" width="10" height="12" rx="3" fill="#37474F"/><path d="M10 32L6 28" stroke="#B0BEC5" stroke-width="1.5"/><path d="M30 32L34 28" stroke="#B0BEC5" stroke-width="1.5"/>',
+char_5:'<circle cx="20" cy="20" r="16" fill="#FCE4EC"/><circle cx="20" cy="17" r="8" fill="#FFCC80"/><path d="M12 13Q16 8 20 10Q24 8 28 13" fill="#5D4037"/><circle cx="20" cy="8" r="3" fill="#FFD600"/><polygon points="20,5 18,8 22,8" fill="#FFD600"/><circle cx="17" cy="16" r="1.8" fill="#880E4F"/><circle cx="23" cy="16" r="1.8" fill="#880E4F"/><path d="M17 21Q20 24 23 21" fill="none" stroke="#AD1457" stroke-width="1.2"/><rect x="15" y="25" width="10" height="12" rx="3" fill="#E91E63"/><ellipse cx="14" cy="19" rx="3" ry="1.5" fill="#FF8A80" opacity=".5"/>',
+char_6:'<circle cx="20" cy="20" r="16" fill="#E0F7FA"/><circle cx="20" cy="17" r="8" fill="#FFCC80"/><ellipse cx="20" cy="12" rx="10" ry="6" fill="white" stroke="#B0BEC5" stroke-width="1"/><rect x="16" y="12" width="8" height="3" fill="#64B5F6" opacity=".4"/><circle cx="17" cy="17" r="1.8" fill="#006064"/><circle cx="23" cy="17" r="1.8" fill="#006064"/><path d="M17 21Q20 23 23 21" fill="none" stroke="#37474F" stroke-width="1"/><rect x="14" y="25" width="12" height="13" rx="3" fill="#B0BEC5"/><circle cx="20" cy="30" r="2" fill="#42A5F5"/>',
+char_7:'<circle cx="20" cy="20" r="16" fill="#FFF3E0"/><circle cx="20" cy="17" r="8" fill="#FFCC80"/><path d="M12 13Q20 9 28 13" fill="#5D4037"/><circle cx="17" cy="16" r="2.5" fill="white" stroke="#37474F" stroke-width="0.8"/><circle cx="23" cy="16" r="2.5" fill="white" stroke="#37474F" stroke-width="0.8"/><circle cx="17" cy="16" r="1" fill="#37474F"/><circle cx="23" cy="16" r="1" fill="#37474F"/><path d="M18 21Q20 23 22 21" fill="none" stroke="#37474F" stroke-width="1"/><rect x="15" y="25" width="10" height="12" rx="3" fill="#FF8F00"/><circle cx="8" cy="30" r="4" fill="#E0E0E0" stroke="#BDBDBD" stroke-width="0.8"/><circle cx="8" cy="30" r="1.5" fill="#42A5F5"/>',
+// ── 모자 ──
+hat_crown:'<rect x="8" y="22" width="24" height="12" rx="2" fill="#FFD600"/><polygon points="10,22 14,10 18,18 20,8 22,18 26,10 30,22" fill="#FFD600" stroke="#F9A825" stroke-width="0.8"/><circle cx="14" cy="15" r="2" fill="#E53935"/><circle cx="20" cy="10" r="2" fill="#2196F3"/><circle cx="26" cy="15" r="2" fill="#4CAF50"/>',
+hat_wizard:'<path d="M10 34L20 4L30 34Z" fill="#6A1B9A"/><circle cx="20" cy="8" r="3" fill="#FFD600"/><rect x="6" y="32" width="28" height="4" rx="2" fill="#4A148C"/><circle cx="16" cy="22" r="1.5" fill="#FFD600" opacity=".6"/><circle cx="24" cy="18" r="1.5" fill="#FFD600" opacity=".5"/>',
+hat_cap:'<path d="M8 24Q8 14 20 12Q32 14 32 24Z" fill="#1565C0"/><rect x="6" y="22" width="28" height="5" rx="2" fill="#0D47A1"/><path d="M6 25Q-2 22 -4 26" fill="#0D47A1"/>',
+hat_flower:'<circle cx="14" cy="18" r="6" fill="#E91E63"/><circle cx="14" cy="18" r="2.5" fill="#FFD600"/><circle cx="26" cy="18" r="6" fill="#E91E63"/><circle cx="26" cy="18" r="2.5" fill="#FFD600"/><circle cx="20" cy="14" r="5" fill="#F48FB1"/><circle cx="20" cy="14" r="2" fill="#FFD600"/><path d="M10 24Q20 20 30 24" fill="none" stroke="#4CAF50" stroke-width="2"/>',
+hat_star:'<polygon points="20,4 23,14 34,14 25,20 28,30 20,24 12,30 15,20 6,14 17,14" fill="#FFD600" stroke="#F9A825" stroke-width="0.8"/>',
+hat_ribbon:'<path d="M10 20Q20 14 30 20" fill="none" stroke="#E91E63" stroke-width="3"/><circle cx="28" cy="20" r="4" fill="#E91E63"/><path d="M30 22L36 32L28 26L32 38" fill="#E91E63"/>',
+hat_ninja:'<rect x="6" y="14" width="28" height="14" rx="4" fill="#37474F"/><rect x="6" y="20" width="28" height="4" rx="1" fill="#F44336"/><path d="M34 22L38 18" stroke="#F44336" stroke-width="2"/><path d="M34 24L40 22" stroke="#F44336" stroke-width="2"/>',
+hat_astro:'<ellipse cx="20" cy="20" rx="16" ry="14" fill="#B0BEC5" stroke="#78909C" stroke-width="1.5"/><ellipse cx="20" cy="20" rx="11" ry="10" fill="#E3F2FD" opacity=".7"/><circle cx="26" cy="16" r="3" fill="white" opacity=".4"/><rect x="8" y="30" width="6" height="4" rx="1" fill="#FF5722"/><rect x="26" y="30" width="6" height="4" rx="1" fill="#FF5722"/>',
+hat_pirate:'<path d="M6 26Q6 10 20 8Q34 10 34 26Z" fill="#212121"/><polygon points="20,12 16,18 24,18" fill="white"/><rect x="4" y="24" width="32" height="4" rx="2" fill="#37474F"/><polygon points="18,14 20,10 22,14" fill="#F44336"/>',
+hat_santa:'<path d="M10 28Q20 6 30 28Z" fill="#C62828"/><circle cx="28" cy="12" r="5" fill="white"/><rect x="6" y="26" width="28" height="6" rx="3" fill="white"/>',
+// ── 상의 ──
+top_hero:'<path d="M12 10L8 4Q16 2 20 10Q24 2 32 4L28 10Z" fill="#C62828"/><rect x="14" y="10" width="12" height="20" rx="3" fill="#C62828"/><rect x="14" y="10" width="12" height="20" rx="3" fill="#EF5350" opacity=".5"/><polygon points="20,14 18,20 22,20" fill="#FFD600"/>',
+top_armor:'<rect x="10" y="6" width="20" height="28" rx="4" fill="#78909C"/><rect x="14" y="10" width="12" height="10" rx="2" fill="#90A4AE"/><path d="M16 10L20 18L24 10" fill="none" stroke="#FFD600" stroke-width="1.5"/><rect x="14" y="24" width="12" height="3" rx="1" fill="#FFD600"/>',
+top_rainbow:'<rect x="10" y="6" width="20" height="28" rx="4" fill="#F44336"/><rect x="10" y="11" width="20" height="5" fill="#FF9800"/><rect x="10" y="16" width="20" height="5" fill="#FFEB3B"/><rect x="10" y="21" width="20" height="5" fill="#4CAF50"/><rect x="10" y="26" width="20" height="5" fill="#2196F3"/>',
+top_star:'<rect x="10" y="6" width="20" height="28" rx="4" fill="#1A237E"/><polygon points="20,12 22,18 28,18 23,22 24,28 20,24 16,28 17,22 12,18 18,18" fill="#FFD600"/>',
+top_heart:'<rect x="10" y="6" width="20" height="28" rx="4" fill="#E91E63"/><path d="M16 18Q16 14 20 16Q24 14 24 18L20 26Z" fill="white" opacity=".8"/>',
+top_ninja:'<rect x="10" y="6" width="20" height="28" rx="4" fill="#263238"/><path d="M14 16L20 24L26 16" fill="none" stroke="#F44336" stroke-width="1.5"/><rect x="16" y="28" width="8" height="3" rx="1" fill="#455A64"/>',
+top_space:'<rect x="10" y="6" width="20" height="28" rx="4" fill="#1A237E"/><circle cx="16" cy="14" r="1.5" fill="white" opacity=".6"/><circle cx="24" cy="18" r="1" fill="white" opacity=".5"/><circle cx="20" cy="24" r="1.5" fill="#FFD600"/><rect x="14" y="30" width="12" height="3" rx="1" fill="#42A5F5"/>',
+top_fire:'<rect x="10" y="6" width="20" height="28" rx="4" fill="#BF360C"/><path d="M14 24Q18 12 20 20Q22 10 26 24" fill="#FF6D00" opacity=".9"/><path d="M16 26Q19 16 20 22Q21 14 24 26" fill="#FFA000" opacity=".7"/>',
+top_ice:'<rect x="10" y="6" width="20" height="28" rx="4" fill="#B3E5FC"/><polygon points="16,12 18,20 14,20" fill="white" opacity=".7"/><polygon points="22,10 24,18 20,18" fill="white" opacity=".6"/><polygon points="26,14 28,22 24,22" fill="white" opacity=".5"/><line x1="14" y1="26" x2="26" y2="26" stroke="white" stroke-width="1" opacity=".5"/>',
+top_royal:'<rect x="10" y="6" width="20" height="28" rx="4" fill="#4A148C"/><path d="M14 14L20 20L26 14" fill="none" stroke="#FFD600" stroke-width="1.5"/><circle cx="20" cy="26" r="3" fill="#FFD600"/><rect x="16" y="30" width="8" height="2" rx="1" fill="#FFD600"/>',
+// ── 액세서리 ──
+acc_glasses:'<circle cx="14" cy="18" r="7" fill="none" stroke="#37474F" stroke-width="2.5"/><circle cx="26" cy="18" r="7" fill="none" stroke="#37474F" stroke-width="2.5"/><line x1="21" y1="18" x2="19" y2="18" stroke="#37474F" stroke-width="2"/><circle cx="14" cy="18" r="4" fill="#64B5F6" opacity=".2"/><circle cx="26" cy="18" r="4" fill="#64B5F6" opacity=".2"/>',
+acc_wand:'<line x1="6" y1="34" x2="28" y2="8" stroke="#795548" stroke-width="3" stroke-linecap="round"/><polygon points="28,8 34,2 30,12 38,6 32,14 36,10 28,16" fill="#FFD600" stroke="#FFA000" stroke-width="0.5"/>',
+acc_shield:'<path d="M20 4L6 12L6 24Q6 34 20 38Q34 34 34 24L34 12Z" fill="#1565C0" stroke="#0D47A1" stroke-width="1"/><path d="M20 4L6 12L6 24Q6 34 20 38Z" fill="#1976D2"/><polygon points="20,14 22,20 28,20 23,24 25,30 20,26 15,30 17,24 12,20 18,20" fill="#FFD600"/>',
+acc_sword:'<line x1="20" y1="4" x2="20" y2="28" stroke="#B0BEC5" stroke-width="3" stroke-linecap="round"/><line x1="12" y1="24" x2="28" y2="24" stroke="#795548" stroke-width="3" stroke-linecap="round"/><circle cx="20" cy="24" r="2" fill="#FFD600"/><polygon points="18,4 20,0 22,4" fill="#B0BEC5"/>',
+acc_bag:'<rect x="10" y="14" width="20" height="18" rx="4" fill="#795548"/><path d="M14 14Q14 6 20 6Q26 6 26 14" fill="none" stroke="#5D4037" stroke-width="2.5"/><circle cx="20" cy="24" r="3" fill="#FFD600"/>',
+acc_guitar:'<ellipse cx="20" cy="28" rx="10" ry="8" fill="#795548"/><ellipse cx="20" cy="28" rx="4" ry="3" fill="#3E2723"/><rect x="18" y="4" width="4" height="20" rx="1" fill="#8D6E63"/><rect x="16" y="2" width="8" height="4" rx="2" fill="#5D4037"/>',
+acc_mic:'<circle cx="20" cy="10" r="6" fill="#9E9E9E"/><line x1="20" y1="16" x2="20" y2="30" stroke="#757575" stroke-width="3"/><path d="M14 30Q14 36 20 36Q26 36 26 30" fill="none" stroke="#757575" stroke-width="2"/>',
+acc_camera:'<rect x="8" y="12" width="24" height="18" rx="3" fill="#37474F"/><circle cx="20" cy="22" r="6" fill="#546E7A"/><circle cx="20" cy="22" r="4" fill="#42A5F5"/><circle cx="20" cy="22" r="2" fill="#E3F2FD"/><rect x="10" y="10" width="6" height="4" rx="1" fill="#455A64"/>',
+acc_book:'<rect x="8" y="6" width="22" height="28" rx="2" fill="#1565C0"/><rect x="10" y="8" width="18" height="3" rx="1" fill="#BBDEFB"/><rect x="10" y="14" width="14" height="2" rx="1" fill="#BBDEFB"/><rect x="10" y="19" width="16" height="2" rx="1" fill="#BBDEFB"/><polygon points="30,6 34,10 34,34 30,34" fill="#0D47A1"/>',
+acc_medal:'<path d="M14 4L18 14L20 14L22 14L26 4" fill="#1565C0"/><path d="M16 4L18 14L20 14" fill="#1976D2"/><circle cx="20" cy="24" r="10" fill="#FFD600" stroke="#F9A825" stroke-width="1.5"/><polygon points="20,18 22,22 26,22 23,25 24,30 20,27 16,30 17,25 14,22 18,22" fill="#FFA000"/>',
+// ── 펫 ──
+pet_dragon:'<ellipse cx="20" cy="26" rx="12" ry="10" fill="#E53935"/><circle cx="20" cy="16" r="8" fill="#E53935"/><circle cx="16" cy="14" r="3" fill="#FFEB3B"/><circle cx="24" cy="14" r="3" fill="#FFEB3B"/><circle cx="17" cy="14" r="1.5" fill="#B71C1C"/><circle cx="25" cy="14" r="1.5" fill="#B71C1C"/><path d="M14 10L10 4" stroke="#E53935" stroke-width="2"/><path d="M26 10L30 4" stroke="#E53935" stroke-width="2"/><polygon points="16,20 20,24 24,20" fill="#FF8A80"/><path d="M30 24L36 20L34 26" fill="#E53935"/>',
+pet_cat:'<ellipse cx="20" cy="28" rx="10" ry="8" fill="#FF9800"/><circle cx="20" cy="16" r="8" fill="#FF9800"/><polygon points="12 12 10 2 16 10" fill="#FF9800"/><polygon points="28 12 30 2 24 10" fill="#FF9800"/><ellipse cx="17" cy="15" rx="2.5" ry="3" fill="#4CAF50"/><ellipse cx="23" cy="15" rx="2.5" ry="3" fill="#4CAF50"/><circle cx="17" cy="15" r="1.2" fill="#1B5E20"/><circle cx="23" cy="15" r="1.2" fill="#1B5E20"/><ellipse cx="20" cy="19" rx="2" ry="1.2" fill="#F48FB1"/><line x1="8" y1="18" x2="14" y2="16" stroke="#FF9800" stroke-width="0.8"/><line x1="32" y1="18" x2="26" y2="16" stroke="#FF9800" stroke-width="0.8"/>',
+pet_dog:'<ellipse cx="20" cy="28" rx="10" ry="8" fill="#8D6E63"/><circle cx="20" cy="16" r="8" fill="#8D6E63"/><ellipse cx="12" cy="12" rx="5" ry="7" fill="#795548" transform="rotate(-15 12 12)"/><ellipse cx="28" cy="12" rx="5" ry="7" fill="#795548" transform="rotate(15 28 12)"/><circle cx="16" cy="15" r="2.5" fill="white"/><circle cx="24" cy="15" r="2.5" fill="white"/><circle cx="17" cy="15" r="1.5" fill="#3E2723"/><circle cx="25" cy="15" r="1.5" fill="#3E2723"/><ellipse cx="20" cy="19" rx="3" ry="2" fill="#3E2723"/><path d="M18 22Q20 24 22 22" fill="none" stroke="#5D4037" stroke-width="0.8"/>',
+pet_owl:'<ellipse cx="20" cy="26" rx="11" ry="12" fill="#795548"/><circle cx="20" cy="14" r="10" fill="#8D6E63"/><circle cx="15" cy="13" r="5" fill="#FFF9C4"/><circle cx="25" cy="13" r="5" fill="#FFF9C4"/><circle cx="15" cy="13" r="2.5" fill="#FF6F00"/><circle cx="25" cy="13" r="2.5" fill="#FF6F00"/><polygon points="20,17 18,21 22,21" fill="#FF8F00"/><path d="M10 10L8 4" stroke="#795548" stroke-width="1.5"/><path d="M30 10L32 4" stroke="#795548" stroke-width="1.5"/>',
+pet_fox:'<ellipse cx="20" cy="28" rx="10" ry="8" fill="#E65100"/><circle cx="20" cy="16" r="8" fill="#E65100"/><polygon points="10 12 6 2 16 10" fill="#E65100"/><polygon points="30 12 34 2 24 10" fill="#E65100"/><polygon points="10 12 8 4 14 10" fill="#FFE0B2"/><polygon points="30 12 32 4 26 10" fill="#FFE0B2"/><ellipse cx="20" cy="24" rx="6" ry="4" fill="white"/><ellipse cx="16" cy="14" rx="2" ry="2.5" fill="#FFEB3B"/><ellipse cx="24" cy="14" rx="2" ry="2.5" fill="#FFEB3B"/><ellipse cx="20" cy="18" rx="2" ry="1.2" fill="#37474F"/>',
+pet_panda:'<ellipse cx="20" cy="28" rx="11" ry="10" fill="white" stroke="#E0E0E0" stroke-width="0.5"/><circle cx="20" cy="16" r="9" fill="white" stroke="#E0E0E0" stroke-width="0.5"/><circle cx="12" cy="10" r="4" fill="#212121"/><circle cx="28" cy="10" r="4" fill="#212121"/><ellipse cx="15" cy="15" rx="4" ry="3.5" fill="#212121"/><ellipse cx="25" cy="15" rx="4" ry="3.5" fill="#212121"/><circle cx="15" cy="15" r="2" fill="white"/><circle cx="25" cy="15" r="2" fill="white"/><ellipse cx="20" cy="19" rx="2.5" ry="1.5" fill="#212121"/>',
+pet_unicorn:'<ellipse cx="20" cy="28" rx="11" ry="10" fill="white" stroke="#E0E0E0" stroke-width="0.5"/><circle cx="20" cy="16" r="8" fill="white" stroke="#E0E0E0" stroke-width="0.5"/><polygon points="20,2 18,12 22,12" fill="#FFD600" stroke="#FFA000" stroke-width="0.5"/><path d="M10 20Q6 14 8 8" fill="none" stroke="#E1BEE7" stroke-width="2"/><path d="M30 20Q34 14 32 8" fill="none" stroke="#B3E5FC" stroke-width="2"/><circle cx="16" cy="15" r="2" fill="#E040FB"/><circle cx="24" cy="15" r="2" fill="#E040FB"/><path d="M16 22Q20 26 24 22" fill="#F8BBD0"/>',
+pet_phoenix:'<ellipse cx="20" cy="26" rx="12" ry="11" fill="#FF6D00"/><circle cx="20" cy="14" r="8" fill="#FFAB00"/><path d="M10 10L4 2L14 8" fill="#F44336"/><path d="M30 10L36 2L26 8" fill="#F44336"/><path d="M20 6L16 -2L24 -2Z" fill="#FF6D00"/><circle cx="16" cy="13" r="2.5" fill="#FFEB3B"/><circle cx="24" cy="13" r="2.5" fill="#FFEB3B"/><circle cx="16" cy="13" r="1.2" fill="#E65100"/><circle cx="24" cy="13" r="1.2" fill="#E65100"/><path d="M6 30L2 36L10 32" fill="#F44336" opacity=".7"/><path d="M34 30L38 36L30 32" fill="#F44336" opacity=".7"/>',
+// ── 배경 ──
+bg_castle:'<rect x="2" y="2" width="36" height="36" rx="8" fill="#FFF9C4"/><rect x="14" y="10" width="12" height="20" rx="1" fill="#FFD54F"/><rect x="10" y="6" width="4" height="12" rx="1" fill="#FFD54F"/><rect x="26" y="6" width="4" height="12" rx="1" fill="#FFD54F"/><polygon points="10,6 12,2 14,6" fill="#FF8F00"/><polygon points="26,6 28,2 30,6" fill="#FF8F00"/><rect x="18" y="22" width="4" height="8" rx="1" fill="#5D4037"/>',
+bg_space:'<rect x="2" y="2" width="36" height="36" rx="8" fill="#1A237E"/><circle cx="10" cy="10" r="1.5" fill="white"/><circle cx="30" cy="8" r="1" fill="white"/><circle cx="15" cy="28" r="1" fill="white"/><circle cx="32" cy="24" r="1.5" fill="#FFD600"/><circle cx="24" cy="32" r="1" fill="white"/><circle cx="20" cy="16" r="4" fill="#FFD600" opacity=".3"/><circle cx="20" cy="16" r="2" fill="#FFEB3B"/>',
+bg_forest:'<rect x="2" y="2" width="36" height="36" rx="8" fill="#C8E6C9"/><polygon points="12,30 16,10 20,30" fill="#4CAF50"/><polygon points="20,30 24,8 28,30" fill="#388E3C"/><polygon points="6,30 9,16 12,30" fill="#66BB6A"/><rect x="15" y="28" width="2" height="6" fill="#5D4037"/><rect x="23" y="28" width="2" height="6" fill="#5D4037"/>',
+bg_rainbow:'<rect x="2" y="2" width="36" height="36" rx="8" fill="#F3E5F5"/><path d="M4 30Q20 0 36 30" fill="none" stroke="#F44336" stroke-width="2.5"/><path d="M6 30Q20 4 34 30" fill="none" stroke="#FF9800" stroke-width="2.5"/><path d="M8 30Q20 8 32 30" fill="none" stroke="#FFEB3B" stroke-width="2.5"/><path d="M10 30Q20 12 30 30" fill="none" stroke="#4CAF50" stroke-width="2.5"/><path d="M12 30Q20 16 28 30" fill="none" stroke="#2196F3" stroke-width="2.5"/>',
+bg_ocean:'<rect x="2" y="2" width="36" height="36" rx="8" fill="#E0F7FA"/><path d="M0 22Q10 18 20 22Q30 26 40 22L40 40L0 40Z" fill="#4DD0E1" opacity=".4"/><path d="M0 26Q10 22 20 26Q30 30 40 26L40 40L0 40Z" fill="#00BCD4" opacity=".3"/><circle cx="14" cy="14" r="5" fill="#FFD600" opacity=".3"/><circle cx="14" cy="14" r="3" fill="#FFEB3B"/>',
+bg_volcano:'<rect x="2" y="2" width="36" height="36" rx="8" fill="#3E2723"/><polygon points="20,6 8,34 32,34" fill="#5D4037"/><polygon points="16,6 20,2 24,6" fill="#FF6D00"/><path d="M17 6Q20 0 23 6" fill="#F44336"/><circle cx="18" cy="4" r="1.5" fill="#FFAB00" opacity=".7"/><circle cx="22" cy="2" r="1" fill="#FF6D00" opacity=".6"/>',
+bg_cloud:'<rect x="2" y="2" width="36" height="36" rx="8" fill="#E8EAF6"/><ellipse cx="14" cy="22" rx="8" ry="5" fill="white"/><ellipse cx="22" cy="20" rx="10" ry="6" fill="white"/><ellipse cx="28" cy="22" rx="6" ry="4" fill="white"/><circle cx="10" cy="10" r="4" fill="#FFD600" opacity=".3"/><circle cx="10" cy="10" r="2" fill="#FFEB3B"/>',
+pc_icecream:'<circle cx="20" cy="22" r="10" fill="#FFCC80"/><path d="M14 22L20 38L26 22" fill="#FFCC80"/><circle cx="20" cy="16" r="8" fill="#F48FB1"/><circle cx="20" cy="10" r="6" fill="#FFEB3B"/><circle cx="20" cy="6" r="4" fill="#EF5350"/>',
+pc_snack:'<circle cx="20" cy="26" r="12" fill="#FFCC80"/><path d="M10 22Q20 10 30 22" fill="#5D4037"/><circle cx="16" cy="22" r="3" fill="#F44336"/><circle cx="24" cy="20" r="2" fill="#4CAF50"/><circle cx="20" cy="18" r="2.5" fill="#FFEB3B"/>',
+pc_toy:'<circle cx="20" cy="24" r="12" fill="#FF9800"/><circle cx="20" cy="16" r="8" fill="#FFB74D"/><circle cx="17" cy="14" r="2" fill="#37474F"/><circle cx="23" cy="14" r="2" fill="#37474F"/><path d="M17 19Q20 22 23 19" fill="none" stroke="#37474F" stroke-width="1.2"/>',
+pc_money:'<circle cx="20" cy="20" r="14" fill="#FFD600" stroke="#F9A825" stroke-width="2"/><text x="20" y="25" text-anchor="middle" font-size="16" font-weight="bold" fill="#F57F17">$</text>',
+pc_movie:'<rect x="6" y="10" width="28" height="20" rx="3" fill="#37474F"/><polygon points="16,16 16,24 24,20" fill="white"/><rect x="8" y="6" width="24" height="4" rx="1" fill="#455A64"/><circle cx="12" cy="8" r="1.5" fill="#FFD600"/><circle cx="28" cy="8" r="1.5" fill="#FFD600"/>',
+miss:'<circle cx="20" cy="20" r="16" fill="#E0E0E0"/><line x1="10" y1="10" x2="30" y2="30" stroke="#9E9E9E" stroke-width="3" stroke-linecap="round"/><line x1="30" y1="10" x2="10" y2="30" stroke="#9E9E9E" stroke-width="3" stroke-linecap="round"/>',
+pc_game:'<rect x="6" y="12" width="28" height="18" rx="4" fill="#37474F"/><circle cx="14" cy="20" r="4" fill="#212121"/><line x1="14" y1="17" x2="14" y2="23" stroke="#9E9E9E" stroke-width="1.5"/><line x1="11" y1="20" x2="17" y2="20" stroke="#9E9E9E" stroke-width="1.5"/><circle cx="26" cy="18" r="2" fill="#4CAF50"/><circle cx="26" cy="23" r="2" fill="#F44336"/>',
+bg_candy:'<rect x="2" y="2" width="36" height="36" rx="8" fill="#FCE4EC"/><circle cx="12" cy="14" r="5" fill="#E91E63" opacity=".6"/><circle cx="28" cy="12" r="4" fill="#7B1FA2" opacity=".5"/><circle cx="16" cy="28" r="6" fill="#FF9800" opacity=".5"/><circle cx="30" cy="28" r="3" fill="#4CAF50" opacity=".5"/><rect x="20" y="6" width="3" height="12" rx="1.5" fill="#F44336" opacity=".6"/>',
+};
+
+
 // ══════════════ SVG CHARACTERS (아이템 착용 시각화) ══════════════
 const ITEM_SVG = {
     // 모자 - 머리 위에 표시
@@ -252,21 +384,57 @@ const ITEM_SVG = {
     hat_cap:'<path d="M295 250 Q295 225 340 218 Q385 225 385 250" fill="#1565C0"/><rect x="285" y="248" width="110" height="8" rx="4" fill="#0D47A1"/><path d="M285 252 Q260 248 250 255" fill="#0D47A1"/>',
     hat_flower:'<circle cx="310" cy="238" r="10" fill="#E91E63"/><circle cx="310" cy="238" r="4" fill="#FFD600"/><circle cx="370" cy="238" r="10" fill="#E91E63"/><circle cx="370" cy="238" r="4" fill="#FFD600"/><path d="M310 238 Q340 228 370 238" fill="none" stroke="#E91E63" stroke-width="3"/>',
     hat_star:'<polygon points="340,208 344,218 355,218 346,224 349,235 340,228 331,235 334,224 325,218 336,218" fill="#FFD600" stroke="#F9A825" stroke-width="1"/><path d="M308 240 Q340 230 372 240" fill="none" stroke="#FFD600" stroke-width="3"/>',
+    
+    hat_ninja:'<path d="M290 252 Q340 225 390 252" fill="#37474F"/><path d="M290 252 Q340 245 390 252" fill="#455A64"/><rect x="310" y="248" width="60" height="6" rx="3" fill="#F44336"/>',
+    hat_astro:'<ellipse cx="340" cy="238" rx="42" ry="30" fill="#B0BEC5" stroke="#78909C" stroke-width="2"/><ellipse cx="340" cy="238" rx="30" ry="22" fill="#E3F2FD" opacity=".6"/><circle cx="355" cy="230" r="4" fill="white" opacity=".5"/>',
+    hat_pirate:'<path d="M285 248 Q340 215 395 248" fill="#37474F"/><path d="M285 248 Q340 238 395 248" fill="#212121"/><polygon points="340,225 335,235 345,235" fill="white"/>',
+    hat_santa:'<path d="M300 245 Q340 200 380 245" fill="#C62828"/><circle cx="375" cy="215" r="8" fill="white"/><rect x="295" y="242" width="90" height="8" rx="4" fill="white"/>',
     hat_ribbon:'<path d="M310 238 Q340 228 370 238" fill="none" stroke="#E91E63" stroke-width="4"/><path d="M368 238 L380 255 L370 248 L378 268" fill="#E91E63"/><circle cx="370" cy="238" r="5" fill="#E91E63"/>',
     // 상의 - 몸체에 오버레이
     top_hero:'<path d="M285 345 L275 310 Q290 305 303 340" fill="#C62828" opacity=".85"/><path d="M395 345 L405 310 Q390 305 377 340" fill="#C62828" opacity=".85"/><path d="M275 310 Q340 290 405 310" fill="#C62828" opacity=".6"/>',
     top_armor:'<rect x="303" y="338" width="74" height="88" rx="18" fill="#78909C"/><rect x="315" y="348" width="50" height="28" rx="6" fill="#90A4AE"/><path d="M325 348 L340 362 L355 348" fill="none" stroke="#FFD600" stroke-width="2"/><rect x="320" y="380" width="40" height="8" rx="4" fill="#FFD600"/>',
     top_rainbow:'<rect x="303" y="338" width="74" height="88" rx="18" fill="#E53935"/><rect x="303" y="355" width="74" height="12" rx="0" fill="#FF9800"/><rect x="303" y="367" width="74" height="12" rx="0" fill="#FFEB3B"/><rect x="303" y="379" width="74" height="12" rx="0" fill="#4CAF50"/><rect x="303" y="391" width="74" height="12" rx="0" fill="#2196F3"/>',
     top_star:'<rect x="303" y="338" width="74" height="88" rx="18" fill="#1565C0"/><polygon points="340,355 344,365 355,365 346,371 349,382 340,375 331,382 334,371 325,365 336,365" fill="#FFD600"/><polygon points="320,385 322,390 327,390 323,393 324,398 320,396 316,398 317,393 313,390 318,390" fill="#FFD600" opacity=".7"/><polygon points="360,380 362,385 367,385 363,388 364,393 360,391 356,393 357,388 353,385 358,385" fill="#FFD600" opacity=".7"/>',
+    
+    top_ninja:'<rect x="303" y="338" width="74" height="88" rx="18" fill="#37474F"/><path d="M320 360 L340 380 L360 360" fill="none" stroke="#F44336" stroke-width="2.5"/>',
+    top_space:'<rect x="303" y="338" width="74" height="88" rx="18" fill="#1A237E"/><circle cx="325" cy="360" r="3" fill="white" opacity=".6"/><circle cx="355" cy="370" r="2" fill="white" opacity=".5"/><circle cx="340" cy="390" r="2.5" fill="#FFD600"/><rect x="320" y="400" width="40" height="8" rx="4" fill="#42A5F5"/>',
+    top_fire:'<rect x="303" y="338" width="74" height="88" rx="18" fill="#E65100"/><path d="M320 370Q330 345 340 365Q350 345 360 370" fill="#FF6D00" opacity=".8"/><path d="M325 380Q335 360 340 378Q345 358 355 380" fill="#FFAB00" opacity=".6"/>',
+    top_ice:'<rect x="303" y="338" width="74" height="88" rx="18" fill="#B3E5FC"/><polygon points="320,355 325,370 315,370" fill="white" opacity=".7"/><polygon points="345,360 350,378 340,378" fill="white" opacity=".6"/><polygon points="360,350 365,368 355,368" fill="white" opacity=".5"/>',
+    top_royal:'<rect x="303" y="338" width="74" height="88" rx="18" fill="#4A148C"/><path d="M315 355 L340 370 L365 355" fill="none" stroke="#FFD600" stroke-width="2"/><rect x="325" y="380" width="30" height="6" rx="3" fill="#FFD600"/><circle cx="340" cy="395" r="4" fill="#FFD600"/>',
     top_heart:'<rect x="303" y="338" width="74" height="88" rx="18" fill="#E91E63"/><path d="M330 365 Q330 355 340 360 Q350 355 350 365 L340 380Z" fill="white" opacity=".8"/>',
     // 액세서리 - 얼굴/손 주변
     acc_glasses:'<rect x="308" y="282" width="26" height="18" rx="9" fill="none" stroke="#37474F" stroke-width="3"/><rect x="346" y="282" width="26" height="18" rx="9" fill="none" stroke="#37474F" stroke-width="3"/><line x1="334" y1="290" x2="346" y2="290" stroke="#37474F" stroke-width="2.5"/><circle cx="321" cy="290" r="10" fill="#64B5F6" opacity=".2"/><circle cx="359" cy="290" r="10" fill="#64B5F6" opacity=".2"/>',
     acc_wand:'<line x1="410" y1="340" x2="435" y2="305" stroke="#795548" stroke-width="3.5" stroke-linecap="round"/><polygon points="435,305 443,292 430,298 440,282 427,294 433,278 423,302" fill="#FFD600" stroke="#FFA000" stroke-width="1"/>',
     acc_shield:'<path d="M260 335 L260 370 Q260 395 285 400 L260 335Z" fill="#1565C0" stroke="#0D47A1" stroke-width="1.5"/><path d="M260 335 L285 335 L285 400 Q260 395 260 370Z" fill="#1976D2"/><text x="272" y="372" font-size="16" fill="white" text-anchor="middle" font-weight="bold">+</text>',
     acc_pet:'<circle cx="420" cy="390" r="18" fill="#E53935"/><circle cx="420" cy="378" r="12" fill="#E53935"/><ellipse cx="415" cy="375" rx="4" ry="3.5" fill="#FFEB3B"/><ellipse cx="425" cy="375" rx="4" ry="3.5" fill="#FFEB3B"/><circle cx="416" cy="375" r="2" fill="#B71C1C"/><circle cx="426" cy="375" r="2" fill="#B71C1C"/><path d="M413 370 L408 362" stroke="#E53935" stroke-width="2"/><path d="M427 370 L432 362" stroke="#E53935" stroke-width="2"/>',
+    
+    acc_sword:'<line x1="406" y1="350" x2="440" y2="310" stroke="#B0BEC5" stroke-width="3" stroke-linecap="round"/><line x1="430" y1="320" x2="445" y2="325" stroke="#795548" stroke-width="4" stroke-linecap="round"/><circle cx="440" cy="310" r="3" fill="#FFD600"/>',
+    acc_guitar:'<ellipse cx="255" cy="380" rx="12" ry="16" fill="#795548"/><line x1="255" y1="364" x2="255" y2="340" stroke="#795548" stroke-width="2.5"/><rect x="250" y="338" width="10" height="6" rx="2" fill="#5D4037"/>',
+    acc_mic:'<circle cx="416" cy="336" r="8" fill="#9E9E9E"/><line x1="416" y1="344" x2="416" y2="370" stroke="#757575" stroke-width="2.5"/>',
+    acc_camera:'<rect x="250" y="355" width="24" height="16" rx="3" fill="#37474F"/><circle cx="262" cy="363" r="5" fill="#90A4AE"/><circle cx="262" cy="363" r="3" fill="#42A5F5"/>',
+    acc_book:'<rect x="252" y="360" width="20" height="26" rx="3" fill="#1565C0"/><rect x="255" y="363" width="14" height="2" rx="1" fill="#BBDEFB"/><rect x="255" y="368" width="10" height="2" rx="1" fill="#BBDEFB"/>',
+    acc_medal:'<circle cx="340" cy="340" r="10" fill="#FFD600" stroke="#FFA000" stroke-width="1.5"/><polygon points="340,332 342,337 347,337 343,340 344,345 340,342 336,345 337,340 333,337 338,337" fill="#FFA000"/>',
     acc_bag:'<rect x="255" y="360" width="22" height="26" rx="5" fill="#795548"/><rect x="259" y="356" width="14" height="6" rx="3" fill="#5D4037"/><circle cx="266" cy="373" r="3" fill="#FFD600"/>',
+
+    // 펫 - 캐릭터 옆에 표시
+    pet_dragon:'<circle cx="420" cy="390" r="18" fill="#E53935"/><circle cx="420" cy="378" r="12" fill="#E53935"/><ellipse cx="415" cy="375" rx="4" ry="3.5" fill="#FFEB3B"/><ellipse cx="425" cy="375" rx="4" ry="3.5" fill="#FFEB3B"/><circle cx="416" cy="375" r="2" fill="#B71C1C"/><circle cx="426" cy="375" r="2" fill="#B71C1C"/><path d="M413 370 L408 362" stroke="#E53935" stroke-width="2"/><path d="M427 370 L432 362" stroke="#E53935" stroke-width="2"/>',
+    pet_cat:'<circle cx="418" cy="396" r="14" fill="#FF9800"/><circle cx="418" cy="384" r="10" fill="#FF9800"/><polygon points="410,378 408,368 414,376" fill="#FF9800"/><polygon points="426,378 428,368 422,376" fill="#FF9800"/><ellipse cx="414" cy="382" rx="3" ry="2.5" fill="#4CAF50"/><ellipse cx="422" cy="382" rx="3" ry="2.5" fill="#4CAF50"/><circle cx="415" cy="382" r="1.5" fill="#1B5E20"/><circle cx="423" cy="382" r="1.5" fill="#1B5E20"/><path d="M416 387Q418 389 420 387" fill="none" stroke="#5D4037" stroke-width="1"/>',
+    pet_dog:'<circle cx="418" cy="396" r="14" fill="#8D6E63"/><circle cx="418" cy="384" r="10" fill="#8D6E63"/><ellipse cx="410" cy="378" rx="6" ry="8" fill="#795548"/><ellipse cx="426" cy="378" rx="6" ry="8" fill="#795548"/><ellipse cx="414" cy="382" rx="3" ry="3" fill="white"/><ellipse cx="422" cy="382" rx="3" ry="3" fill="white"/><circle cx="415" cy="382" r="2" fill="#3E2723"/><circle cx="423" cy="382" r="2" fill="#3E2723"/><ellipse cx="418" cy="388" rx="3" ry="2" fill="#3E2723"/>',
+    pet_owl:'<ellipse cx="418" cy="390" rx="14" ry="16" fill="#795548"/><circle cx="418" cy="380" r="11" fill="#8D6E63"/><circle cx="413" cy="378" r="6" fill="#FFF9C4"/><circle cx="423" cy="378" r="6" fill="#FFF9C4"/><circle cx="414" cy="378" r="3" fill="#FF6F00"/><circle cx="424" cy="378" r="3" fill="#FF6F00"/><polygon points="418,384 416,388 420,388" fill="#FF8F00"/>',
+    pet_fox:'<circle cx="418" cy="396" r="14" fill="#E65100"/><circle cx="418" cy="382" r="11" fill="#E65100"/><polygon points="408,376 404,364 414,374" fill="#E65100"/><polygon points="428,376 432,364 422,374" fill="#E65100"/><ellipse cx="418" cy="392" rx="8" ry="6" fill="white"/><ellipse cx="413" cy="380" rx="3" ry="2.5" fill="#FFEB3B"/><ellipse cx="423" cy="380" rx="3" ry="2.5" fill="#FFEB3B"/>',
+    pet_panda:'<circle cx="418" cy="394" r="15" fill="white"/><circle cx="418" cy="382" r="11" fill="white"/><circle cx="412" cy="380" r="5" fill="#212121"/><circle cx="424" cy="380" r="5" fill="#212121"/><circle cx="413" cy="379" r="2.5" fill="white"/><circle cx="425" cy="379" r="2.5" fill="white"/><ellipse cx="418" cy="386" rx="3" ry="2" fill="#212121"/><circle cx="410" cy="374" r="4" fill="#212121"/><circle cx="426" cy="374" r="4" fill="#212121"/>',
+    pet_unicorn:'<circle cx="418" cy="394" r="14" fill="white"/><circle cx="418" cy="382" r="10" fill="white"/><polygon points="418,368 416,378 420,378" fill="#FFD600"/><ellipse cx="414" cy="382" rx="2.5" ry="2.5" fill="#E040FB"/><ellipse cx="422" cy="382" rx="2.5" ry="2.5" fill="#E040FB"/><path d="M408 388Q418 396 428 388" fill="#E1BEE7"/>',
+    pet_phoenix:'<circle cx="418" cy="392" r="16" fill="#FF6D00"/><circle cx="418" cy="380" r="10" fill="#FFAB00"/><path d="M406 375L400 362 410 372" fill="#FF6D00"/><path d="M430 375L436 362 426 372" fill="#FF6D00"/><path d="M418 368L414 355 422 355Z" fill="#F44336"/><ellipse cx="414" cy="378" rx="3" ry="3" fill="#FFEB3B"/><ellipse cx="422" cy="378" rx="3" ry="3" fill="#FFEB3B"/><circle cx="415" cy="378" r="1.5" fill="#E65100"/><circle cx="423" cy="378" r="1.5" fill="#E65100"/>',
     // 배경 - 원 배경색 변경
-    bg_castle:'#FFF9C4', bg_space:'#1A237E', bg_forest:'#C8E6C9', bg_rainbow:'#F3E5F5'
+    bg_castle:'#FFF9C4', bg_space:'#1A237E', bg_forest:'#C8E6C9', bg_rainbow:'#F3E5F5',
+    bg_ocean:'#E0F7FA', bg_volcano:'#3E2723', bg_cloud:'#E8EAF6', pc_icecream:'<circle cx="20" cy="22" r="10" fill="#FFCC80"/><path d="M14 22L20 38L26 22" fill="#FFCC80"/><circle cx="20" cy="16" r="8" fill="#F48FB1"/><circle cx="20" cy="10" r="6" fill="#FFEB3B"/><circle cx="20" cy="6" r="4" fill="#EF5350"/>',
+pc_snack:'<circle cx="20" cy="26" r="12" fill="#FFCC80"/><path d="M10 22Q20 10 30 22" fill="#5D4037"/><circle cx="16" cy="22" r="3" fill="#F44336"/><circle cx="24" cy="20" r="2" fill="#4CAF50"/><circle cx="20" cy="18" r="2.5" fill="#FFEB3B"/>',
+pc_toy:'<circle cx="20" cy="24" r="12" fill="#FF9800"/><circle cx="20" cy="16" r="8" fill="#FFB74D"/><circle cx="17" cy="14" r="2" fill="#37474F"/><circle cx="23" cy="14" r="2" fill="#37474F"/><path d="M17 19Q20 22 23 19" fill="none" stroke="#37474F" stroke-width="1.2"/>',
+pc_money:'<circle cx="20" cy="20" r="14" fill="#FFD600" stroke="#F9A825" stroke-width="2"/><text x="20" y="25" text-anchor="middle" font-size="16" font-weight="bold" fill="#F57F17">$</text>',
+pc_movie:'<rect x="6" y="10" width="28" height="20" rx="3" fill="#37474F"/><polygon points="16,16 16,24 24,20" fill="white"/><rect x="8" y="6" width="24" height="4" rx="1" fill="#455A64"/><circle cx="12" cy="8" r="1.5" fill="#FFD600"/><circle cx="28" cy="8" r="1.5" fill="#FFD600"/>',
+miss:'<circle cx="20" cy="20" r="16" fill="#E0E0E0"/><line x1="10" y1="10" x2="30" y2="30" stroke="#9E9E9E" stroke-width="3" stroke-linecap="round"/><line x1="30" y1="10" x2="10" y2="30" stroke="#9E9E9E" stroke-width="3" stroke-linecap="round"/>',
+pc_game:'<rect x="6" y="12" width="28" height="18" rx="4" fill="#37474F"/><circle cx="14" cy="20" r="4" fill="#212121"/><line x1="14" y1="17" x2="14" y2="23" stroke="#9E9E9E" stroke-width="1.5"/><line x1="11" y1="20" x2="17" y2="20" stroke="#9E9E9E" stroke-width="1.5"/><circle cx="26" cy="18" r="2" fill="#4CAF50"/><circle cx="26" cy="23" r="2" fill="#F44336"/>',
+bg_candy:'#FCE4EC'
 };
 
 function svgS(s=70){
@@ -275,6 +443,7 @@ function svgS(s=70){
     const hatSvg=G.equipped.hat&&ITEM_SVG[G.equipped.hat]?ITEM_SVG[G.equipped.hat]:'';
     const topSvg=G.equipped.top&&ITEM_SVG[G.equipped.top]?ITEM_SVG[G.equipped.top]:'';
     const accSvg=G.equipped.acc&&ITEM_SVG[G.equipped.acc]?ITEM_SVG[G.equipped.acc]:'';
+    const petSvg=G.equipped.pet&&ITEM_SVG[G.equipped.pet]?ITEM_SVG[G.equipped.pet]:'';
     const bodyFill=topSvg?'transparent':'#42A5F5';
     return `<svg width="${s}" height="${s*1.15}" viewBox="245 185 190 300">
 <circle cx="340" cy="268" r="125" fill="${bgColor}"/>
@@ -292,6 +461,7 @@ ${hatSvg}
 <circle cx="322" cy="286" r="6" fill="#37474F"/><circle cx="362" cy="286" r="6" fill="#37474F"/>
 <circle cx="325" cy="283" r="2.5" fill="white"/><circle cx="365" cy="283" r="2.5" fill="white"/>
 ${accSvg}
+${petSvg}
 <path d="M328 314Q340 326 352 314" fill="none" stroke="#37474F" stroke-width="2.2" stroke-linecap="round"/>
 <ellipse cx="305" cy="305" rx="8" ry="4" fill="#FF8A80" opacity=".45"/><ellipse cx="375" cy="305" rx="8" ry="4" fill="#FF8A80" opacity=".45"/>
 </svg>`}
@@ -300,15 +470,13 @@ function svgD(s=90){return `<svg width="${s}" height="${s}" viewBox="170 100 340
 
 // ══════════════ PARENT CHANCE ACHIEVEMENTS ══════════════
 const PC_ACHIEVE=[
-    {id:'stars100',name:'별 100개 달성',emoji:'⭐',check:()=>G.stars>=100},
-    {id:'stars200',name:'별 200개 달성',emoji:'🌟',check:()=>G.stars>=200},
-    {id:'boss1',name:'CH1 보스 클리어',emoji:'🐉',check:()=>G.ch1.boss},
-    {id:'boss2',name:'CH2 보스 클리어',emoji:'👾',check:()=>G.ch2.boss},
-    {id:'boss3',name:'CH3 보스 클리어',emoji:'🤖',check:()=>G.ch3.boss},
-    {id:'hidden1',name:'CH1 히든 클리어',emoji:'🗝️',check:()=>G.ch1.hidden},
-    {id:'level5',name:'레벨 5 달성',emoji:'📈',check:()=>G.level>=5},
-    {id:'all3',name:'3챕터 모두 클리어',emoji:'🏆',check:()=>G.ch1.boss&&G.ch2.boss&&G.ch3.boss},
-    {id:'stars300',name:'별 300개 달성',emoji:'💫',check:()=>G.stars>=300},
+    {id:'stars300',name:'⭐ 별 300개 모으기',emoji:'⭐',check:()=>G.stars>=300},
+    {id:'stars500',name:'⭐ 별 500개 모으기',emoji:'🌟',check:()=>G.stars>=500},
+    {id:'level10',name:'📈 레벨 10 달성',emoji:'📈',check:()=>G.level>=10},
+    {id:'all_adv',name:'🏆 모험 3챕터 전부 클리어',emoji:'🏆',check:()=>G.adv0?.boss&&G.adv1?.boss&&G.adv2?.boss},
+    {id:'perfect3',name:'💎 미션 3회 연속 퍼펙트',emoji:'💎',check:()=>G.totalCorrect>=50&&G.totalPlayed>0&&(G.totalCorrect/G.totalPlayed)>=0.9},
+    {id:'streak7',name:'🔥 7일 연속 출석',emoji:'🔥',check:()=>G.streak>=7},
+    {id:'stars1000',name:'💫 별 1000개 전설',emoji:'💫',check:()=>G.stars>=1000},
 ];
 function checkPCTokens(){
     let newTokens=0;
@@ -316,32 +484,66 @@ function checkPCTokens(){
     if(newTokens>0){saveG();showT(`🎁 부모찬스 토큰 ${newTokens}개 획득!`,'#AD1457')}
 }
 
-// ══════════════ SHOP ITEMS ══════════════
+// ══════════════ SHOP ITEMS (확장판) ══════════════
 const ITEMS = [
-    {id:'hat_crown',name:'왕관',emoji:'👑',cat:'hat',price:15},
+    // 🎩 모자 (10종)
+    {id:'hat_crown',name:'황금 왕관',emoji:'👑',cat:'hat',price:15},
     {id:'hat_wizard',name:'마법사 모자',emoji:'🧙',cat:'hat',price:20,badge:'dragon_slayer'},
     {id:'hat_cap',name:'야구모자',emoji:'🧢',cat:'hat',price:8},
     {id:'hat_flower',name:'꽃 머리띠',emoji:'🌸',cat:'hat',price:10},
-    {id:'hat_star',name:'별 머리띠',emoji:'💫',cat:'hat',price:12},
+    {id:'hat_star',name:'별 왕관',emoji:'💫',cat:'hat',price:12},
     {id:'hat_ribbon',name:'리본',emoji:'🎀',cat:'hat',price:6},
+    {id:'hat_ninja',name:'닌자 두건',emoji:'🥷',cat:'hat',price:18},
+    {id:'hat_astro',name:'우주 헬멧',emoji:'🪖',cat:'hat',price:25},
+    {id:'hat_pirate',name:'해적 모자',emoji:'🏴‍☠️',cat:'hat',price:22},
+    {id:'hat_santa',name:'산타 모자',emoji:'🎅',cat:'hat',price:30},
+    // 👕 상의 (10종)
     {id:'top_hero',name:'히어로 망토',emoji:'🦸',cat:'top',price:25},
-    {id:'top_armor',name:'기사 갑옷',emoji:'⚔️',cat:'top',price:30,badge:'dragon_slayer'},
+    {id:'top_armor',name:'황금 갑옷',emoji:'⚔️',cat:'top',price:30,badge:'dragon_slayer'},
     {id:'top_rainbow',name:'무지개 티셔츠',emoji:'🌈',cat:'top',price:12},
-    {id:'top_star',name:'별무늬 셔츠',emoji:'✨',cat:'top',price:10},
-    {id:'top_heart',name:'하트 셔츠',emoji:'❤️',cat:'top',price:10},
+    {id:'top_star',name:'별빛 로브',emoji:'✨',cat:'top',price:10},
+    {id:'top_heart',name:'하트 후드',emoji:'❤️',cat:'top',price:10},
+    {id:'top_ninja',name:'닌자복',emoji:'🥋',cat:'top',price:20},
+    {id:'top_space',name:'우주복',emoji:'🧑‍🚀',cat:'top',price:28},
+    {id:'top_fire',name:'불꽃 망토',emoji:'🔥',cat:'top',price:35},
+    {id:'top_ice',name:'얼음 갑옷',emoji:'❄️',cat:'top',price:32},
+    {id:'top_royal',name:'왕실 로브',emoji:'👑',cat:'top',price:40},
+    // 💍 액세서리 (10종)
     {id:'acc_glasses',name:'멋쟁이 안경',emoji:'🤓',cat:'acc',price:8},
     {id:'acc_wand',name:'마법 지팡이',emoji:'🪄',cat:'acc',price:18},
     {id:'acc_shield',name:'수학 방패',emoji:'🛡️',cat:'acc',price:22,badge:'explorer'},
-    {id:'acc_pet',name:'아기 용',emoji:'🐲',cat:'acc',price:35,badge:'dragon_slayer'},
+    {id:'acc_sword',name:'빛나는 검',emoji:'⚔️',cat:'acc',price:28},
     {id:'acc_bag',name:'보물 가방',emoji:'💰',cat:'acc',price:14},
+    {id:'acc_guitar',name:'록스타 기타',emoji:'🎸',cat:'acc',price:20},
+    {id:'acc_mic',name:'노래 마이크',emoji:'🎤',cat:'acc',price:16},
+    {id:'acc_camera',name:'탐험 카메라',emoji:'📸',cat:'acc',price:15},
+    {id:'acc_book',name:'마법의 책',emoji:'📖',cat:'acc',price:18},
+    {id:'acc_medal',name:'금메달',emoji:'🥇',cat:'acc',price:25},
+    // 🐾 펫 (8종) - NEW!
+    {id:'pet_dragon',name:'아기 드래곤',emoji:'🐲',cat:'pet',price:35,badge:'dragon_slayer'},
+    {id:'pet_cat',name:'수학 고양이',emoji:'🐱',cat:'pet',price:20},
+    {id:'pet_dog',name:'충성 강아지',emoji:'🐶',cat:'pet',price:20},
+    {id:'pet_owl',name:'지혜 부엉이',emoji:'🦉',cat:'pet',price:25},
+    {id:'pet_fox',name:'영리한 여우',emoji:'🦊',cat:'pet',price:22},
+    {id:'pet_panda',name:'판다 친구',emoji:'🐼',cat:'pet',price:28},
+    {id:'pet_unicorn',name:'유니콘',emoji:'🦄',cat:'pet',price:50},
+    {id:'pet_phoenix',name:'불사조',emoji:'🔥',cat:'pet',price:60,badge:'all3'},
+    // 🖼 배경 (8종)
     {id:'bg_castle',name:'100의 성',emoji:'🏰',cat:'bg',price:20},
-    {id:'bg_space',name:'우주',emoji:'🚀',cat:'bg',price:25},
+    {id:'bg_space',name:'은하수 우주',emoji:'🚀',cat:'bg',price:25},
     {id:'bg_forest',name:'마법의 숲',emoji:'🌲',cat:'bg',price:15},
     {id:'bg_rainbow',name:'무지개 나라',emoji:'🌈',cat:'bg',price:18},
+    {id:'bg_ocean',name:'심해 왕국',emoji:'🌊',cat:'bg',price:22},
+    {id:'bg_volcano',name:'용암 동굴',emoji:'🌋',cat:'bg',price:28},
+    {id:'bg_cloud',name:'구름 왕국',emoji:'☁️',cat:'bg',price:24},
+    {id:'bg_candy',name:'사탕 나라',emoji:'🍭',cat:'bg',price:30},
+    // 🎁 부모찬스 (6종)
     {id:'pc_icecream',name:'아이스크림',emoji:'🍦',cat:'parent',price:0,parentOnly:true},
-    {id:'pc_book',name:'만화책',emoji:'📚',cat:'parent',price:0,parentOnly:true},
+    {id:'pc_snack',name:'간식 사주기',emoji:'🍰',cat:'parent',price:0,parentOnly:true},
     {id:'pc_toy',name:'장난감',emoji:'🧸',cat:'parent',price:0,parentOnly:true},
-    {id:'pc_outing',name:'놀이공원',emoji:'🎢',cat:'parent',price:0,parentOnly:true},
+    {id:'pc_money',name:'용돈 받기',emoji:'💰',cat:'parent',price:0,parentOnly:true},
+    {id:'pc_movie',name:'영화 보기',emoji:'🎬',cat:'parent',price:0,parentOnly:true},
+    {id:'pc_game',name:'게임 시간',emoji:'🎮',cat:'parent',price:0,parentOnly:true},
 ];
 
 
@@ -431,10 +633,14 @@ function bnavHTML(active){return ['home','learn','char','parent'].map(s=>{const 
 // ══════════════ ONBOARDING (캐릭터 만들기) ══════════════
 let obStep=0;
 const CHAR_OPTIONS=[
-    {id:0,name:'모험가',emoji:'🧒',color:'#42A5F5',desc:'호기심 가득!'},
-    {id:1,name:'마법사',emoji:'🧙',color:'#AB47BC',desc:'마법의 힘!'},
-    {id:2,name:'기사',emoji:'🤺',color:'#EF5350',desc:'용감한 전사!'},
-    {id:3,name:'탐정',emoji:'🔍',color:'#66BB6A',desc:'관찰력 최고!'},
+    {id:0,name:'모험가',emoji:'🧒',color:'#42A5F5',desc:'호기심 가득한 탐험가!'},
+    {id:1,name:'마법사',emoji:'🧙‍♂️',color:'#AB47BC',desc:'수학 마법을 부려요!'},
+    {id:2,name:'기사',emoji:'⚔️',color:'#EF5350',desc:'용감한 수학 전사!'},
+    {id:3,name:'탐정',emoji:'🕵️',color:'#66BB6A',desc:'문제를 추리해요!'},
+    {id:4,name:'닌자',emoji:'🥷',color:'#37474F',desc:'번개처럼 빠른 계산!'},
+    {id:5,name:'공주',emoji:'👸',color:'#E91E63',desc:'우아한 수학 여왕!'},
+    {id:6,name:'우주인',emoji:'🧑‍🚀',color:'#00ACC1',desc:'우주를 탐험해요!'},
+    {id:7,name:'과학자',emoji:'🔬',color:'#FF8F00',desc:'실험으로 증명해요!'},
 ];
 
 function renderOnboard(){obStep=0;renderObStep()}
@@ -457,9 +663,9 @@ function renderObStep(){
         el.innerHTML=`<div style="text-align:center;width:90%;max-width:360px" class="af">
             <h2 style="font-family:var(--font-t);font-size:24px;color:white;margin-bottom:6px">${G.playerName}의 캐릭터!</h2>
             <p style="color:#BBDEFB;font-size:14px;margin-bottom:16px">어떤 모습으로 모험할까?</p>
-            <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px">
-                ${CHAR_OPTIONS.map(c=>`<div class="card" style="cursor:pointer;text-align:center;border:3px solid ${G.playerChar===c.id?c.color:'#E0E0E0'};padding:16px;${G.playerChar===c.id?'background:'+c.color+'15':''}" onclick="G.playerChar=${c.id};renderObStep()">
-                    <div style="font-size:40px;margin-bottom:6px">${c.emoji}</div>
+            <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px">
+                ${CHAR_OPTIONS.map(c=>`<div class="card" style="cursor:pointer;text-align:center;border:3px solid ${G.playerChar===c.id?c.color:'#E0E0E0'};padding:10px;${G.playerChar===c.id?'background:'+c.color+'15':''}" onclick="G.playerChar=${c.id};renderObStep()">
+                    <div style="margin-bottom:6px">${svgIcon("char_"+c.id,48)}</div>
                     <div style="font-family:var(--font-t);font-size:16px">${c.name}</div>
                     <div style="font-size:11px;color:var(--gray)">${c.desc}</div>
                 </div>`).join('')}
@@ -630,11 +836,9 @@ function advComplete(step){
 // 동적 만화
 function startAdvComic(ch){
     const comics=genAdvComic(ch,G.playerName||'모험가');
-    cP=0;
-    const origComic=CH[curChap]?.comic;
-    // 임시로 현재 챕터 만화를 동적 만화로 교체
     window._advComics=comics;
     window._advMode=true;
+    cP=0;
     nav('comic');
 }
 
@@ -642,6 +846,7 @@ function startAdvComic(ch){
 function startAdvConcept(ch){
     window._advConcepts=genAdvConcepts(ch);
     window._advMode=true;
+    cI=0;
     nav('concept');
 }
 
@@ -649,6 +854,7 @@ function startAdvConcept(ch){
 function startAdvMission(ch){
     window._advMissions=genAdvMissions(G.playerGrade,ch.tp,8);
     window._advMode=true;
+    mI=0;mSc=0;mLk=false;
     nav('mission');
 }
 
@@ -656,6 +862,7 @@ function startAdvMission(ch){
 function startAdvBoss(ch){
     window._advBoss={ch,qs:genAdvMissions(G.playerGrade,ch.tp,5)};
     window._advMode=true;
+    bH=5;bI=0;bLk=false;pH=3;
     nav('boss');
 }
 
@@ -663,13 +870,14 @@ function startAdvBoss(ch){
 function startAdvHidden(ch){
     window._advHidden=genAdvMissions(G.playerGrade,ch.tp,3);
     window._advMode=true;
+    hI=0;hLk=false;
     nav('hidden');
 }
 
 // ══════════════ COMIC ══════════════
 let cP=0;
-function renderComic(){cP=0;rCP()}
-function rCP(){const comicData=window._advMode&&window._advComics?window._advComics:CH[curChap]?.comic||[];if(!comicData.length){nav('home');return}const p=comicData[cP],last=cP===comicData.length-1;document.getElementById('comic-t').textContent=`📖 만화 (${cP+1}/${CH[curChap].comic.length})`;document.getElementById('comic-c').innerHTML=`
+function renderComic(){if(!window._advMode)cP=0;rCP()}
+function rCP(){const comicData=window._advMode&&window._advComics?window._advComics:CH[curChap]?.comic||[];if(!comicData.length){nav('home');return}const p=comicData[cP],last=cP===comicData.length-1;document.getElementById('comic-t').textContent=`📖 만화 (${cP+1}/${comicData.length})`;document.getElementById('comic-c').innerHTML=`
     <div class="comic-panel af"><div class="comic-scene" style="background:${p.bg}"><div style="font-size:11px;color:var(--gray);margin-bottom:8px">[${p.sc}]</div><div class="ab">${p.ch==='s'?svgS(65):svgM(55)}</div><p style="font-size:16px;font-weight:700;line-height:1.4;margin-top:10px">${p.tx}</p></div><div class="comic-dialog">${p.dl}</div></div>
     <div style="display:flex;gap:8px;justify-content:center;margin-top:14px">${cP>0?'<button class="btn btn-outline" onclick="cPrev()">← 이전</button>':''}${!last?'<button class="btn btn-blue btn-lg" onclick="cNext()">다음 →</button>':'<button class="btn btn-green btn-lg" onclick="cDone()">✅ 완료!</button>'}</div>
     <div class="dots">${comicData.map((_,i)=>`<div class="dot ${i===cP?'active':''}"></div>`).join('')}</div>`}
@@ -677,8 +885,8 @@ function cNext(){snd('click');cP++;rCP()}function cPrev(){snd('click');cP--;rCP(
 
 // ══════════════ CONCEPT ══════════════
 let cI=0;
-function renderConcept(){cI=0;rCS()}
-function rCS(){const conData=window._advMode&&window._advConcepts?window._advConcepts:CH[curChap]?.concepts||[];if(!conData.length){nav('home');return}const s=conData[cI],last=cI===conData.length-1;document.getElementById('concept-t').textContent=`🔍 개념 (${cI+1}/${CH[curChap].concepts.length})`;document.getElementById('concept-c').innerHTML=`
+function renderConcept(){if(!window._advMode)cI=0;rCS()}
+function rCS(){const conData=window._advMode&&window._advConcepts?window._advConcepts:CH[curChap]?.concepts||[];if(!conData.length){nav('home');return}const s=conData[cI],last=cI===conData.length-1;document.getElementById('concept-t').textContent=`🔍 개념 (${cI+1}/${conData.length})`;document.getElementById('concept-c').innerHTML=`
     <div class="card af" style="border:3px solid var(--green)">
         <div style="text-align:center"><div class="afl" style="font-size:40px">${s.e}</div><h2 style="font-family:var(--font-t);font-size:20px;color:var(--green);margin-top:6px">🔑 ${s.t}</h2></div>
         <div style="text-align:center;margin:10px 0">${svgM(40)}</div>
@@ -694,36 +902,63 @@ function cSNext(){snd('click');cI++;rCS()}function cSPrev(){snd('click');cI--;rC
 
 // ══════════════ MISSION ══════════════
 let mI=0,mSc=0,mLk=false;
-function renderMission(){mI=0;mSc=0;mLk=false;rMQ()}
+function renderMission(){if(!window._advMode){mI=0;mSc=0;mLk=false}rMQ()}
 function rMQ(){
     // 30% 확률 미니게임 (3문제마다)
     if(mI>0 && mI%3===0 && Math.random()<0.3){triggerMiniGame();return}
-    const mData=window._advMode&&window._advMissions?window._advMissions:CH[curChap]?.missions||[];const m=mData[mI];if(!m){nav('home');return}document.getElementById('mission-t').textContent=`⚔️ 미션 (${mI+1}/${CH[curChap].missions.length})`;
+    const mData=window._advMode&&window._advMissions?window._advMissions:CH[curChap]?.missions||[];const m=mData[mI];if(!m){nav('home');return}document.getElementById('mission-t').textContent=`⚔️ 미션 (${mI+1}/${mData.length})`;
     document.getElementById('mission-c').innerHTML=`
         <div class="pbar" style="margin-bottom:12px"><div class="pfill" style="width:${(mI/mData.length)*100}%;background:var(--orange)"></div></div>
         <div class="card af" style="border:3px solid var(--orange)"><div style="display:flex;align-items:center;gap:10px">${svgM(30)}<div style="font-family:var(--font-t);font-size:18px;line-height:1.3">${m.q}</div></div>${getVisual(m.q)}</div>
-        <div style="text-align:center;margin-bottom:8px"><button style="background:none;border:2px solid var(--purple);color:var(--purple);padding:6px 16px;border-radius:20px;font-family:var(--font-t);font-size:13px;cursor:pointer" onclick="showMissionHint()">💡 힌트 보기</button></div>
+        <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:8px"><button style="background:none;border:2px solid var(--blue);color:var(--blue);padding:6px 14px;border-radius:20px;font-family:var(--font-t);font-size:13px;cursor:pointer" onclick="speakQ(m.q)">🔊 읽어줘</button><button style="background:none;border:2px solid var(--purple);color:var(--purple);padding:6px 14px;border-radius:20px;font-family:var(--font-t);font-size:13px;cursor:pointer" onclick="usedHint=true;showMissionHint()">💡 힌트</button></div>
         <div id="mission-hint-area"></div>
-        <div style="display:flex;flex-direction:column;gap:8px">${m.o.map((o,i)=>`<button class="opt" id="mo-${i}" onclick="mAns(${i})"><span class="opt-num">${['①','②','③','④'][i]}</span>${o}</button>`).join('')}</div>`}
-function mAns(i){if(mLk)return;mLk=true;const m=CH[curChap].missions[mI];if(i===m.a){document.getElementById('mo-'+i).classList.add('correct');snd('ok');mSc++;G.totalCorrect++;addS(1);showFB(1,'🎉 정답! ⭐+1')}else{document.getElementById('mo-'+i).classList.add('wrong');document.getElementById('mo-'+m.a).classList.add('correct');snd('no');showFB(0,'정답: '+m.o[m.a]);showStepSolve(m,'mission-c')}G.totalPlayed++;setTimeout(()=>{mLk=false;if(mI<CH[curChap].missions.length-1){mI++;rMQ()}else{if(window._advMode){advComplete('mission');window._advMode=false}else{G['ch'+curChap].mission=true};G.missionScore=mSc;if(mSc===mData.length)addB('perfect');showT(`⚔️ 완료! ${mSc}/${CH[curChap].missions.length}`);nav('home')}},1300)}
+        <div class="think-msg" id="ms-think-msg"></div>
+        <div class="think-bar"><div class="think-fill" id="ms-think-fill"></div></div>
+        <div style="display:flex;flex-direction:column;gap:8px">${m.o.map((o,i)=>`<button class="opt locked" id="mo-${i}" onclick="mAns(${i})"><span class="opt-num">${['①','②','③','④'][i]}</span>${o}</button>`).join('')}</div>`;
+    startThinkTimer('ms')}
+function mAns(i){if(mLk||!thinkDone)return;mLk=true;
+    const mData=window._advMode&&window._advMissions?window._advMissions:CH[curChap]?.missions||[];
+    const m=mData[mI];if(!m)return;
+    const elapsed=getElapsed();
+    const isCorrect=i===m.a;
+    const isFastWrong=checkFastWrong(elapsed,isCorrect);
+
+    if(isCorrect){
+        const stars=calcStars(elapsed,true,usedHint);
+        document.getElementById('mo-'+i).classList.add('correct');
+        snd('ok');mSc++;G.totalCorrect++;addS(stars);
+        showFB(1,`🎉 ${starMsg(stars)}`);speakPraise();
+    }else{
+        document.getElementById('mo-'+i).classList.add('wrong');
+        if(m.a>=0)document.getElementById('mo-'+m.a)?.classList.add('correct');
+        snd('no');showStepSolve(m,'mission-c');
+        if(isFastWrong){showFB(0,'🚫 천천히 생각하고 풀어봐요!');speak('천천히 생각하고 풀어봐요!');fastWrongStreak=0}
+        else{showFB(0,'정답: '+m.o[m.a]);speakWrong()}
+    }
+    G.totalPlayed++;
+    const delay=isCorrect?1200:(isFastWrong?5000:3500);
+    setTimeout(()=>{mLk=false;
+        if(mI<mData.length-1){mI++;rMQ()}
+        else{if(window._advMode){advComplete('mission');window._advMode=false}else{G['ch'+curChap].mission=true}G.missionScore=mSc;showT(`⚔️ 완료! ${mSc}/${mData.length}`);nav('home')}
+    },delay)}
 
 // ══════════════ BOSS ══════════════
 let bH=5,bI=0,bLk=false,pH=3;
-function renderBoss(){bH=5;bI=0;bLk=false;pH=3;rBQ()}
+function renderBoss(){if(!window._advMode){bH=5;bI=0;bLk=false;pH=3}rBQ()}
 function rBQ(){if(bH<=0){rBWin();return}if(pH<=0){rBLose();return}const bData=window._advMode&&window._advBoss?window._advBoss.qs:CH[curChap]?.boss||[];const q=bData[bI];if(!q){rBWin();return}document.getElementById('boss-c').innerHTML=`
     <div style="text-align:center;margin-bottom:4px"><div class="${bLk?'anim-shake':'afl'}">${svgD(80)}</div></div>
-    <div style="font-size:11px;font-weight:700;color:var(--red)">🐉 드래곤 HP</div><div class="hpbar" style="margin-bottom:10px"><div class="hpfill" style="width:${(bH/5)*100}%"></div></div>
-    <div style="font-size:11px;font-weight:700;color:var(--blue)">💙 서준 HP</div><div class="hpbar" style="margin-bottom:12px;border-color:var(--blue)"><div class="hpfill" style="width:${(pH/3)*100}%;background:var(--blue)"></div></div>
+    <div style="font-size:11px;font-weight:700;color:var(--red)">${window._advBoss?.ch?.bossE||"🐉"} 보스 HP</div><div class="hpbar" style="margin-bottom:10px"><div class="hpfill" style="width:${(bH/5)*100}%"></div></div>
+    <div style="font-size:11px;font-weight:700;color:var(--blue)">💙 ${G.playerName||"나"} HP</div><div class="hpbar" style="margin-bottom:12px;border-color:var(--blue)"><div class="hpfill" style="width:${(pH/3)*100}%;background:var(--blue)"></div></div>
     <div class="card" style="border:3px solid var(--red)"><div style="font-family:var(--font-t);font-size:16px;color:var(--red)">💥 공격 ${bI+1}/${bData.length}</div><div style="font-size:17px;font-weight:700;margin-top:4px">${q.q}</div></div>
     <div style="display:flex;flex-direction:column;gap:7px;margin-top:8px">${q.o.map((o,i)=>`<button class="opt" id="bo-${i}" onclick="bAns(${i})" style="border-color:#FFCDD2">${o}</button>`).join('')}</div>`}
 function bAns(i){if(bLk)return;bLk=true;const bData=window._advMode&&window._advBoss?window._advBoss.qs:CH[curChap]?.boss||[];const q=bData[bI];if(!q){rBWin();return}if(i===q.a){document.getElementById('bo-'+i).classList.add('correct');snd('ok');bH--;addS(2);showFB(1,'💥 공격! ⭐+2')}else{document.getElementById('bo-'+i).classList.add('wrong');snd('no');pH--;showFB(0,'🔥 반격!')}setTimeout(()=>{bLk=false;if(bH<=0){rBWin();return}if(pH<=0){rBLose();return}if(bI<bData.length-1)bI++;rBQ()},1300)}
-function rBWin(){snd('win');if(window._advMode){advComplete('boss');window._advMode=false}else{G['ch'+curChap].boss=true};addB(curChap===1?'dragon_slayer':curChap===2?'shape_master':'calc_hero');saveG();document.getElementById('boss-c').innerHTML=`<div style="text-align:center;padding-top:20px" class="af"><div style="font-size:48px" class="ab">🎊🏆🎊</div><h1 style="font-family:var(--font-t);font-size:28px;color:var(--green);margin:10px 0">${CH_INFO[curChap].boss} 격파!</h1><div class="ap">${svgD(70)}</div><div class="card ap" style="display:inline-block;padding:8px 18px;margin:12px 0">🏅 <span style="font-family:var(--font-t);color:var(--gold)">${curChap===1?'드래곤 슬레이어':curChap===2?'도형 마스터':'계산 영웅'} 뱃지!</span></div><div style="display:flex;gap:12px;justify-content:center">${svgS(50)} ${svgM(40)}</div><button class="btn btn-green btn-lg btn-block" style="margin-top:16px" onclick="nav('home')">🗺️ 모험 지도로</button></div>`}
-function rBLose(){document.getElementById('boss-c').innerHTML=`<div style="text-align:center;padding-top:30px" class="af"><div style="font-size:42px">😢</div><h2 style="font-family:var(--font-t);font-size:22px;color:var(--red);margin:10px 0">다음에 다시!</h2><p style="font-size:15px;margin-bottom:16px">멀티: "괜찮아! 다시 도전하면 돼!"</p><button class="btn btn-orange btn-lg btn-block" onclick="renderBoss()">🔄 다시 도전!</button><button class="btn btn-outline btn-block" style="margin-top:8px" onclick="nav('home')">← 모험 지도</button></div>`}
+function rBWin(){snd('win');if(window._advMode){advComplete('boss');window._advMode=false}else{G['ch'+curChap].boss=true};addB(curChap===1?'dragon_slayer':curChap===2?'shape_master':'calc_hero');saveG();document.getElementById('boss-c').innerHTML=`<div style="text-align:center;padding-top:20px" class="af"><div style="font-size:48px" class="ab">🎊🏆🎊</div><h1 style="font-family:var(--font-t);font-size:28px;color:var(--green);margin:10px 0">${window._advBoss?.ch?.boss||CH_INFO[curChap]?.boss||'보스'} 격파!</h1><div class="ap">${svgD(70)}</div><div class="card ap" style="display:inline-block;padding:8px 18px;margin:12px 0">🏅 <span style="font-family:var(--font-t);color:var(--gold)">${curChap===1?'드래곤 슬레이어':curChap===2?'도형 마스터':'계산 영웅'} 뱃지!</span></div><div style="display:flex;gap:12px;justify-content:center">${svgS(50)} ${svgM(40)}</div><button class="btn btn-green btn-lg btn-block" style="margin-top:16px" onclick="nav('home')">🗺️ 모험 지도로</button></div>`}
+function rBLose(){document.getElementById('boss-c').innerHTML=`<div style="text-align:center;padding-top:30px" class="af"><div style="font-size:42px">😢</div><h2 style="font-family:var(--font-t);font-size:22px;color:var(--red);margin:10px 0">다음에 다시!</h2><p style="font-size:15px;margin-bottom:16px">멀티: "괜찮아! 다시 도전하면 돼!"</p><button class="btn btn-orange btn-lg btn-block" onclick="bH=5;bI=0;bLk=false;pH=3;renderBoss()">🔄 다시 도전!</button><button class="btn btn-outline btn-block" style="margin-top:8px" onclick="nav('home')">← 모험 지도</button></div>`}
 
 // ══════════════ HIDDEN ══════════════
 let hI=0,hLk=false;
-function renderHidden(){hI=0;hLk=false;rHQ()}
-function rHQ(){if(hI>=hData.length){rHDone();return}const hData=window._advMode&&window._advHidden?window._advHidden:CH[curChap]?.hidden||[];const q=hData[hI];if(!q){rHDone();return}document.getElementById('hidden-c').innerHTML=`
+function renderHidden(){if(!window._advMode){hI=0;hLk=false}rHQ()}
+function rHQ(){const hData=window._advMode&&window._advHidden?window._advHidden:CH[curChap]?.hidden||[];if(hI>=hData.length){rHDone();return}const q=hData[hI];if(!q){rHDone();return}document.getElementById('hidden-c').innerHTML=`
     <div class="card af" style="border:3px solid var(--purple);background:var(--purple-l)"><div style="text-align:center;font-size:28px;margin-bottom:6px" class="ab">🗝️</div><div style="font-family:var(--font-t);font-size:16px;color:var(--purple)">비밀 문제 ${hI+1}/${hData.length}</div><div style="font-size:16px;font-weight:700;line-height:1.4;margin-top:6px">${q.q}</div></div>
     <div style="display:flex;flex-direction:column;gap:8px;margin-top:10px">${q.o.map((o,i)=>`<button class="opt" id="ho-${i}" onclick="hAns(${i})" style="border-color:#CE93D8">${o}</button>`).join('')}</div>`}
 function hAns(i){if(hLk)return;hLk=true;const hData=window._advMode&&window._advHidden?window._advHidden:CH[curChap]?.hidden||[];const q=hData[hI];if(!q){rHDone();return}if(i===q.a){document.getElementById('ho-'+i).classList.add('correct');snd('ok');addS(3);showFB(1,'🎉 ⭐+3')}else{document.getElementById('ho-'+i).classList.add('wrong');snd('no');showFB(0,'정답: '+q.o[q.a])}setTimeout(()=>{hLk=false;hI++;rHQ()},1300)}
@@ -800,27 +1035,27 @@ function checkCip(){const v=parseInt(document.getElementById('cip-ans').value);c
 let shopCat='hat';
 function renderShop(){
     document.getElementById('bnav-shop').innerHTML=bnavHTML('char');
-    const cats=[{k:'hat',l:'🎩 모자'},{k:'top',l:'👕 상의'},{k:'acc',l:'💍 액세서리'},{k:'bg',l:'🖼 배경'},{k:'parent',l:'🎁 부모찬스'}];
+    const cats=[{k:'hat',l:'🎩 모자'},{k:'top',l:'👕 상의'},{k:'acc',l:'💍 액세서리'},{k:'pet',l:'🐾 펫'},{k:'bg',l:'🖼 배경'},{k:'parent',l:'🎁 부모찬스'}];
     const items=ITEMS.filter(i=>i.cat===shopCat);
     const canPC=canParentChance();
     document.getElementById('shop-c').innerHTML=`
         <div class="shop-tab">${cats.map(c=>`<button class="shop-tab-btn ${c.k===shopCat?'active':''}" onclick="shopCat='${c.k}';renderShop()">${c.l}</button>`).join('')}</div>
         ${shopCat==='parent'?`
             <div class="card" style="border:3px solid var(--pink);background:var(--pink-l)">
-                <div style="font-family:var(--font-t);font-size:17px;color:var(--pink);margin-bottom:6px">🎁 부모찬스란?</div>
-                <p style="font-size:13px;line-height:1.5">어려운 미션을 달성하면 <strong>토큰</strong>을 받아요!<br>토큰으로 부모님께 선물을 요청할 수 있어요!</p>
-                <div style="margin-top:10px;font-family:var(--font-t);font-size:20px;color:var(--pink)">🎫 보유 토큰: ${G.parentChance.tokens}개</div>
+                <div style="font-family:var(--font-t);font-size:17px;color:var(--pink);margin-bottom:6px">🎁 부모찬스 행운의 돌림판!</div>
+                <p style="font-size:13px;line-height:1.5">어려운 미션을 달성하면 <strong>토큰</strong>을 받아요!<br>토큰을 쓰면 <strong>행운의 돌림판</strong>을 돌려서 선물이 결정돼요!</p>
+                <div style="margin-top:10px;font-family:var(--font-t);font-size:22px;color:var(--pink)">🎫 보유 토큰: ${G.parentChance.tokens}개</div>
+            </div>
+            <div class="card" style="text-align:center">
+                ${renderWheel()}
+                <button class="btn ${canPC?'btn-pink':'btn-outline'} btn-lg btn-block wheel-spin-btn" onclick="${canPC?'spinWheel()':'snd(\"lock\");showT(\"토큰이 필요해요!\",\"#C62828\")'}" ${canPC?'':'disabled'}>
+                    ${canPC?'🎰 토큰 1개로 돌림판 돌리기!':'🔒 토큰을 먼저 모으세요!'}
+                </button>
             </div>
             <div class="card" style="border:2px solid var(--purple)">
-                <div style="font-family:var(--font-t);font-size:15px;color:var(--purple);margin-bottom:8px">🏆 토큰 획득 조건</div>
+                <div style="font-family:var(--font-t);font-size:15px;color:var(--purple);margin-bottom:8px">🏆 토큰 획득 조건 (고난이도!)</div>
                 ${PC_ACHIEVE.map(a=>{const done=G.parentChance.earned.includes(a.id);return `<div style="display:flex;align-items:center;gap:8px;padding:5px 0;font-size:13px"><span style="font-size:18px">${done?'✅':a.emoji}</span><span style="flex:1;${done?'text-decoration:line-through;color:var(--gray)':''}">${a.name}</span><span style="color:${done?'var(--green)':'var(--orange)'};font-size:11px">${done?'획득!':'🎫+1'}</span></div>`}).join('')}
             </div>
-            <div class="shop-grid" style="margin-top:12px">${items.map(item=>`
-                <div class="shop-item ${canPC?'':'disabled'}" onclick="${canPC?`requestParentChance('${item.id}')`:'snd(\"lock\");showT(\"토큰이 필요해요! 미션을 달성하세요!\",\"#C62828\")'}">
-                    <div class="item-emoji">${item.emoji}</div><div class="item-name">${item.name}</div>
-                    <div class="item-price" style="color:var(--pink)">${canPC?'🎫 토큰 1개':'🔒 토큰 없음'}</div>
-                </div>
-            `).join('')}</div>
         `:`
         <div class="shop-grid">${items.map(item=>{
             const owned=G.inventory.includes(item.id);const eq=Object.values(G.equipped).includes(item.id);
@@ -835,30 +1070,99 @@ function renderShop(){
 function buyItem(id){const item=ITEMS.find(i=>i.id===id);if(!item||G.stars<item.price||G.inventory.includes(id))return;G.stars-=item.price;G.inventory.push(id);snd('buy');showT(`🛍️ ${item.name} 구매! ⭐-${item.price}`);saveG();renderShop()}
 function equipItem(id){const item=ITEMS.find(i=>i.id===id);if(!item||!G.inventory.includes(id))return;if(G.equipped[item.cat]===id)G.equipped[item.cat]=null;else G.equipped[item.cat]=id;snd('click');saveG();renderShop()}
 
+
+// ══════════════ SPINNING WHEEL (행운의 돌림판) ══════════════
+const WHEEL_ITEMS=[
+    {name:'아이스크림',color:'#F48FB1',id:'pc_icecream'},
+    {name:'간식 사주기',color:'#FFCC80',id:'pc_snack'},
+    {name:'꽝!',color:'#BDBDBD',id:'miss'},
+    {name:'장난감',color:'#A5D6A7',id:'pc_toy'},
+    {name:'용돈 받기',color:'#FFD600',id:'pc_money'},
+    {name:'꽝!',color:'#E0E0E0',id:'miss'},
+    {name:'영화 보기',color:'#90CAF9',id:'pc_movie'},
+    {name:'게임 시간',color:'#CE93D8',id:'pc_game'},
+];
+let wheelSpinning=false;
+
+function renderWheel(){
+    const n=WHEEL_ITEMS.length;
+    const angle=360/n;
+    let paths='';
+    WHEEL_ITEMS.forEach((item,i)=>{
+        const startA=(i*angle-90)*Math.PI/180;
+        const endA=((i+1)*angle-90)*Math.PI/180;
+        const x1=120+100*Math.cos(startA),y1=120+100*Math.sin(startA);
+        const x2=120+100*Math.cos(endA),y2=120+100*Math.sin(endA);
+        paths+=`<path d="M120,120 L${x1},${y1} A100,100 0 0,1 ${x2},${y2} Z" fill="${item.color}"/>`;
+        const midA=((i+0.5)*angle-90)*Math.PI/180;
+        const tx=120+60*Math.cos(midA),ty=120+60*Math.sin(midA);
+        paths+=`<text x="${tx}" y="${ty}" text-anchor="middle" dominant-baseline="central" font-size="11" font-weight="bold" fill="#37474F" transform="rotate(${i*angle+angle/2},${tx},${ty})">${item.name}</text>`;
+    });
+    return `<div class="wheel-container">
+        <div class="wheel-pointer">▼</div>
+        <svg id="wheel-svg" class="wheel-svg" viewBox="0 0 240 240">
+            <circle cx="120" cy="120" r="110" fill="none" stroke="#E0E0E0" stroke-width="3"/>
+            ${paths}
+            <circle cx="120" cy="120" r="18" fill="white" stroke="#E0E0E0" stroke-width="2"/>
+            <circle cx="120" cy="120" r="8" fill="#E91E63"/>
+        </svg>
+    </div>`;
+}
+
+function spinWheel(){
+    if(wheelSpinning||!canParentChance())return;
+    wheelSpinning=true;
+    snd('boss');
+    const n=WHEEL_ITEMS.length;
+    const angle=360/n;
+    const winIdx=Math.floor(Math.random()*n);
+    // 4-6 full rotations + land on winning segment
+    const rotations=4+Math.floor(Math.random()*3);
+    const targetAngle=rotations*360+(360-winIdx*angle-angle/2);
+    const el=document.getElementById('wheel-svg');
+    if(el)el.style.transform=`rotate(${targetAngle}deg)`;
+    setTimeout(()=>{
+        wheelSpinning=false;
+        const won=WHEEL_ITEMS[winIdx];
+        if(won.id==='miss'){
+            snd('no');
+            G.parentChance.tokens--;
+            saveG();
+            document.getElementById('overlay-box').innerHTML=`
+                <div style="font-size:56px;margin-bottom:8px" class="anim-shake">😭</div>
+                <div style="font-family:var(--font-t);font-size:24px;color:var(--gray);margin-bottom:8px">아쉽다~ 꽝!</div>
+                <p style="font-size:14px;color:var(--gray);margin-bottom:16px">토큰 1개가 사용됐어요...<br>다음엔 꼭 당첨될 거야! 💪</p>
+                <button class="btn btn-blue btn-block" onclick="hideOL();renderShop()">확인</button>
+            `;
+            document.getElementById('overlay').classList.add('show');
+        }else{
+            snd('win');
+            G.parentChance.tokens--;
+            G.parentChance.requests.push({id:won.id,name:won.name,emoji:'🎁',date:Date.now(),status:'pending'});
+            saveG();
+            document.getElementById('overlay-box').innerHTML=`
+                <div style="font-size:56px;margin-bottom:8px" class="ab">🎉</div>
+                <div style="font-family:var(--font-t);font-size:24px;color:var(--pink);margin-bottom:4px">${won.name} 당첨!</div>
+                <div style="margin:10px 0">${svgIcon(won.id,64)}</div>
+                <p style="font-size:14px;color:var(--gray);margin-bottom:16px">부모님께 요청이 전달됐어요!<br>부모님이 확인하면 받을 수 있어요!</p>
+                <button class="btn btn-pink btn-block" onclick="hideOL();renderShop()">확인!</button>
+            `;
+            document.getElementById('overlay').classList.add('show');
+        }
+    },4500);
+}
+
 // ── 부모찬스 ──
 function canParentChance(){checkPCTokens();return G.parentChance.tokens>0}
-function requestParentChance(id){
-    const item=ITEMS.find(i=>i.id===id);if(!item||!canParentChance())return;
-    document.getElementById('overlay-box').innerHTML=`
-        <div style="font-size:48px;margin-bottom:10px">${item.emoji}</div>
-        <div style="font-family:var(--font-t);font-size:20px;margin-bottom:8px">${item.name} 요청하기!</div>
-        <p style="font-size:14px;color:var(--gray);margin-bottom:6px">부모님께 "${item.name}" 선물을 요청할까요?</p>
-        <p style="font-size:13px;color:var(--pink);margin-bottom:16px">🎫 토큰 1개를 사용합니다 (남은 토큰: ${G.parentChance.tokens}개)</p>
-        <div style="display:flex;gap:8px"><button class="btn btn-pink btn-block" onclick="confirmPC('${id}')">요청하기!</button><button class="btn btn-outline btn-block" onclick="hideOL()">취소</button></div>
-    `;document.getElementById('overlay').classList.add('show')}
-function confirmPC(id){
-    const item=ITEMS.find(i=>i.id===id);G.parentChance.tokens--;
-    G.parentChance.requests.push({id,name:item.name,emoji:item.emoji,date:Date.now(),status:'pending'});
-    snd('win');hideOL();saveG();
-    showT(`🎁 ${item.name} 요청 완료!`,'#AD1457');renderShop()}
+// requestParentChance/confirmPC → replaced by spinWheel()
 
 // ══════════════ CHARACTER ══════════════
 function renderChar(){
     document.getElementById('bnav-char').innerHTML=bnavHTML('char');
     // Character screen now includes badges, quest, shop access
-    const cats={hat:'모자',top:'상의',acc:'액세서리',bg:'배경'};
+    const cats={hat:'모자',top:'상의',acc:'액세서리',pet:'펫',bg:'배경'};
     const eqList=Object.entries(G.equipped).filter(([,v])=>v).map(([k,v])=>{const i=ITEMS.find(x=>x.id===v);return i?`<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid #F0F0F0">
-        <span style="font-size:24px">${i.emoji}</span>
+        <span>${svgIcon(i.id,28)}</span>
         <div style="flex:1"><div style="font-size:14px;font-weight:700">${i.name}</div><div style="font-size:11px;color:var(--gray)">${cats[k]}</div></div>
         <button class="btn" style="padding:4px 10px;min-height:30px;font-size:11px;background:var(--red-l);color:var(--red);box-shadow:none" onclick="G.equipped.${k}=null;saveG();renderChar()">해제</button>
     </div>`:''}).join('');
@@ -930,13 +1234,13 @@ function showParentDash(){
         </div>
         ${pcReqs.length>0?`<div class="card"><div style="font-family:var(--font-t);font-size:16px;margin-bottom:8px;color:var(--pink)">🎁 부모찬스 요청 목록</div>
             ${pcReqs.map((r,i)=>`<div style="display:flex;align-items:center;gap:8px;padding:6px 0;${i?'border-top:1px solid #E0E0E0':''}">
-                <span style="font-size:22px">${r.emoji}</span><div style="flex:1"><div style="font-size:14px;font-weight:700">${r.name}</div><div style="font-size:11px;color:var(--gray)">${new Date(r.date).toLocaleDateString('ko')}</div></div>
+                <span>${svgIcon(r.id,28)}</span><div style="flex:1"><div style="font-size:14px;font-weight:700">${r.name}</div><div style="font-size:11px;color:var(--gray)">${new Date(r.date).toLocaleDateString('ko')}</div></div>
                 <span style="font-size:12px;padding:3px 8px;border-radius:10px;${r.status==='approved'?'background:var(--green-l);color:var(--green)':r.status==='denied'?'background:var(--red-l);color:var(--red)':'background:var(--orange-l);color:var(--orange)'}">${r.status==='approved'?'✅승인':r.status==='denied'?'❌거절':'⏳대기'}</span>
                 ${r.status==='pending'?`<button class="btn btn-green" style="padding:4px 10px;min-height:32px;font-size:12px" onclick="approvePC(${i})">승인</button><button class="btn btn-red" style="padding:4px 10px;min-height:32px;font-size:12px" onclick="denyPC(${i})">거절</button>`:''}
             </div>`).join('')}</div>`:''}
         <div class="card"><div style="font-family:var(--font-t);font-size:16px;margin-bottom:8px">⚙️ 설정</div>
             <button class="btn btn-outline btn-block" style="margin-bottom:8px;font-size:14px" onclick="changePIN()">🔑 PIN 변경</button>
-            <button class="btn btn-outline btn-block" style="font-size:14px;border-color:var(--red);color:var(--red)" onclick="if(confirm('정말 초기화?')){G={stars:0,exp:0,level:1,badges:[],ch1:{comic:false,concept:false,mission:false,boss:false,hidden:false},ch2:{comic:false,concept:false,mission:false,boss:false,hidden:false},ch3:{comic:false,concept:false,mission:false,boss:false,hidden:false},missionScore:0,missionScores:{1:0,2:0,3:0},totalCorrect:0,totalPlayed:0,streak:0,timedBest:0,inventory:[],equipped:{hat:null,top:null,acc:null,bg:null},parentChance:{tokens:0,earned:[],requests:[]},parentPin:G.parentPin,createdAt:Date.now(),lastPlayedAt:Date.now()};saveG();showT('초기화 완료');showParentDash()}">🗑️ 데이터 초기화</button>
+            <button class="btn btn-outline btn-block" style="font-size:14px;border-color:var(--red);color:var(--red)" onclick="if(confirm('정말 초기화?')){G={stars:0,exp:0,level:1,badges:[],ch1:{comic:false,concept:false,mission:false,boss:false,hidden:false},ch2:{comic:false,concept:false,mission:false,boss:false,hidden:false},ch3:{comic:false,concept:false,mission:false,boss:false,hidden:false},missionScore:0,missionScores:{1:0,2:0,3:0},totalCorrect:0,totalPlayed:0,streak:0,timedBest:0,adapt:{},streakByTopic:{},inventory:[],equipped:{hat:null,top:null,acc:null,pet:null,bg:null},parentChance:{tokens:0,earned:[],requests:[]},parentPin:G.parentPin,createdAt:Date.now(),lastPlayedAt:Date.now()};saveG();showT('초기화 완료');showParentDash()}">🗑️ 데이터 초기화</button>
         </div>
         <div class="card" style="border:3px solid var(--purple)">
             <div style="font-family:var(--font-t);font-size:16px;color:var(--purple);margin-bottom:10px">🛠️ 관리자 모드 (테스트용)</div>
@@ -1040,7 +1344,7 @@ function renderPracLevel(){
         <div style="margin-top:14px;font-family:var(--font-t);font-size:14px;color:var(--gray)">📂 ${LEVELS.find(l=>l.id===pracLevel).name} 학습 주제</div>
         <div class="topic-grid">${TOPICS.filter(t=>t.levels.includes(pracLevel)).map(t=>`
             <div class="topic-card" onclick="pracTopic='${t.id}';startPracQuiz()">
-                <div class="tc-icon" style="background:${t.color}">${t.emoji}</div>
+                <div class="tc-icon" style="background:${t.color}"><span style="font-size:18px">${t.emoji}</span></div>
                 <div>${t.name}</div>
             </div>
         `).join('')}</div>
@@ -1052,7 +1356,7 @@ function renderPracTopic(){
         <div style="font-family:var(--font-t);font-size:16px;margin-bottom:8px">📂 주제를 선택하세요</div>
         <div style="display:flex;flex-direction:column;gap:8px">${TOPICS.map(t=>`
             <div class="topic-card" onclick="pracTopic='${t.id}';showTopicLevels('${t.id}')" style="border-color:${pracTopic===t.id?t.color:'#E0E0E0'}">
-                <div class="tc-icon" style="background:${t.color}">${t.emoji}</div>
+                <div class="tc-icon" style="background:${t.color}"><span style="font-size:18px">${t.emoji}</span></div>
                 <div style="flex:1">
                     <div style="font-size:15px">${t.name}</div>
                     <div style="font-size:10px;color:var(--gray)">${t.levels.map(l=>LEVELS.find(x=>x.id===l).name).join(', ')}</div>
@@ -1076,6 +1380,26 @@ function showTopicLevels(topicId){
         </div>`;
 }
 
+
+// ══════════════ ADAPTIVE DIFFICULTY (맞춤 난이도) ══════════════
+// 주제별 정답 스트릭 추적 → 난이도 자동 조절
+function getAdaptDiff(topic){
+    if(!G.adapt[topic])G.adapt[topic]={correct:0,wrong:0,streak:0,diff:1};
+    const a=G.adapt[topic];
+    // diff: 0=쉬움, 1=보통, 2=어려움
+    if(a.streak>=3){a.diff=Math.min(2,a.diff+1);a.streak=0;saveG()}
+    if(a.streak<=-2){a.diff=Math.max(0,a.diff-1);a.streak=0;saveG()}
+    return a.diff;
+}
+function adaptRecord(topic,correct){
+    if(!G.adapt[topic])G.adapt[topic]={correct:0,wrong:0,streak:0,diff:1};
+    const a=G.adapt[topic];
+    if(correct){a.correct++;a.streak=Math.max(0,a.streak)+1}
+    else{a.wrong++;a.streak=Math.min(0,a.streak)-1}
+    saveG();
+}
+function diffLabel(d){return d===0?'<span class="diff-badge diff-easy">쉬움</span>':d===2?'<span class="diff-badge diff-hard">어려움</span>':'<span class="diff-badge diff-normal">보통</span>'}
+
 // ══════════════ PROBLEM GENERATOR ══════════════
 function genProblems(level,topic,count=8){
     const problems=[];
@@ -1086,7 +1410,7 @@ function genProblems(level,topic,count=8){
     return problems;
 }
 
-function genOne(lv,tp){
+function genOne(lv,tp,diff=1){
     const r=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
     const pick=a=>a[r(0,a.length-1)];
     let q,ans,opts;
@@ -1127,7 +1451,7 @@ function genOne(lv,tp){
             ];const t=pick(types)();ans=t.ans;q=t.q;
             opts=shuffle([ans,ans+1,Math.max(0,ans-1),ans+2]);
         }else if(lv==='g2'){
-            // [2수01-06~08] 두 자리 수 덧셈 (받아올림 포함)
+            const dScale=diff===0?0.6:diff===2?1.4:1;
             const types=[
                 ()=>{const a2=r(11,49),b2=r(11,49);return{q:`${a2} + ${b2} = ?`,ans:a2+b2}},
                 ()=>{const a2=r(10,50),b2=r(10,40);return{q:`${p}가 ${c} ${a2}개, ${pick(ppl)}가 ${b2}개. 합하면?`,ans:a2+b2}},
@@ -1326,10 +1650,64 @@ function fmtP(t){const o=t.opts||[];return{q:t.q,o:o.map(x=>String(x)),a:o.map(x
 
 function shuffle(arr){const a=[...arr];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
 
+
+// ══════════════ ANTI-CHEAT (찍기 방지) ══════════════
+let qStartTime=0, fastWrongStreak=0, usedHint=false, thinkDone=false;
+const THINK_SEC=3; // 생각 시간 (초)
+
+function startThinkTimer(prefix){
+    qStartTime=Date.now();
+    usedHint=false;
+    thinkDone=false;
+    // 버튼 잠금
+    document.querySelectorAll('.opt').forEach(b=>b.classList.add('locked'));
+    const msgEl=document.getElementById(prefix+'-think-msg');
+    const barEl=document.getElementById(prefix+'-think-fill');
+    if(msgEl)msgEl.textContent='🤔 생각해보세요...';
+    if(barEl){barEl.style.width='0%';setTimeout(()=>barEl.style.width='100%',50)}
+    let sec=THINK_SEC;
+    const iv=setInterval(()=>{
+        sec--;
+        if(msgEl)msgEl.textContent=sec>0?`🤔 ${sec}초 동안 생각해봐요...`:'✅ 답을 골라보세요!';
+        if(sec<=0){
+            clearInterval(iv);
+            thinkDone=true;
+            document.querySelectorAll('.opt.locked').forEach(b=>b.classList.remove('locked'));
+        }
+    },1000);
+}
+
+function getElapsed(){return (Date.now()-qStartTime)/1000}
+
+function calcStars(elapsed,correct,hint){
+    if(!correct)return 0;
+    if(hint)return 1;        // 힌트 사용 → 별 1개
+    if(elapsed>=8)return 3;  // 8초 이상 충분히 생각 → 별 3개
+    if(elapsed>=5)return 2;  // 5초 이상 → 별 2개
+    return 1;                // 빠른 정답 → 별 1개
+}
+
+function starMsg(stars){
+    if(stars===3)return '⭐×3 천천히 잘 풀었어요!';
+    if(stars===2)return '⭐×2 잘했어요!';
+    return '⭐×1';
+}
+
+function checkFastWrong(elapsed,correct){
+    if(!correct && elapsed<2){
+        fastWrongStreak++;
+        if(fastWrongStreak>=3)return true; // 3회 연속 빠른 오답
+    }else{
+        if(correct)fastWrongStreak=0;
+    }
+    return false;
+}
+
 // ══════════════ PRACTICE QUIZ ══════════════
 let pracQs=[],pracQI=0,pracQSc=0,pracQLk=false;
 
 function startPracQuiz(){
+    fastWrongStreak=0;
     pracQs=genProblems(pracLevel,pracTopic,8);
     pracQI=0;pracQSc=0;pracQLk=false;
     nav('pracquiz');
@@ -1348,7 +1726,7 @@ function renderPracQ(){
     if(!q){pracQI++;renderPracQ();return}
     document.getElementById('pracquiz-c').innerHTML=`
         <div class="prac-score">
-            <span>문제 ${pracQI+1}/${pracQs.length}</span>
+            <span>문제 ${pracQI+1}/${pracQs.length} ${diffLabel(getAdaptDiff(pracTopic))}</span>
             <span>정답 ${pracQSc}개</span>
         </div>
         <div class="pbar" style="margin-bottom:12px"><div class="pfill" style="width:${(pracQI/pracQs.length)*100}%;background:var(--blue)"></div></div>
@@ -1356,33 +1734,54 @@ function renderPracQ(){
             <div style="font-family:var(--font-t);font-size:22px;text-align:center;padding:10px 0;line-height:1.4">${q.q}</div>
             ${getVisual(q.q)}
         </div>
-        <div style="text-align:center;margin-bottom:8px">
-            <button style="background:none;border:2px solid var(--purple);color:var(--purple);padding:6px 16px;border-radius:20px;font-family:var(--font-t);font-size:13px;cursor:pointer" onclick="showHint()">💡 힌트 보기</button>
+        <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:8px">
+            <button style="background:none;border:2px solid var(--blue);color:var(--blue);padding:6px 14px;border-radius:20px;font-family:var(--font-t);font-size:13px;cursor:pointer" onclick="speakQ(pracQs[pracQI]?.q||'')">🔊 읽어줘</button>
+            <button style="background:none;border:2px solid var(--purple);color:var(--purple);padding:6px 14px;border-radius:20px;font-family:var(--font-t);font-size:13px;cursor:pointer" onclick="usedHint=true;showHint()">💡 힌트</button>
         </div>
         <div id="hint-area"></div>
+        <div class="think-msg" id="pq-think-msg"></div>
+        <div class="think-bar"><div class="think-fill" id="pq-think-fill"></div></div>
         <div style="display:flex;flex-direction:column;gap:8px">${q.o.map((o,i)=>`
-            <button class="opt" id="pqo-${i}" onclick="pracQAns(${i})">
+            <button class="opt locked" id="pqo-${i}" onclick="pracQAns(${i})">
                 <span class="opt-num">${['①','②','③','④'][i]||''}</span>${o}
             </button>
-        `).join('')}</div>`;
+        `).join('')}</div>
+        <div id="hw-area"></div>`;
+    setTimeout(()=>speakQ(q.q),300);
+    startThinkTimer('pq');
 }
 
 function pracQAns(i){
-    if(pracQLk)return;pracQLk=true;
+    if(pracQLk||!thinkDone)return;pracQLk=true;
     const q=pracQs[pracQI];
-    if(i===q.a){
+    const elapsed=getElapsed();
+    const isCorrect=i===q.a;
+    const isFastWrong=checkFastWrong(elapsed,isCorrect);
+
+    if(isCorrect){
+        const stars=calcStars(elapsed,true,usedHint);
         document.getElementById('pqo-'+i).classList.add('correct');
-        snd('ok');pracQSc++;addS(1);showFB(1,'🎉 정답! ⭐+1');
+        snd('ok');pracQSc++;addS(stars);
+        showFB(1,`🎉 ${starMsg(stars)}`);
+        speakPraise();adaptRecord(pracTopic,true);
         G.totalPlayed++;G.totalCorrect++;
         setTimeout(()=>{pracQLk=false;pracQI++;renderPracQ()},1200);
     }else{
         document.getElementById('pqo-'+i).classList.add('wrong');
         if(q.a>=0&&q.a<q.o.length)document.getElementById('pqo-'+q.a)?.classList.add('correct');
-        snd('no');showFB(0,'정답: '+q.o[q.a]);
-        showStepSolve({q:q.q,o:q.o,a:q.a},'pracquiz-c');
+        snd('no');adaptRecord(pracTopic,false);
         G.totalPlayed++;
-        // 풀이과정 읽을 시간 충분히 (3.5초)
-        setTimeout(()=>{pracQLk=false;pracQI++;renderPracQ()},3500);
+        if(isFastWrong){
+            showFB(0,'🚫 천천히 생각하고 풀어봐요!');
+            speak('천천히 생각하고 풀어봐요!');
+            showStepSolve({q:q.q,o:q.o,a:q.a},'pracquiz-c');
+            fastWrongStreak=0;
+            setTimeout(()=>{pracQLk=false;pracQI++;renderPracQ()},5000);
+        }else{
+            showFB(0,'정답: '+q.o[q.a]);speakWrong();
+            showStepSolve({q:q.q,o:q.o,a:q.a},'pracquiz-c');
+            setTimeout(()=>{pracQLk=false;pracQI++;renderPracQ()},3500);
+        }
     }
 }
 
@@ -1414,102 +1813,511 @@ function getVisual(q){
     return '';
 }
 
+
+// ══════════════ HANDWRITING INPUT (손글씨 숫자 인식) ══════════════
+let hwCanvas,hwCtx,hwDrawing=false,hwCallback=null;
+function showHandwriting(callback){
+    hwCallback=callback;
+    const el=document.getElementById('hw-area');
+    if(!el)return;
+    el.innerHTML=`<div class="hw-wrap">
+        <div style="font-family:var(--font-t);font-size:14px;color:var(--purple);margin-bottom:6px">✏️ 손가락으로 숫자를 써 보세요!</div>
+        <canvas id="hw-cv" class="hw-canvas" width="200" height="120"></canvas>
+        <div class="hw-result" id="hw-result">?</div>
+        <div class="hw-btns">
+            <button class="btn btn-outline" style="font-size:13px;padding:8px 14px;min-height:36px" onclick="hwClear()">🗑️ 지우기</button>
+            <button class="btn btn-purple" style="font-size:13px;padding:8px 14px;min-height:36px" onclick="hwRecognize()">✅ 확인</button>
+        </div>
+    </div>`;
+    setTimeout(()=>{
+        hwCanvas=document.getElementById('hw-cv');
+        if(!hwCanvas)return;
+        hwCtx=hwCanvas.getContext('2d');
+        hwCtx.lineWidth=6;hwCtx.lineCap='round';hwCtx.strokeStyle='#1565C0';
+        hwCanvas.addEventListener('pointerdown',hwStart);
+        hwCanvas.addEventListener('pointermove',hwMove);
+        hwCanvas.addEventListener('pointerup',()=>hwDrawing=false);
+        hwCanvas.addEventListener('pointerleave',()=>hwDrawing=false);
+    },100);
+}
+function hwStart(e){hwDrawing=true;hwCtx.beginPath();const r=hwCanvas.getBoundingClientRect();hwCtx.moveTo(e.clientX-r.left,e.clientY-r.top)}
+function hwMove(e){if(!hwDrawing)return;const r=hwCanvas.getBoundingClientRect();hwCtx.lineTo(e.clientX-r.left,e.clientY-r.top);hwCtx.stroke()}
+function hwClear(){if(hwCtx)hwCtx.clearRect(0,0,200,120);document.getElementById('hw-result').textContent='?'}
+function hwRecognize(){
+    if(!hwCanvas)return;
+    // Simple grid-based digit recognition (3x5 grid sampling)
+    const img=hwCtx.getImageData(0,0,200,120);
+    const gw=3,gh=5,cw=200/gw,ch=120/gh;
+    const grid=[];
+    for(let gy=0;gy<gh;gy++){
+        for(let gx=0;gx<gw;gx++){
+            let filled=0,total=0;
+            for(let y=Math.floor(gy*ch);y<Math.floor((gy+1)*ch);y++){
+                for(let x=Math.floor(gx*cw);x<Math.floor((gx+1)*cw);x++){
+                    total++;
+                    if(img.data[(y*200+x)*4+3]>50)filled++;
+                }}
+            grid.push(filled/total>0.08?1:0);
+        }}
+    // Pattern matching for digits 0-9
+    const patterns={
+        '0':[1,1,1,1,0,1,1,0,1,1,0,1,1,1,1],
+        '1':[0,1,0,0,1,0,0,1,0,0,1,0,0,1,0],
+        '2':[1,1,1,0,0,1,1,1,1,1,0,0,1,1,1],
+        '3':[1,1,1,0,0,1,1,1,1,0,0,1,1,1,1],
+        '4':[1,0,1,1,0,1,1,1,1,0,0,1,0,0,1],
+        '5':[1,1,1,1,0,0,1,1,1,0,0,1,1,1,1],
+        '6':[1,1,1,1,0,0,1,1,1,1,0,1,1,1,1],
+        '7':[1,1,1,0,0,1,0,0,1,0,0,1,0,0,1],
+        '8':[1,1,1,1,0,1,1,1,1,1,0,1,1,1,1],
+        '9':[1,1,1,1,0,1,1,1,1,0,0,1,1,1,1]
+    };
+    let bestDigit='?',bestScore=-1;
+    for(const[digit,pat] of Object.entries(patterns)){
+        let score=0;
+        for(let i=0;i<15;i++)score+=grid[i]===pat[i]?1:0;
+        if(score>bestScore){bestScore=score;bestDigit=digit}
+    }
+    // Need at least 60% match
+    if(bestScore<9)bestDigit='?';
+    document.getElementById('hw-result').textContent=bestDigit;
+    if(bestDigit!=='?'&&hwCallback)hwCallback(parseInt(bestDigit));
+}
+
 // ══════════════ STEP-BY-STEP SOLVE (초등학생 눈높이 풀이과정) ══════════════
 
 // 힌트용: 풀이 방법만 알려주고 답은 절대 안 보여줌
 function getHintSteps(q){
     let m;
-    // 덧셈
+    // ── 덧셈 ──
     m=q.match(/^(\d+)\s*\+\s*(\d+)/);
     if(m){const a=+m[1],b=+m[2];
-        if(a<10&&b<10)return [`🤔 두 수를 합쳐야 해요!`,`🖐️ 손가락으로 ${a}개를 펴고`,`🖐️ 거기에 ${b}개를 더 펴봐요!`,`📢 손가락이 모두 몇 개인지 세어보세요!`];
-        const a1=a%10,b1=b%10;
-        return [`📋 자릿수를 나눠서 계산해요!`,`1️⃣ 먼저 일의 자리끼리: ${a1} + ${b1} = ?`,a1+b1>=10?`⚠️ 합이 10 넘으면 → 1을 십의 자리로 올려요! (받아올림)`:`✅ 합이 10보다 작으니 그대로 써요!`,`2️⃣ 그 다음 십의 자리끼리 더해요`+(a1+b1>=10?` (올림한 1도 같이!)`:''),`📝 일의자리 결과와 십의자리 결과를 합치면 정답!`]}
-    // 뺄셈
+        if(a<10&&b<10)return [
+            `🤔 ${a}와 ${b}를 합쳐야 해요!`,
+            `🖐️ 방법 1: 손가락으로 풀기`,
+            `   손가락 ${a}개를 펴고, ${b}개를 더 펴요`,
+            `   그리고 전부 세어보세요!`,
+            `🧮 방법 2: 큰 수부터 세기`,
+            `   ${Math.max(a,b)}에서 시작해서 ${Math.min(a,b)}만큼 더 세요`,
+            `   ${Math.max(a,b)}... ${Array.from({length:Math.min(a,b)},(_,i)=>Math.max(a,b)+i+1).join(', ')}`,
+        ];
+        const a1=a%10,a10=Math.floor(a/10),b1=b%10,b10=Math.floor(b/10),s1=a1+b1;
+        const steps=[
+            `📋 세로셈으로 풀어봐요!`,
+            `   ${String(a).padStart(4,' ')}`,
+            `+  ${String(b).padStart(4,' ')}`,
+            `───────`,
+            `1️⃣ 일의 자리부터! ${a1} + ${b1} = ?`,
+        ];
+        if(s1>=10)steps.push(
+            `   ${a1} + ${b1} = ${s1} → 10이 넘어요!`,
+            `   ☝️ 받아올림! ${s1%10}을 쓰고 1을 십의 자리로 올려요`,
+            `2️⃣ 십의 자리: ${a10} + ${b10} + 1(올림) = ?`,
+        );
+        else steps.push(
+            `   ${a1} + ${b1} = ${s1} → 그대로 써요!`,
+            `2️⃣ 십의 자리: ${a10} + ${b10} = ?`,
+        );
+        steps.push(`📝 두 결과를 합치면 정답이에요!`);
+        return steps;
+    }
+    // ── 뺄셈 ──
     m=q.match(/^(\d+)\s*-\s*(\d+)/);
     if(m){const a=+m[1],b=+m[2];
-        if(a<10)return [`🤔 ${a}에서 ${b}를 빼야 해요!`,`🖐️ 손가락 ${a}개를 펴고`,`✊ ${b}개를 접어봐요!`,`📢 남은 손가락이 몇 개인지 세어보세요!`];
-        const a1=a%10,b1=b%10;
-        return [`📋 자릿수를 나눠서 빼요!`,`1️⃣ 먼저 일의 자리: ${a1} - ${b1} = ?`,a1<b1?`⚠️ ${a1}에서 ${b1}을 못 빼요! → 십의 자리에서 10을 빌려와요!\n    → ${a1}+10 = ${a1+10}, 여기서 ${b1}을 빼요`:`✅ ${a1}이 ${b1}보다 크니까 바로 빼요!`,`2️⃣ 그 다음 십의 자리끼리 빼요`+(a1<b1?` (10을 빌려줬으니 1 줄어요!)`:''),`📝 일의자리 결과와 십의자리 결과를 합치면 정답!`]}
-    // 곱셈
+        if(a<10)return [
+            `🤔 ${a}에서 ${b}를 빼야 해요!`,
+            `🖐️ 손가락 ${a}개를 펴고`,
+            `✊ ${b}개를 하나씩 접어봐요!`,
+            `   ${a}... ${Array.from({length:Math.min(b,a)},(_,i)=>a-i-1).join(', ')}`,
+            `📢 남은 손가락이 정답이에요!`,
+        ];
+        const a1=a%10,a10=Math.floor(a/10),b1=b%10,b10=Math.floor(b/10);
+        const steps=[
+            `📋 세로셈으로 풀어봐요!`,
+            `   ${String(a).padStart(4,' ')}`,
+            `-  ${String(b).padStart(4,' ')}`,
+            `───────`,
+            `1️⃣ 일의 자리부터! ${a1} - ${b1} = ?`,
+        ];
+        if(a1<b1)steps.push(
+            `   ${a1}에서 ${b1}을 뺄 수 없어요! (${a1} < ${b1})`,
+            `   ☝️ 받아내림! 십의 자리에서 10을 빌려와요`,
+            `   ${a1} + 10 = ${a1+10}, 여기서 ${b1}을 빼요`,
+            `   ${a1+10} - ${b1} = ${a1+10-b1}`,
+            `2️⃣ 십의 자리: ${a10}에서 1을 빌려줬으니 ${a10-1}`,
+            `   ${a10-1} - ${b10} = ?`,
+        );
+        else steps.push(
+            `   ${a1} - ${b1} = ${a1-b1} → 바로 뺄 수 있어요!`,
+            `2️⃣ 십의 자리: ${a10} - ${b10} = ?`,
+        );
+        steps.push(`📝 두 결과를 합치면 정답이에요!`);
+        return steps;
+    }
+    // ── 곱셈 ──
     m=q.match(/(\d+)\s*×\s*(\d+)/);
     if(m){const a=+m[1],b=+m[2];
-        if(a<=9&&b<=9)return [`🤔 곱셈은 "같은 수를 여러 번 더하기"예요!`,`🍎 ${a}개짜리 묶음이 ${b}개 있다고 생각해봐요`,`📢 ${a}를 ${b}번 더해보세요:`,`🧮 ${Array(Math.min(b,5)).fill(a).join(' + ')}${b>5?' + ...':''} = ?`,`💡 구구단 ${a}단을 떠올려봐요: ${a}×1=${a}, ${a}×2=${a*2}, ${a}×3=${a*3}...`];
-        return [`🤔 큰 수의 곱셈이에요!`,`📋 나눠서 계산하면 쉬워요!`,`1️⃣ ${a} × ${b%10||b} 를 먼저 구해요`,`2️⃣ 자릿수별로 곱한 걸 더해요`,`💡 천천히 하나씩 계산해 보세요!`]}
-    // 나눗셈
+        if(a<=9&&b<=9){
+            const steps=[
+                `🤔 곱셈 = "같은 수를 여러 번 더하기"예요!`,
+                `🍎 예를 들면: ${a}개씩 ${b}묶음이 있어요`,
+            ];
+            if(b<=5)steps.push(`🧮 하나씩 더해봐요:`,`   ${Array(b).fill(a).join(' + ')} = ?`);
+            steps.push(
+                `💡 구구단 ${a}단을 떠올려봐요!`,
+                `   ${a}×1=${a}`,`   ${a}×2=${a*2}`,`   ${a}×3=${a*3}`,
+                b>3?`   ... ${a}×${b}=?`:``,
+                `📢 ${a}단에서 ${b}번째 수를 찾아보세요!`,
+            );
+            return steps.filter(s=>s);
+        }
+        return [
+            `🤔 큰 수의 곱셈이에요!`,
+            `📋 나눠서 계산하면 쉬워요!`,
+            `1️⃣ 일의 자리: ${a} × ${b%10} = ?`,
+            `2️⃣ 십의 자리: ${a} × ${Math.floor(b/10)} = ? (뒤에 0 붙이기!)`,
+            `3️⃣ 두 결과를 더하면 정답!`,
+            `💡 천천히 하나씩 구구단으로 계산해요!`,
+        ];
+    }
+    // ── 나눗셈 ──
     m=q.match(/(\d+)\s*÷\s*(\d+)/);
-    if(m){const a=+m[1],b=+m[2];
-        return [`🤔 나눗셈은 "똑같이 나누기"예요!`,`🍎 ${a}개를 ${b}명에게 똑같이 나눠준다고 생각해봐요`,`💡 "${b} × 몇 = ${a}" 를 생각해봐요!`,`🧮 ${b}×1=${b}, ${b}×2=${b*2}, ${b}×3=${b*3}... 이렇게 올라가면서`,`📢 ${a}이 되는 수를 찾아보세요!`]}
-    // □ 구하기
+    if(m){const a=+m[1],b=+m[2],r=Math.floor(a/b);
+        return [
+            `🤔 나눗셈 = "똑같이 나누기"예요!`,
+            `🍎 ${a}개를 ${b}명에게 똑같이 나눠준다고 생각해요`,
+            `💡 방법: "${b} × 몇 = ${a}" 를 찾아요!`,
+            `🧮 구구단 ${b}단을 떠올려봐요:`,
+            `   ${b}×1=${b}, ${b}×2=${b*2}, ${b}×3=${b*3}${r>3?`, ${b}×4=${b*4}...`:''}`,
+            `📢 ${a}이 나오는 곳을 찾으면 정답!`,
+            `   ${b} × ? = ${a}`,
+        ];
+    }
+    // ── 세 수의 덧셈 ──
+    m=q.match(/(\d+)\s*\+\s*(\d+)\s*\+\s*(\d+)/);
+    if(m){const a=+m[1],b=+m[2],c=+m[3];
+        return [
+            `🤔 세 수를 더하는 문제예요!`,
+            `📋 앞에서부터 두 수씩 차례대로 더해요!`,
+            `1️⃣ 먼저 앞의 두 수: ${a} + ${b} = ?`,
+            `2️⃣ 그 결과에 세 번째 수를 더해요: ? + ${c} = ?`,
+            `💡 두 번에 나눠서 계산하면 쉬워요!`,
+        ];
+    }
+    // ── □ 구하기 ──
     m=q.match(/□\s*\+\s*(\d+)\s*=\s*(\d+)/);
-    if(m)return [`🤔 □에 어떤 수를 넣어야 할까요?`,`💡 "□ + ${m[1]} = ${m[2]}" 라는 뜻이에요`,`🔄 반대로 생각하면! ${m[2]}에서 ${m[1]}을 빼면 □를 알 수 있어요`,`🧮 ${m[2]} - ${m[1]} = ?  이걸 계산해 보세요!`];
+    if(m){const b=+m[1],c=+m[2];return [
+        `🤔 □ 안에 들어갈 수를 찾아야 해요!`,
+        `📋 식을 읽어봐요: "어떤 수 + ${b} = ${c}"`,
+        `💡 반대로 생각해봐요!`,
+        `   ${c}에서 ${b}를 빼면 □를 알 수 있어요`,
+        `🧮 ${c} - ${b} = ? ← 이걸 계산해봐요!`,
+        `📢 뺄셈으로 바꿔서 풀면 돼요!`,
+    ]}
     m=q.match(/(\d+)\s*\+\s*□\s*=\s*(\d+)/);
-    if(m)return [`🤔 □에 어떤 수를 넣어야 할까요?`,`💡 "${m[1]} + □ = ${m[2]}" 라는 뜻이에요`,`🔄 반대로 생각하면! ${m[2]}에서 ${m[1]}을 빼면 □를 알 수 있어요`,`🧮 ${m[2]} - ${m[1]} = ?  이걸 계산해 보세요!`];
+    if(m){const a=+m[1],c=+m[2];return [
+        `🤔 □ 안에 들어갈 수를 찾아야 해요!`,
+        `📋 식을 읽어봐요: "${a} + 어떤 수 = ${c}"`,
+        `💡 전체에서 이미 있는 수를 빼면 돼요!`,
+        `🧮 ${c} - ${a} = ? ← 이걸 계산해봐요!`,
+        `📢 덧셈의 반대는 뺄셈이에요!`,
+    ]}
     m=q.match(/□\s*×\s*(\d+)\s*=\s*(\d+)/);
-    if(m)return [`🤔 □에 어떤 수를 넣어야 할까요?`,`💡 "□ × ${m[1]} = ${m[2]}" 라는 뜻이에요`,`🔄 곱셈의 반대는 나눗셈! ${m[2]}를 ${m[1]}로 나눠보세요`,`🧮 ${m[2]} ÷ ${m[1]} = ?  이걸 계산해 보세요!`];
+    if(m){const b=+m[1],c=+m[2];return [
+        `🤔 □ 안에 들어갈 수를 찾아야 해요!`,
+        `📋 식: "어떤 수 × ${b} = ${c}"`,
+        `💡 곱셈의 반대는 나눗셈!`,
+        `🧮 ${c} ÷ ${b} = ? ← 이걸 계산해봐요!`,
+        `📢 ${b}단에서 ${c}이 나오는 곳을 찾아도 돼요!`,
+    ]}
     m=q.match(/(\d+)\s*-\s*□\s*=\s*(\d+)/);
-    if(m)return [`🤔 □에 어떤 수를 넣어야 할까요?`,`💡 "${m[1]} - □ = ${m[2]}" 라는 뜻이에요`,`🔄 반대로 생각! ${m[1]}에서 ${m[2]}를 빼면 □를 알 수 있어요`,`🧮 ${m[1]} - ${m[2]} = ?  이걸 계산해 보세요!`];
-    // 분수
+    if(m){const a=+m[1],c=+m[2];return [
+        `🤔 □ 안에 들어갈 수를 찾아야 해요!`,
+        `📋 식: "${a} - 어떤 수 = ${c}"`,
+        `💡 전체에서 남은 걸 빼면 뺀 양을 알 수 있어요!`,
+        `🧮 ${a} - ${c} = ? ← 이걸 계산해봐요!`,
+    ]}
+    // ── 분수 ──
     m=q.match(/(\d+)\/(\d+)\s*\+\s*(\d+)\/(\d+)/);
-    if(m)return [`🤔 분수의 덧셈이에요!`,`🍕 피자를 ${m[2]}조각으로 나눴다고 생각해봐요`,`🍕 ${m[1]}조각 먹고, 또 ${m[3]}조각 먹었어요`,`💡 분모(아래 숫자)가 같으면 → 분자(위 숫자)끼리만 더하면 돼요!`,`🧮 ${m[1]} + ${m[3]} = ?  이 숫자가 정답의 분자예요!`];
-    // 소수
-    m=q.match(/([\d.]+)\s*[\+\-]\s*([\d.]+)\s*=\s*\?/);
-    if(m&&m[1].includes('.'))return [`🤔 소수의 계산이에요!`,`📏 소수점(.)을 기준으로 위아래로 맞춰 써봐요`,`📋 ${m[1]}과 ${m[2]}의 소수점을 맞추고`,`🧮 소수점 아래 숫자끼리 먼저, 그다음 정수 부분을`,`💡 마치 자연수 계산처럼 하되, 소수점 위치만 잘 맞추면 돼요!`];
-    // 어림하기
-    if(q.includes('어림'))return [`🤔 어림하기는 "대략 얼마쯤?" 를 구하는 거예요!`,`📏 백의 자리로 어림 = 십의 자리에서 반올림!`,`💡 십의 자리 숫자가 5 이상이면 올리고, 4 이하면 버려요`,`🧮 계산 결과를 먼저 구하고, 가장 가까운 백의 자리 수를 골라봐요!`];
-    // 도형
+    if(m){const n1=+m[1],d=+m[2],n2=+m[3];return [
+        `🤔 분수의 덧셈이에요!`,
+        `🍕 피자로 생각해봐요!`,
+        `   피자 한 판을 ${d}조각으로 똑같이 나눴어요`,
+        `   나는 ${n1}조각 먹고, 친구가 ${n2}조각 먹었어요`,
+        `💡 분모(아래 수 = ${d})가 같으면?`,
+        `   → 분자(위 수)끼리만 더하면 돼요!`,
+        `🧮 ${n1} + ${n2} = ? ← 이게 정답의 분자!`,
+        `   분모 ${d}는 그대로예요!`,
+    ]}
+    // ── 소수 ──
+    m=q.match(/([\d.]+)\s*([\+\-])\s*([\d.]+)\s*=\s*\?/);
+    if(m&&m[1].includes('.')){const a=m[1],b=m[3],op=m[2];return [
+        `🤔 소수의 ${op==='+'?'덧셈':'뺄셈'}이에요!`,
+        `📏 비법: 소수점(.)을 맞춰서 세로로 쓰기!`,
+        `   ${a}`,
+        `${op}  ${b}`,
+        `──────`,
+        `1️⃣ 소수점 아래 숫자부터 계산해요`,
+        `2️⃣ 그 다음 소수점 위(정수) 부분을 계산해요`,
+        `💡 소수점 위치만 잘 맞추면 자연수처럼 풀 수 있어요!`,
+    ]}
+    // ── 어림하기 ──
+    if(q.includes('어림')){
+        const nums=q.match(/(\d+)/g);
+        return [
+            `🤔 어림하기 = "대략 얼마쯤?" 구하기예요!`,
+            `📏 백의 자리로 어림하는 방법:`,
+            `1️⃣ 먼저 정확한 답을 구해봐요`,
+            `2️⃣ 십의 자리 숫자를 봐요`,
+            `   0,1,2,3,4 → 버림 (내림)`,
+            `   5,6,7,8,9 → 올림`,
+            `💡 예: 256 → 십의자리가 5 → 올려서 300!`,
+            `💡 예: 234 → 십의자리가 3 → 버려서 200!`,
+        ];
+    }
+    // ── 도형 ──
     if(q.includes('꼭짓점')||q.includes('변')||q.includes('삼각형')||q.includes('사각형')||q.includes('원')||q.includes('도형'))
-        return [`🤔 도형의 특징을 떠올려봐요!`,`🔺 삼각형 → 뾰족한 점(꼭짓점) 3개, 직선(변) 3개`,`🟥 사각형 → 뾰족한 점(꼭짓점) 4개, 직선(변) 4개`,`⭕ 원 → 뾰족한 점 없어요! 변도 없어요!`,`💡 모양을 머릿속에 그려보고 점과 선을 세어봐요!`];
+        return [
+            `🤔 도형의 특징을 정리해봐요!`,
+            ``,
+            `🔺 삼각형:`,
+            `   꼭짓점(뾰족한 점) = 3개`,
+            `   변(직선) = 3개`,
+            ``,
+            `🟥 사각형:`,
+            `   꼭짓점 = 4개, 변 = 4개`,
+            `   정사각형: 네 변 길이가 같아요`,
+            `   직사각형: 마주보는 변 길이가 같아요`,
+            ``,
+            `⭕ 원:`,
+            `   꼭짓점 = 0개, 변 = 0개`,
+            `   둥글어서 뾰족한 곳이 없어요!`,
+            `💡 머릿속에 도형을 그려보세요!`,
+        ];
     if(q.includes('직각')||q.includes('각도'))
-        return [`🤔 각도에 대해 생각해봐요!`,`📐 직각 = 90도 (ㄱ 모양)`,`📐 삼각형 세 각의 합 = 180도`,`📐 사각형 네 각의 합 = 360도`,`💡 각도기를 머릿속에 떠올려봐요!`];
-    // 시간
+        return [
+            `🤔 각도에 대한 문제예요!`,
+            `📐 기본 각도를 기억해요:`,
+            `   직각 = 90° (ㄱ 모양, 책 모서리)`,
+            `   평각 = 180° (일직선)`,
+            `   한 바퀴 = 360°`,
+            `📐 도형의 각:`,
+            `   삼각형 세 각의 합 = 180°`,
+            `   사각형 네 각의 합 = 360°`,
+            `💡 각도기를 떠올려봐요!`,
+        ];
+    // ── 시간 ──
     if(q.includes('시')||q.includes('분')||q.includes('시계'))
-        return [`🤔 시계를 머릿속에 떠올려봐요! ⏰`,`🕐 짧은 바늘(시침) → 지금 몇 시인지 알려줘요`,`🕐 긴 바늘(분침) → 지금 몇 분인지 알려줘요`,`💡 긴 바늘이 12를 가리키면 → 정각(00분)이에요!`,`📢 1시간 = 60분, 하루 = 24시간 도 기억해요!`];
-    // 측정
-    if(q.includes('cm')||q.includes('km')||q.includes('kg')||q.includes('넓이')||q.includes('둘레'))
-        return [`🤔 단위를 바꾸는 문제예요!`,`📏 길이: 1m = 100cm, 1km = 1000m`,`⚖️ 무게: 1kg = 1000g`,`🥛 들이: 1L = 1000mL`,`📐 넓이 = 가로 × 세로, 둘레 = (가로+세로) × 2`,`💡 문제에서 어떤 단위를 물어보는지 잘 확인해봐요!`];
-    // 규칙
-    if(q.includes('규칙'))
-        return [`🤔 규칙을 찾아봐요!`,`🔍 1단계: 앞 숫자와 뒷 숫자의 차이를 구해봐요`,`🔍 2단계: 그 차이가 계속 같은지 확인해봐요`,`💡 차이가 같으면 → 마지막 수에 그 차이만큼 더하면 답을 알 수 있어요!`,`📢 예: 2, 5, 8, 11 → 차이가 3씩! → 다음은 11+3`];
-    // 문장제 (합하기/남기/묶음/나누기)
+        return [
+            `🤔 시계 문제예요! ⏰`,
+            `🕐 시계 읽는 방법:`,
+            `   짧은 바늘(뚱뚱이) → "시"를 알려줘요`,
+            `   긴 바늘(날씬이) → "분"을 알려줘요`,
+            `📋 긴 바늘 위치:`,
+            `   12 → 정각 (00분)`,
+            `   3 → 15분`,
+            `   6 → 30분`,
+            `   9 → 45분`,
+            `💡 기억하세요: 1시간 = 60분!`,
+        ];
+    // ── 측정 ──
+    if(q.includes('넓이')||q.includes('둘레'))
+        return [
+            `🤔 넓이/둘레 문제예요!`,
+            `📐 둘레 = 도형의 바깥 한 바퀴 길이`,
+            `   직사각형 둘레 = (가로 + 세로) × 2`,
+            `   정사각형 둘레 = 한 변 × 4`,
+            `📐 넓이 = 도형이 차지하는 공간 크기`,
+            `   직사각형 넓이 = 가로 × 세로`,
+            `   정사각형 넓이 = 한 변 × 한 변`,
+            `💡 문제에서 가로와 세로를 먼저 찾아봐요!`,
+        ];
+    if(q.includes('cm')||q.includes('km')||q.includes('kg')||q.includes('mL'))
+        return [
+            `🤔 단위 변환 문제예요!`,
+            `📏 길이:`,
+            `   1cm = 10mm`,
+            `   1m = 100cm`,
+            `   1km = 1000m`,
+            `⚖️ 무게:`,
+            `   1kg = 1000g`,
+            `🥛 들이:`,
+            `   1L = 1000mL`,
+            `💡 "큰 단위 → 작은 단위" 는 ×1000`,
+            `💡 "작은 단위 → 큰 단위" 는 ÷1000`,
+        ];
+    // ── 규칙 ──
+    if(q.includes('규칙')){
+        const nums=q.match(/(\d+)/g);
+        if(nums&&nums.length>=2){
+            const diff=parseInt(nums[1])-parseInt(nums[0]);
+            return [
+                `🤔 규칙(패턴)을 찾아봐요!`,
+                `🔍 1단계: 이웃한 두 수의 차이를 구해요`,
+                `   ${nums[0]} → ${nums[1]}: 차이 = ${nums[1]}-${nums[0]} = ${diff}`,
+                nums.length>2?`   ${nums[1]} → ${nums[2]}: 차이 = ${nums[2]}-${nums[1]} = ${parseInt(nums[2])-parseInt(nums[1])}`:'',
+                `🔍 2단계: 차이가 같은지 확인해요`,
+                `   차이가 계속 ${diff}씩이면 → 등차 규칙!`,
+                `🧮 3단계: 마지막 수에 차이를 더해요`,
+                `   마지막 수 + ${diff} = ?`,
+                `💡 규칙을 찾으면 다음 수를 알 수 있어요!`,
+            ].filter(s=>s);
+        }
+        return [
+            `🤔 규칙을 찾아봐요!`,
+            `🔍 앞뒤 수의 차이를 구해봐요`,
+            `🔍 차이가 같으면 → 마지막 수 + 차이 = 정답!`,
+        ];
+    }
+    // ── 문장제 ──
     if(q.includes('합하면')||q.includes('합계')||q.includes('받으면')||q.includes('모두'))
-        return [`🤔 문제를 천천히 읽어봐요!`,`🔍 1단계: 문제에서 숫자를 찾아 밑줄 쳐봐요`,`🔍 2단계: "합하면, 모두" 같은 말이 있으면 → 더하기(+)!`,`🧮 3단계: 찾은 숫자들을 더해보세요!`,`💡 연필로 문제 옆에 식을 적어보면 쉬워요!`];
+        return [
+            `🤔 문장제 풀이 방법!`,
+            `📋 1단계: 문제를 천천히 두 번 읽어요`,
+            `🔍 2단계: 숫자를 찾아서 동그라미 쳐요`,
+            `📌 3단계: 핵심 단어를 찾아요!`,
+            `   "합하면, 모두, 전부, 같이" → 더하기(+)!`,
+            `🧮 4단계: 식을 세워봐요`,
+            `   (첫 번째 수) + (두 번째 수) = ?`,
+            `💡 식을 적고 계산하면 실수가 줄어요!`,
+        ];
     if(q.includes('남은')||q.includes('나눠줬')||q.includes('먹었'))
-        return [`🤔 문제를 천천히 읽어봐요!`,`🔍 1단계: 문제에서 숫자를 찾아 밑줄 쳐봐요`,`🔍 2단계: "남은, 먹었다" 같은 말이 있으면 → 빼기(-)!`,`🧮 3단계: 큰 수에서 작은 수를 빼보세요!`,`💡 전체에서 사용한 만큼 빼면 남은 게 나와요!`];
+        return [
+            `🤔 문장제 풀이 방법!`,
+            `📋 1단계: 문제를 천천히 두 번 읽어요`,
+            `🔍 2단계: 숫자를 찾아서 동그라미 쳐요`,
+            `📌 3단계: 핵심 단어를 찾아요!`,
+            `   "남은, 먹었, 줬다, 빠진" → 빼기(-)!`,
+            `🧮 4단계: 식을 세워봐요`,
+            `   (전체) - (사용한 양) = (남은 양)`,
+            `💡 "처음에 몇 개 → 얼마나 줄었나" 생각해요!`,
+        ];
     if(q.includes('봉지')||q.includes('줄')||q.includes('상자')||q.includes('배'))
-        return [`🤔 묶음으로 생각해봐요!`,`🎁 한 묶음에 몇 개? → 그게 첫 번째 수!`,`📦 묶음이 몇 개? → 그게 두 번째 수!`,`🧮 "한 묶음 × 묶음 수" = 전체 개수!`,`💡 곱하기(×)로 풀어보세요!`];
+        return [
+            `🤔 묶음 문제예요!`,
+            `📋 문제에서 두 가지를 찾아요:`,
+            `   ① 한 묶음에 몇 개? (예: 한 봉지에 5개)`,
+            `   ② 묶음이 몇 개? (예: 3봉지)`,
+            `🧮 식: (한 묶음) × (묶음 수) = 전체`,
+            `💡 곱하기(×)로 풀어요!`,
+        ];
     if(q.includes('똑같이')||q.includes('나누면'))
-        return [`🤔 똑같이 나누는 문제예요!`,`🍪 전체가 몇 개인지 찾아봐요 → 그게 나눌 수!`,`👧 몇 명에게 나누는지 찾아봐요 → 그게 나누는 수!`,`🧮 "전체 ÷ 나누는 수" = 한 몫!`,`💡 나누기(÷)로 풀어보세요!`];
+        return [
+            `🤔 나누기 문제예요!`,
+            `📋 문제에서 두 가지를 찾아요:`,
+            `   ① 전체가 몇 개?`,
+            `   ② 몇 명(몇 개)에게 나눠?`,
+            `🧮 식: (전체) ÷ (나누는 수) = 한 몫`,
+            `💡 "똑같이, 나눠주면" → 나누기(÷)!`,
+        ];
     if(q.includes('큰 수')||q.includes('더 큰'))
-        return [`🤔 두 수의 크기를 비교해봐요!`,`1️⃣ 자릿수가 더 많은 수가 커요!`,`2️⃣ 자릿수가 같으면 → 맨 앞자리부터 비교!`,`💡 높은 자리 숫자가 큰 쪽이 더 큰 수예요!`];
+        return [
+            `🤔 크기 비교 문제예요!`,
+            `📋 비교하는 방법:`,
+            `1️⃣ 먼저 자릿수를 비교해요`,
+            `   세 자리 > 두 자리 (항상!)`,
+            `2️⃣ 자릿수가 같으면?`,
+            `   맨 앞자리(높은 자리)부터 비교!`,
+            `   앞자리가 큰 쪽이 더 큰 수!`,
+            `3️⃣ 앞자리도 같으면?`,
+            `   다음 자리를 비교해요!`,
+        ];
     if(q.includes('단위분수'))
-        return [`🤔 단위분수는 분자가 1인 분수예요!`,`🍕 피자를 나눈다고 생각해봐요`,`🍕 2조각 중 1조각 = 1/2 (큰 조각!)`,`🍕 8조각 중 1조각 = 1/8 (작은 조각!)`,`💡 분모(아래 수)가 작을수록 → 분수가 커요!`];
+        return [
+            `🤔 단위분수 비교예요!`,
+            `🍕 피자로 생각하면 쉬워요!`,
+            `   1/2 = 피자를 2조각으로 나눈 것 중 1조각 (큰 조각!)`,
+            `   1/4 = 피자를 4조각으로 나눈 것 중 1조각 (작은 조각!)`,
+            `   1/8 = 피자를 8조각으로 나눈 것 중 1조각 (아주 작은!)`,
+            `💡 핵심: 분모가 작을수록 한 조각이 커요!`,
+            `   1/2 > 1/3 > 1/4 > 1/5 > ...`,
+        ];
     if(q.includes('피자')||q.includes('조각'))
-        return [`🤔 피자를 나누는 문제예요! 🍕`,`🍕 똑같이 나눈 조각 수 → 분모(아래)!`,`🍕 먹은 조각 수 → 분자(위)!`,`💡 분자/분모 형태로 답을 적어봐요!`];
-    return [`🤔 문제를 천천히 다시 읽어봐요!`,`📋 무엇을 구해야 하는지 파악해요`,`🔍 아는 것과 모르는 것을 나눠서 생각해봐요!`,`💡 식을 세워서 풀어보세요!`];
+        return [
+            `🤔 피자 나누기 = 분수예요! 🍕`,
+            `📋 분수 만드는 방법:`,
+            `   분모(아래) = 전체 조각 수`,
+            `   분자(위) = 먹은/선택한 조각 수`,
+            `💡 예: 8조각 중 3조각 먹으면 → 3/8!`,
+        ];
+    if(q.includes('뛰어 세기')||q.includes('뛰어세기'))
+        return [
+            `🤔 뛰어 세기 문제예요!`,
+            `📋 규칙적으로 건너뛰면서 세는 거예요`,
+            `💡 2씩: 2, 4, 6, 8, 10...`,
+            `💡 5씩: 5, 10, 15, 20, 25...`,
+            `💡 10씩: 10, 20, 30, 40, 50...`,
+            `📢 얼마씩 뛰는지 찾아보세요!`,
+        ];
+    return [
+        `🤔 문제를 천천히 다시 읽어봐요!`,
+        `📋 1단계: 무엇을 구해야 하는지 파악해요`,
+        `🔍 2단계: 주어진 정보를 정리해요`,
+        `🧮 3단계: 어떤 연산을 써야 할지 생각해요`,
+        `💡 모르겠으면 그림으로 그려보세요!`,
+    ];
 }
 
-// 정답 풀이용: 힌트 과정 + 구체적 계산 + 최종 정답 포함
+// 정답 풀이용: 힌트 + 구체적 계산 과정 + 정답
 function getSolveSteps(q,ansText){
     const hints=getHintSteps(q);
     let m;
+    // ── 덧셈 풀이 ──
     m=q.match(/^(\d+)\s*\+\s*(\d+)/);
     if(m){const a=+m[1],b=+m[2],r=a+b;
-        if(a<10)return [...hints,`✅ ${a} + ${b} = ${r}`];
+        if(a<10)return [...hints,``,`🧮 계산:`,`   ${a} + ${b} = ${r}`,`✅ 정답은 ${r}이에요!`];
         const a1=a%10,b1=b%10,a10=Math.floor(a/10),b10=Math.floor(b/10),s1=a1+b1;
-        const calc=s1>=10?[`🧮 일의 자리: ${a1}+${b1}=${s1} → ${s1%10} 쓰고 ☝️ 올림!`,`🧮 십의 자리: ${a10}+${b10}+1=${a10+b10+1}`]:[`🧮 일의 자리: ${a1}+${b1}=${s1}`,`🧮 십의 자리: ${a10}+${b10}=${a10+b10}`];
-        return [...hints,...calc,`✅ 정답은 ${r}이에요!`]}
+        const calc=[``,`🧮 계산해볼게요:`];
+        if(s1>=10)calc.push(
+            `   일의 자리: ${a1} + ${b1} = ${s1}`,
+            `   → ${s1%10} 쓰고, ☝️1 올림!`,
+            `   십의 자리: ${a10} + ${b10} + 1 = ${a10+b10+1}`,
+        );
+        else calc.push(
+            `   일의 자리: ${a1} + ${b1} = ${s1}`,
+            `   십의 자리: ${a10} + ${b10} = ${a10+b10}`,
+        );
+        calc.push(``,`✅ 정답은 ${r}이에요!`);
+        return [...hints,...calc];
+    }
+    // ── 뺄셈 풀이 ──
     m=q.match(/^(\d+)\s*-\s*(\d+)/);
     if(m){const a=+m[1],b=+m[2],r=a-b;
-        if(a<10)return [...hints,`✅ ${a} - ${b} = ${r}`];
+        if(a<10)return [...hints,``,`🧮 계산:`,`   ${a} - ${b} = ${r}`,`✅ 정답은 ${r}이에요!`];
         const a1=a%10,b1=b%10,a10=Math.floor(a/10),b10=Math.floor(b/10);
-        const calc=a1<b1?[`🧮 일의 자리: ${a1+10}-${b1}=${a1+10-b1} (빌려왔어요!)`,`🧮 십의 자리: ${a10-1}-${b10}=${a10-1-b10}`]:[`🧮 일의 자리: ${a1}-${b1}=${a1-b1}`,`🧮 십의 자리: ${a10}-${b10}=${a10-b10}`];
-        return [...hints,...calc,`✅ 정답은 ${r}이에요!`]}
+        const calc=[``,`🧮 계산해볼게요:`];
+        if(a1<b1)calc.push(
+            `   일의 자리: ${a1+10} - ${b1} = ${a1+10-b1} (빌려왔어요!)`,
+            `   십의 자리: ${a10-1} - ${b10} = ${a10-1-b10}`,
+        );
+        else calc.push(
+            `   일의 자리: ${a1} - ${b1} = ${a1-b1}`,
+            `   십의 자리: ${a10} - ${b10} = ${a10-b10}`,
+        );
+        calc.push(``,`✅ 정답은 ${r}이에요!`);
+        return [...hints,...calc];
+    }
+    // ── 곱셈 풀이 ──
     m=q.match(/(\d+)\s*×\s*(\d+)/);
-    if(m){const a=+m[1],b=+m[2];return [...hints,`🧮 ${a} × ${b} = ${a*b}`,`✅ 정답은 ${a*b}이에요!`]}
+    if(m){const a=+m[1],b=+m[2],r=a*b;
+        if(a<=9&&b<=9)return [...hints,``,`🧮 구구단 ${a}단:`,`   ${a} × ${b} = ${r}`,`✅ 정답은 ${r}이에요!`];
+        return [...hints,``,`🧮 계산:`,`   ${a} × ${b} = ${r}`,`✅ 정답은 ${r}이에요!`];
+    }
+    // ── 나눗셈 풀이 ──
     m=q.match(/(\d+)\s*÷\s*(\d+)/);
-    if(m){const a=+m[1],b=+m[2],r=a/b;return [...hints,`🧮 ${b} × ${r} = ${a} 이니까!`,`✅ 정답은 ${r}이에요!`]}
-    return [...hints,`✅ 정답: ${ansText}`];
+    if(m){const a=+m[1],b=+m[2],r=a/b;
+        return [...hints,``,`🧮 확인:`,`   ${b} × ${r} = ${a} ← 맞아요!`,`✅ 정답은 ${r}이에요!`];
+    }
+    // ── □ 구하기 풀이 ──
+    m=q.match(/□\s*\+\s*(\d+)\s*=\s*(\d+)/);
+    if(m){const b=+m[1],c=+m[2];return [...hints,``,`🧮 계산:`,`   ${c} - ${b} = ${c-b}`,`✅ □ = ${c-b}이에요!`]}
+    m=q.match(/(\d+)\s*\+\s*□\s*=\s*(\d+)/);
+    if(m){const a=+m[1],c=+m[2];return [...hints,``,`🧮 계산:`,`   ${c} - ${a} = ${c-a}`,`✅ □ = ${c-a}이에요!`]}
+    m=q.match(/□\s*×\s*(\d+)\s*=\s*(\d+)/);
+    if(m){const b=+m[1],c=+m[2];return [...hints,``,`🧮 계산:`,`   ${c} ÷ ${b} = ${c/b}`,`✅ □ = ${c/b}이에요!`]}
+    m=q.match(/(\d+)\s*-\s*□\s*=\s*(\d+)/);
+    if(m){const a=+m[1],c=+m[2];return [...hints,``,`🧮 계산:`,`   ${a} - ${c} = ${a-c}`,`✅ □ = ${a-c}이에요!`]}
+    return [...hints,``,`✅ 정답: ${ansText}`];
 }
 
 function showStepSolve(m,target){
@@ -1767,6 +2575,7 @@ async function initApp(){
     // 자동 뱃지 & 토큰 체크
     if(G.stars>=10)addB('star10');
     checkPCTokens();
+    if(window.speechSynthesis)window.speechSynthesis.getVoices();
     setTimeout(()=>{if(!G.onboarded)nav('onboard');else nav('home')},2200);
 }
 let deferredPrompt;
