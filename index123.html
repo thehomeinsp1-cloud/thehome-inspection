@@ -1,0 +1,1777 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>FunMath Quest - 재미로 배우는 수학 모험</title>
+    <meta name="theme-color" content="#1565C0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="FunMath">
+    <meta name="google" content="notranslate">
+    <link rel="manifest" href="manifest.json">
+    <link href="https://fonts.googleapis.com/css2?family=Jua&family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+        :root{
+            --blue:#1565C0;--blue-d:#0D47A1;--blue-m:#42A5F5;--blue-l:#E3F2FD;
+            --orange:#FF6F00;--orange-l:#FFF3E0;--gold:#FFD600;--gold-d:#F9A825;
+            --green:#2E7D32;--green-l:#E8F5E9;
+            --red:#C62828;--red-l:#FFEBEE;
+            --purple:#6A1B9A;--purple-l:#F3E5F5;
+            --pink:#AD1457;--pink-l:#FCE4EC;
+            --dark:#212121;--gray:#9E9E9E;--gray-l:#F5F5F5;
+            --white:#FFF;
+            --font-t:'Jua',sans-serif;--font-b:'Noto Sans KR',sans-serif;
+            --r:16px;--rs:10px;
+        }
+        html,body{height:100%;overflow:hidden}
+        body{font-family:var(--font-b);background:#E3F2FD;color:var(--dark);display:flex;justify-content:center}
+        #app{width:100%;max-width:500px;height:100vh;height:100dvh;display:flex;flex-direction:column;position:relative;overflow:hidden;background:linear-gradient(180deg,#E3F2FD 0%,#FFF9C4 50%,#E8F5E9 100%)}
+        .screen{display:none;flex-direction:column;height:100%;overflow:hidden}
+        .screen.active{display:flex}
+        .topbar{display:flex;align-items:center;padding:10px 14px;gap:10px;background:rgba(255,255,255,0.95);border-bottom:2px solid #E0E0E0;flex-shrink:0;z-index:50;min-height:50px;backdrop-filter:blur(8px)}
+        .topbar-title{font-family:var(--font-t);font-size:17px;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+        .topbar-back{width:38px;height:38px;border-radius:10px;border:2px solid #E0E0E0;background:white;font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+        .stars-pill{display:flex;align-items:center;gap:5px;padding:5px 12px;background:rgba(255,255,255,0.9);border-radius:30px;font-family:var(--font-t);font-size:13px;box-shadow:0 2px 6px rgba(0,0,0,0.06);flex-shrink:0}
+        .btn{font-family:var(--font-t);font-size:17px;border:none;padding:12px 22px;border-radius:var(--r);cursor:pointer;min-height:50px;min-width:50px;transition:all .12s;display:inline-flex;align-items:center;justify-content:center;gap:7px;box-shadow:0 3px 0 rgba(0,0,0,0.13);user-select:none}
+        .btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,0.13)}
+        .btn-blue{background:var(--blue);color:white}.btn-orange{background:var(--orange);color:white}.btn-green{background:var(--green);color:white}.btn-red{background:var(--red);color:white}.btn-gold{background:var(--gold);color:var(--dark)}.btn-purple{background:var(--purple);color:white}.btn-pink{background:var(--pink);color:white}
+        .btn-outline{background:white;color:var(--blue);border:2px solid var(--blue)}.btn-lg{font-size:20px;padding:14px 28px}.btn-block{width:100%}
+        .btn:disabled{opacity:.35;pointer-events:none}
+        .card{background:white;border-radius:var(--r);padding:14px;margin-bottom:12px;box-shadow:0 2px 8px rgba(0,0,0,0.05)}
+        .pbar{height:10px;background:#E0E0E0;border-radius:5px;overflow:hidden}.pfill{height:100%;border-radius:5px;transition:width .5s}
+        .hpbar{height:16px;background:#FFCDD2;border-radius:8px;overflow:hidden;border:2px solid var(--red)}.hpfill{height:100%;background:var(--red);border-radius:6px;transition:width .4s}
+        .opt{font-family:var(--font-b);font-size:17px;font-weight:700;width:100%;padding:13px 16px;border-radius:var(--r);border:3px solid #E0E0E0;background:white;cursor:pointer;text-align:left;transition:all .12s;min-height:50px;display:flex;align-items:center;gap:10px}
+        .opt:active{transform:scale(.98)}.opt.correct{border-color:var(--green);background:var(--green-l)}.opt.wrong{border-color:var(--red);background:var(--red-l);animation:shake .4s}
+        .opt-num{width:28px;height:28px;border-radius:50%;background:var(--blue-l);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--blue);flex-shrink:0}
+        .comic-panel{background:white;border-radius:var(--r);overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,0.08);border:3px solid var(--dark)}
+        .comic-scene{padding:18px;text-align:center;min-height:180px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+        .comic-dialog{padding:12px 16px;border-top:3px solid var(--dark);font-size:15px;line-height:1.5;font-weight:700}
+        .bnav{display:flex;flex-shrink:0;background:white;border-top:2px solid #E0E0E0}
+        .bnav-item{flex:1;padding:6px 2px;text-align:center;cursor:pointer;font-size:9px;font-family:var(--font-b);color:var(--gray);display:flex;flex-direction:column;align-items:center;gap:1px;background:none;border:none;font-weight:700}
+        .bnav-item.active{color:var(--blue)}.bnav-item span:first-child{font-size:20px}
+        .toast{position:fixed;top:16px;left:50%;transform:translateX(-50%) translateY(-100px);padding:10px 22px;border-radius:30px;font-family:var(--font-t);font-size:15px;color:white;z-index:999;transition:transform .3s;box-shadow:0 4px 16px rgba(0,0,0,0.2);pointer-events:none;white-space:nowrap}
+        .toast.show{transform:translateX(-50%) translateY(0)}
+        .overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);display:none;align-items:center;justify-content:center;z-index:200}
+        .overlay.show{display:flex}
+        .overlay-box{background:white;border-radius:var(--r);padding:28px;text-align:center;max-width:320px;width:90%;animation:pop .3s}
+        .fb{position:fixed;bottom:70px;left:50%;transform:translateX(-50%);padding:12px 24px;border-radius:var(--r);font-family:var(--font-t);font-size:20px;z-index:150;animation:pop .3s;box-shadow:0 4px 16px rgba(0,0,0,0.12);white-space:nowrap}
+        .fb-ok{background:var(--green-l);border:2px solid var(--green);color:var(--green)}
+        .fb-no{background:var(--red-l);border:2px solid var(--red);color:var(--red)}
+        .content-area{flex:1;overflow-y:auto;padding:12px;-webkit-overflow-scrolling:touch}
+        .content-area::-webkit-scrollbar{width:3px}.content-area::-webkit-scrollbar-thumb{background:#BDBDBD;border-radius:2px}
+        @keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes pop{0%{transform:scale(.5);opacity:0}100%{transform:scale(1);opacity:1}}
+        @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-7px)}75%{transform:translateX(7px)}}
+        @keyframes bounce{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
+        @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+        @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+        @keyframes glow{0%,100%{box-shadow:0 0 8px var(--gold)}50%{box-shadow:0 0 20px var(--gold)}}
+        .af{animation:fadeIn .4s ease}.ap{animation:pop .3s}.ab{animation:bounce .5s}.afl{animation:float 2s ease-in-out infinite}.apu{animation:pulse 1s ease-in-out infinite}
+        .step-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin-top:12px}
+        .step-btn{display:flex;flex-direction:column;align-items:center;padding:7px 2px;border-radius:var(--rs);border:2px solid #E0E0E0;background:white;cursor:pointer;font-family:var(--font-t);font-size:11px;gap:3px;transition:all .15s}
+        .step-btn.done{border-color:var(--green);background:var(--green-l);color:var(--green)}.step-btn.cur{border-color:var(--blue);background:var(--blue-l);color:var(--blue)}.step-btn:disabled{opacity:.35;pointer-events:none}
+        .step-btn span:first-child{font-size:18px}
+        .dots{display:flex;justify-content:center;gap:7px;margin-top:12px}
+        .dot{width:9px;height:9px;border-radius:50%;background:#BDBDBD;transition:all .3s}.dot.active{background:var(--blue);transform:scale(1.2)}
+        /* Shop */
+        .shop-tab{display:flex;gap:4px;margin-bottom:12px;overflow-x:auto;padding-bottom:4px}
+        .shop-tab-btn{padding:8px 14px;border-radius:20px;border:2px solid #E0E0E0;background:white;font-family:var(--font-t);font-size:13px;cursor:pointer;white-space:nowrap;flex-shrink:0}
+        .shop-tab-btn.active{background:var(--blue);color:white;border-color:var(--blue)}
+        .shop-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+        .shop-item{text-align:center;padding:10px 6px;border-radius:var(--r);border:2px solid #E0E0E0;background:white;cursor:pointer;transition:all .15s;position:relative}
+        .shop-item.owned{border-color:var(--green);background:var(--green-l)}
+        .shop-item.equipped{border-color:var(--gold);animation:glow 2s infinite}
+        .shop-item:active{transform:scale(.96)}
+        .shop-item .item-emoji{font-size:32px;margin-bottom:4px}
+        .shop-item .item-name{font-size:11px;font-weight:700;margin-bottom:2px}
+        .shop-item .item-price{font-size:10px;color:var(--orange)}
+        .shop-item .item-badge{position:absolute;top:-4px;right:-4px;font-size:14px}
+        /* Maze */
+        .maze-grid{display:grid;gap:2px;margin:12px auto}
+        .maze-cell{width:100%;aspect-ratio:1;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;cursor:pointer;transition:all .15s;border:2px solid transparent}
+        .maze-wall{background:#455A64}.maze-path{background:#E8F5E9;border-color:#C8E6C9}.maze-player{background:var(--blue);color:white;border-radius:50%}.maze-exit{background:var(--gold)}
+        .maze-choice{background:var(--orange-l);border-color:var(--orange);cursor:pointer}
+        .maze-choice:active{transform:scale(.92)}
+        /* Cipher */
+        .cipher-table{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin:10px 0}
+        .cipher-cell{text-align:center;padding:6px;border-radius:8px;border:2px solid #E0E0E0}
+        .cipher-num{font-size:14px;font-weight:900;color:var(--blue)}.cipher-char{font-size:16px;font-weight:900;color:var(--purple)}
+        .cipher-answer{display:flex;gap:4px;justify-content:center;margin:12px 0}
+        .cipher-slot{width:36px;height:42px;border-radius:8px;border:2px solid var(--purple);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;color:var(--purple);background:var(--purple-l)}
+        /* Parent */
+        .pin-input{display:flex;gap:8px;justify-content:center;margin:16px 0}
+        .pin-dot{width:40px;height:48px;border-radius:12px;border:3px solid #E0E0E0;font-size:24px;text-align:center;font-family:var(--font-t);background:white}
+        .parent-card{border-left:4px solid var(--blue);padding-left:12px}
+        /* Character preview */
+        .char-preview{position:relative;width:160px;height:200px;margin:0 auto}
+        .char-layer{position:absolute;left:50%;transform:translateX(-50%)}
+
+
+        /* Practice Mode */
+        .prac-tabs{display:flex;border-radius:var(--r);overflow:hidden;border:3px solid var(--blue);margin-bottom:14px}
+        .prac-tab{flex:1;padding:12px;text-align:center;font-family:var(--font-t);font-size:16px;cursor:pointer;background:white;color:var(--blue);border:none;transition:all .15s}
+        .prac-tab.active{background:var(--blue);color:white}
+        .prac-select{width:100%;padding:14px 18px;border-radius:var(--r);border:3px solid #E0E0E0;font-family:var(--font-t);font-size:16px;background:white;color:var(--dark);appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'%3E%3Cpath fill='%239E9E9E' d='M5 7l5 5 5-5z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;cursor:pointer}
+        .prac-select:focus{border-color:var(--blue);outline:none}
+        .topic-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:12px}
+        .topic-card{padding:14px 10px;border-radius:var(--r);border:3px solid #E0E0E0;background:white;cursor:pointer;display:flex;align-items:center;gap:10px;transition:all .15s;font-family:var(--font-t);font-size:14px}
+        .topic-card:active{transform:scale(.97)}
+        .topic-card .tc-icon{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;color:white}
+        .topic-card.sel{border-color:var(--blue);background:var(--blue-l)}
+        .level-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:12px}
+        .level-card{padding:16px 12px;border-radius:var(--r);border:3px solid #E0E0E0;background:white;cursor:pointer;text-align:center;transition:all .15s;font-family:var(--font-t)}
+        .level-card:active{transform:scale(.97)}
+        .level-card.sel{border-color:var(--blue);background:var(--blue-l)}
+        .level-card .lc-grade{font-size:28px;margin-bottom:4px}
+        .level-card .lc-name{font-size:14px}
+        .level-card .lc-desc{font-size:10px;color:var(--gray);margin-top:2px}
+        .prac-q-area{margin-top:14px}
+        .prac-score{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;font-family:var(--font-t);font-size:14px}
+            /* Memory Match */
+        .mem-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:10px 0}
+        .mem-card{aspect-ratio:1;border-radius:var(--r);cursor:pointer;transition:transform .3s;transform-style:preserve-3d;position:relative}
+        .mem-card.flipped{transform:rotateY(180deg)}
+        .mem-card.matched{opacity:.4;pointer-events:none}
+        .mem-face,.mem-back{position:absolute;inset:0;border-radius:var(--r);display:flex;align-items:center;justify-content:center;backface-visibility:hidden;font-weight:900;border:3px solid #E0E0E0}
+        .mem-back{background:linear-gradient(135deg,var(--blue),var(--blue-m));color:white;font-size:28px}
+        .mem-face{transform:rotateY(180deg);background:white;font-size:15px;padding:4px;text-align:center;word-break:break-all;line-height:1.2}
+        .mem-card.matched .mem-face{border-color:var(--green);background:var(--green-l)}
+        /* Timed */
+        .timer-ring{width:80px;height:80px;border-radius:50%;border:6px solid var(--gold);display:flex;align-items:center;justify-content:center;font-family:var(--font-t);font-size:28px;margin:0 auto}
+        .timer-ring.danger{border-color:var(--red);color:var(--red)}
+        /* Dual */
+        .dual-wrap{display:flex;flex-direction:column;height:100%}
+        .dual-half{flex:1;padding:10px;display:flex;flex-direction:column;justify-content:center;align-items:center;position:relative;overflow:hidden}
+        .dual-top{background:linear-gradient(180deg,#E3F2FD,#BBDEFB);transform:rotate(180deg)}
+        .dual-bot{background:linear-gradient(180deg,#FFF3E0,#FFE0B2)}
+        .dual-divider{height:4px;background:var(--dark);flex-shrink:0;position:relative}
+        .dual-divider span{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:var(--dark);color:white;padding:2px 12px;border-radius:10px;font-family:var(--font-t);font-size:12px;white-space:nowrap}
+        .dual-opts{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;width:100%;max-width:300px}
+        .dual-opt{padding:10px;border-radius:var(--r);border:3px solid #E0E0E0;background:white;font-size:18px;font-weight:900;text-align:center;cursor:pointer;min-height:44px;font-family:var(--font-t)}
+        .dual-opt:active{transform:scale(.95)}
+        .dual-opt.correct{border-color:var(--green);background:var(--green-l)}
+        .dual-opt.wrong{border-color:var(--red);background:var(--red-l)}
+        /* Visual objects */
+        .vis-obj{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;margin:8px 0}
+        .vis-obj span{font-size:22px}
+        .vis-plus{font-size:28px;font-weight:900;color:var(--orange);margin:0 6px}
+        /* Step solve */
+        .step-solve{padding:12px;border-radius:var(--r);background:var(--blue-l);border:2px solid var(--blue);margin-top:10px}
+        .step-line{font-size:16px;font-weight:700;padding:4px 0;opacity:0;animation:fadeIn .4s ease forwards}
+        </style>
+</head>
+<body>
+<div id="app">
+    <!-- Splash -->
+    <div id="scr-splash" class="screen active" style="background:linear-gradient(180deg,#1565C0,#42A5F5,#E3F2FD);align-items:center;justify-content:center">
+        <div class="afl" id="splash-c"></div>
+        <h1 style="font-family:var(--font-t);font-size:38px;color:white;text-shadow:0 3px 6px rgba(0,0,0,.3)">FunMath Quest</h1>
+        <p style="font-family:var(--font-t);font-size:17px;color:#BBDEFB;margin-top:6px">재미로 배우는 수학 모험</p>
+        <div class="apu" style="margin-top:24px;color:white;font-size:13px">로딩 중...</div>
+    </div>
+    <!-- Screens: home, comic, concept, mission, boss, hidden, riddle, maze, cipher, shop, char, quest, badge, parent -->
+    <!-- 온보딩: 캐릭터 만들기 -->
+    <div id="scr-onboard" class="screen" style="background:linear-gradient(180deg,#1565C0,#42A5F5,#E3F2FD)">
+        <div class="content-area" id="onboard-c" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100%"></div>
+    </div>
+    <div id="scr-home" class="screen"><div class="topbar"><span class="topbar-title">🗺️ 모험 지도</span><div class="stars-pill">⭐<span id="h-s">0</span><span style="color:var(--gray);font-size:10px" id="h-l">Lv.1</span></div></div><div class="content-area" id="home-c"></div><div class="bnav" id="bnav-main"></div></div>
+    <div id="scr-comic" class="screen"><div class="topbar"><button class="topbar-back" onclick="nav('home')">←</button><span class="topbar-title" id="comic-t">📖 만화</span><div class="stars-pill">⭐<span class="ss">0</span></div></div><div class="content-area" id="comic-c"></div></div>
+    <div id="scr-concept" class="screen"><div class="topbar"><button class="topbar-back" onclick="nav('home')">←</button><span class="topbar-title" id="concept-t">🔍 개념</span><div class="stars-pill">⭐<span class="ss">0</span></div></div><div class="content-area" id="concept-c"></div></div>
+    <div id="scr-mission" class="screen"><div class="topbar"><button class="topbar-back" onclick="nav('home')">←</button><span class="topbar-title" id="mission-t">⚔️ 미션</span><div class="stars-pill">⭐<span class="ss">0</span></div></div><div class="content-area" id="mission-c"></div></div>
+    <div id="scr-boss" class="screen" style="background:linear-gradient(180deg,#FFEBEE,#FBE9E7)"><div class="topbar"><button class="topbar-back" onclick="nav('home')">←</button><span class="topbar-title">🐉 보스 배틀!</span><div class="stars-pill">⭐<span class="ss">0</span></div></div><div class="content-area" id="boss-c"></div></div>
+    <div id="scr-hidden" class="screen" style="background:linear-gradient(180deg,#EDE7F6,#F3E5F5)"><div class="topbar"><button class="topbar-back" onclick="nav('home')">←</button><span class="topbar-title">🗝️ 히든미션</span><div class="stars-pill">⭐<span class="ss">0</span></div></div><div class="content-area" id="hidden-c"></div></div>
+    <div id="scr-riddle" class="screen" style="background:linear-gradient(180deg,#F3E5F5,#EDE7F6)"><div class="topbar"><span class="topbar-title">🧩 수수께끼!</span><div class="stars-pill">⭐<span class="ss">0</span></div></div><div class="content-area" id="riddle-c"></div></div>
+    <div id="scr-maze" class="screen" style="background:linear-gradient(180deg,#E8F5E9,#C8E6C9)"><div class="topbar"><span class="topbar-title">🌀 수학 미로!</span><div class="stars-pill">⭐<span class="ss">0</span></div></div><div class="content-area" id="maze-c"></div></div>
+    <div id="scr-cipher" class="screen" style="background:linear-gradient(180deg,#EDE7F6,#E8EAF6)"><div class="topbar"><span class="topbar-title">🔐 암호 해독!</span><div class="stars-pill">⭐<span class="ss">0</span></div></div><div class="content-area" id="cipher-c"></div></div>
+    <div id="scr-shop" class="screen"><div class="topbar"><button class="topbar-back" onclick="nav('home')">←</button><span class="topbar-title">🛍️ 아이템 샵</span><div class="stars-pill">⭐<span class="ss">0</span></div></div><div class="content-area" id="shop-c"></div><div class="bnav" id="bnav-shop"></div></div>
+    <div id="scr-char" class="screen"><div class="topbar"><button class="topbar-back" onclick="nav('home')">←</button><span class="topbar-title">👤 내 캐릭터</span></div><div class="content-area" id="char-c"></div><div class="bnav" id="bnav-char"></div></div>
+    <div id="scr-quest" class="screen"><div class="topbar"><span class="topbar-title">📋 일일 퀘스트</span></div><div class="content-area" id="quest-c"></div><div class="bnav" id="bnav-quest"></div></div>
+    <div id="scr-badge" class="screen"><div class="topbar"><span class="topbar-title">🏅 뱃지</span></div><div class="content-area" id="badge-c"></div><div class="bnav" id="bnav-badge"></div></div>
+    <div id="scr-parent" class="screen" style="background:#F5F5F5"><div class="topbar"><span class="topbar-title">⚙️ 설정</span></div><div class="content-area" id="parent-c"></div><div class="bnav" id="bnav-parent"></div></div>
+
+
+
+    <!-- 학습 허브 -->
+    <div id="scr-learn" class="screen" style="background:linear-gradient(180deg,#E3F2FD,#E8EAF6)"><div class="topbar"><span class="topbar-title">📚 학습센터</span><div class="stars-pill">⭐<span class="ss">0</span></div></div><div class="content-area" id="learn-c"></div><div class="bnav" id="bnav-learn"></div></div>
+    <!-- Practice Mode (자유학습) -->
+    <div id="scr-practice" class="screen" style="background:linear-gradient(180deg,#E3F2FD,#E8F5E9)"><div class="topbar"><button class="topbar-back" onclick="nav('learn')">←</button><span class="topbar-title" id="prac-title">📚 자유학습</span><div class="stars-pill">⭐<span class="ss">0</span></div></div><div class="content-area" id="practice-c"></div></div>
+    <!-- Practice Quiz -->
+    <div id="scr-pracquiz" class="screen"><div class="topbar"><button class="topbar-back" onclick="nav('learn')">←</button><span class="topbar-title" id="pracquiz-title">📝 문제풀기</span><div class="stars-pill">⭐<span class="ss">0</span></div></div><div class="content-area" id="pracquiz-c"></div></div>
+    <!-- Memory Match -->
+    <div id="scr-memory" class="screen" style="background:linear-gradient(180deg,#E3F2FD,#BBDEFB)"><div class="topbar"><button class="topbar-back" onclick="nav('learn')">←</button><span class="topbar-title">🎴 메모리 매치</span><div class="stars-pill">⭐<span class="ss">0</span></div></div><div class="content-area" id="memory-c"></div></div>
+    <!-- Timed Challenge -->
+    <div id="scr-timed" class="screen" style="background:linear-gradient(180deg,#FFF3E0,#FFE0B2)"><div class="topbar"><button class="topbar-back" onclick="endTimed();nav('learn')">←</button><span class="topbar-title">⏱️ 타임어택</span><div class="stars-pill">⭐<span class="ss">0</span></div></div><div class="content-area" id="timed-c"></div></div>
+    <!-- Dual Mode -->
+    <div id="scr-dual" class="screen"><div class="content-area" id="dual-c" style="padding:0;height:100%"></div></div>
+    <div id="toast" class="toast"></div>
+    <div id="overlay" class="overlay"><div class="overlay-box" id="overlay-box"></div></div>
+    <div id="feedback" class="fb" style="display:none"></div>
+</div>
+
+<script>
+// ══════════════ GAME STATE ══════════════
+let G = {
+    playerName:'', playerChar:0, playerGrade:'g2', onboarded:false,
+    stars:0, exp:0, level:1, badges:[],
+    ch1:{comic:false,concept:false,mission:false,boss:false,hidden:false},
+    ch2:{comic:false,concept:false,mission:false,boss:false,hidden:false},
+    ch3:{comic:false,concept:false,mission:false,boss:false,hidden:false},
+    missionScore:0, missionScores:{1:0,2:0,3:0}, totalCorrect:0, totalPlayed:0, streak:0,timedBest:0,
+    inventory:[], equipped:{hat:null,top:null,acc:null,bg:null},
+    parentChance:{tokens:0,earned:[],requests:[]},
+    parentPin:'1234',
+    createdAt:Date.now(), lastPlayedAt:Date.now()
+};
+let curChap = 1; // 현재 선택된 챕터
+
+// ══════════════ IndexedDB ══════════════
+let db;
+function initDB(){return new Promise((res,rej)=>{const r=indexedDB.open('FunMathQuestDB',1);r.onerror=()=>rej(r.error);r.onsuccess=()=>{db=r.result;res(db)};r.onupgradeneeded=e=>{const d=e.target.result;if(!d.objectStoreNames.contains('gd'))d.createObjectStore('gd',{keyPath:'id'})}})}
+async function saveG(){if(!db)return;try{G.lastPlayedAt=Date.now();db.transaction(['gd'],'readwrite').objectStore('gd').put({id:'s1',data:G})}catch(e){}}
+async function loadG(){if(!db)return;return new Promise(res=>{try{const r=db.transaction(['gd'],'readonly').objectStore('gd').get('s1');r.onsuccess=()=>{if(r.result?.data)G={...G,...r.result.data};res()};r.onerror=()=>res()}catch(e){res()}})}
+
+// ══════════════ SOUND ══════════════
+function snd(t){try{const c=new(window.AudioContext||window.webkitAudioContext)(),o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);g.gain.value=.1;const S={click:[800,.06,'sine'],ok:[523,.12,'sine',[523,659,784]],no:[200,.18,'sawtooth'],star:[1047,.1,'sine'],lvl:[440,.1,'sine',[440,554,659,880]],boss:[150,.25,'square'],win:[523,.1,'sine',[523,659,784,1047]],buy:[880,.08,'sine',[880,1047,1319]],lock:[300,.15,'square']};const s=S[t]||S.click;o.type=s[2];if(s[3]){s[3].forEach((f,i)=>o.frequency.setValueAtTime(f,c.currentTime+i*.1));g.gain.setValueAtTime(.1,c.currentTime);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+s[1]*s[3].length);o.start();o.stop(c.currentTime+s[1]*s[3].length)}else{o.frequency.value=s[0];g.gain.exponentialRampToValueAtTime(.001,c.currentTime+s[1]);o.start();o.stop(c.currentTime+s[1])}}catch(e){}}
+
+// ══════════════ REWARDS ══════════════
+function addS(n){G.stars+=n;G.exp+=n*10;snd('star');if(G.exp>=G.level*100){G.exp-=G.level*100;G.level++;snd('lvl');showOL('🎊',`레벨 ${G.level} 달성!`,2e3)}upS();saveG();checkPCTokens()}
+function addB(id){if(!G.badges.includes(id)){G.badges.push(id);saveG()}}
+function upS(){document.querySelectorAll('.ss,[id$="-s"]').forEach(e=>e.textContent=G.stars);document.querySelectorAll('[id$="-l"]').forEach(e=>e.textContent='Lv.'+G.level)}
+function showT(m,c='#2E7D32'){const t=document.getElementById('toast');t.textContent=m;t.style.background=c;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200)}
+function showOL(e,t,d=0){const o=document.getElementById('overlay');document.getElementById('overlay-box').innerHTML=`<div style="font-size:52px;margin-bottom:10px">${e}</div><div style="font-family:var(--font-t);font-size:22px;color:var(--blue)">${t}</div>`;o.classList.add('show');if(d>0)setTimeout(()=>o.classList.remove('show'),d)}
+function hideOL(){document.getElementById('overlay').classList.remove('show')}
+function showFB(ok,t){const f=document.getElementById('feedback');f.className='fb '+(ok?'fb-ok':'fb-no');f.textContent=t;f.style.display='block';setTimeout(()=>f.style.display='none',1200)}
+
+// ══════════════ SVG CHARACTERS (아이템 착용 시각화) ══════════════
+const ITEM_SVG = {
+    // 모자 - 머리 위에 표시
+    hat_crown:'<polygon points="340,205 320,228 310,218 325,200 340,215 355,200 370,218 360,228" fill="#FFD600" stroke="#F9A825" stroke-width="1.5"/><circle cx="325" cy="210" r="3" fill="#E53935"/><circle cx="340" cy="205" r="3" fill="#2196F3"/><circle cx="355" cy="210" r="3" fill="#4CAF50"/>',
+    hat_wizard:'<path d="M300 240 L340 175 L380 240Z" fill="#6A1B9A"/><circle cx="340" cy="190" r="6" fill="#FFD600"/><path d="M310 240 Q340 235 370 240" fill="#4A148C"/><circle cx="320" cy="220" r="3" fill="#FFD600" opacity=".6"/><circle cx="355" cy="210" r="2.5" fill="#FFD600" opacity=".5"/>',
+    hat_cap:'<path d="M295 250 Q295 225 340 218 Q385 225 385 250" fill="#1565C0"/><rect x="285" y="248" width="110" height="8" rx="4" fill="#0D47A1"/><path d="M285 252 Q260 248 250 255" fill="#0D47A1"/>',
+    hat_flower:'<circle cx="310" cy="238" r="10" fill="#E91E63"/><circle cx="310" cy="238" r="4" fill="#FFD600"/><circle cx="370" cy="238" r="10" fill="#E91E63"/><circle cx="370" cy="238" r="4" fill="#FFD600"/><path d="M310 238 Q340 228 370 238" fill="none" stroke="#E91E63" stroke-width="3"/>',
+    hat_star:'<polygon points="340,208 344,218 355,218 346,224 349,235 340,228 331,235 334,224 325,218 336,218" fill="#FFD600" stroke="#F9A825" stroke-width="1"/><path d="M308 240 Q340 230 372 240" fill="none" stroke="#FFD600" stroke-width="3"/>',
+    hat_ribbon:'<path d="M310 238 Q340 228 370 238" fill="none" stroke="#E91E63" stroke-width="4"/><path d="M368 238 L380 255 L370 248 L378 268" fill="#E91E63"/><circle cx="370" cy="238" r="5" fill="#E91E63"/>',
+    // 상의 - 몸체에 오버레이
+    top_hero:'<path d="M285 345 L275 310 Q290 305 303 340" fill="#C62828" opacity=".85"/><path d="M395 345 L405 310 Q390 305 377 340" fill="#C62828" opacity=".85"/><path d="M275 310 Q340 290 405 310" fill="#C62828" opacity=".6"/>',
+    top_armor:'<rect x="303" y="338" width="74" height="88" rx="18" fill="#78909C"/><rect x="315" y="348" width="50" height="28" rx="6" fill="#90A4AE"/><path d="M325 348 L340 362 L355 348" fill="none" stroke="#FFD600" stroke-width="2"/><rect x="320" y="380" width="40" height="8" rx="4" fill="#FFD600"/>',
+    top_rainbow:'<rect x="303" y="338" width="74" height="88" rx="18" fill="#E53935"/><rect x="303" y="355" width="74" height="12" rx="0" fill="#FF9800"/><rect x="303" y="367" width="74" height="12" rx="0" fill="#FFEB3B"/><rect x="303" y="379" width="74" height="12" rx="0" fill="#4CAF50"/><rect x="303" y="391" width="74" height="12" rx="0" fill="#2196F3"/>',
+    top_star:'<rect x="303" y="338" width="74" height="88" rx="18" fill="#1565C0"/><polygon points="340,355 344,365 355,365 346,371 349,382 340,375 331,382 334,371 325,365 336,365" fill="#FFD600"/><polygon points="320,385 322,390 327,390 323,393 324,398 320,396 316,398 317,393 313,390 318,390" fill="#FFD600" opacity=".7"/><polygon points="360,380 362,385 367,385 363,388 364,393 360,391 356,393 357,388 353,385 358,385" fill="#FFD600" opacity=".7"/>',
+    top_heart:'<rect x="303" y="338" width="74" height="88" rx="18" fill="#E91E63"/><path d="M330 365 Q330 355 340 360 Q350 355 350 365 L340 380Z" fill="white" opacity=".8"/>',
+    // 액세서리 - 얼굴/손 주변
+    acc_glasses:'<rect x="308" y="282" width="26" height="18" rx="9" fill="none" stroke="#37474F" stroke-width="3"/><rect x="346" y="282" width="26" height="18" rx="9" fill="none" stroke="#37474F" stroke-width="3"/><line x1="334" y1="290" x2="346" y2="290" stroke="#37474F" stroke-width="2.5"/><circle cx="321" cy="290" r="10" fill="#64B5F6" opacity=".2"/><circle cx="359" cy="290" r="10" fill="#64B5F6" opacity=".2"/>',
+    acc_wand:'<line x1="410" y1="340" x2="435" y2="305" stroke="#795548" stroke-width="3.5" stroke-linecap="round"/><polygon points="435,305 443,292 430,298 440,282 427,294 433,278 423,302" fill="#FFD600" stroke="#FFA000" stroke-width="1"/>',
+    acc_shield:'<path d="M260 335 L260 370 Q260 395 285 400 L260 335Z" fill="#1565C0" stroke="#0D47A1" stroke-width="1.5"/><path d="M260 335 L285 335 L285 400 Q260 395 260 370Z" fill="#1976D2"/><text x="272" y="372" font-size="16" fill="white" text-anchor="middle" font-weight="bold">+</text>',
+    acc_pet:'<circle cx="420" cy="390" r="18" fill="#E53935"/><circle cx="420" cy="378" r="12" fill="#E53935"/><ellipse cx="415" cy="375" rx="4" ry="3.5" fill="#FFEB3B"/><ellipse cx="425" cy="375" rx="4" ry="3.5" fill="#FFEB3B"/><circle cx="416" cy="375" r="2" fill="#B71C1C"/><circle cx="426" cy="375" r="2" fill="#B71C1C"/><path d="M413 370 L408 362" stroke="#E53935" stroke-width="2"/><path d="M427 370 L432 362" stroke="#E53935" stroke-width="2"/>',
+    acc_bag:'<rect x="255" y="360" width="22" height="26" rx="5" fill="#795548"/><rect x="259" y="356" width="14" height="6" rx="3" fill="#5D4037"/><circle cx="266" cy="373" r="3" fill="#FFD600"/>',
+    // 배경 - 원 배경색 변경
+    bg_castle:'#FFF9C4', bg_space:'#1A237E', bg_forest:'#C8E6C9', bg_rainbow:'#F3E5F5'
+};
+
+function svgS(s=70){
+    const bgId=G.equipped.bg;
+    const bgColor=bgId&&ITEM_SVG[bgId]?ITEM_SVG[bgId]:'#E3F2FD';
+    const hatSvg=G.equipped.hat&&ITEM_SVG[G.equipped.hat]?ITEM_SVG[G.equipped.hat]:'';
+    const topSvg=G.equipped.top&&ITEM_SVG[G.equipped.top]?ITEM_SVG[G.equipped.top]:'';
+    const accSvg=G.equipped.acc&&ITEM_SVG[G.equipped.acc]?ITEM_SVG[G.equipped.acc]:'';
+    const bodyFill=topSvg?'transparent':'#42A5F5';
+    return `<svg width="${s}" height="${s*1.15}" viewBox="245 185 190 300">
+<circle cx="340" cy="268" r="125" fill="${bgColor}"/>
+${bgId==='bg_space'?'<circle cx="280" cy="210" r="2" fill="white"/><circle cx="400" cy="230" r="1.5" fill="white"/><circle cx="360" cy="195" r="2.5" fill="#FFD600"/><circle cx="300" cy="420" r="1.5" fill="white"/><circle cx="390" cy="400" r="2" fill="white"/>':''}
+<rect x="303" y="338" width="74" height="88" rx="18" fill="${bodyFill}"/>
+${topSvg}
+<circle cx="272" cy="340" r="8" fill="#FFCC80"/><circle cx="408" cy="338" r="8" fill="#FFCC80"/>
+<rect x="314" y="418" width="14" height="32" rx="7" fill="#37474F"/><rect x="352" y="418" width="14" height="32" rx="7" fill="#37474F"/>
+<ellipse cx="318" cy="452" rx="13" ry="8" fill="#E53935"/><ellipse cx="362" cy="452" rx="13" ry="8" fill="#E53935"/>
+<circle cx="340" cy="288" r="56" fill="#FFCC80"/>
+<path d="M284 276Q284 224 340 218Q396 224 396 276" fill="#37474F"/><path d="M292 266Q292 240 340 232Q388 240 388 266" fill="#37474F"/>
+<path d="M295 263Q310 248 314 266" fill="#37474F"/><path d="M320 260Q332 244 340 263" fill="#37474F"/><path d="M340 260Q352 246 362 264" fill="#37474F"/><path d="M363 260Q376 250 385 267" fill="#37474F"/>
+${hatSvg}
+<ellipse cx="320" cy="288" rx="12" ry="13" fill="white"/><ellipse cx="360" cy="288" rx="12" ry="13" fill="white"/>
+<circle cx="322" cy="286" r="6" fill="#37474F"/><circle cx="362" cy="286" r="6" fill="#37474F"/>
+<circle cx="325" cy="283" r="2.5" fill="white"/><circle cx="365" cy="283" r="2.5" fill="white"/>
+${accSvg}
+<path d="M328 314Q340 326 352 314" fill="none" stroke="#37474F" stroke-width="2.2" stroke-linecap="round"/>
+<ellipse cx="305" cy="305" rx="8" ry="4" fill="#FF8A80" opacity=".45"/><ellipse cx="375" cy="305" rx="8" ry="4" fill="#FF8A80" opacity=".45"/>
+</svg>`}
+function svgM(s=50){return `<svg width="${s}" height="${s*1.15}" viewBox="215 175 250 310"><circle cx="340" cy="278" r="105" fill="#FFF3E0"/><path d="M238 228L254 208 250 230 266 212 259 244 275 224 264 256" fill="#FFD600" stroke="#FFA000" stroke-width="1.2"/><path d="M442 228L426 208 430 230 414 212 421 244 405 224 416 256" fill="#FFD600" stroke="#FFA000" stroke-width="1.2"/><ellipse cx="340" cy="362" rx="30" ry="40" fill="#FF6F00"/><circle cx="340" cy="296" r="48" fill="#FFE0B2"/><path d="M298 288Q294 246 316 250Q308 228 334 238Q330 218 352 234Q356 214 370 238Q378 226 382 254Q394 246 390 288" fill="#FF6F00"/><ellipse cx="324" cy="294" rx="10" ry="11" fill="white"/><ellipse cx="356" cy="294" rx="10" ry="11" fill="white"/><circle cx="326" cy="292" r="5.5" fill="#FF6F00"/><circle cx="358" cy="292" r="5.5" fill="#FF6F00"/><circle cx="328" cy="289" r="2" fill="white"/><circle cx="360" cy="289" r="2" fill="white"/><path d="M328 314Q340 328 352 314" fill="white" stroke="#FF6F00" stroke-width="1.8"/></svg>`}
+function svgD(s=90){return `<svg width="${s}" height="${s}" viewBox="170 100 340 280"><circle cx="340" cy="238" r="130" fill="#FFEBEE"/><path d="M214 208L180 158 202 190 186 140 218 188" fill="#EF5350" stroke="#C62828" stroke-width="1.2"/><path d="M466 208L500 158 478 190 494 140 462 188" fill="#EF5350" stroke="#C62828" stroke-width="1.2"/><ellipse cx="340" cy="280" rx="60" ry="70" fill="#E53935"/><ellipse cx="340" cy="288" rx="40" ry="48" fill="#EF9A9A"/><circle cx="340" cy="200" r="52" fill="#E53935"/><path d="M308 174L295 132 318 164" fill="#C62828"/><path d="M372 174L385 132 362 164" fill="#C62828"/><ellipse cx="340" cy="216" rx="26" ry="16" fill="#EF5350"/><ellipse cx="322" cy="192" rx="12" ry="10" fill="#FFEB3B"/><ellipse cx="358" cy="192" rx="12" ry="10" fill="#FFEB3B"/><ellipse cx="324" cy="192" rx="5.5" ry="8" fill="#B71C1C"/><ellipse cx="360" cy="192" rx="5.5" ry="8" fill="#B71C1C"/><path d="M306 180Q314 174 328 180" fill="none" stroke="#B71C1C" stroke-width="2.2" stroke-linecap="round"/><path d="M352 180Q366 174 374 180" fill="none" stroke="#B71C1C" stroke-width="2.2" stroke-linecap="round"/><path d="M320 228Q340 242 360 228" fill="#B71C1C"/><polygon points="327,228 331,236 335,228" fill="white"/><polygon points="345,228 349,236 353,228" fill="white"/></svg>`}
+
+// ══════════════ PARENT CHANCE ACHIEVEMENTS ══════════════
+const PC_ACHIEVE=[
+    {id:'stars100',name:'별 100개 달성',emoji:'⭐',check:()=>G.stars>=100},
+    {id:'stars200',name:'별 200개 달성',emoji:'🌟',check:()=>G.stars>=200},
+    {id:'boss1',name:'CH1 보스 클리어',emoji:'🐉',check:()=>G.ch1.boss},
+    {id:'boss2',name:'CH2 보스 클리어',emoji:'👾',check:()=>G.ch2.boss},
+    {id:'boss3',name:'CH3 보스 클리어',emoji:'🤖',check:()=>G.ch3.boss},
+    {id:'hidden1',name:'CH1 히든 클리어',emoji:'🗝️',check:()=>G.ch1.hidden},
+    {id:'level5',name:'레벨 5 달성',emoji:'📈',check:()=>G.level>=5},
+    {id:'all3',name:'3챕터 모두 클리어',emoji:'🏆',check:()=>G.ch1.boss&&G.ch2.boss&&G.ch3.boss},
+    {id:'stars300',name:'별 300개 달성',emoji:'💫',check:()=>G.stars>=300},
+];
+function checkPCTokens(){
+    let newTokens=0;
+    PC_ACHIEVE.forEach(a=>{if(a.check()&&!G.parentChance.earned.includes(a.id)){G.parentChance.earned.push(a.id);G.parentChance.tokens++;newTokens++}});
+    if(newTokens>0){saveG();showT(`🎁 부모찬스 토큰 ${newTokens}개 획득!`,'#AD1457')}
+}
+
+// ══════════════ SHOP ITEMS ══════════════
+const ITEMS = [
+    {id:'hat_crown',name:'왕관',emoji:'👑',cat:'hat',price:15},
+    {id:'hat_wizard',name:'마법사 모자',emoji:'🧙',cat:'hat',price:20,badge:'dragon_slayer'},
+    {id:'hat_cap',name:'야구모자',emoji:'🧢',cat:'hat',price:8},
+    {id:'hat_flower',name:'꽃 머리띠',emoji:'🌸',cat:'hat',price:10},
+    {id:'hat_star',name:'별 머리띠',emoji:'💫',cat:'hat',price:12},
+    {id:'hat_ribbon',name:'리본',emoji:'🎀',cat:'hat',price:6},
+    {id:'top_hero',name:'히어로 망토',emoji:'🦸',cat:'top',price:25},
+    {id:'top_armor',name:'기사 갑옷',emoji:'⚔️',cat:'top',price:30,badge:'dragon_slayer'},
+    {id:'top_rainbow',name:'무지개 티셔츠',emoji:'🌈',cat:'top',price:12},
+    {id:'top_star',name:'별무늬 셔츠',emoji:'✨',cat:'top',price:10},
+    {id:'top_heart',name:'하트 셔츠',emoji:'❤️',cat:'top',price:10},
+    {id:'acc_glasses',name:'멋쟁이 안경',emoji:'🤓',cat:'acc',price:8},
+    {id:'acc_wand',name:'마법 지팡이',emoji:'🪄',cat:'acc',price:18},
+    {id:'acc_shield',name:'수학 방패',emoji:'🛡️',cat:'acc',price:22,badge:'explorer'},
+    {id:'acc_pet',name:'아기 용',emoji:'🐲',cat:'acc',price:35,badge:'dragon_slayer'},
+    {id:'acc_bag',name:'보물 가방',emoji:'💰',cat:'acc',price:14},
+    {id:'bg_castle',name:'100의 성',emoji:'🏰',cat:'bg',price:20},
+    {id:'bg_space',name:'우주',emoji:'🚀',cat:'bg',price:25},
+    {id:'bg_forest',name:'마법의 숲',emoji:'🌲',cat:'bg',price:15},
+    {id:'bg_rainbow',name:'무지개 나라',emoji:'🌈',cat:'bg',price:18},
+    {id:'pc_icecream',name:'아이스크림',emoji:'🍦',cat:'parent',price:0,parentOnly:true},
+    {id:'pc_book',name:'만화책',emoji:'📚',cat:'parent',price:0,parentOnly:true},
+    {id:'pc_toy',name:'장난감',emoji:'🧸',cat:'parent',price:0,parentOnly:true},
+    {id:'pc_outing',name:'놀이공원',emoji:'🎢',cat:'parent',price:0,parentOnly:true},
+];
+
+
+// ══════════════ GRADE-BASED ADVENTURE CHAPTERS ══════════════
+const GRADE_ADV={
+k:[{name:'수 세기 마을',emoji:'🏘️',boss:'숫자 몬스터',bossE:'👹',tp:'count',concepts:['1~5 세기','6~10 세기','순서대로 세기','모아 세기']},
+   {name:'모양 나라',emoji:'🔺',boss:'모양 마법사',bossE:'🧙',tp:'shape',concepts:['동그라미 찾기','세모 찾기','네모 찾기','모양 분류']},
+   {name:'비교 왕국',emoji:'⚖️',boss:'비교 거인',bossE:'🦍',tp:'count',concepts:['크다 작다','많다 적다','길다 짧다','높다 낮다']}],
+g1:[{name:'100까지 수',emoji:'🔢',boss:'수 도둑',bossE:'🦹',tp:'add',concepts:['10 만들기','한 자리 덧셈','한 자리 뺄셈','□ 구하기']},
+    {name:'더하기빼기 숲',emoji:'🌲',boss:'계산 늑대',bossE:'🐺',tp:'sub',concepts:['받아올림 없는 덧셈','받아올림 없는 뺄셈','덧뺄 관계','세 수 계산']},
+    {name:'시계 마을',emoji:'🕐',boss:'시간 도둑',bossE:'⏰',tp:'time',concepts:['몇 시 알기','30분 단위','시간 순서','하루 시간']}],
+g2:[{name:'세 자리 수의 세계',emoji:'🏰',boss:'숫자 드래곤',bossE:'🐉',tp:'add',concepts:['100 알기','자릿값','크기 비교','뛰어 세기']},
+    {name:'도형 탐정단',emoji:'🔍',boss:'도형 괴물',bossE:'👾',tp:'shape',concepts:['삼각형','사각형','원','꼭짓점과 변']},
+    {name:'덧뺄셈 대모험',emoji:'⚔️',boss:'계산 로봇',bossE:'🤖',tp:'sub',concepts:['받아올림 덧셈','받아내림 뺄셈','세 수 덧뺄','□ 구하기']}],
+g3:[{name:'나눗셈 성',emoji:'🏯',boss:'나눗셈 기사',bossE:'⚔️',tp:'div',concepts:['나눗셈 의미','구구단 활용','곱셈과 관계','나머지']},
+    {name:'분수 바다',emoji:'🌊',boss:'분수 해적',bossE:'🏴‍☠️',tp:'frac',concepts:['분수 의미','단위분수','진분수 가분수','크기 비교']},
+    {name:'측정 탐험',emoji:'📏',boss:'측정 마녀',bossE:'🧙‍♀️',tp:'measure',concepts:['cm와 m','km','무게 g kg','들이 L mL']}],
+g4:[{name:'큰 수 우주',emoji:'🚀',boss:'우주 황제',bossE:'👽',tp:'add',concepts:['만 이상 수','수의 크기','어림하기','큰 수 연산']},
+    {name:'소수 섬',emoji:'🏝️',boss:'소수 용',bossE:'🐲',tp:'dec',concepts:['소수 한자리','소수 두자리','크기 비교','소수 덧뺄']},
+    {name:'각도 탑',emoji:'🗼',boss:'각도 보스',bossE:'📐',tp:'shape',concepts:['직각 알기','예각 둔각','삼각형 분류','각도 재기']}],
+g5:[{name:'분수 연산 던전',emoji:'⚔️',boss:'분수 왕',bossE:'👑',tp:'frac',concepts:['통분','분수 덧셈','분수 뺄셈','분수 곱셈']},
+    {name:'소수 연산 미로',emoji:'🌀',boss:'소수 유령',bossE:'👻',tp:'dec',concepts:['소수 곱셈','소수 나눗셈','소수와 분수','혼합 계산']},
+    {name:'넓이와 부피',emoji:'📦',boss:'공간 마법사',bossE:'🔮',tp:'measure',concepts:['직사각형 넓이','삼각형 넓이','직육면체 부피','단위 변환']}],
+g6:[{name:'비와 비율 왕국',emoji:'👑',boss:'비율 대마왕',bossE:'😈',tp:'mul',concepts:['비의 의미','비율','백분율','비례식']},
+    {name:'원의 세계',emoji:'⭕',boss:'원 수호자',bossE:'🛡️',tp:'shape',concepts:['원주율','원의 둘레','원의 넓이','부채꼴']},
+    {name:'최종 도전',emoji:'🏆',boss:'수학 대마왕',bossE:'🐲',tp:'add',concepts:['분수 소수 혼합','비례 응용','넓이 부피 응용','종합 문제']}]
+};
+
+// 현재 학년의 모험 챕터 가져오기
+function getAdvChapters(){return GRADE_ADV[G.playerGrade]||GRADE_ADV.g2}
+
+// 동적 모험 미션 생성 (학년+주제 기반)
+function genAdvMissions(grade,topic,count){
+    const problems=[];
+    for(let i=0;i<count;i++){const p=genOne(grade,topic);if(p)problems.push(p)}
+    return problems;
+}
+
+// 동적 개념 카드 생성
+function genAdvConcepts(chapter){
+    return chapter.concepts.map((c,i)=>({t:c,e:['🔑','💡','🌟','🎯'][i%4],p:[`${c}에 대해 알아봐요!`]}));
+}
+
+// 동적 만화 생성
+function genAdvComic(chapter,name){
+    return [
+        {bg:'#E3F2FD',sc:'모험의 시작',tx:`${name}에게 새로운 편지가 왔어요!`,dl:`편지: "${chapter.name}에 위기가 찾아왔어! 도와줘!"`,ch:'s'},
+        {bg:'#FFF9C4',sc:'동료 등장',tx:'믿음직한 동료가 나타났어요!',dl:`멀티: "같이 가자! ${chapter.concepts[0]}의 비밀을 알려줄게!"`,ch:'m'},
+        {bg:'#E8F5E9',sc:'모험 출발',tx:`${chapter.name}을 향해 출발!`,dl:`${name}: "꼭 해낼 수 있어! 가보자!"`,ch:'s'},
+        {bg:'#F3E5F5',sc:`${chapter.boss} 발견!`,tx:`${chapter.bossE} ${chapter.boss}이 나타났어요!`,dl:`${name}: "무섭지 않아! 수학으로 이길 수 있어!"`,ch:'s'}
+    ];
+}
+
+
+// ══════════════ MULTI-CHAPTER CONTENT ══════════════
+const CH_INFO={1:{name:'세 자리 수의 세계',emoji:'🏰',area:'수와 연산',boss:'숫자 드래곤',bossE:'🐉'},2:{name:'도형 탐정단',emoji:'🔍',area:'도형과 측정',boss:'도형 괴물',bossE:'👾'},3:{name:'덧셈뺄셈 대모험',emoji:'⚔️',area:'수와 연산',boss:'계산 로봇',bossE:'🤖'}};
+const CH={
+1:{comic:[{bg:'#E3F2FD',sc:'서준이의 방',tx:'김서준의 책상에 반짝이는 편지가 나타났어요!',dl:'서준: "이게 뭐지? 편지에 숫자가 잔뜩!"',ch:'s'},{bg:'#FFF9C4',sc:'편지 내용',tx:'숫자 마을 이장님이 도움을 요청했어요.',dl:'편지: "숫자 마을이 위험해! 99까지밖에 셀 줄 몰라!"',ch:'s'},{bg:'#E8F5E9',sc:'멀티 등장!',tx:'번개 날개의 요정이 나타났어요!',dl:'멀티: "안녕 서준! 100의 비밀을 알려줄게!"',ch:'m'},{bg:'#FFF3E0',sc:'100의 비밀',tx:'블록 10개가 합쳐졌어요!',dl:'멀티: "10이 10개 모이면 100이야!"',ch:'m'},{bg:'#F3E5F5',sc:'100의 성!',tx:'거대한 성이 나타났어요!',dl:'서준: "같이 가보자 멀티!"',ch:'s'}],
+concepts:[{t:'100은 어떤 수?',e:'🔟',p:['10이 10개 → 100!','99보다 1 큰 수','100은 백!']},{t:'자릿값',e:'🏰',p:['백의 자리: 100이 몇 개?','십의 자리: 10이 몇 개?','일의 자리: 1이 몇 개?','357=300+50+7'],pv:true},{t:'크기 비교!',e:'⚖️',p:['백의 자리 먼저!','같으면 십의 자리!','356>289 (3>2)']},{t:'뛰어 세기!',e:'🐸',p:['10씩: 100→110→120','100씩: 100→200→300']}],
+missions:[{q:'254를 읽으면?',o:['이백오십사','이백사십오','사백오십이','오백이십사'],a:0},{q:'100x3+10x5+1x7=?',o:['375','357','537','753'],a:1},{q:'408의 십의 자리?',o:['4','0','8','40'],a:1},{q:'345○398',o:['>','<','='],a:1},{q:'뛰어세기: 250,260,?',o:['280','270','360','265'],a:1},{q:'가장 큰 세자리수?',o:['990','909','999','100'],a:2},{q:'521○519',o:['>','<','='],a:0},{q:'100이 7개?',o:['70','107','700','7'],a:2}],
+boss:[{q:'100x6+10x3+1x8=?',o:['368','638','836'],a:1},{q:'362의 백의자리?',o:['2','6','3'],a:2},{q:'528 vs 582?',o:['528이 큼','582가 큼','같다'],a:1},{q:'100씩 뛰어: 200,?,400',o:['250','300','350'],a:1},{q:'가장 작은 세자리수?',o:['001','100','10'],a:1}],
+hidden:[{q:'백+일=7,십=3,400<나<600',o:['537','532','435'],a:1},{q:'305에서 0의 자리?',o:['백','십','일'],a:1},{q:'숫자합=12,백=십x2,일=십,>600',o:['633','462','444'],a:0}]},
+2:{comic:[{bg:'#E8F5E9',sc:'도형 마을',tx:'새 편지: 도형 마을이 엉망이 됐어!',dl:'편지: "삼각형과 사각형이 뒤섞였어!"',ch:'s'},{bg:'#FFF9C4',sc:'탐정 도도!',tx:'돋보기를 든 탐정이 나타났어요!',dl:'도도: "도형 탐정 도도야! 비밀을 풀자!"',ch:'m'},{bg:'#E3F2FD',sc:'뒤죽박죽!',tx:'삼각형, 사각형, 원이 뒤섞여 혼란!',dl:'도도: "꼭짓점과 변을 세면 구별 가능!"',ch:'m'},{bg:'#F3E5F5',sc:'도형 괴물!',tx:'도형을 삼킨 괴물이 나타났어요!',dl:'서준: "도도, 같이 도형마을을 구하자!"',ch:'s'}],
+concepts:[{t:'삼각형',e:'🔺',p:['변이 3개!','꼭짓점도 3개!','세 직선이 만나 완성!']},{t:'사각형',e:'🟥',p:['변이 4개! 꼭짓점도 4개!','정사각형: 네 변 같아','직사각형: 마주보는 변 같아']},{t:'원',e:'⭕',p:['변이 없어! 꼭짓점도 없어!','둥글게 생긴 도형','동전,시계=원 모양']},{t:'구별하기!',e:'🔍',p:['삼각형: 변3+꼭짓점3','사각형: 변4+꼭짓점4','원: 변0+꼭짓점0']}],
+missions:[{q:'삼각형 꼭짓점 수?',o:['2','3','4','5'],a:1},{q:'변 4개 도형?',o:['삼각형','원','사각형','오각형'],a:2},{q:'원의 변 수?',o:['1','2','0','무한'],a:2},{q:'꼭짓점 3개 도형?',o:['사각형','삼각형','원','직사각형'],a:1},{q:'정사각형 특징?',o:['변 3개','네 변 같다','변 없다','꼭짓점 3개'],a:1},{q:'원 모양 아닌것?',o:['동전','시계','책상','접시'],a:2},{q:'직사각형 꼭짓점?',o:['3개','4개','5개','0개'],a:1},{q:'삼각형 2개 합치면?',o:['삼각형','원','사각형','오각형'],a:2}],
+boss:[{q:'변 3개 도형?',o:['원','사각형','삼각형'],a:2},{q:'원의 꼭짓점?',o:['1개','0개','4개'],a:1},{q:'직사각형+정사각형 공통점?',o:['변 3개','꼭짓점 4개','변 없다'],a:1},{q:'삼각형+사각형 꼭짓점 합?',o:['5','6','7'],a:2},{q:'변도 꼭짓점도 없는 도형?',o:['삼각형','사각형','원'],a:2}],
+hidden:[{q:'칠교판 기본 삼각형 수?',o:['3','5','7'],a:1},{q:'정사각형에 대각선 그으면?',o:['삼각형 2개','삼각형 4개','사각형 2개'],a:0},{q:'삼각형 세 꼭짓점을 이으면?',o:['닫힌 도형','열린 도형','원'],a:0}]},
+3:{comic:[{bg:'#FFF3E0',sc:'계산 마을',tx:'긴급 메시지: 계산마을 덧셈뺄셈이 망가졌어!',dl:'메시지: "계산 마을을 도와줘!"',ch:'s'},{bg:'#E3F2FD',sc:'멀티의 귀환!',tx:'멀티가 다시 나타났어요!',dl:'멀티: "두 자리 수 덧셈뺄셈을 배우자!"',ch:'m'},{bg:'#FFF9C4',sc:'받아올림!',tx:'블록으로 받아올림을 보여줬어요!',dl:'멀티: "일의자리 합이 10넘으면 올려!"',ch:'m'},{bg:'#FFEBEE',sc:'계산 로봇!',tx:'계산을 독점한 로봇이 있어요!',dl:'서준: "로봇을 이기려면 계산을 잘해야해!"',ch:'s'}],
+concepts:[{t:'받아올림 없는 덧셈',e:'➕',p:['23+14=?','일의자리: 3+4=7','십의자리: 2+1=3','답: 37!']},{t:'받아올림 있는 덧셈',e:'⬆️',p:['27+15=?','일: 7+5=12→2쓰고 1올림!','십: 2+1+1=4','답: 42!'],pv:true},{t:'받아내림 없는 뺄셈',e:'➖',p:['48-23=?','일: 8-3=5','십: 4-2=2','답: 25!']},{t:'받아내림 있는 뺄셈',e:'⬇️',p:['43-17=?','일: 3-7 못빼! 빌려오기!','13-7=6, 십: 3-1=2','답: 26!']}],
+missions:[{q:'23+14=?',o:['36','37','27','47'],a:1},{q:'27+15=?',o:['32','42','52','41'],a:1},{q:'48-23=?',o:['25','35','15','26'],a:0},{q:'43-17=?',o:['36','24','26','34'],a:2},{q:'56+28=?',o:['84','74','82','94'],a:0},{q:'72-35=?',o:['47','37','43','27'],a:1},{q:'39+45=?',o:['74','84','94','64'],a:1},{q:'81-46=?',o:['45','35','25','55'],a:1}],
+boss:[{q:'34+28=?',o:['52','62','72'],a:1},{q:'63-27=?',o:['46','36','44'],a:1},{q:'45+37=?',o:['72','82','92'],a:1},{q:'90-54=?',o:['46','36','44'],a:1},{q:'58+26=?',o:['74','84','94'],a:1}],
+hidden:[{q:'15+27-13=?',o:['29','39','19'],a:0},{q:'□+24=51, □=?',o:['37','27','17'],a:1},{q:'82-□=45, □=?',o:['37','47','27'],a:0}]}
+};
+const RIDDLES=[{q:'세자리수. 숫자합=10, 백=4, 십=일+2. 나는?',a:'433',hint:'4+(x+2)+x=10'},{q:'500<나<600, 십=0, 일=가장큰한자리수',a:'509',hint:'가장 큰 한자리수=9'}];
+const CIPHER_CODE={100:'수',200:'학',300:'은',350:'재',400:'미',500:'있',532:'는',700:'모',800:'험',999:'!'};
+const CIPHER_QS=[{q:'10이 10개',a:100},{q:'100이 2개',a:200},{q:'299+1',a:300},{q:'100x3+10x5',a:350},{q:'100이 4개',a:400},{q:'100이 5개',a:500},{q:'100x5+10x3+2',a:532},{q:'100이 7개',a:700}];
+const MAZE_QS=[{q:'523의 십의자리?',o:['2','5'],a:0},{q:'100이 4개=?',o:['400','40'],a:0},{q:'376○367',o:['>','<'],a:0},{q:'480 다음 10씩?',o:['490','500'],a:0}];
+
+// ══════════════ NAVIGATION ══════════════
+let curScr='splash';
+function nav(id){snd('click');document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));const e=document.getElementById('scr-'+id);if(e)e.classList.add('active');curScr=id;const R={home:renderHome,onboard:renderOnboard,memory:renderMemory,learn:renderLearn,practice:renderPractice,pracquiz:renderPracQuiz,timed:renderTimed,dual:renderDual,comic:renderComic,concept:renderConcept,mission:renderMission,boss:renderBoss,hidden:renderHidden,riddle:renderRiddle,maze:renderMaze,cipher:renderCipher,shop:renderShop,char:renderChar,quest:renderQuest,badge:renderBadge,parent:renderParent};if(R[id])R[id]();upS()}
+
+function bnavHTML(active){return ['home','learn','char','parent'].map(s=>{const d={home:['🗺️','모험'],learn:['📚','학습'],char:['👤','캐릭터'],parent:['⚙️','설정']};return `<button class="bnav-item ${s===active?'active':''}" onclick="nav('${s}')"><span>${d[s][0]}</span><span>${d[s][1]}</span></button>`}).join('')}
+
+
+
+// ══════════════ ONBOARDING (캐릭터 만들기) ══════════════
+let obStep=0;
+const CHAR_OPTIONS=[
+    {id:0,name:'모험가',emoji:'🧒',color:'#42A5F5',desc:'호기심 가득!'},
+    {id:1,name:'마법사',emoji:'🧙',color:'#AB47BC',desc:'마법의 힘!'},
+    {id:2,name:'기사',emoji:'🤺',color:'#EF5350',desc:'용감한 전사!'},
+    {id:3,name:'탐정',emoji:'🔍',color:'#66BB6A',desc:'관찰력 최고!'},
+];
+
+function renderOnboard(){obStep=0;renderObStep()}
+
+function renderObStep(){
+    const el=document.getElementById('onboard-c');
+    if(obStep===0){
+        // 이름 입력
+        el.innerHTML=`<div style="text-align:center;width:90%;max-width:340px" class="af">
+            <div style="font-size:56px;margin-bottom:16px" class="afl">🌟</div>
+            <h1 style="font-family:var(--font-t);font-size:28px;color:white">모험을 시작하자!</h1>
+            <p style="color:#BBDEFB;font-size:15px;margin:10px 0 24px">먼저, 이름을 알려줘!</p>
+            <input type="text" id="ob-name" placeholder="이름을 입력하세요" maxlength="8" style="width:100%;padding:16px;font-size:20px;border:3px solid white;border-radius:var(--r);text-align:center;font-family:var(--font-t);outline:none;background:rgba(255,255,255,0.95)">
+            <button class="btn btn-gold btn-lg btn-block" style="margin-top:16px;font-size:18px" onclick="obNextName()">다음 →</button>
+        </div>`;
+        setTimeout(()=>document.getElementById('ob-name')?.focus(),300);
+    }
+    else if(obStep===1){
+        // 캐릭터 선택
+        el.innerHTML=`<div style="text-align:center;width:90%;max-width:360px" class="af">
+            <h2 style="font-family:var(--font-t);font-size:24px;color:white;margin-bottom:6px">${G.playerName}의 캐릭터!</h2>
+            <p style="color:#BBDEFB;font-size:14px;margin-bottom:16px">어떤 모습으로 모험할까?</p>
+            <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px">
+                ${CHAR_OPTIONS.map(c=>`<div class="card" style="cursor:pointer;text-align:center;border:3px solid ${G.playerChar===c.id?c.color:'#E0E0E0'};padding:16px;${G.playerChar===c.id?'background:'+c.color+'15':''}" onclick="G.playerChar=${c.id};renderObStep()">
+                    <div style="font-size:40px;margin-bottom:6px">${c.emoji}</div>
+                    <div style="font-family:var(--font-t);font-size:16px">${c.name}</div>
+                    <div style="font-size:11px;color:var(--gray)">${c.desc}</div>
+                </div>`).join('')}
+            </div>
+            <button class="btn btn-gold btn-lg btn-block" style="margin-top:16px;font-size:18px" onclick="obStep=2;renderObStep()">다음 →</button>
+        </div>`;
+    }
+    else if(obStep===2){
+        // 학년 선택
+        el.innerHTML=`<div style="text-align:center;width:90%;max-width:360px" class="af">
+            <h2 style="font-family:var(--font-t);font-size:24px;color:white;margin-bottom:6px">${G.playerName}, 몇 학년이야?</h2>
+            <p style="color:#BBDEFB;font-size:14px;margin-bottom:16px">학년에 맞는 모험이 시작돼요!</p>
+            <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px">
+                ${LEVELS.map(l=>`<div class="card" style="cursor:pointer;text-align:center;border:3px solid ${G.playerGrade===l.id?l.color:'#E0E0E0'};padding:12px" onclick="G.playerGrade='${l.id}';renderObStep()">
+                    <div style="font-size:28px;color:${l.color}">${l.grade==='🌱'?l.grade:l.grade+'학년'}</div>
+                    <div style="font-family:var(--font-t);font-size:14px">${l.name}</div>
+                    <div style="font-size:10px;color:var(--gray)">${l.desc}</div>
+                </div>`).join('')}
+            </div>
+            <button class="btn btn-green btn-lg btn-block" style="margin-top:16px;font-size:18px" onclick="obComplete()">🚀 모험 시작!</button>
+        </div>`;
+    }
+}
+
+function obNextName(){
+    const name=document.getElementById('ob-name')?.value.trim();
+    if(!name){showT('이름을 입력해 주세요!','#C62828');return}
+    G.playerName=name;snd('ok');obStep=1;renderObStep();
+}
+
+function obComplete(){
+    G.onboarded=true;
+    // 학년별 챕터 진행 상태 초기화
+    const advChs=getAdvChapters();
+    for(let i=0;i<advChs.length;i++){
+        if(!G['adv'+i])G['adv'+i]={comic:false,concept:false,mission:false,boss:false,hidden:false};
+    }
+    saveG();snd('win');
+    showOL('🎊',`${G.playerName}, 모험 시작!`,2000);
+    setTimeout(()=>nav('home'),2200);
+}
+
+// ══════════════ LEARN HUB (학습센터) ══════════════
+function renderLearn(){
+    document.getElementById('bnav-learn').innerHTML=bnavHTML('learn');
+    document.getElementById('learn-c').innerHTML=`
+        <div class="card af" style="border:3px solid var(--blue);background:linear-gradient(135deg,var(--blue-l),#BBDEFB)">
+            <div style="display:flex;align-items:center;gap:12px">
+                ${svgM(40)}
+                <div><div style="font-family:var(--font-t);font-size:16px">${G.playerName||"모험가"}, 학습센터에 온 걸 환영해! 🎉</div>
+                <div style="font-size:12px;color:var(--gray);margin-top:2px">자유롭게 공부하고 게임도 즐겨보자!</div></div>
+            </div>
+        </div>
+
+        <div style="font-family:var(--font-t);font-size:16px;margin-bottom:8px">📚 자유학습</div>
+        <div class="card" style="cursor:pointer;border:3px solid var(--blue)" onclick="nav('practice')">
+            <div style="display:flex;align-items:center;gap:12px">
+                <div style="font-size:36px">📊</div>
+                <div style="flex:1">
+                    <div style="font-family:var(--font-t);font-size:16px">단계별 · 주제별 학습</div>
+                    <div style="font-size:12px;color:var(--gray)">유치원 ~ 6학년 | 11개 주제</div>
+                </div>
+                <div style="font-size:20px;color:var(--gray)">→</div>
+            </div>
+        </div>
+
+        <div style="font-family:var(--font-t);font-size:16px;margin-bottom:8px">🎮 미니게임</div>
+        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:14px">
+            <div class="card" style="cursor:pointer;text-align:center;border:2px solid #E0E0E0" onclick="nav('memory')">
+                <div style="font-size:28px;margin-bottom:4px">🎴</div>
+                <div style="font-family:var(--font-t);font-size:14px">메모리 매치</div>
+                <div style="font-size:10px;color:var(--gray)">카드 뒤집어 짝 맞추기</div>
+            </div>
+            <div class="card" style="cursor:pointer;text-align:center;border:2px solid #E0E0E0" onclick="nav('timed')">
+                <div style="font-size:28px;margin-bottom:4px">⏱️</div>
+                <div style="font-family:var(--font-t);font-size:14px">타임어택</div>
+                <div style="font-size:10px;color:var(--gray)">60초 스피드 챌린지</div>
+            </div>
+            <div class="card" style="cursor:pointer;text-align:center;border:2px solid #E0E0E0" onclick="nav('dual')">
+                <div style="font-size:28px;margin-bottom:4px">👫</div>
+                <div style="font-family:var(--font-t);font-size:14px">2인 대전</div>
+                <div style="font-size:10px;color:var(--gray)">친구와 함께!</div>
+            </div>
+            <div class="card" style="cursor:pointer;text-align:center;border:2px solid #E0E0E0" onclick="triggerMiniGame()">
+                <div style="font-size:28px;margin-bottom:4px">🎲</div>
+                <div style="font-family:var(--font-t);font-size:14px">랜덤 게임</div>
+                <div style="font-size:10px;color:var(--gray)">수수께끼 · 미로 · 암호</div>
+            </div>
+        </div>
+
+        <div style="font-family:var(--font-t);font-size:16px;margin-bottom:8px">📋 퀘스트 & 뱃지</div>
+        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px">
+            <div class="card" style="cursor:pointer;text-align:center;border:2px solid var(--gold)" onclick="nav('quest')">
+                <div style="font-size:24px;margin-bottom:4px">📋</div>
+                <div style="font-family:var(--font-t);font-size:13px">일일 퀘스트</div>
+            </div>
+            <div class="card" style="cursor:pointer;text-align:center;border:2px solid var(--gold)" onclick="nav('badge')">
+                <div style="font-size:24px;margin-bottom:4px">🏅</div>
+                <div style="font-family:var(--font-t);font-size:13px">뱃지 ${G.badges.length}개</div>
+            </div>
+        </div>
+    `;
+}
+
+// ══════════════ HOME ══════════════
+function renderHome(){
+    document.getElementById('bnav-main').innerHTML=bnavHTML('home');
+    const dn=Object.values(G.ch1).filter(Boolean).length;
+    document.getElementById('home-c').innerHTML=`
+        <div class="card af" style="display:flex;align-items:center;gap:12px;background:linear-gradient(135deg,var(--blue-l),#BBDEFB)">
+            ${svgS(45)}<div><div style="font-family:var(--font-t);font-size:15px">안녕, ${G.playerName||"모험가"}! 👋</div><div style="font-size:12px;color:var(--gray);margin-top:2px">오늘도 모험을 떠나볼까?</div></div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:12px">
+            ${[{e:'⭐',v:G.stars,l:'별'},{e:'📈',v:'Lv.'+G.level,l:'레벨'},{e:'🏅',v:G.badges.length,l:'뱃지'},{e:'🛍️',v:G.inventory.length,l:'아이템'}].map(s=>`<div class="card" style="text-align:center;padding:8px"><div style="font-size:20px">${s.e}</div><div style="font-family:var(--font-t);font-size:16px;color:var(--blue)">${s.v}</div><div style="font-size:9px;color:var(--gray)">${s.l}</div></div>`).join('')}
+        </div>
+        <div class="card" style="padding:8px 12px;margin-bottom:12px"><div style="font-size:10px;color:var(--gray);margin-bottom:3px">EXP ${G.exp}/${G.level*100}</div><div class="pbar"><div class="pfill" style="width:${(G.exp/(G.level*100))*100}%;background:linear-gradient(90deg,var(--blue),var(--blue-m))"></div></div></div>
+        ${buildAdvHTML()}
+    `;
+}
+
+function buildAdvHTML(){
+    const advChs=getAdvChapters();
+    let html='';
+    advChs.forEach((ch,ci)=>{
+        if(!G['adv'+ci])G['adv'+ci]={comic:false,concept:false,mission:false,boss:false,hidden:false};
+        const st=G['adv'+ci],dn=Object.values(st).filter(Boolean).length;
+        const locked=ci>0&&!G['adv'+(ci-1)]?.boss;
+        if(locked){
+            html+=`<div class="card" style="opacity:.35;border:2px dashed #BDBDBD"><div style="display:flex;align-items:center;gap:12px"><div style="font-size:28px">🔒</div><div style="font-family:var(--font-t);font-size:13px;color:var(--gray)">챕터 ${ci+1}: ${ch.name} (이전 챕터 클리어 필요)</div></div></div>`;
+            return;
+        }
+        const stepBtns=[{k:'comic',e:'📖',l:'만화'},{k:'concept',e:'🔍',l:'개념'},{k:'mission',e:'⚔️',l:'미션'},{k:'boss',e:ch.bossE,l:'보스'},{k:'hidden',e:'🗝️',l:'히든'}].map((s,si)=>{
+            const d=st[s.k],ks=Object.keys(st),u=si===0||st[ks[si-1]];
+            return `<button class="step-btn ${d?'done':u?'cur':''}" onclick="startAdvStep(${ci},'${s.k}')" ${u?'':'disabled'}><span>${d?'✅':s.e}</span><span>${s.l}</span></button>`;
+        }).join('');
+        html+=`<div class="card af" style="border:3px solid var(--blue);position:relative;overflow:hidden;margin-bottom:10px">
+            <div style="position:absolute;top:0;right:0;background:${st.boss?'var(--green)':'var(--blue)'};color:white;padding:2px 8px;border-radius:0 0 0 8px;font-size:10px;font-weight:700">${st.boss?'✅ 클리어!':'진행 중'}</div>
+            <div style="display:flex;align-items:center;gap:12px">
+                <div style="font-size:32px">${ch.emoji}</div>
+                <div style="flex:1"><div style="font-family:var(--font-t);font-size:15px">챕터 ${ci+1}: ${ch.name}</div><div style="font-size:10px;color:var(--gray)">${ch.concepts.slice(0,2).join(' · ')}</div><div class="pbar" style="margin-top:5px"><div class="pfill" style="width:${(dn/5)*100}%;background:var(--green)"></div></div></div>
+            </div>
+            <div class="step-grid">${stepBtns}</div></div>`;
+    });
+    return html;
+}
+
+
+// ══════════════ DYNAMIC ADVENTURE STEP ══════════════
+let advChIdx=0;
+function startAdvStep(chapterIdx,stepKey){
+    advChIdx=chapterIdx;
+    const advChs=getAdvChapters();
+    const ch=advChs[chapterIdx];
+    if(!ch)return;
+    snd('click');
+    if(stepKey==='comic'){startAdvComic(ch);return}
+    if(stepKey==='concept'){startAdvConcept(ch);return}
+    if(stepKey==='mission'){startAdvMission(ch);return}
+    if(stepKey==='boss'){startAdvBoss(ch);return}
+    if(stepKey==='hidden'){startAdvHidden(ch);return}
+}
+
+function advComplete(step){
+    if(!G['adv'+advChIdx])G['adv'+advChIdx]={comic:false,concept:false,mission:false,boss:false,hidden:false};
+    G['adv'+advChIdx][step]=true;saveG();
+}
+
+// 동적 만화
+function startAdvComic(ch){
+    const comics=genAdvComic(ch,G.playerName||'모험가');
+    cP=0;
+    const origComic=CH[curChap]?.comic;
+    // 임시로 현재 챕터 만화를 동적 만화로 교체
+    window._advComics=comics;
+    window._advMode=true;
+    nav('comic');
+}
+
+// 동적 개념
+function startAdvConcept(ch){
+    window._advConcepts=genAdvConcepts(ch);
+    window._advMode=true;
+    nav('concept');
+}
+
+// 동적 미션
+function startAdvMission(ch){
+    window._advMissions=genAdvMissions(G.playerGrade,ch.tp,8);
+    window._advMode=true;
+    nav('mission');
+}
+
+// 동적 보스
+function startAdvBoss(ch){
+    window._advBoss={ch,qs:genAdvMissions(G.playerGrade,ch.tp,5)};
+    window._advMode=true;
+    nav('boss');
+}
+
+// 동적 히든
+function startAdvHidden(ch){
+    window._advHidden=genAdvMissions(G.playerGrade,ch.tp,3);
+    window._advMode=true;
+    nav('hidden');
+}
+
+// ══════════════ COMIC ══════════════
+let cP=0;
+function renderComic(){cP=0;rCP()}
+function rCP(){const comicData=window._advMode&&window._advComics?window._advComics:CH[curChap]?.comic||[];if(!comicData.length){nav('home');return}const p=comicData[cP],last=cP===comicData.length-1;document.getElementById('comic-t').textContent=`📖 만화 (${cP+1}/${CH[curChap].comic.length})`;document.getElementById('comic-c').innerHTML=`
+    <div class="comic-panel af"><div class="comic-scene" style="background:${p.bg}"><div style="font-size:11px;color:var(--gray);margin-bottom:8px">[${p.sc}]</div><div class="ab">${p.ch==='s'?svgS(65):svgM(55)}</div><p style="font-size:16px;font-weight:700;line-height:1.4;margin-top:10px">${p.tx}</p></div><div class="comic-dialog">${p.dl}</div></div>
+    <div style="display:flex;gap:8px;justify-content:center;margin-top:14px">${cP>0?'<button class="btn btn-outline" onclick="cPrev()">← 이전</button>':''}${!last?'<button class="btn btn-blue btn-lg" onclick="cNext()">다음 →</button>':'<button class="btn btn-green btn-lg" onclick="cDone()">✅ 완료!</button>'}</div>
+    <div class="dots">${comicData.map((_,i)=>`<div class="dot ${i===cP?'active':''}"></div>`).join('')}</div>`}
+function cNext(){snd('click');cP++;rCP()}function cPrev(){snd('click');cP--;rCP()}function cDone(){if(window._advMode){advComplete('comic');window._advMode=false}else{G['ch'+curChap].comic=true}addS(2);showT('📖 만화 완료! ⭐+2');nav('home')}
+
+// ══════════════ CONCEPT ══════════════
+let cI=0;
+function renderConcept(){cI=0;rCS()}
+function rCS(){const conData=window._advMode&&window._advConcepts?window._advConcepts:CH[curChap]?.concepts||[];if(!conData.length){nav('home');return}const s=conData[cI],last=cI===conData.length-1;document.getElementById('concept-t').textContent=`🔍 개념 (${cI+1}/${CH[curChap].concepts.length})`;document.getElementById('concept-c').innerHTML=`
+    <div class="card af" style="border:3px solid var(--green)">
+        <div style="text-align:center"><div class="afl" style="font-size:40px">${s.e}</div><h2 style="font-family:var(--font-t);font-size:20px;color:var(--green);margin-top:6px">🔑 ${s.t}</h2></div>
+        <div style="text-align:center;margin:10px 0">${svgM(40)}</div>
+        ${s.p.map((pt,i)=>`<div style="padding:8px 12px;margin-bottom:6px;border-radius:var(--rs);font-size:16px;font-weight:700;background:${i%2===0?'var(--green-l)':'var(--blue-l)'}">${pt}</div>`).join('')}
+        ${s.pv?`<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:2px;border-radius:var(--r);overflow:hidden;border:2px solid var(--green);margin-top:10px">
+            <div style="padding:8px;text-align:center;background:var(--blue);color:white;font-family:var(--font-t);font-size:13px">백의 자리</div><div style="padding:8px;text-align:center;background:var(--blue-m);color:white;font-family:var(--font-t);font-size:13px">십의 자리</div><div style="padding:8px;text-align:center;background:#64B5F6;color:white;font-family:var(--font-t);font-size:13px">일의 자리</div>
+            <div style="padding:10px;text-align:center;background:var(--blue-l)"><div style="font-size:36px;font-weight:900;color:var(--blue)">3</div></div><div style="padding:10px;text-align:center;background:var(--blue-l)"><div style="font-size:36px;font-weight:900;color:var(--blue-m)">5</div></div><div style="padding:10px;text-align:center;background:var(--blue-l)"><div style="font-size:36px;font-weight:900;color:#64B5F6">7</div></div>
+        </div><div style="text-align:center;margin-top:8px;font-size:18px;font-weight:900">300+50+7 = <span style="color:var(--blue)">357</span></div>`:''}
+    </div>
+    <div style="display:flex;gap:8px;justify-content:center;margin-top:12px">${cI>0?'<button class="btn btn-outline" onclick="cSPrev()">←</button>':''}${!last?'<button class="btn btn-green btn-lg" onclick="cSNext()">다음 →</button>':'<button class="btn btn-blue btn-lg" onclick="cSDone()">✅ 완료!</button>'}</div>
+    <div class="dots">${conData.map((_,i)=>`<div class="dot ${i===cI?'active':''}"></div>`).join('')}</div>`}
+function cSNext(){snd('click');cI++;rCS()}function cSPrev(){snd('click');cI--;rCS()}function cSDone(){if(window._advMode){advComplete('concept');window._advMode=false}else{G['ch'+curChap].concept=true}addS(3);showT('🔍 개념 완료! ⭐+3');nav('home')}
+
+// ══════════════ MISSION ══════════════
+let mI=0,mSc=0,mLk=false;
+function renderMission(){mI=0;mSc=0;mLk=false;rMQ()}
+function rMQ(){
+    // 30% 확률 미니게임 (3문제마다)
+    if(mI>0 && mI%3===0 && Math.random()<0.3){triggerMiniGame();return}
+    const mData=window._advMode&&window._advMissions?window._advMissions:CH[curChap]?.missions||[];const m=mData[mI];if(!m){nav('home');return}document.getElementById('mission-t').textContent=`⚔️ 미션 (${mI+1}/${CH[curChap].missions.length})`;
+    document.getElementById('mission-c').innerHTML=`
+        <div class="pbar" style="margin-bottom:12px"><div class="pfill" style="width:${(mI/mData.length)*100}%;background:var(--orange)"></div></div>
+        <div class="card af" style="border:3px solid var(--orange)"><div style="display:flex;align-items:center;gap:10px">${svgM(30)}<div style="font-family:var(--font-t);font-size:18px;line-height:1.3">${m.q}</div></div>${getVisual(m.q)}</div>
+        <div style="text-align:center;margin-bottom:8px"><button style="background:none;border:2px solid var(--purple);color:var(--purple);padding:6px 16px;border-radius:20px;font-family:var(--font-t);font-size:13px;cursor:pointer" onclick="showMissionHint()">💡 힌트 보기</button></div>
+        <div id="mission-hint-area"></div>
+        <div style="display:flex;flex-direction:column;gap:8px">${m.o.map((o,i)=>`<button class="opt" id="mo-${i}" onclick="mAns(${i})"><span class="opt-num">${['①','②','③','④'][i]}</span>${o}</button>`).join('')}</div>`}
+function mAns(i){if(mLk)return;mLk=true;const m=CH[curChap].missions[mI];if(i===m.a){document.getElementById('mo-'+i).classList.add('correct');snd('ok');mSc++;G.totalCorrect++;addS(1);showFB(1,'🎉 정답! ⭐+1')}else{document.getElementById('mo-'+i).classList.add('wrong');document.getElementById('mo-'+m.a).classList.add('correct');snd('no');showFB(0,'정답: '+m.o[m.a]);showStepSolve(m,'mission-c')}G.totalPlayed++;setTimeout(()=>{mLk=false;if(mI<CH[curChap].missions.length-1){mI++;rMQ()}else{if(window._advMode){advComplete('mission');window._advMode=false}else{G['ch'+curChap].mission=true};G.missionScore=mSc;if(mSc===mData.length)addB('perfect');showT(`⚔️ 완료! ${mSc}/${CH[curChap].missions.length}`);nav('home')}},1300)}
+
+// ══════════════ BOSS ══════════════
+let bH=5,bI=0,bLk=false,pH=3;
+function renderBoss(){bH=5;bI=0;bLk=false;pH=3;rBQ()}
+function rBQ(){if(bH<=0){rBWin();return}if(pH<=0){rBLose();return}const bData=window._advMode&&window._advBoss?window._advBoss.qs:CH[curChap]?.boss||[];const q=bData[bI];if(!q){rBWin();return}document.getElementById('boss-c').innerHTML=`
+    <div style="text-align:center;margin-bottom:4px"><div class="${bLk?'anim-shake':'afl'}">${svgD(80)}</div></div>
+    <div style="font-size:11px;font-weight:700;color:var(--red)">🐉 드래곤 HP</div><div class="hpbar" style="margin-bottom:10px"><div class="hpfill" style="width:${(bH/5)*100}%"></div></div>
+    <div style="font-size:11px;font-weight:700;color:var(--blue)">💙 서준 HP</div><div class="hpbar" style="margin-bottom:12px;border-color:var(--blue)"><div class="hpfill" style="width:${(pH/3)*100}%;background:var(--blue)"></div></div>
+    <div class="card" style="border:3px solid var(--red)"><div style="font-family:var(--font-t);font-size:16px;color:var(--red)">💥 공격 ${bI+1}/${bData.length}</div><div style="font-size:17px;font-weight:700;margin-top:4px">${q.q}</div></div>
+    <div style="display:flex;flex-direction:column;gap:7px;margin-top:8px">${q.o.map((o,i)=>`<button class="opt" id="bo-${i}" onclick="bAns(${i})" style="border-color:#FFCDD2">${o}</button>`).join('')}</div>`}
+function bAns(i){if(bLk)return;bLk=true;const bData=window._advMode&&window._advBoss?window._advBoss.qs:CH[curChap]?.boss||[];const q=bData[bI];if(!q){rBWin();return}if(i===q.a){document.getElementById('bo-'+i).classList.add('correct');snd('ok');bH--;addS(2);showFB(1,'💥 공격! ⭐+2')}else{document.getElementById('bo-'+i).classList.add('wrong');snd('no');pH--;showFB(0,'🔥 반격!')}setTimeout(()=>{bLk=false;if(bH<=0){rBWin();return}if(pH<=0){rBLose();return}if(bI<bData.length-1)bI++;rBQ()},1300)}
+function rBWin(){snd('win');if(window._advMode){advComplete('boss');window._advMode=false}else{G['ch'+curChap].boss=true};addB(curChap===1?'dragon_slayer':curChap===2?'shape_master':'calc_hero');saveG();document.getElementById('boss-c').innerHTML=`<div style="text-align:center;padding-top:20px" class="af"><div style="font-size:48px" class="ab">🎊🏆🎊</div><h1 style="font-family:var(--font-t);font-size:28px;color:var(--green);margin:10px 0">${CH_INFO[curChap].boss} 격파!</h1><div class="ap">${svgD(70)}</div><div class="card ap" style="display:inline-block;padding:8px 18px;margin:12px 0">🏅 <span style="font-family:var(--font-t);color:var(--gold)">${curChap===1?'드래곤 슬레이어':curChap===2?'도형 마스터':'계산 영웅'} 뱃지!</span></div><div style="display:flex;gap:12px;justify-content:center">${svgS(50)} ${svgM(40)}</div><button class="btn btn-green btn-lg btn-block" style="margin-top:16px" onclick="nav('home')">🗺️ 모험 지도로</button></div>`}
+function rBLose(){document.getElementById('boss-c').innerHTML=`<div style="text-align:center;padding-top:30px" class="af"><div style="font-size:42px">😢</div><h2 style="font-family:var(--font-t);font-size:22px;color:var(--red);margin:10px 0">다음에 다시!</h2><p style="font-size:15px;margin-bottom:16px">멀티: "괜찮아! 다시 도전하면 돼!"</p><button class="btn btn-orange btn-lg btn-block" onclick="renderBoss()">🔄 다시 도전!</button><button class="btn btn-outline btn-block" style="margin-top:8px" onclick="nav('home')">← 모험 지도</button></div>`}
+
+// ══════════════ HIDDEN ══════════════
+let hI=0,hLk=false;
+function renderHidden(){hI=0;hLk=false;rHQ()}
+function rHQ(){if(hI>=hData.length){rHDone();return}const hData=window._advMode&&window._advHidden?window._advHidden:CH[curChap]?.hidden||[];const q=hData[hI];if(!q){rHDone();return}document.getElementById('hidden-c').innerHTML=`
+    <div class="card af" style="border:3px solid var(--purple);background:var(--purple-l)"><div style="text-align:center;font-size:28px;margin-bottom:6px" class="ab">🗝️</div><div style="font-family:var(--font-t);font-size:16px;color:var(--purple)">비밀 문제 ${hI+1}/${hData.length}</div><div style="font-size:16px;font-weight:700;line-height:1.4;margin-top:6px">${q.q}</div></div>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-top:10px">${q.o.map((o,i)=>`<button class="opt" id="ho-${i}" onclick="hAns(${i})" style="border-color:#CE93D8">${o}</button>`).join('')}</div>`}
+function hAns(i){if(hLk)return;hLk=true;const hData=window._advMode&&window._advHidden?window._advHidden:CH[curChap]?.hidden||[];const q=hData[hI];if(!q){rHDone();return}if(i===q.a){document.getElementById('ho-'+i).classList.add('correct');snd('ok');addS(3);showFB(1,'🎉 ⭐+3')}else{document.getElementById('ho-'+i).classList.add('wrong');snd('no');showFB(0,'정답: '+q.o[q.a])}setTimeout(()=>{hLk=false;hI++;rHQ()},1300)}
+function rHDone(){if(window._advMode){advComplete('hidden');window._advMode=false}else{G['ch'+curChap].hidden=true};addB(curChap===1?'explorer':curChap===2?'shape_explorer':'calc_explorer');snd('win');saveG();document.getElementById('hidden-c').innerHTML=`<div style="text-align:center;padding-top:20px" class="af"><div style="font-size:48px" class="ab">🎊🗝️🎊</div><h2 style="font-family:var(--font-t);font-size:24px;color:var(--purple);margin:10px 0">히든미션 클리어!</h2><div class="card ap" style="display:inline-block;padding:8px 18px;margin:10px 0">🏅 <span style="font-family:var(--font-t);color:var(--gold)">"100의 성 탐험가" 뱃지!</span></div><button class="btn btn-green btn-lg btn-block" style="margin-top:16px" onclick="nav('home')">🗺️ 모험 지도</button></div>`}
+
+// ══════════════ MINI GAMES ══════════════
+function triggerMiniGame(){const games=['riddle','maze','cipher','memory','timed'];nav(games[Math.floor(Math.random()*games.length)])}
+
+// ── 수수께끼 ──
+let rI=0;
+function renderRiddle(){
+    rI=Math.floor(Math.random()*RIDDLES.length);const r=RIDDLES[rI];
+    document.getElementById('riddle-c').innerHTML=`
+        <div class="card af" style="border:3px solid var(--purple);background:var(--purple-l)">
+            <div style="text-align:center;font-size:36px;margin-bottom:8px" class="ab">🧩</div>
+            <h2 style="font-family:var(--font-t);font-size:18px;color:var(--purple);margin-bottom:8px">수수께끼를 풀어라!</h2>
+            <p style="font-size:16px;font-weight:700;line-height:1.5">${r.q}</p>
+        </div>
+        <div class="card" style="text-align:center">
+            <div style="font-family:var(--font-t);font-size:15px;margin-bottom:10px">정답을 입력하세요</div>
+            <input type="number" id="riddle-ans" style="width:120px;height:50px;font-size:28px;text-align:center;border:3px solid var(--purple);border-radius:var(--r);font-family:var(--font-t);outline:none" placeholder="???">
+            <div style="margin-top:12px"><button class="btn btn-purple btn-lg" onclick="checkRiddle()">확인!</button></div>
+            <button style="margin-top:8px;background:none;border:none;color:var(--purple);font-size:13px;cursor:pointer" onclick="document.getElementById('riddle-hint').style.display='block'">💡 힌트 보기</button>
+            <div id="riddle-hint" style="display:none;margin-top:8px;padding:8px;background:var(--purple-l);border-radius:8px;font-size:14px">💡 ${r.hint}</div>
+        </div>
+        <button class="btn btn-outline btn-block" style="margin-top:10px" onclick="nav(curScr==='riddle'?'learn':'mission')">건너뛰기 →</button>
+    `}
+function checkRiddle(){const v=document.getElementById('riddle-ans').value;if(v===RIDDLES[rI].a){snd('ok');addS(3);showT('🧩 수수께끼 정답! ⭐+3');setTimeout(()=>nav('learn'),1200)}else{snd('no');showFB(0,'다시 생각해 봐!')}}
+
+// ── 미로 ──
+let mazeStep=0;
+function renderMaze(){
+    mazeStep=0;rMazeStep()}
+function rMazeStep(){
+    if(mazeStep>=MAZE_QS.length){snd('win');addS(3);showT('🌀 미로 탈출! ⭐+3');setTimeout(()=>nav('learn'),1200);return}
+    const q=MAZE_QS[mazeStep];
+    document.getElementById('maze-c').innerHTML=`
+        <div class="card af" style="border:3px solid var(--green)">
+            <div style="text-align:center"><div style="font-size:36px;margin-bottom:6px">${mazeStep===0?'🚪':'🔀'}</div>
+            <div style="font-family:var(--font-t);font-size:18px;color:var(--green)">갈림길 ${mazeStep+1}/${MAZE_QS.length}</div>
+            <div style="font-size:17px;font-weight:700;margin-top:8px">${q.q}</div></div>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:12px">
+            ${q.o.map((o,i)=>`<button class="btn ${i===0?'btn-blue':'btn-orange'} btn-lg btn-block" onclick="mazeChoice(${i})">${i===0?'⬅️':'➡️'} ${o}</button>`).join('')}
+        </div>
+        <div class="pbar" style="margin-top:14px"><div class="pfill" style="width:${(mazeStep/MAZE_QS.length)*100}%;background:var(--green)"></div></div>
+    `}
+function mazeChoice(i){const q=MAZE_QS[mazeStep];if(i===q.a){snd('ok');showFB(1,'✅ 올바른 길!');mazeStep++;setTimeout(()=>rMazeStep(),800)}else{snd('no');showFB(0,'❌ 막다른 길! 다시!')}}
+
+// ── 암호해독 ──
+let cipI=0,cipAns=[];
+function renderCipher(){
+    cipI=0;cipAns=[];
+    document.getElementById('cipher-c').innerHTML=`
+        <div class="card af" style="border:3px solid var(--purple)">
+            <div style="text-align:center;font-size:28px;margin-bottom:6px">🔐</div>
+            <h2 style="font-family:var(--font-t);font-size:17px;color:var(--purple)">암호표</h2>
+            <div class="cipher-table">${Object.entries(CIPHER_CODE).map(([n,c])=>`<div class="cipher-cell"><div class="cipher-num">${n}</div><div class="cipher-char">${c}</div></div>`).join('')}</div>
+        </div>
+        <div id="cipher-q"></div>
+        <div style="margin-top:12px"><div style="font-family:var(--font-t);font-size:15px;margin-bottom:6px">해독된 메시지:</div><div class="cipher-answer" id="cipher-slots"></div></div>
+    `;rCipQ()}
+function rCipQ(){
+    if(cipI>=CIPHER_QS.length){snd('win');addS(3);showT('🔐 암호 해독 완료! ⭐+3');setTimeout(()=>nav('learn'),1500);return}
+    const q=CIPHER_QS[cipI];
+    document.getElementById('cipher-q').innerHTML=`
+        <div class="card af"><div style="font-family:var(--font-t);font-size:15px;color:var(--purple)">문제 ${cipI+1}/${CIPHER_QS.length}</div><div style="font-size:16px;font-weight:700;margin-top:4px">${q.q} = ?</div>
+        <input type="number" id="cip-ans" style="width:100px;height:44px;font-size:24px;text-align:center;border:3px solid var(--purple);border-radius:var(--r);font-family:var(--font-t);margin-top:8px" placeholder="?">
+        <button class="btn btn-purple" style="margin-left:8px" onclick="checkCip()">확인</button></div>`;
+    document.getElementById('cipher-slots').innerHTML=CIPHER_QS.map((_,i)=>`<div class="cipher-slot">${cipAns[i]||'?'}</div>`).join('')}
+function checkCip(){const v=parseInt(document.getElementById('cip-ans').value);const q=CIPHER_QS[cipI];if(v===q.a){snd('ok');cipAns.push(CIPHER_CODE[q.a]||'?');cipI++;addS(1);rCipQ()}else{snd('no');showFB(0,'다시!')}}
+
+// ══════════════ SHOP ══════════════
+let shopCat='hat';
+function renderShop(){
+    document.getElementById('bnav-shop').innerHTML=bnavHTML('char');
+    const cats=[{k:'hat',l:'🎩 모자'},{k:'top',l:'👕 상의'},{k:'acc',l:'💍 액세서리'},{k:'bg',l:'🖼 배경'},{k:'parent',l:'🎁 부모찬스'}];
+    const items=ITEMS.filter(i=>i.cat===shopCat);
+    const canPC=canParentChance();
+    document.getElementById('shop-c').innerHTML=`
+        <div class="shop-tab">${cats.map(c=>`<button class="shop-tab-btn ${c.k===shopCat?'active':''}" onclick="shopCat='${c.k}';renderShop()">${c.l}</button>`).join('')}</div>
+        ${shopCat==='parent'?`
+            <div class="card" style="border:3px solid var(--pink);background:var(--pink-l)">
+                <div style="font-family:var(--font-t);font-size:17px;color:var(--pink);margin-bottom:6px">🎁 부모찬스란?</div>
+                <p style="font-size:13px;line-height:1.5">어려운 미션을 달성하면 <strong>토큰</strong>을 받아요!<br>토큰으로 부모님께 선물을 요청할 수 있어요!</p>
+                <div style="margin-top:10px;font-family:var(--font-t);font-size:20px;color:var(--pink)">🎫 보유 토큰: ${G.parentChance.tokens}개</div>
+            </div>
+            <div class="card" style="border:2px solid var(--purple)">
+                <div style="font-family:var(--font-t);font-size:15px;color:var(--purple);margin-bottom:8px">🏆 토큰 획득 조건</div>
+                ${PC_ACHIEVE.map(a=>{const done=G.parentChance.earned.includes(a.id);return `<div style="display:flex;align-items:center;gap:8px;padding:5px 0;font-size:13px"><span style="font-size:18px">${done?'✅':a.emoji}</span><span style="flex:1;${done?'text-decoration:line-through;color:var(--gray)':''}">${a.name}</span><span style="color:${done?'var(--green)':'var(--orange)'};font-size:11px">${done?'획득!':'🎫+1'}</span></div>`}).join('')}
+            </div>
+            <div class="shop-grid" style="margin-top:12px">${items.map(item=>`
+                <div class="shop-item ${canPC?'':'disabled'}" onclick="${canPC?`requestParentChance('${item.id}')`:'snd(\"lock\");showT(\"토큰이 필요해요! 미션을 달성하세요!\",\"#C62828\")'}">
+                    <div class="item-emoji">${item.emoji}</div><div class="item-name">${item.name}</div>
+                    <div class="item-price" style="color:var(--pink)">${canPC?'🎫 토큰 1개':'🔒 토큰 없음'}</div>
+                </div>
+            `).join('')}</div>
+        `:`
+        <div class="shop-grid">${items.map(item=>{
+            const owned=G.inventory.includes(item.id);const eq=Object.values(G.equipped).includes(item.id);
+            const needBadge=item.badge&&!G.badges.includes(item.badge);const canBuy=G.stars>=item.price&&!owned&&!needBadge;
+            return `<div class="shop-item ${owned?'owned':''} ${eq?'equipped':''}" onclick="${owned?`equipItem('${item.id}')`:(canBuy?`buyItem('${item.id}')`:needBadge?'snd(\"lock\");showT(\"뱃지가 필요해요!\",\"#C62828\")':'snd(\"lock\");showT(\"별이 부족해요!\",\"#C62828\")')}">
+                ${needBadge?'<div class="item-badge">🔒</div>':''}${eq?'<div class="item-badge">✅</div>':''}
+                <div class="item-emoji">${item.emoji}</div><div class="item-name">${item.name}</div>
+                <div class="item-price">${owned?'👆 착용':'⭐'+item.price}</div>
+            </div>`}).join('')}</div>
+        `}
+    `}
+function buyItem(id){const item=ITEMS.find(i=>i.id===id);if(!item||G.stars<item.price||G.inventory.includes(id))return;G.stars-=item.price;G.inventory.push(id);snd('buy');showT(`🛍️ ${item.name} 구매! ⭐-${item.price}`);saveG();renderShop()}
+function equipItem(id){const item=ITEMS.find(i=>i.id===id);if(!item||!G.inventory.includes(id))return;if(G.equipped[item.cat]===id)G.equipped[item.cat]=null;else G.equipped[item.cat]=id;snd('click');saveG();renderShop()}
+
+// ── 부모찬스 ──
+function canParentChance(){checkPCTokens();return G.parentChance.tokens>0}
+function requestParentChance(id){
+    const item=ITEMS.find(i=>i.id===id);if(!item||!canParentChance())return;
+    document.getElementById('overlay-box').innerHTML=`
+        <div style="font-size:48px;margin-bottom:10px">${item.emoji}</div>
+        <div style="font-family:var(--font-t);font-size:20px;margin-bottom:8px">${item.name} 요청하기!</div>
+        <p style="font-size:14px;color:var(--gray);margin-bottom:6px">부모님께 "${item.name}" 선물을 요청할까요?</p>
+        <p style="font-size:13px;color:var(--pink);margin-bottom:16px">🎫 토큰 1개를 사용합니다 (남은 토큰: ${G.parentChance.tokens}개)</p>
+        <div style="display:flex;gap:8px"><button class="btn btn-pink btn-block" onclick="confirmPC('${id}')">요청하기!</button><button class="btn btn-outline btn-block" onclick="hideOL()">취소</button></div>
+    `;document.getElementById('overlay').classList.add('show')}
+function confirmPC(id){
+    const item=ITEMS.find(i=>i.id===id);G.parentChance.tokens--;
+    G.parentChance.requests.push({id,name:item.name,emoji:item.emoji,date:Date.now(),status:'pending'});
+    snd('win');hideOL();saveG();
+    showT(`🎁 ${item.name} 요청 완료!`,'#AD1457');renderShop()}
+
+// ══════════════ CHARACTER ══════════════
+function renderChar(){
+    document.getElementById('bnav-char').innerHTML=bnavHTML('char');
+    // Character screen now includes badges, quest, shop access
+    const cats={hat:'모자',top:'상의',acc:'액세서리',bg:'배경'};
+    const eqList=Object.entries(G.equipped).filter(([,v])=>v).map(([k,v])=>{const i=ITEMS.find(x=>x.id===v);return i?`<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid #F0F0F0">
+        <span style="font-size:24px">${i.emoji}</span>
+        <div style="flex:1"><div style="font-size:14px;font-weight:700">${i.name}</div><div style="font-size:11px;color:var(--gray)">${cats[k]}</div></div>
+        <button class="btn" style="padding:4px 10px;min-height:30px;font-size:11px;background:var(--red-l);color:var(--red);box-shadow:none" onclick="G.equipped.${k}=null;saveG();renderChar()">해제</button>
+    </div>`:''}).join('');
+    document.getElementById('char-c').innerHTML=`
+        <div class="card af" style="text-align:center;padding:20px;background:linear-gradient(180deg,#E3F2FD,#FFF9C4)">
+            <div class="afl">${svgS(130)}</div>
+            <h2 style="font-family:var(--font-t);font-size:24px;margin-top:12px">${G.playerName||"모험가"}</h2>
+            <div style="font-size:14px;color:var(--gray)">Lv.${G.level} ${CHAR_OPTIONS[G.playerChar]?.name||"모험가"}</div>
+            <div style="display:flex;justify-content:center;gap:16px;margin-top:14px">
+                <div style="text-align:center"><div style="font-size:22px">⭐</div><div style="font-family:var(--font-t);font-size:18px">${G.stars}</div><div style="font-size:9px;color:var(--gray)">별</div></div>
+                <div style="text-align:center"><div style="font-size:22px">🏅</div><div style="font-family:var(--font-t);font-size:18px">${G.badges.length}</div><div style="font-size:9px;color:var(--gray)">뱃지</div></div>
+                <div style="text-align:center"><div style="font-size:22px">🎯</div><div style="font-family:var(--font-t);font-size:18px">${G.totalCorrect}</div><div style="font-size:9px;color:var(--gray)">정답</div></div>
+                <div style="text-align:center"><div style="font-size:22px">🎫</div><div style="font-family:var(--font-t);font-size:18px">${G.parentChance.tokens}</div><div style="font-size:9px;color:var(--gray)">토큰</div></div>
+            </div>
+        </div>
+        <div class="card">
+            <div style="font-family:var(--font-t);font-size:17px;margin-bottom:8px">👕 착용 중인 아이템</div>
+            ${eqList||'<div style="font-size:13px;color:var(--gray);padding:8px 0">아이템이 없어요. 샵에서 구매하고 착용해 보세요!</div>'}
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px">
+            <button class="btn btn-blue btn-block" style="font-size:14px" onclick="nav('shop')">🛍️ 아이템 샵</button>
+            <button class="btn btn-gold btn-block" style="font-size:14px" onclick="nav('badge')">🏅 뱃지 ${G.badges.length}개</button>
+        </div>
+    `}
+
+// ══════════════ QUEST ══════════════
+function renderQuest(){
+    document.getElementById('bnav-quest').innerHTML=bnavHTML('learn');
+    document.getElementById('quest-c').innerHTML=`
+        <div class="card af" style="border:3px solid var(--gold);background:linear-gradient(135deg,var(--orange-l),#FFF9C4)">
+            <div style="font-family:var(--font-t);font-size:17px;margin-bottom:8px">📅 오늘의 퀘스트</div>
+            ${[{t:'만화 읽기',d:G.ch1.comic},{t:'미션 풀기',d:G.ch1.mission},{t:'개념 탐험',d:G.ch1.concept}].map((q,i)=>`<div style="display:flex;align-items:center;gap:8px;padding:7px 0;${i?'border-top:1px solid #E0E0E0':''}"><div style="font-size:18px">${q.d?'✅':'⬜'}</div><div style="flex:1;font-size:14px;font-weight:700;${q.d?'color:var(--green);text-decoration:line-through':''}">${q.t}</div><div style="font-size:12px;color:var(--gold)">⭐+3</div></div>`).join('')}
+        </div>
+        <div class="card" style="text-align:center"><div style="font-family:var(--font-t);font-size:15px;margin-bottom:6px">🔥 연속 출석</div><div style="display:flex;justify-content:center;gap:5px">${[1,2,3,4,5,6,7].map(d=>`<div style="width:30px;height:30px;border-radius:50%;background:${d<=1?'var(--gold)':'#E0E0E0'};display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:${d<=1?'var(--dark)':'var(--gray)'}">${d}</div>`).join('')}</div></div>
+    `}
+
+// ══════════════ BADGE ══════════════
+function renderBadge(){
+    document.getElementById('bnav-badge').innerHTML=bnavHTML('learn');
+    const all=[{id:'dragon_slayer',e:'🐉',n:'드래곤 슬레이어',d:'CH1 보스 클리어'},{id:'shape_master',e:'👾',n:'도형 마스터',d:'CH2 보스 클리어'},{id:'calc_hero',e:'🤖',n:'계산 영웅',d:'CH3 보스 클리어'},{id:'explorer',e:'🗺️',n:'탐험가',d:'CH1 히든 클리어'},{id:'shape_explorer',e:'🔍',n:'도형 탐정',d:'CH2 히든 클리어'},{id:'calc_explorer',e:'🧮',n:'계산 박사',d:'CH3 히든 클리어'},{id:'star10',e:'⭐',n:'별 수집가',d:'별 10개'},{id:'perfect',e:'💎',n:'퍼펙트',d:'미션 전문제 정답'},{id:'speed',e:'⚡',n:'번개왕',d:'연속 5정답'},{id:'streak3',e:'🔥',n:'3일 출석',d:'3일 연속'}];
+    document.getElementById('badge-c').innerHTML=`<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px" class="af">${all.map(b=>{const h=G.badges.includes(b.id);return `<div class="card" style="text-align:center;padding:10px;opacity:${h?1:.3};border:${h?'2px solid var(--gold)':'2px solid #E0E0E0'}"><div style="font-size:28px;margin-bottom:3px">${h?b.e:'❓'}</div><div style="font-family:var(--font-t);font-size:11px">${b.n}</div><div style="font-size:9px;color:var(--gray)">${b.d}</div></div>`}).join('')}</div>`}
+
+// ══════════════ PARENT DASHBOARD ══════════════
+function renderParent(){
+    document.getElementById('bnav-parent').innerHTML=bnavHTML('parent');
+    // PIN 확인
+    document.getElementById('parent-c').innerHTML=`
+        <div class="card af" style="text-align:center">
+            <div style="font-size:36px;margin-bottom:8px">🔒</div>
+            <div style="font-family:var(--font-t);font-size:18px;margin-bottom:12px">부모님 PIN을 입력하세요</div>
+            <div class="pin-input"><input class="pin-dot" id="pin1" type="tel" maxlength="1" oninput="pinNext(1)"><input class="pin-dot" id="pin2" type="tel" maxlength="1" oninput="pinNext(2)"><input class="pin-dot" id="pin3" type="tel" maxlength="1" oninput="pinNext(3)"><input class="pin-dot" id="pin4" type="tel" maxlength="1" oninput="checkPin()"></div>
+            <div style="font-size:12px;color:var(--gray);margin-top:8px">기본 PIN: 1234</div>
+        </div>`}
+function pinNext(n){const next=document.getElementById('pin'+(n+1));if(next)next.focus()}
+function checkPin(){const pin=[1,2,3,4].map(n=>document.getElementById('pin'+n).value).join('');if(pin===G.parentPin){snd('ok');showParentDash()}else if(pin.length===4){snd('no');showT('PIN이 틀려요!','#C62828');[1,2,3,4].forEach(n=>document.getElementById('pin'+n).value='');document.getElementById('pin1').focus()}}
+function showParentDash(){
+    const acc=G.totalPlayed>0?(G.totalCorrect/G.totalPlayed*100).toFixed(0):0;
+    const pcReqs=G.parentChance.requests||[];
+    document.getElementById('parent-c').innerHTML=`
+        <div class="card af"><div style="font-family:var(--font-t);font-size:18px;margin-bottom:10px">📊 학습 현황</div>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+                <div class="parent-card"><div style="font-size:10px;color:var(--gray)">정답률</div><div style="font-family:var(--font-t);font-size:22px;color:var(--blue)">${acc}%</div></div>
+                <div class="parent-card"><div style="font-size:10px;color:var(--gray)">총 문제</div><div style="font-family:var(--font-t);font-size:22px;color:var(--green)">${G.totalPlayed}</div></div>
+                <div class="parent-card"><div style="font-size:10px;color:var(--gray)">레벨</div><div style="font-family:var(--font-t);font-size:22px;color:var(--orange)">Lv.${G.level}</div></div>
+            </div>
+        </div>
+        <div class="card"><div style="font-family:var(--font-t);font-size:16px;margin-bottom:8px">📈 챕터 진행 현황</div>
+            ${[1,2,3].map(cn=>{const ci=CH_INFO[cn],chD=G['ch'+cn],dn=Object.values(chD).filter(Boolean).length;return `<div style="margin-bottom:10px;padding:8px;border-radius:8px;background:${dn===5?'var(--green-l)':'var(--gray-l)'}"><div style="font-family:var(--font-t);font-size:14px">${ci.emoji} 챕터 ${cn}: ${ci.name}</div><div class="pbar" style="margin-top:4px"><div class="pfill" style="width:${(dn/5)*100}%;background:var(--green)"></div></div><div style="font-size:11px;color:var(--gray);margin-top:3px">${Object.entries(chD).map(([k,v])=>(v?'✅':'⬜')+k).join(' ')}</div></div>`}).join('')}
+        </div>
+        ${pcReqs.length>0?`<div class="card"><div style="font-family:var(--font-t);font-size:16px;margin-bottom:8px;color:var(--pink)">🎁 부모찬스 요청 목록</div>
+            ${pcReqs.map((r,i)=>`<div style="display:flex;align-items:center;gap:8px;padding:6px 0;${i?'border-top:1px solid #E0E0E0':''}">
+                <span style="font-size:22px">${r.emoji}</span><div style="flex:1"><div style="font-size:14px;font-weight:700">${r.name}</div><div style="font-size:11px;color:var(--gray)">${new Date(r.date).toLocaleDateString('ko')}</div></div>
+                <span style="font-size:12px;padding:3px 8px;border-radius:10px;${r.status==='approved'?'background:var(--green-l);color:var(--green)':r.status==='denied'?'background:var(--red-l);color:var(--red)':'background:var(--orange-l);color:var(--orange)'}">${r.status==='approved'?'✅승인':r.status==='denied'?'❌거절':'⏳대기'}</span>
+                ${r.status==='pending'?`<button class="btn btn-green" style="padding:4px 10px;min-height:32px;font-size:12px" onclick="approvePC(${i})">승인</button><button class="btn btn-red" style="padding:4px 10px;min-height:32px;font-size:12px" onclick="denyPC(${i})">거절</button>`:''}
+            </div>`).join('')}</div>`:''}
+        <div class="card"><div style="font-family:var(--font-t);font-size:16px;margin-bottom:8px">⚙️ 설정</div>
+            <button class="btn btn-outline btn-block" style="margin-bottom:8px;font-size:14px" onclick="changePIN()">🔑 PIN 변경</button>
+            <button class="btn btn-outline btn-block" style="font-size:14px;border-color:var(--red);color:var(--red)" onclick="if(confirm('정말 초기화?')){G={stars:0,exp:0,level:1,badges:[],ch1:{comic:false,concept:false,mission:false,boss:false,hidden:false},ch2:{comic:false,concept:false,mission:false,boss:false,hidden:false},ch3:{comic:false,concept:false,mission:false,boss:false,hidden:false},missionScore:0,missionScores:{1:0,2:0,3:0},totalCorrect:0,totalPlayed:0,streak:0,timedBest:0,inventory:[],equipped:{hat:null,top:null,acc:null,bg:null},parentChance:{tokens:0,earned:[],requests:[]},parentPin:G.parentPin,createdAt:Date.now(),lastPlayedAt:Date.now()};saveG();showT('초기화 완료');showParentDash()}">🗑️ 데이터 초기화</button>
+        </div>
+        <div class="card" style="border:3px solid var(--purple)">
+            <div style="font-family:var(--font-t);font-size:16px;color:var(--purple);margin-bottom:10px">🛠️ 관리자 모드 (테스트용)</div>
+            <div style="font-family:var(--font-t);font-size:13px;color:var(--gray);margin-bottom:10px">챕터 잠금 해제 및 콘텐츠 확인용</div>
+            <div style="display:flex;flex-direction:column;gap:6px">
+                <button class="btn btn-purple btn-block" style="font-size:13px" onclick="adminUnlockAll()">🔓 전체 챕터 해금 (모든 STEP)</button>
+                <button class="btn btn-gold btn-block" style="font-size:13px" onclick="adminAddStars(100)">⭐ 별 100개 추가</button>
+                <button class="btn btn-green btn-block" style="font-size:13px" onclick="adminAllBadges()">🏅 모든 뱃지 획득</button>
+                <button class="btn btn-orange btn-block" style="font-size:13px" onclick="adminAddTokens(5)">🎫 부모찬스 토큰 5개 추가</button>
+                <button class="btn btn-blue btn-block" style="font-size:13px" onclick="adminAllItems()">🛍️ 모든 아이템 획득</button>
+            </div>
+            <div style="font-family:var(--font-t);font-size:13px;margin-top:14px;margin-bottom:6px">📖 개별 챕터 바로가기</div>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px">
+                ${[1,2,3].map(cn=>`
+                    <div style="text-align:center">
+                        <div style="font-family:var(--font-t);font-size:12px;margin-bottom:4px">${CH_INFO[cn].emoji} CH${cn}</div>
+                        <button class="btn btn-outline" style="font-size:11px;padding:6px;min-height:34px;width:100%;box-shadow:none" onclick="curChap=${cn};nav('comic')">📖만화</button>
+                        <button class="btn btn-outline" style="font-size:11px;padding:6px;min-height:34px;width:100%;box-shadow:none;margin-top:3px" onclick="curChap=${cn};nav('concept')">🔍개념</button>
+                        <button class="btn btn-outline" style="font-size:11px;padding:6px;min-height:34px;width:100%;box-shadow:none;margin-top:3px" onclick="curChap=${cn};nav('mission')">⚔️미션</button>
+                        <button class="btn btn-outline" style="font-size:11px;padding:6px;min-height:34px;width:100%;box-shadow:none;margin-top:3px" onclick="curChap=${cn};nav('boss')">🐉보스</button>
+                        <button class="btn btn-outline" style="font-size:11px;padding:6px;min-height:34px;width:100%;box-shadow:none;margin-top:3px" onclick="curChap=${cn};nav('hidden')">🗝️히든</button>
+                    </div>
+                `).join('')}
+            </div>
+            <div style="font-family:var(--font-t);font-size:13px;margin-top:14px;margin-bottom:6px">🎮 미니게임 바로가기</div>
+            <div style="display:flex;gap:6px">
+                <button class="btn btn-outline btn-block" style="font-size:12px;padding:8px;min-height:36px;box-shadow:none" onclick="nav('riddle')">🧩수수께끼</button>
+                <button class="btn btn-outline btn-block" style="font-size:12px;padding:8px;min-height:36px;box-shadow:none" onclick="nav('maze')">🌀미로</button>
+                <button class="btn btn-outline btn-block" style="font-size:12px;padding:8px;min-height:36px;box-shadow:none" onclick="nav('cipher')">🔐암호</button>
+            </div>
+        </div>
+    `}
+function approvePC(i){G.parentChance.requests[i].status='approved';saveG();snd('win');showT('✅ 승인 완료!');showParentDash()}
+function denyPC(i){G.parentChance.requests[i].status='denied';saveG();snd('no');showT('요청을 거절했어요','#C62828');showParentDash()}
+function changePIN(){const p=prompt('새 PIN 4자리:');if(p&&p.length===4&&/^\d{4}$/.test(p)){G.parentPin=p;saveG();showT('PIN 변경 완료!')}}
+
+// ══════════════ ADMIN / DEBUG ══════════════
+function adminUnlockAll(){
+    [1,2,3].forEach(cn=>{const ch=G['ch'+cn];Object.keys(ch).forEach(k=>ch[k]=true)});
+    G.missionScores={1:8,2:8,3:8};G.missionScore=8;
+    saveG();snd('win');showT('🔓 전체 챕터 해금 완료!');showParentDash();
+}
+function adminAddStars(n){G.stars+=n;G.exp+=n*5;saveG();snd('buy');showT(`⭐ 별 ${n}개 추가! (총 ${G.stars}개)`);upS();showParentDash()}
+function adminAllBadges(){
+    ['dragon_slayer','shape_master','calc_hero','explorer','shape_explorer','calc_explorer','star10','perfect','speed','streak3'].forEach(b=>addB(b));
+    snd('win');showT('🏅 모든 뱃지 획득!');showParentDash();
+}
+function adminAddTokens(n){G.parentChance.tokens+=n;saveG();snd('buy');showT(`🎫 토큰 ${n}개 추가! (총 ${G.parentChance.tokens}개)`);showParentDash()}
+function adminAllItems(){
+    ITEMS.filter(i=>!i.parentOnly).forEach(i=>{if(!G.inventory.includes(i.id))G.inventory.push(i.id)});
+    saveG();snd('buy');showT('🛍️ 모든 아이템 획득!');showParentDash();
+}
+
+
+
+// ══════════════ PRACTICE MODE (자유학습 유치원~6학년) ══════════════
+const LEVELS=[
+    {id:'k',name:'유치원',grade:'🌱',desc:'수 세기 1~10, 모양 인식',color:'#4CAF50'},
+    {id:'g1',name:'1학년',grade:'1',desc:'[2수01] 100까지 수, 한자리 덧뺄셈',color:'#2196F3'},
+    {id:'g2',name:'2학년',grade:'2',desc:'[2수01] 세자리수, 두자리 덧뺄셈, 구구단',color:'#FF9800'},
+    {id:'g3',name:'3학년',grade:'3',desc:'[4수01] 세자리 연산, 나눗셈, 분수 기초',color:'#9C27B0'},
+    {id:'g4',name:'4학년',grade:'4',desc:'[4수01] 큰 수, 분수 덧뺄, 소수, 각도',color:'#E91E63'},
+    {id:'g5',name:'5학년',grade:'5',desc:'[6수01] 분수·소수 연산, 넓이·부피',color:'#00BCD4'},
+    {id:'g6',name:'6학년',grade:'6',desc:'[6수01] 분수·소수 혼합, 비와 비율',color:'#795548'},
+];
+const TOPICS=[
+    {id:'count',name:'수 세기',emoji:'🔢',color:'#00897B',levels:['k','g1']},
+    {id:'add',name:'덧셈',emoji:'➕',color:'#7B1FA2',levels:['k','g1','g2','g3','g4','g5','g6']},
+    {id:'sub',name:'뺄셈',emoji:'➖',color:'#E53935',levels:['g1','g2','g3','g4','g5','g6']},
+    {id:'mul',name:'곱셈',emoji:'✖️',color:'#FF6F00',levels:['g2','g3','g4','g5','g6']},
+    {id:'div',name:'나눗셈',emoji:'➗',color:'#1565C0',levels:['g3','g4','g5','g6']},
+    {id:'frac',name:'분수',emoji:'¼',color:'#6A1B9A',levels:['g3','g4','g5','g6']},
+    {id:'dec',name:'소수',emoji:'0.1',color:'#00695C',levels:['g4','g5','g6']},
+    {id:'shape',name:'도형',emoji:'🔺',color:'#2E7D32',levels:['g1','g2','g3','g4']},
+    {id:'time',name:'시간/시계',emoji:'🕐',color:'#5D4037',levels:['g1','g2','g3']},
+    {id:'measure',name:'측정',emoji:'📏',color:'#455A64',levels:['g2','g3','g4','g5']},
+    {id:'pattern',name:'규칙찾기',emoji:'🔄',color:'#F57C00',levels:['g1','g2','g3']},
+];
+let pracTab='level',pracLevel='g2',pracTopic='add';
+
+function renderPractice(){
+    document.getElementById('practice-c').innerHTML=`
+        <div class="prac-tabs">
+            <button class="prac-tab ${pracTab==='level'?'active':''}" onclick="pracTab='level';renderPractice()">📊 단계별</button>
+            <button class="prac-tab ${pracTab==='topic'?'active':''}" onclick="pracTab='topic';renderPractice()">📂 주제별</button>
+        </div>
+        ${pracTab==='level'?renderPracLevel():renderPracTopic()}
+    `;
+}
+
+function renderPracLevel(){
+    return `
+        <div style="font-family:var(--font-t);font-size:16px;margin-bottom:8px">🎓 학년을 선택하세요</div>
+        <div class="level-grid">${LEVELS.map(l=>`
+            <div class="level-card ${pracLevel===l.id?'sel':''}" onclick="pracLevel='${l.id}';renderPractice()" style="${pracLevel===l.id?'border-color:'+l.color:''}">
+                <div class="lc-grade" style="color:${l.color}">${l.grade==='🌱'?l.grade:l.grade+'학년'}</div>
+                <div class="lc-name">${l.name}</div>
+                <div class="lc-desc">${l.desc}</div>
+            </div>
+        `).join('')}</div>
+        <div style="margin-top:14px;font-family:var(--font-t);font-size:14px;color:var(--gray)">📂 ${LEVELS.find(l=>l.id===pracLevel).name} 학습 주제</div>
+        <div class="topic-grid">${TOPICS.filter(t=>t.levels.includes(pracLevel)).map(t=>`
+            <div class="topic-card" onclick="pracTopic='${t.id}';startPracQuiz()">
+                <div class="tc-icon" style="background:${t.color}">${t.emoji}</div>
+                <div>${t.name}</div>
+            </div>
+        `).join('')}</div>
+    `;
+}
+
+function renderPracTopic(){
+    return `
+        <div style="font-family:var(--font-t);font-size:16px;margin-bottom:8px">📂 주제를 선택하세요</div>
+        <div style="display:flex;flex-direction:column;gap:8px">${TOPICS.map(t=>`
+            <div class="topic-card" onclick="pracTopic='${t.id}';showTopicLevels('${t.id}')" style="border-color:${pracTopic===t.id?t.color:'#E0E0E0'}">
+                <div class="tc-icon" style="background:${t.color}">${t.emoji}</div>
+                <div style="flex:1">
+                    <div style="font-size:15px">${t.name}</div>
+                    <div style="font-size:10px;color:var(--gray)">${t.levels.map(l=>LEVELS.find(x=>x.id===l).name).join(', ')}</div>
+                </div>
+            </div>
+        `).join('')}</div>
+        <div id="topic-levels"></div>
+    `;
+}
+
+function showTopicLevels(topicId){
+    const t=TOPICS.find(x=>x.id===topicId);
+    document.getElementById('topic-levels').innerHTML=`
+        <div style="margin-top:14px;font-family:var(--font-t);font-size:14px">🎓 ${t.name} - 학년 선택</div>
+        <div class="level-grid" style="margin-top:8px">${t.levels.map(lid=>{
+            const l=LEVELS.find(x=>x.id===lid);
+            return `<div class="level-card" onclick="pracLevel='${lid}';pracTopic='${topicId}';startPracQuiz()" style="border-color:${l.color}">
+                <div class="lc-grade" style="color:${l.color};font-size:22px">${l.grade==='🌱'?l.grade:l.grade+'학년'}</div>
+                <div class="lc-name" style="font-size:12px">${l.name}</div>
+            </div>`}).join('')}
+        </div>`;
+}
+
+// ══════════════ PROBLEM GENERATOR ══════════════
+function genProblems(level,topic,count=8){
+    const problems=[];
+    for(let i=0;i<count;i++){
+        const p=genOne(level,topic);
+        if(p)problems.push(p);
+    }
+    return problems;
+}
+
+function genOne(lv,tp){
+    const r=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+    const pick=a=>a[r(0,a.length-1)];
+    let q,ans,opts;
+    // 실생활 맥락 소재 (KERIS 수행형 검사 방식: 실생활 시나리오 기반)
+    const ctx=['사과','귤','딸기','연필','지우개','공책','구슬','사탕','빵','우유','색종이','스티커'];
+    const ppl=['서준이','지민이','하은이','민서','예준이'];
+    const p=pick(ppl),c=pick(ctx);
+
+    if(tp==='count'){
+        // [2수01-01] 0~100 수 개념, 수 세기
+        if(lv==='k'){
+            const types=[
+                ()=>{const n=r(1,10);return{q:`🍎 ${Array(n).fill('🍎').join(' ')} → 몇 개?`,ans:n,opts:shuffle([n,n+1,n>1?n-1:n+2,n+2])}},
+                ()=>{const n=r(1,5);const m=r(1,5);return{q:`🍎${n}개와 🍊${m}개, 합하면?`,ans:n+m,opts:shuffle([n+m,n+m+1,n+m-1,n])}},
+            ];return fmtP(pick(types)());
+        }else{
+            // [2수01-03] 수의 크기 비교, 뛰어세기
+            const types=[
+                ()=>{const n=r(10,95);const s=pick([2,5,10]);return{q:`${n}에서 ${s}씩 뛰어 세기: ${n}, ${n+s}, ?`,ans:n+s*2,opts:shuffle([n+s*2,n+s*3,n+s,n+s*2+1])}},
+                ()=>{const a2=r(30,90),b2=r(30,90);return{q:`${a2}과 ${b2} 중 더 큰 수?`,ans:Math.max(a2,b2),opts:shuffle([a2,b2])}},
+                ()=>{const n=r(50,95);return{q:`${n}보다 1 큰 수는?`,ans:n+1,opts:shuffle([n+1,n-1,n+10,n])}},
+            ];return fmtP(pick(types)());
+        }
+    }
+    else if(tp==='add'){
+        if(lv==='k'){
+            // 유치원: 5 이하 합
+            const a2=r(1,5),b2=r(1,5-a2>0?5-a2:1);ans=a2+b2;
+            q=pick([`${c} ${a2}개와 ${b2}개를 합치면?`,`${a2} + ${b2} = ?`]);
+            opts=shuffle([ans,ans+1,Math.max(0,ans-1),a2]);
+        }else if(lv==='g1'){
+            // [2수01-05~06] 한 자리+한 자리, 받아올림 없는 → 있는
+            const types=[
+                ()=>{const a2=r(1,9),b2=r(1,9);return{q:`${a2} + ${b2} = ?`,ans:a2+b2}},
+                ()=>{const a2=r(1,9),b2=r(1,9);return{q:`${p}가 ${c} ${a2}개, 더 ${b2}개 받으면?`,ans:a2+b2}},
+                // [2수01-09] □ 구하기
+                ()=>{const a2=r(1,9),s=r(a2+1,18);return{q:`□ + ${a2} = ${s}, □ = ?`,ans:s-a2}},
+            ];const t=pick(types)();ans=t.ans;q=t.q;
+            opts=shuffle([ans,ans+1,Math.max(0,ans-1),ans+2]);
+        }else if(lv==='g2'){
+            // [2수01-06~08] 두 자리 수 덧셈 (받아올림 포함)
+            const types=[
+                ()=>{const a2=r(11,49),b2=r(11,49);return{q:`${a2} + ${b2} = ?`,ans:a2+b2}},
+                ()=>{const a2=r(10,50),b2=r(10,40);return{q:`${p}가 ${c} ${a2}개, ${pick(ppl)}가 ${b2}개. 합하면?`,ans:a2+b2}},
+                // [2수01-08] 세 수의 덧셈
+                ()=>{const a2=r(5,20),b2=r(5,20),c2=r(5,20);return{q:`${a2} + ${b2} + ${c2} = ?`,ans:a2+b2+c2}},
+                // [2수01-09] □ 구하기
+                ()=>{const a2=r(10,40),s=r(50,90);return{q:`${a2} + □ = ${s}, □ = ?`,ans:s-a2}},
+            ];const t=pick(types)();ans=t.ans;q=t.q;
+            opts=shuffle([ans,ans+r(1,5),ans-r(1,5),ans+r(6,10)].map(x=>Math.max(0,x)));
+        }else if(lv==='g3'){
+            // [4수01-03] 세 자리 수 덧셈
+            const types=[
+                ()=>{const a2=r(100,500),b2=r(100,400);return{q:`${a2} + ${b2} = ?`,ans:a2+b2}},
+                ()=>{const a2=r(100,400),b2=r(100,400);return{q:`가게에서 ${c} ${a2}원, 빵 ${b2}원. 합계?`,ans:a2+b2}},
+                // [4수01-04] 어림하기
+                ()=>{const a2=r(100,900),b2=r(100,900);const s=a2+b2;const est=Math.round(s/100)*100;return{q:`${a2}+${b2}의 결과를 백의 자리로 어림하면?`,ans:est,opts:shuffle([est,est+100,est-100,est+50])}},
+            ];const t=pick(types)();ans=t.ans;q=t.q;
+            if(!t.opts)opts=shuffle([ans,ans+r(1,10),ans-r(1,10),ans+r(11,30)].map(x=>Math.max(0,x)));else opts=t.opts;
+        }else if(lv==='g4'){
+            // [4수01-01~02] 큰 수 덧셈
+            const a2=r(1000,5000),b2=r(1000,4000);ans=a2+b2;
+            q=pick([`${a2.toLocaleString()} + ${b2.toLocaleString()} = ?`,`도서관에 책 ${a2.toLocaleString()}권, ${b2.toLocaleString()}권 기증. 총?`]);
+            opts=shuffle([ans,ans+r(10,100),ans-r(10,100),ans+r(100,500)].map(x=>Math.max(0,x)));
+        }else{
+            // 5~6학년: 큰 수 연산
+            const a2=r(10000,50000),b2=r(10000,40000);ans=a2+b2;
+            q=`${a2.toLocaleString()} + ${b2.toLocaleString()} = ?`;
+            opts=shuffle([ans,ans+r(100,1000),ans-r(100,1000),ans+r(1000,5000)].map(x=>Math.max(0,x)));
+        }
+    }
+    else if(tp==='sub'){
+        if(lv==='g1'){
+            // [2수01-05~07] 한 자리 뺄셈 + 덧뺄 관계
+            const types=[
+                ()=>{const s=r(5,18),b2=r(1,s-1);return{q:`${s} - ${b2} = ?`,ans:s-b2}},
+                ()=>{const s=r(5,15),b2=r(1,s-1);return{q:`${p}가 ${c} ${s}개 중 ${b2}개 먹었어. 남은 건?`,ans:s-b2}},
+                ()=>{const a2=r(3,9),b2=r(1,a2-1);return{q:`${a2} - □ = ${a2-b2}, □ = ?`,ans:b2}},
+            ];const t=pick(types)();ans=t.ans;q=t.q;
+            opts=shuffle([ans,ans+1,Math.max(0,ans-1),ans+2]);
+        }else if(lv==='g2'){
+            // [2수01-06~08] 두 자리 수 뺄셈 (받아내림 포함)
+            const a2=r(30,90),b2=r(10,a2-5);ans=a2-b2;
+            q=pick([`${a2} - ${b2} = ?`,`${p}가 ${c} ${a2}개에서 ${b2}개를 나눠줬어. 남은 건?`]);
+            opts=shuffle([ans,ans+r(1,5),Math.max(0,ans-r(1,5)),ans+r(6,10)]);
+        }else if(lv==='g3'){
+            // [4수01-03~04] 세 자리 수 뺄셈 + 어림
+            const types=[
+                ()=>{const a2=r(300,900),b2=r(100,a2-50);return{q:`${a2} - ${b2} = ?`,ans:a2-b2}},
+                ()=>{const a2=r(500,999),b2=r(100,400);return{q:`${a2}-${b2}를 백의자리로 어림?`,ans:Math.round((a2-b2)/100)*100}},
+            ];const t=pick(types)();ans=t.ans;q=t.q;
+            opts=shuffle([ans,ans+r(1,15),Math.max(0,ans-r(1,15)),ans+r(16,30)]);
+        }else{
+            const a2=r(2000,9000),b2=r(1000,a2-500);ans=a2-b2;
+            q=`${a2.toLocaleString()} - ${b2.toLocaleString()} = ?`;
+            opts=shuffle([ans,ans+r(10,100),Math.max(0,ans-r(10,100)),ans+r(100,500)]);
+        }
+    }
+    else if(tp==='mul'){
+        if(lv==='g2'){
+            // [2수01-10~11] 곱셈 의미 + 구구단
+            const types=[
+                ()=>{const a2=r(2,9),b2=r(2,9);return{q:`${a2} × ${b2} = ?`,ans:a2*b2}},
+                ()=>{const a2=r(2,5),b2=r(2,5);return{q:`${c}이 ${a2}봉지, 한 봉지에 ${b2}개. 전부 몇 개?`,ans:a2*b2}},
+                ()=>{const a2=r(2,9),b2=r(2,9);return{q:`${a2}의 ${b2}배는?`,ans:a2*b2}},
+            ];const t=pick(types)();ans=t.ans;q=t.q;
+            opts=shuffle([ans,ans+r(1,3),Math.max(1,ans-r(1,3)),ans+r(4,8)]);
+        }else if(lv==='g3'){
+            // [4수01-05~06] 한/두 자리 × 한 자리
+            const a2=r(10,30),b2=r(2,9);ans=a2*b2;
+            q=pick([`${a2} × ${b2} = ?`,`한 줄에 ${a2}명, ${b2}줄이면 총?`]);
+            opts=shuffle([ans,ans+b2,ans-b2,ans+r(5,15)].map(x=>Math.max(1,x)));
+        }else if(lv==='g4'){
+            // [4수01-05] 두 자리 × 두 자리
+            const a2=r(10,30),b2=r(10,25);ans=a2*b2;
+            q=`${a2} × ${b2} = ?`;
+            opts=shuffle([ans,ans+r(5,20),Math.max(1,ans-r(5,20)),ans+r(20,50)]);
+        }else{
+            const a2=r(10,99),b2=r(10,50);ans=a2*b2;
+            q=`${a2} × ${b2} = ?`;
+            opts=shuffle([ans,ans+r(10,100),Math.max(1,ans-r(10,100)),ans+r(100,300)]);
+        }
+    }
+    else if(tp==='div'){
+        if(lv==='g3'){
+            // [4수01-07~08] 나눗셈 의미, 곱셈과의 관계
+            const types=[
+                ()=>{const b2=r(2,9),a2=b2*r(2,9);return{q:`${a2} ÷ ${b2} = ?`,ans:a2/b2}},
+                ()=>{const b2=r(2,5),cnt=r(2,9),a2=b2*cnt;return{q:`${c} ${a2}개를 ${b2}명에게 똑같이 나누면?`,ans:cnt}},
+                ()=>{const b2=r(2,9),a2=b2*r(2,9);return{q:`□ × ${b2} = ${a2}, □ = ?`,ans:a2/b2}},
+            ];const t=pick(types)();ans=t.ans;q=t.q;
+        }else if(lv==='g4'){
+            // [4수01-09] 두 자리로 나누기
+            const b2=r(2,9),a2=b2*r(10,30);ans=a2/b2;
+            q=pick([`${a2} ÷ ${b2} = ?`,`${c} ${a2}개를 ${b2}상자에 나누면 한 상자에?`]);
+        }else{
+            const b2=r(10,20),a2=b2*r(5,30);ans=a2/b2;
+            q=`${a2} ÷ ${b2} = ?`;
+        }
+        opts=shuffle([ans,ans+1,Math.max(1,ans-1),ans+2]);
+    }
+    else if(tp==='frac'){
+        if(lv==='g3'){
+            // [4수01-10~12] 분수 이해, 크기 비교
+            const types=[
+                ()=>{const d=r(3,8);const n=r(1,d-1);return{q:`피자를 ${d}조각으로 나눠 ${n}조각 먹으면? (분수로)`,ans:`${n}/${d}`,opts:shuffle([`${n}/${d}`,`${d}/${n}`,`${n-1}/${d}`,`${n+1}/${d}`])}},
+                ()=>{const d=r(4,8);return{q:`단위분수 1/${d}과 1/${d-1} 중 더 큰 것?`,ans:`1/${d-1}`,opts:shuffle([`1/${d}`,`1/${d-1}`])}},
+            ];const t=pick(types)();return{q:t.q,o:t.opts,a:t.opts.indexOf(t.ans)};
+        }else if(lv==='g4'){
+            // [4수01-16] 같은 분모 분수 덧셈/뺄셈
+            const d=r(3,8),n1=r(1,d-1),n2=r(1,d-n1);
+            ans=n1+n2;q=`${n1}/${d} + ${n2}/${d} = ?/${d}`;
+            opts=shuffle([ans,ans+1,Math.max(1,ans-1),n1]);
+        }else{
+            // [6수01] 분수의 곱셈/나눗셈
+            const d=r(2,6),n1=r(1,d*2),n2=r(2,5);
+            if(r(0,1)){ans=n1*n2;q=`${n1}/${d} × ${n2} 의 분자는?`;opts=shuffle([ans,ans+1,ans-1,n1])}
+            else{const d2=d;ans=n1;q=`${n1}/${d} + ${n1}/${d} = ?/${d}`;ans=n1*2;opts=shuffle([ans,ans+1,ans-1,n1])}
+        }
+    }
+    else if(tp==='dec'){
+        if(lv==='g4'){
+            // [4수01-13~15] 소수 이해, 크기 비교
+            const types=[
+                ()=>{const a2=r(1,9)/10;const b2=r(1,9)/10;return{q:`${a2.toFixed(1)} + ${b2.toFixed(1)} = ?`,ans:+(a2+b2).toFixed(1)}},
+                ()=>{const a2=r(1,9)/10;const b2=r(1,9)/10;return{q:`${Math.max(a2,b2).toFixed(1)}와 ${Math.min(a2,b2).toFixed(1)} 중 큰 수?`,ans:+Math.max(a2,b2).toFixed(1),opts:shuffle([+a2.toFixed(1),+b2.toFixed(1)])}},
+            ];const t=pick(types)();ans=t.ans;q=t.q;
+            if(!t.opts)opts=shuffle([ans,+(ans+0.1).toFixed(1),+(ans-0.1).toFixed(1),+(ans+0.2).toFixed(1)]);else opts=t.opts;
+        }else{
+            // [6수01] 소수 연산
+            const a2=r(10,99)/10,b2=r(10,99)/10;
+            q=pick([`${a2.toFixed(1)} + ${b2.toFixed(1)} = ?`,`${a2.toFixed(1)} - ${Math.min(a2,b2).toFixed(1)} = ?`]);
+            ans=q.includes('+')?+(a2+b2).toFixed(1):+(Math.max(a2,b2)-Math.min(a2,b2)).toFixed(1);
+            opts=shuffle([ans,+(ans+0.1).toFixed(1),+(ans-0.1).toFixed(1),+(ans+0.3).toFixed(1)]);
+        }
+    }
+    else if(tp==='shape'){
+        // [2수02-01~03] 입체/평면도형
+        const pools={
+            g1:[{q:'삼각형의 변 수?',a:'3',o:['2','3','4','5']},{q:'원의 꼭짓점 수?',a:'0',o:['0','1','2','4']},{q:'네모 모양은?',a:'사각형',o:['삼각형','사각형','원','오각형']}],
+            g2:[{q:'삼각형의 꼭짓점 수?',a:'3',o:['2','3','4','5']},{q:'정사각형의 특징?',a:'네 변 같다',o:['네 변 같다','변 3개','변 없다','꼭짓점 3개']},{q:'직사각형의 꼭짓점?',a:'4',o:['3','4','5','0']},{q:'공, 농구공 모양?',a:'구',o:['원','구','원기둥','직육면체']}],
+            g3:[{q:'직각이 있는 삼각형?',a:'직각삼각형',o:['정삼각형','직각삼각형','이등변삼각형','예각삼각형']},{q:'원의 지름은 반지름의?',a:'2배',o:['2배','3배','같다','반']},{q:'오각형의 변 수?',a:'5',o:['4','5','6','3']}],
+            g4:[{q:'직각이 4개인 사각형?',a:'직사각형',o:['삼각형','직사각형','마름모','평행사변형']},{q:'각도기에서 직각?',a:'90°',o:['45°','90°','180°','360°']},{q:'삼각형 세 각의 합?',a:'180°',o:['90°','180°','270°','360°']}]
+        };
+        const pool=pools[lv]||pools.g2;const s=pick(pool);
+        return{q:s.q,o:s.o,a:s.o.indexOf(s.a)};
+    }
+    else if(tp==='time'){
+        // [2수03] 시간, 시계
+        const pools={
+            g1:[
+                ()=>{const h=r(1,12);return{q:`시계 짧은 바늘이 ${h}, 긴 바늘이 12. 몇 시?`,ans:`${h}시`,opts:shuffle([`${h}시`,`${h===12?1:h+1}시`,`${h>1?h-1:12}시`,`12시`])}},
+            ],
+            g2:[
+                ()=>{const h=r(1,12),m=[0,15,30,45][r(0,3)];return{q:`${h}시 ${m||'정각'}${m?'분':''}은?`,ans:`${h}:${String(m).padStart(2,'0')}`,opts:shuffle([`${h}:${String(m).padStart(2,'0')}`,`${h+1>12?1:h+1}:${String(m).padStart(2,'0')}`,`${h}:${String((m+15)%60).padStart(2,'0')}`,`${h>1?h-1:12}:${String(m).padStart(2,'0')}`])}},
+                ()=>{return{q:'1시간 = 몇 분?',ans:'60분',opts:shuffle(['30분','60분','100분','120분'])}},
+            ],
+            g3:[
+                ()=>{const m=r(10,50);return{q:`${m}분 + ${60-m}분 = ?`,ans:'1시간',opts:shuffle(['1시간','2시간','30분','90분'])}},
+                ()=>{return{q:'하루는 몇 시간?',ans:'24시간',opts:shuffle(['12시간','24시간','48시간','30시간'])}},
+            ]
+        };
+        const pool=pools[lv]||pools.g2;const t=pick(pool)();
+        return{q:t.q,o:t.opts,a:t.opts.indexOf(t.ans)};
+    }
+    else if(tp==='measure'){
+        // [2수03] 길이, 무게, 들이
+        const pools={
+            g2:[{q:'1m = ? cm',a:'100',o:['10','100','1000','50']},{q:'30cm + 70cm = ?',a:'1m',o:['1m','10m','100cm','10cm']},{q:'자로 재는 단위?',a:'cm',o:['kg','cm','L','분']}],
+            g3:[{q:'1km = ? m',a:'1000',o:['100','1000','10000','500']},{q:'1kg = ? g',a:'1000',o:['100','1000','10000','500']},{q:'1L = ? mL',a:'1000',o:['100','1000','10','500']}],
+            g4:[{q:'직사각형 둘레: 가로5cm 세로3cm',a:'16cm',o:['8cm','15cm','16cm','30cm']},{q:'1시간30분 = ? 분',a:'90',o:['60','90','100','130']},{q:'2km 500m = ? m',a:'2500',o:['250','2500','25000','2050']}],
+            g5:[{q:'직사각형 넓이: 가로8cm 세로5cm',a:'40cm²',o:['13cm²','26cm²','40cm²','80cm²']},{q:'정사각형 넓이: 한 변 6cm',a:'36cm²',o:['12cm²','24cm²','36cm²','48cm²']}]
+        };
+        const pool=pools[lv]||pools.g3;const s=pick(pool);
+        return{q:s.q,o:s.o,a:s.o.indexOf(s.a)};
+    }
+    else if(tp==='pattern'){
+        // [2수04] 규칙찾기
+        const types=[
+            ()=>{const st=r(1,5),s=r(2,5);const seq=[st,st+s,st+s*2,st+s*3];return{q:`규칙: ${seq.join(', ')}, ?`,ans:st+s*4,opts:shuffle([st+s*4,st+s*5,st+s*3+1,st+s*4+s])}},
+            ()=>{const st=r(2,5);const seq=[st,st*2,st*3,st*4];return{q:`규칙: ${seq.join(', ')}, ?`,ans:st*5,opts:shuffle([st*5,st*6,st*4+1,st*5+st])}},
+            ()=>{const a2=[2,4,6,8];return{q:'규칙: ○□○□○□ 다음은?',ans:'○',opts:shuffle(['○','□','△','☆'])}},
+            ()=>{const n=r(1,5)*2;return{q:`짝수 규칙: ${n}, ${n+2}, ${n+4}, ?`,ans:n+6,opts:shuffle([n+6,n+7,n+5,n+8])}},
+        ];
+        const t=pick(types)();
+        return{q:t.q,o:t.opts.map(String),a:t.opts.map(String).indexOf(String(t.ans))};
+    }
+    else{return{q:'준비 중!',o:['확인'],a:0}}
+
+    if(!opts)return null;
+    const strOpts=opts.map(x=>typeof x==='number'?x.toLocaleString():String(x));
+    const strAns=typeof ans==='number'?ans.toLocaleString():String(ans);
+    const ai=strOpts.indexOf(strAns);
+    return{q,o:strOpts,a:ai>=0?ai:0};
+}
+function fmtP(t){const o=t.opts||[];return{q:t.q,o:o.map(x=>String(x)),a:o.map(x=>String(x)).indexOf(String(t.ans))}}
+
+function shuffle(arr){const a=[...arr];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+
+// ══════════════ PRACTICE QUIZ ══════════════
+let pracQs=[],pracQI=0,pracQSc=0,pracQLk=false;
+
+function startPracQuiz(){
+    pracQs=genProblems(pracLevel,pracTopic,8);
+    pracQI=0;pracQSc=0;pracQLk=false;
+    nav('pracquiz');
+}
+
+function renderPracQuiz(){
+    const lv=LEVELS.find(l=>l.id===pracLevel);
+    const tp=TOPICS.find(t=>t.id===pracTopic);
+    document.getElementById('pracquiz-title').textContent=`${tp?.emoji||'📝'} ${lv?.name||''} ${tp?.name||''}`;
+    renderPracQ();
+}
+
+function renderPracQ(){
+    if(pracQI>=pracQs.length){renderPracResult();return}
+    const q=pracQs[pracQI];
+    if(!q){pracQI++;renderPracQ();return}
+    document.getElementById('pracquiz-c').innerHTML=`
+        <div class="prac-score">
+            <span>문제 ${pracQI+1}/${pracQs.length}</span>
+            <span>정답 ${pracQSc}개</span>
+        </div>
+        <div class="pbar" style="margin-bottom:12px"><div class="pfill" style="width:${(pracQI/pracQs.length)*100}%;background:var(--blue)"></div></div>
+        <div class="card af" style="border:3px solid var(--blue)">
+            <div style="font-family:var(--font-t);font-size:22px;text-align:center;padding:10px 0;line-height:1.4">${q.q}</div>
+            ${getVisual(q.q)}
+        </div>
+        <div style="text-align:center;margin-bottom:8px">
+            <button style="background:none;border:2px solid var(--purple);color:var(--purple);padding:6px 16px;border-radius:20px;font-family:var(--font-t);font-size:13px;cursor:pointer" onclick="showHint()">💡 힌트 보기</button>
+        </div>
+        <div id="hint-area"></div>
+        <div style="display:flex;flex-direction:column;gap:8px">${q.o.map((o,i)=>`
+            <button class="opt" id="pqo-${i}" onclick="pracQAns(${i})">
+                <span class="opt-num">${['①','②','③','④'][i]||''}</span>${o}
+            </button>
+        `).join('')}</div>`;
+}
+
+function pracQAns(i){
+    if(pracQLk)return;pracQLk=true;
+    const q=pracQs[pracQI];
+    if(i===q.a){
+        document.getElementById('pqo-'+i).classList.add('correct');
+        snd('ok');pracQSc++;addS(1);showFB(1,'🎉 정답! ⭐+1');
+        G.totalPlayed++;G.totalCorrect++;
+        setTimeout(()=>{pracQLk=false;pracQI++;renderPracQ()},1200);
+    }else{
+        document.getElementById('pqo-'+i).classList.add('wrong');
+        if(q.a>=0&&q.a<q.o.length)document.getElementById('pqo-'+q.a)?.classList.add('correct');
+        snd('no');showFB(0,'정답: '+q.o[q.a]);
+        showStepSolve({q:q.q,o:q.o,a:q.a},'pracquiz-c');
+        G.totalPlayed++;
+        // 풀이과정 읽을 시간 충분히 (3.5초)
+        setTimeout(()=>{pracQLk=false;pracQI++;renderPracQ()},3500);
+    }
+}
+
+function renderPracResult(){
+    const pct=Math.round(pracQSc/pracQs.length*100);
+    const emoji=pct>=80?'🏆':pct>=50?'👍':'💪';
+    document.getElementById('pracquiz-c').innerHTML=`
+        <div style="text-align:center;padding:20px" class="af">
+            <div style="font-size:56px;margin-bottom:10px">${emoji}</div>
+            <h2 style="font-family:var(--font-t);font-size:28px;color:${pct>=80?'var(--green)':pct>=50?'var(--blue)':'var(--orange)'}">${pracQSc}/${pracQs.length} 정답!</h2>
+            <div style="font-size:16px;color:var(--gray);margin-top:6px">${pct}% 정답률</div>
+            <div style="display:flex;gap:8px;margin-top:20px">
+                <button class="btn btn-blue btn-block" onclick="startPracQuiz()">🔄 다시 풀기</button>
+                <button class="btn btn-green btn-block" onclick="nav('practice')">📚 다른 주제</button>
+            </div>
+            <button class="btn btn-outline btn-block" style="margin-top:8px" onclick="nav('home')">🗺️ 홈으로</button>
+        </div>`;
+}
+
+
+// ══════════════ VISUAL OBJECTS ══════════════
+function getVisual(q){
+    const emojis=['🍎','🌟','🔵','🟡','🍊','💎'];
+    const em=emojis[Math.floor(Math.random()*emojis.length)];
+    const m1=q.match(/^(\d+)\s*\+\s*(\d+)/);
+    if(m1){const a=Math.min(parseInt(m1[1]),12),b=Math.min(parseInt(m1[2]),12);return `<div class="vis-obj">${em.repeat(a).split('').map(e=>'<span>'+e+'</span>').join('')}<span class="vis-plus">+</span>${em.repeat(b).split('').map(e=>'<span>'+e+'</span>').join('')}</div>`}
+    const m2=q.match(/^(\d+)\s*-\s*(\d+)/);
+    if(m2){const a=Math.min(parseInt(m2[1]),15);return `<div class="vis-obj">${Array.from({length:a},(_,i)=>'<span'+(i>=a-Math.min(parseInt(m2[2]),a)?' style="opacity:.3;text-decoration:line-through"':'')+'>'+em+'</span>').join('')}</div>`}
+    return '';
+}
+
+// ══════════════ STEP-BY-STEP SOLVE (초등학생 눈높이 풀이과정) ══════════════
+
+// 힌트용: 풀이 방법만 알려주고 답은 절대 안 보여줌
+function getHintSteps(q){
+    let m;
+    // 덧셈
+    m=q.match(/^(\d+)\s*\+\s*(\d+)/);
+    if(m){const a=+m[1],b=+m[2];
+        if(a<10&&b<10)return [`🤔 두 수를 합쳐야 해요!`,`🖐️ 손가락으로 ${a}개를 펴고`,`🖐️ 거기에 ${b}개를 더 펴봐요!`,`📢 손가락이 모두 몇 개인지 세어보세요!`];
+        const a1=a%10,b1=b%10;
+        return [`📋 자릿수를 나눠서 계산해요!`,`1️⃣ 먼저 일의 자리끼리: ${a1} + ${b1} = ?`,a1+b1>=10?`⚠️ 합이 10 넘으면 → 1을 십의 자리로 올려요! (받아올림)`:`✅ 합이 10보다 작으니 그대로 써요!`,`2️⃣ 그 다음 십의 자리끼리 더해요`+(a1+b1>=10?` (올림한 1도 같이!)`:''),`📝 일의자리 결과와 십의자리 결과를 합치면 정답!`]}
+    // 뺄셈
+    m=q.match(/^(\d+)\s*-\s*(\d+)/);
+    if(m){const a=+m[1],b=+m[2];
+        if(a<10)return [`🤔 ${a}에서 ${b}를 빼야 해요!`,`🖐️ 손가락 ${a}개를 펴고`,`✊ ${b}개를 접어봐요!`,`📢 남은 손가락이 몇 개인지 세어보세요!`];
+        const a1=a%10,b1=b%10;
+        return [`📋 자릿수를 나눠서 빼요!`,`1️⃣ 먼저 일의 자리: ${a1} - ${b1} = ?`,a1<b1?`⚠️ ${a1}에서 ${b1}을 못 빼요! → 십의 자리에서 10을 빌려와요!\n    → ${a1}+10 = ${a1+10}, 여기서 ${b1}을 빼요`:`✅ ${a1}이 ${b1}보다 크니까 바로 빼요!`,`2️⃣ 그 다음 십의 자리끼리 빼요`+(a1<b1?` (10을 빌려줬으니 1 줄어요!)`:''),`📝 일의자리 결과와 십의자리 결과를 합치면 정답!`]}
+    // 곱셈
+    m=q.match(/(\d+)\s*×\s*(\d+)/);
+    if(m){const a=+m[1],b=+m[2];
+        if(a<=9&&b<=9)return [`🤔 곱셈은 "같은 수를 여러 번 더하기"예요!`,`🍎 ${a}개짜리 묶음이 ${b}개 있다고 생각해봐요`,`📢 ${a}를 ${b}번 더해보세요:`,`🧮 ${Array(Math.min(b,5)).fill(a).join(' + ')}${b>5?' + ...':''} = ?`,`💡 구구단 ${a}단을 떠올려봐요: ${a}×1=${a}, ${a}×2=${a*2}, ${a}×3=${a*3}...`];
+        return [`🤔 큰 수의 곱셈이에요!`,`📋 나눠서 계산하면 쉬워요!`,`1️⃣ ${a} × ${b%10||b} 를 먼저 구해요`,`2️⃣ 자릿수별로 곱한 걸 더해요`,`💡 천천히 하나씩 계산해 보세요!`]}
+    // 나눗셈
+    m=q.match(/(\d+)\s*÷\s*(\d+)/);
+    if(m){const a=+m[1],b=+m[2];
+        return [`🤔 나눗셈은 "똑같이 나누기"예요!`,`🍎 ${a}개를 ${b}명에게 똑같이 나눠준다고 생각해봐요`,`💡 "${b} × 몇 = ${a}" 를 생각해봐요!`,`🧮 ${b}×1=${b}, ${b}×2=${b*2}, ${b}×3=${b*3}... 이렇게 올라가면서`,`📢 ${a}이 되는 수를 찾아보세요!`]}
+    // □ 구하기
+    m=q.match(/□\s*\+\s*(\d+)\s*=\s*(\d+)/);
+    if(m)return [`🤔 □에 어떤 수를 넣어야 할까요?`,`💡 "□ + ${m[1]} = ${m[2]}" 라는 뜻이에요`,`🔄 반대로 생각하면! ${m[2]}에서 ${m[1]}을 빼면 □를 알 수 있어요`,`🧮 ${m[2]} - ${m[1]} = ?  이걸 계산해 보세요!`];
+    m=q.match(/(\d+)\s*\+\s*□\s*=\s*(\d+)/);
+    if(m)return [`🤔 □에 어떤 수를 넣어야 할까요?`,`💡 "${m[1]} + □ = ${m[2]}" 라는 뜻이에요`,`🔄 반대로 생각하면! ${m[2]}에서 ${m[1]}을 빼면 □를 알 수 있어요`,`🧮 ${m[2]} - ${m[1]} = ?  이걸 계산해 보세요!`];
+    m=q.match(/□\s*×\s*(\d+)\s*=\s*(\d+)/);
+    if(m)return [`🤔 □에 어떤 수를 넣어야 할까요?`,`💡 "□ × ${m[1]} = ${m[2]}" 라는 뜻이에요`,`🔄 곱셈의 반대는 나눗셈! ${m[2]}를 ${m[1]}로 나눠보세요`,`🧮 ${m[2]} ÷ ${m[1]} = ?  이걸 계산해 보세요!`];
+    m=q.match(/(\d+)\s*-\s*□\s*=\s*(\d+)/);
+    if(m)return [`🤔 □에 어떤 수를 넣어야 할까요?`,`💡 "${m[1]} - □ = ${m[2]}" 라는 뜻이에요`,`🔄 반대로 생각! ${m[1]}에서 ${m[2]}를 빼면 □를 알 수 있어요`,`🧮 ${m[1]} - ${m[2]} = ?  이걸 계산해 보세요!`];
+    // 분수
+    m=q.match(/(\d+)\/(\d+)\s*\+\s*(\d+)\/(\d+)/);
+    if(m)return [`🤔 분수의 덧셈이에요!`,`🍕 피자를 ${m[2]}조각으로 나눴다고 생각해봐요`,`🍕 ${m[1]}조각 먹고, 또 ${m[3]}조각 먹었어요`,`💡 분모(아래 숫자)가 같으면 → 분자(위 숫자)끼리만 더하면 돼요!`,`🧮 ${m[1]} + ${m[3]} = ?  이 숫자가 정답의 분자예요!`];
+    // 소수
+    m=q.match(/([\d.]+)\s*[\+\-]\s*([\d.]+)\s*=\s*\?/);
+    if(m&&m[1].includes('.'))return [`🤔 소수의 계산이에요!`,`📏 소수점(.)을 기준으로 위아래로 맞춰 써봐요`,`📋 ${m[1]}과 ${m[2]}의 소수점을 맞추고`,`🧮 소수점 아래 숫자끼리 먼저, 그다음 정수 부분을`,`💡 마치 자연수 계산처럼 하되, 소수점 위치만 잘 맞추면 돼요!`];
+    // 어림하기
+    if(q.includes('어림'))return [`🤔 어림하기는 "대략 얼마쯤?" 를 구하는 거예요!`,`📏 백의 자리로 어림 = 십의 자리에서 반올림!`,`💡 십의 자리 숫자가 5 이상이면 올리고, 4 이하면 버려요`,`🧮 계산 결과를 먼저 구하고, 가장 가까운 백의 자리 수를 골라봐요!`];
+    // 도형
+    if(q.includes('꼭짓점')||q.includes('변')||q.includes('삼각형')||q.includes('사각형')||q.includes('원')||q.includes('도형'))
+        return [`🤔 도형의 특징을 떠올려봐요!`,`🔺 삼각형 → 뾰족한 점(꼭짓점) 3개, 직선(변) 3개`,`🟥 사각형 → 뾰족한 점(꼭짓점) 4개, 직선(변) 4개`,`⭕ 원 → 뾰족한 점 없어요! 변도 없어요!`,`💡 모양을 머릿속에 그려보고 점과 선을 세어봐요!`];
+    if(q.includes('직각')||q.includes('각도'))
+        return [`🤔 각도에 대해 생각해봐요!`,`📐 직각 = 90도 (ㄱ 모양)`,`📐 삼각형 세 각의 합 = 180도`,`📐 사각형 네 각의 합 = 360도`,`💡 각도기를 머릿속에 떠올려봐요!`];
+    // 시간
+    if(q.includes('시')||q.includes('분')||q.includes('시계'))
+        return [`🤔 시계를 머릿속에 떠올려봐요! ⏰`,`🕐 짧은 바늘(시침) → 지금 몇 시인지 알려줘요`,`🕐 긴 바늘(분침) → 지금 몇 분인지 알려줘요`,`💡 긴 바늘이 12를 가리키면 → 정각(00분)이에요!`,`📢 1시간 = 60분, 하루 = 24시간 도 기억해요!`];
+    // 측정
+    if(q.includes('cm')||q.includes('km')||q.includes('kg')||q.includes('넓이')||q.includes('둘레'))
+        return [`🤔 단위를 바꾸는 문제예요!`,`📏 길이: 1m = 100cm, 1km = 1000m`,`⚖️ 무게: 1kg = 1000g`,`🥛 들이: 1L = 1000mL`,`📐 넓이 = 가로 × 세로, 둘레 = (가로+세로) × 2`,`💡 문제에서 어떤 단위를 물어보는지 잘 확인해봐요!`];
+    // 규칙
+    if(q.includes('규칙'))
+        return [`🤔 규칙을 찾아봐요!`,`🔍 1단계: 앞 숫자와 뒷 숫자의 차이를 구해봐요`,`🔍 2단계: 그 차이가 계속 같은지 확인해봐요`,`💡 차이가 같으면 → 마지막 수에 그 차이만큼 더하면 답을 알 수 있어요!`,`📢 예: 2, 5, 8, 11 → 차이가 3씩! → 다음은 11+3`];
+    // 문장제 (합하기/남기/묶음/나누기)
+    if(q.includes('합하면')||q.includes('합계')||q.includes('받으면')||q.includes('모두'))
+        return [`🤔 문제를 천천히 읽어봐요!`,`🔍 1단계: 문제에서 숫자를 찾아 밑줄 쳐봐요`,`🔍 2단계: "합하면, 모두" 같은 말이 있으면 → 더하기(+)!`,`🧮 3단계: 찾은 숫자들을 더해보세요!`,`💡 연필로 문제 옆에 식을 적어보면 쉬워요!`];
+    if(q.includes('남은')||q.includes('나눠줬')||q.includes('먹었'))
+        return [`🤔 문제를 천천히 읽어봐요!`,`🔍 1단계: 문제에서 숫자를 찾아 밑줄 쳐봐요`,`🔍 2단계: "남은, 먹었다" 같은 말이 있으면 → 빼기(-)!`,`🧮 3단계: 큰 수에서 작은 수를 빼보세요!`,`💡 전체에서 사용한 만큼 빼면 남은 게 나와요!`];
+    if(q.includes('봉지')||q.includes('줄')||q.includes('상자')||q.includes('배'))
+        return [`🤔 묶음으로 생각해봐요!`,`🎁 한 묶음에 몇 개? → 그게 첫 번째 수!`,`📦 묶음이 몇 개? → 그게 두 번째 수!`,`🧮 "한 묶음 × 묶음 수" = 전체 개수!`,`💡 곱하기(×)로 풀어보세요!`];
+    if(q.includes('똑같이')||q.includes('나누면'))
+        return [`🤔 똑같이 나누는 문제예요!`,`🍪 전체가 몇 개인지 찾아봐요 → 그게 나눌 수!`,`👧 몇 명에게 나누는지 찾아봐요 → 그게 나누는 수!`,`🧮 "전체 ÷ 나누는 수" = 한 몫!`,`💡 나누기(÷)로 풀어보세요!`];
+    if(q.includes('큰 수')||q.includes('더 큰'))
+        return [`🤔 두 수의 크기를 비교해봐요!`,`1️⃣ 자릿수가 더 많은 수가 커요!`,`2️⃣ 자릿수가 같으면 → 맨 앞자리부터 비교!`,`💡 높은 자리 숫자가 큰 쪽이 더 큰 수예요!`];
+    if(q.includes('단위분수'))
+        return [`🤔 단위분수는 분자가 1인 분수예요!`,`🍕 피자를 나눈다고 생각해봐요`,`🍕 2조각 중 1조각 = 1/2 (큰 조각!)`,`🍕 8조각 중 1조각 = 1/8 (작은 조각!)`,`💡 분모(아래 수)가 작을수록 → 분수가 커요!`];
+    if(q.includes('피자')||q.includes('조각'))
+        return [`🤔 피자를 나누는 문제예요! 🍕`,`🍕 똑같이 나눈 조각 수 → 분모(아래)!`,`🍕 먹은 조각 수 → 분자(위)!`,`💡 분자/분모 형태로 답을 적어봐요!`];
+    return [`🤔 문제를 천천히 다시 읽어봐요!`,`📋 무엇을 구해야 하는지 파악해요`,`🔍 아는 것과 모르는 것을 나눠서 생각해봐요!`,`💡 식을 세워서 풀어보세요!`];
+}
+
+// 정답 풀이용: 힌트 과정 + 구체적 계산 + 최종 정답 포함
+function getSolveSteps(q,ansText){
+    const hints=getHintSteps(q);
+    let m;
+    m=q.match(/^(\d+)\s*\+\s*(\d+)/);
+    if(m){const a=+m[1],b=+m[2],r=a+b;
+        if(a<10)return [...hints,`✅ ${a} + ${b} = ${r}`];
+        const a1=a%10,b1=b%10,a10=Math.floor(a/10),b10=Math.floor(b/10),s1=a1+b1;
+        const calc=s1>=10?[`🧮 일의 자리: ${a1}+${b1}=${s1} → ${s1%10} 쓰고 ☝️ 올림!`,`🧮 십의 자리: ${a10}+${b10}+1=${a10+b10+1}`]:[`🧮 일의 자리: ${a1}+${b1}=${s1}`,`🧮 십의 자리: ${a10}+${b10}=${a10+b10}`];
+        return [...hints,...calc,`✅ 정답은 ${r}이에요!`]}
+    m=q.match(/^(\d+)\s*-\s*(\d+)/);
+    if(m){const a=+m[1],b=+m[2],r=a-b;
+        if(a<10)return [...hints,`✅ ${a} - ${b} = ${r}`];
+        const a1=a%10,b1=b%10,a10=Math.floor(a/10),b10=Math.floor(b/10);
+        const calc=a1<b1?[`🧮 일의 자리: ${a1+10}-${b1}=${a1+10-b1} (빌려왔어요!)`,`🧮 십의 자리: ${a10-1}-${b10}=${a10-1-b10}`]:[`🧮 일의 자리: ${a1}-${b1}=${a1-b1}`,`🧮 십의 자리: ${a10}-${b10}=${a10-b10}`];
+        return [...hints,...calc,`✅ 정답은 ${r}이에요!`]}
+    m=q.match(/(\d+)\s*×\s*(\d+)/);
+    if(m){const a=+m[1],b=+m[2];return [...hints,`🧮 ${a} × ${b} = ${a*b}`,`✅ 정답은 ${a*b}이에요!`]}
+    m=q.match(/(\d+)\s*÷\s*(\d+)/);
+    if(m){const a=+m[1],b=+m[2],r=a/b;return [...hints,`🧮 ${b} × ${r} = ${a} 이니까!`,`✅ 정답은 ${r}이에요!`]}
+    return [...hints,`✅ 정답: ${ansText}`];
+}
+
+function showStepSolve(m,target){
+    const ansText=m.o?m.o[m.a]:'';
+    const steps=getSolveSteps(m.q,ansText);
+    if(!steps.length)return;
+    const el=document.getElementById(target||'pracquiz-c')||document.getElementById('mission-c');
+    if(!el)return;
+    const div=document.createElement('div');
+    div.className='step-solve';
+    div.innerHTML=`<div style="font-family:var(--font-t);font-size:15px;color:var(--blue);margin-bottom:8px">📝 이렇게 풀어요!</div>`+
+        steps.map((s,i)=>`<div class="step-line" style="animation-delay:${i*0.35}s;font-size:14px;line-height:1.6">${s}</div>`).join('');
+    el.appendChild(div);
+    el.scrollTop=el.scrollHeight;
+}
+
+function showHint(){
+    if(pracQLk)return;
+    const q=pracQs[pracQI];if(!q)return;
+    const steps=getHintSteps(q.q);
+    const el=document.getElementById('hint-area');
+    if(el){
+        el.innerHTML=`<div class="step-solve" style="border-color:var(--purple);background:var(--purple-l)">
+            <div style="font-family:var(--font-t);font-size:15px;color:var(--purple);margin-bottom:8px">💡 풀이 도움말</div>
+            ${steps.map((s,i)=>`<div class="step-line" style="animation-delay:${i*0.3}s;font-size:14px;line-height:1.6">${s}</div>`).join('')}
+            <div class="step-line" style="animation-delay:${steps.length*0.3}s;font-size:14px;color:var(--purple);font-weight:700">🤔 이제 답을 골라보세요!</div>
+        </div>`;
+        el.scrollIntoView({behavior:'smooth'});
+    }
+}
+
+function showMissionHint(){
+    if(mLk)return;
+    const m=CH[curChap].missions[mI];if(!m)return;
+    const steps=getHintSteps(m.q);
+    const el=document.getElementById('mission-hint-area');
+    if(el){el.innerHTML=`<div class="step-solve" style="border-color:var(--purple);background:var(--purple-l)"><div style="font-family:var(--font-t);font-size:15px;color:var(--purple);margin-bottom:8px">💡 풀이 도움말</div>${steps.map((s,i)=>`<div class="step-line" style="animation-delay:${i*0.3}s;font-size:14px;line-height:1.6">${s}</div>`).join('')}<div class="step-line" style="animation-delay:${steps.length*0.3}s;font-size:14px;color:var(--purple);font-weight:700">🤔 이제 답을 골라보세요!</div></div>`}
+}
+
+// ══════════════ MEMORY MATCH ══════════════
+let memCards=[],memFlipped=[],memMatched=0,memMoves=0,memLock=false;
+function renderMemory(){
+    memMatched=0;memMoves=0;memLock=false;memFlipped=[];
+    const pairs=[
+        {eq:'23+14',ans:'37'},{eq:'27+15',ans:'42'},{eq:'48-23',ans:'25'},
+        {eq:'56+28',ans:'84'},{eq:'72-35',ans:'37'},{eq:'43-17',ans:'26'}
+    ];
+    memCards=[];
+    pairs.forEach((p,i)=>{
+        memCards.push({id:i*2,pairId:i,text:p.eq,type:'eq'});
+        memCards.push({id:i*2+1,pairId:i,text:p.ans,type:'ans'});
+    });
+    // Shuffle
+    for(let i=memCards.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[memCards[i],memCards[j]]=[memCards[j],memCards[i]]}
+    renderMemBoard();
+}
+function renderMemBoard(){
+    document.getElementById('memory-c').innerHTML=`
+        <div style="display:flex;justify-content:space-between;margin-bottom:10px">
+            <span style="font-family:var(--font-t);font-size:14px">🎴 카드를 뒤집어 식과 답을 매칭!</span>
+            <span style="font-family:var(--font-t);font-size:14px">시도: ${memMoves}회</span>
+        </div>
+        <div class="mem-grid">${memCards.map((c,i)=>`
+            <div class="mem-card ${memFlipped.includes(i)||c.matched?'flipped':''} ${c.matched?'matched':''}" onclick="flipCard(${i})" id="mc-${i}">
+                <div class="mem-back">?</div>
+                <div class="mem-face" style="font-size:${c.text.length>3?'14':'18'}px;${c.type==='eq'?'background:var(--blue-l);color:var(--blue)':'background:var(--orange-l);color:var(--orange)'}">${c.text}</div>
+            </div>
+        `).join('')}</div>
+        ${memMatched===6?`<div class="card af" style="text-align:center;border:3px solid var(--green);margin-top:14px"><div style="font-size:36px">🎉</div><div style="font-family:var(--font-t);font-size:20px;color:var(--green)">완료! ${memMoves}회 만에 클리어!</div><button class="btn btn-green btn-lg btn-block" style="margin-top:10px" onclick="addS(3);nav('learn')">⭐+3 완료!</button><button class="btn btn-outline btn-block" style="margin-top:6px" onclick="renderMemory()">다시 도전</button></div>`:''}
+    `;
+}
+function flipCard(i){
+    if(memLock||memFlipped.includes(i)||memCards[i].matched)return;
+    snd('click');
+    memFlipped.push(i);
+    const el=document.getElementById('mc-'+i);
+    if(el)el.classList.add('flipped');
+    if(memFlipped.length===2){
+        memMoves++;memLock=true;
+        const [a,b]=memFlipped;
+        if(memCards[a].pairId===memCards[b].pairId){
+            snd('ok');memCards[a].matched=true;memCards[b].matched=true;memMatched++;
+            memFlipped=[];memLock=false;
+            setTimeout(()=>renderMemBoard(),300);
+        } else {
+            snd('no');
+            setTimeout(()=>{
+                const ea=document.getElementById('mc-'+a),eb=document.getElementById('mc-'+b);
+                if(ea)ea.classList.remove('flipped');if(eb)eb.classList.remove('flipped');
+                memFlipped=[];memLock=false;
+            },800);
+        }
+    }
+}
+
+// ══════════════ TIMED CHALLENGE ══════════════
+let timedTimer=null,timedSec=60,timedScore=0,timedQ=null,timedLock=false;
+function renderTimed(){
+    timedScore=0;timedSec=60;timedLock=false;
+    if(timedTimer)clearInterval(timedTimer);
+    document.getElementById('timed-c').innerHTML=`
+        <div style="text-align:center;padding:20px">
+            <div style="font-size:48px;margin-bottom:12px">⏱️</div>
+            <h2 style="font-family:var(--font-t);font-size:24px">타임어택 챌린지!</h2>
+            <p style="font-size:14px;color:var(--gray);margin:10px 0">60초 안에 최대한 많이 풀기!</p>
+            <p style="font-size:13px;color:var(--gray)">최고기록: ${G.timedBest||0}문제</p>
+            <button class="btn btn-orange btn-lg" style="margin-top:16px" onclick="startTimed()">시작!</button>
+        </div>`;
+}
+function startTimed(){
+    timedSec=60;timedScore=0;timedLock=false;
+    timedTimer=setInterval(()=>{
+        timedSec--;
+        const el=document.getElementById('timed-timer');
+        if(el){el.textContent=timedSec;if(timedSec<=10)el.parentElement.classList.add('danger')}
+        if(timedSec<=0){clearInterval(timedTimer);endTimed()}
+    },1000);
+    nextTimedQ();
+}
+function nextTimedQ(){
+    const ops=[['+',((a,b)=>a+b)],['-',((a,b)=>a-b)]];
+    const [op,fn]=ops[Math.floor(Math.random()*2)];
+    let a,b;
+    if(op==='+'){a=Math.floor(Math.random()*50)+10;b=Math.floor(Math.random()*40)+5}
+    else{a=Math.floor(Math.random()*50)+30;b=Math.floor(Math.random()*25)+5}
+    const ans=fn(a,b);
+    const wrongs=new Set();while(wrongs.size<3){const w=ans+Math.floor(Math.random()*21)-10;if(w!==ans&&w>0)wrongs.add(w)}
+    const opts=[ans,...wrongs];for(let i=opts.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[opts[i],opts[j]]=[opts[j],opts[i]]}
+    timedQ={q:`${a} ${op} ${b} = ?`,ans,opts,a,b,op};
+    renderTimedQ();
+}
+function renderTimedQ(){
+    document.getElementById('timed-c').innerHTML=`
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+            <div class="timer-ring ${timedSec<=10?'danger':''}"><span id="timed-timer">${timedSec}</span></div>
+            <div style="text-align:right"><div style="font-family:var(--font-t);font-size:14px;color:var(--gray)">점수</div><div style="font-family:var(--font-t);font-size:32px;color:var(--orange)">${timedScore}</div></div>
+        </div>
+        <div class="card" style="border:3px solid var(--orange);text-align:center">
+            <div style="font-family:var(--font-t);font-size:32px;color:var(--dark);margin:8px 0">${timedQ.q}</div>
+            ${getVisual(timedQ.a+timedQ.op.replace('+','+')+timedQ.opts[0])}
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:10px">
+            ${timedQ.opts.map((o,i)=>`<button class="opt" id="to-${i}" onclick="timedAns(${i})" style="justify-content:center;font-size:22px;font-family:var(--font-t)">${o}</button>`).join('')}
+        </div>`;
+}
+function timedAns(i){
+    if(timedLock)return;timedLock=true;
+    if(timedQ.opts[i]===timedQ.ans){
+        document.getElementById('to-'+i).classList.add('correct');
+        snd('ok');timedScore++;addS(1);
+    } else {
+        document.getElementById('to-'+i).classList.add('wrong');snd('no');
+    }
+    setTimeout(()=>{timedLock=false;nextTimedQ()},400);
+}
+function endTimed(){
+    if(timedTimer){clearInterval(timedTimer);timedTimer=null}
+    if(!G.timedBest||timedScore>G.timedBest){G.timedBest=timedScore;saveG()}
+    document.getElementById('timed-c').innerHTML=`
+        <div style="text-align:center;padding:20px">
+            <div style="font-size:48px;margin-bottom:8px">${timedScore>=(G.timedBest||0)?'🏆':'⏱️'}</div>
+            <h2 style="font-family:var(--font-t);font-size:28px;color:var(--orange)">타임 업!</h2>
+            <div style="font-family:var(--font-t);font-size:40px;margin:12px 0">${timedScore}문제</div>
+            <div style="font-size:14px;color:var(--gray)">최고기록: ${G.timedBest||0}문제 ${timedScore>=(G.timedBest||0)?'🆕 신기록!':''}</div>
+            <button class="btn btn-orange btn-lg btn-block" style="margin-top:16px" onclick="renderTimed()">다시 도전</button>
+            <button class="btn btn-outline btn-block" style="margin-top:8px" onclick="nav('learn')">학습센터로</button>
+        </div>`;
+}
+
+// ══════════════ DUAL MODE (2인 대전) ══════════════
+let dualQ=null,dualScore=[0,0],dualRound=0,dualTotal=5,dualLock=false;
+function renderDual(){
+    dualScore=[0,0];dualRound=0;dualLock=false;
+    document.getElementById('dual-c').innerHTML=`
+        <div class="dual-wrap" style="height:100vh;height:100dvh">
+            <div class="dual-half dual-top" style="display:flex;align-items:center;justify-content:center">
+                <div style="text-align:center;transform:rotate(0deg)">
+                    <div style="font-size:36px;margin-bottom:8px">👫</div>
+                    <h2 style="font-family:var(--font-t);font-size:22px">2인 대전 모드!</h2>
+                    <p style="font-size:13px;margin-top:6px">태블릿을 사이에 두고 마주 앉으세요</p>
+                </div>
+            </div>
+            <div class="dual-divider"><span>VS</span></div>
+            <div class="dual-half dual-bot" style="display:flex;align-items:center;justify-content:center">
+                <div style="text-align:center">
+                    <p style="font-size:14px;margin-bottom:10px">${dualTotal}라운드, 먼저 맞추면 득점!</p>
+                    <button class="btn btn-green btn-lg" onclick="nextDualQ()">게임 시작!</button>
+                </div>
+            </div>
+        </div>`;
+}
+function nextDualQ(){
+    if(dualRound>=dualTotal){endDual();return}
+    dualRound++;dualLock=false;
+    const ops=[['+',((a,b)=>a+b)],['-',((a,b)=>a-b)]];
+    const [op,fn]=ops[Math.floor(Math.random()*2)];
+    let a,b;
+    if(op==='+'){a=Math.floor(Math.random()*40)+10;b=Math.floor(Math.random()*30)+5}
+    else{a=Math.floor(Math.random()*40)+30;b=Math.floor(Math.random()*20)+5}
+    const ans=fn(a,b);
+    const wrongs=new Set();while(wrongs.size<3){const w=ans+Math.floor(Math.random()*15)-7;if(w!==ans&&w>0)wrongs.add(w)}
+    const opts=[ans,...wrongs];for(let i=opts.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[opts[i],opts[j]]=[opts[j],opts[i]]}
+    dualQ={q:`${a} ${op} ${b} = ?`,ans,opts};
+    renderDualQ();
+}
+function renderDualQ(){
+    const qHTML=(player)=>`
+        <div style="text-align:center;width:100%;max-width:340px">
+            <div style="font-family:var(--font-t);font-size:14px;margin-bottom:4px">P${player} ${dualScore[player-1]}점 | 라운드 ${dualRound}/${dualTotal}</div>
+            <div style="font-family:var(--font-t);font-size:28px;margin-bottom:10px">${dualQ.q}</div>
+            <div class="dual-opts">${dualQ.opts.map((o,i)=>`<button class="dual-opt" id="d${player}-${i}" onclick="dualAns(${player},${i})">${o}</button>`).join('')}</div>
+        </div>`;
+    document.getElementById('dual-c').innerHTML=`
+        <div class="dual-wrap" style="height:100vh;height:100dvh">
+            <div class="dual-half dual-top">${qHTML(1)}</div>
+            <div class="dual-divider"><span>⚡ ${dualScore[0]} : ${dualScore[1]} ⚡</span></div>
+            <div class="dual-half dual-bot">${qHTML(2)}</div>
+        </div>`;
+}
+function dualAns(player,i){
+    if(dualLock)return;dualLock=true;
+    const el=document.getElementById('d'+player+'-'+i);
+    if(dualQ.opts[i]===dualQ.ans){
+        el.classList.add('correct');snd('ok');
+        dualScore[player-1]++;
+        // Show who won this round
+        const msg=document.createElement('div');
+        msg.style.cssText='position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--green);color:white;padding:12px 24px;border-radius:30px;font-family:var(--font-t);font-size:20px;z-index:300;animation:pop .3s';
+        msg.textContent=`P${player} 정답! 🎉`;
+        document.body.appendChild(msg);
+        setTimeout(()=>{msg.remove();nextDualQ()},1000);
+    } else {
+        el.classList.add('wrong');snd('no');dualLock=false;
+    }
+}
+function endDual(){
+    const w=dualScore[0]>dualScore[1]?1:dualScore[1]>dualScore[0]?2:0;
+    addS(2);
+    document.getElementById('dual-c').innerHTML=`
+        <div class="dual-wrap" style="height:100vh;height:100dvh;align-items:center;justify-content:center;background:linear-gradient(180deg,#E8F5E9,#FFF9C4)">
+            <div style="text-align:center;padding:20px">
+                <div style="font-size:56px;margin-bottom:12px">${w===0?'🤝':'🏆'}</div>
+                <h2 style="font-family:var(--font-t);font-size:28px">${w===0?'무승부!':('P'+w+' 승리!')}</h2>
+                <div style="font-family:var(--font-t);font-size:24px;margin:12px 0">${dualScore[0]} : ${dualScore[1]}</div>
+                <button class="btn btn-green btn-lg btn-block" style="margin-top:16px" onclick="renderDual()">다시 대전!</button>
+                <button class="btn btn-outline btn-block" style="margin-top:8px" onclick="nav('learn')">학습센터로</button>
+            </div>
+        </div>`;
+}
+
+// ══════════════ INIT ══════════════
+async function initApp(){
+    document.getElementById('splash-c').innerHTML=svgS(85);
+    try{await initDB();await loadG();console.log('✅ FunMath Quest 초기화 완료')}catch(e){console.warn('IndexedDB 실패:',e)}
+    // 자동 뱃지 & 토큰 체크
+    if(G.stars>=10)addB('star10');
+    checkPCTokens();
+    setTimeout(()=>{if(!G.onboarded)nav('onboard');else nav('home')},2200);
+}
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e});
+document.addEventListener('DOMContentLoaded',initApp);
+</script>
+</body>
+</html>
