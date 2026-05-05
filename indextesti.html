@@ -4213,6 +4213,7 @@
                         displayFloorplan();
                         renderDefects();
                         renderEquipment();
+                        restoreThermalToggle();
                         renderAirQuality();
                     }
                 } else {
@@ -4485,6 +4486,7 @@
                     
                     renderDefects();
                     renderEquipment();
+                    restoreThermalToggle();
                     renderAirQuality();
                     displayFloorplan();
                     showToast('새 프로젝트를 시작합니다');
@@ -5404,7 +5406,7 @@
         // ==================== 열화상 단열 안내 토글 ====================
         window.toggleThermalNotice = function(checked) {
             projectData.thermalNotice = checked;
-            saveCurrentProject();
+            saveProjectsToLocalStorage();
         };
 
         function restoreThermalToggle() {
@@ -7715,6 +7717,13 @@
                     doc.addPage();
                     const equipmentHTML = window.createEquipmentPage([equipmentWithPhotos[i]]);
                     await window.addHTMLPageToPDF(doc, equipmentHTML, pageWidth, pageHeight);
+                }
+
+                // 열화상 단열 안내 페이지 (토글 ON일 때만)
+                if (projectData.thermalNotice) {
+                    doc.addPage();
+                    const thermalHTML = window.createThermalNoticePage();
+                    await window.addHTMLPageToPDF(doc, thermalHTML, pageWidth, pageHeight);
                 }
 
                 // 파일명 생성
