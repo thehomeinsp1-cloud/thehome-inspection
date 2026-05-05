@@ -418,6 +418,10 @@
             justify-content: center;
         }
 
+        /* 열화상 토글 */
+        #thermalNoticeToggle:checked + span { background: #f59e0b; }
+        #thermalNoticeToggle:checked + span + .thermal-slider-dot { transform: translateX(22px); }
+
         /* 공기질 측정 */
         .air-quality-card {
             background: var(--card-bg);
@@ -1270,6 +1274,19 @@
                 <p style="color: var(--text-secondary); font-size: 14px;">
                     열화상 카메라 및 실물 사진 촬영 (우측 하단 ➕ 버튼)
                 </p>
+            </div>
+
+            <!-- 열화상 단열 안내 토글 -->
+            <div class="card" id="thermalNoticeToggleCard" style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;margin-bottom:10px;border-left:4px solid #f59e0b;">
+                <div>
+                    <div style="font-size:14px;font-weight:700;color:var(--text-primary);">🌡️ 실내외 온도차 적음 안내</div>
+                    <div style="font-size:12px;color:var(--text-secondary);margin-top:3px;">ON 시 보고서에 열화상 단열 판독 제한 안내 문구 삽입</div>
+                </div>
+                <label style="position:relative;display:inline-block;width:50px;height:28px;flex-shrink:0;margin-left:12px;">
+                    <input type="checkbox" id="thermalNoticeToggle" onchange="toggleThermalNotice(this.checked)" style="opacity:0;width:0;height:0;">
+                    <span style="position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#ccc;border-radius:28px;transition:.3s;"></span>
+                    <span class="thermal-slider-dot" style="position:absolute;content:'';height:22px;width:22px;left:3px;bottom:3px;background:white;border-radius:50%;transition:.3s;"></span>
+                </label>
             </div>
 
             <div id="equipmentList"></div>
@@ -2975,6 +2992,13 @@
                         await window.addHTMLPageToPDF(equipDoc, equipmentHTML, pageWidth, pageHeight);
                     }
                     
+                    // 열화상 단열 안내 페이지 (토글 ON일 때만)
+                    if (projectData.thermalNotice) {
+                        equipDoc.addPage();
+                        const thermalHTML = window.createThermalNoticePage();
+                        await window.addHTMLPageToPDF(equipDoc, thermalHTML, pageWidth, pageHeight);
+                    }
+
                     const equipmentPdfBlob = equipDoc.output('blob');
                     const equipmentPdfFileName = `${projectName}_장비점검보고서.pdf`;
                     
@@ -3114,6 +3138,14 @@
                 }
 
                 // 공기질 페이지
+
+                // 열화상 단열 안내 페이지 (토글 ON일 때만)
+                if (projectData.thermalNotice) {
+                    doc.addPage();
+                    const thermalHTML = window.createThermalNoticePage();
+                    await window.addHTMLPageToPDF(doc, thermalHTML, pageWidth, pageHeight);
+                }
+
                 const airQualityWithData = projectData.airQuality.filter(room => 
                     room.radon || room.formaldehyde || room.vocs
                 );
@@ -3931,6 +3963,7 @@
             // 하자, 장비, 공기질 목록 렌더링
             renderDefects();
             renderEquipment();
+            restoreThermalToggle();
             renderAirQuality();
         }
         
@@ -5359,6 +5392,17 @@
                     showToast('사진이 삭제되었습니다');
                 }
             }
+        }
+
+        // ==================== 열화상 단열 안내 토글 ====================
+        window.toggleThermalNotice = function(checked) {
+            projectData.thermalNotice = checked;
+            saveCurrentProject();
+        };
+
+        function restoreThermalToggle() {
+            const toggle = document.getElementById('thermalNoticeToggle');
+            if (toggle) toggle.checked = !!projectData.thermalNotice;
         }
 
         // ==================== 공기질 측정 ====================
@@ -6838,6 +6882,14 @@
                     }
                 }
 
+
+                // 열화상 단열 안내 페이지 (토글 ON일 때만)
+                if (projectData.thermalNotice) {
+                    doc.addPage();
+                    const thermalHTML = window.createThermalNoticePage();
+                    await window.addHTMLPageToPDF(doc, thermalHTML, pageWidth, pageHeight);
+                }
+
                 const airQualityWithData = projectData.airQuality.filter(room => 
                     room.radon || room.formaldehyde || room.vocs
                 );
@@ -7424,6 +7476,14 @@
                 }
 
                 // 공기질 상세 페이지 추가
+
+                // 열화상 단열 안내 페이지 (토글 ON일 때만)
+                if (projectData.thermalNotice) {
+                    doc.addPage();
+                    const thermalHTML = window.createThermalNoticePage();
+                    await window.addHTMLPageToPDF(doc, thermalHTML, pageWidth, pageHeight);
+                }
+
                 const airQualityWithData = projectData.airQuality.filter(room => 
                     room.radon || room.formaldehyde || room.vocs
                 );
@@ -9542,6 +9602,50 @@
                 </div>
             `;
         }
+        // ==================== 열화상 단열 안내 페이지 ====================
+        window.createThermalNoticePage = function() {
+            return '<div style="width:794px;min-height:1123px;background:white;font-family:\'Malgun Gothic\',sans-serif;padding:30px;position:relative;box-sizing:border-box;">'
+                + '<div style="background:linear-gradient(135deg,#d97706 0%,#f59e0b 100%);color:white;padding:20px;margin-bottom:30px;border-radius:8px;">'
+                    + '<h1 style="margin:0 0 6px 0;font-size:22px;">🌡️ 열화상 단열 점검 안내</h1>'
+                    + '<p style="margin:0;font-size:13px;opacity:0.9;">' + (projectData.apartmentName || '') + ' ' + (projectData.dong || '') + '동 ' + (projectData.ho || '') + '호 | ' + (projectData.inspectionDate || '') + '</p>'
+                + '</div>'
+
+                + '<div style="background:#fffbeb;border:2px solid #f59e0b;border-radius:12px;padding:28px;margin-bottom:24px;">'
+                    + '<h3 style="margin:0 0 16px 0;font-size:18px;color:#92400e;">📌 열화상 카메라 단열 판독 안내</h3>'
+                    + '<p style="margin:0;font-size:15px;color:#78350f;line-height:1.8;">'
+                        + '점검일 기준 <strong>실내외 온도차이가 크지 않아</strong> 열화상 카메라의 단열 판독이 제한적입니다.<br><br>'
+                        + '벽체 시공상태 및 바닥 단열시공은 <strong>육안·장비 점검 결과 양호</strong>합니다.<br><br>'
+                        + '입주 후 겨울철 <strong>결로나 냉기</strong>가 느껴지시면 <strong>시공사 A/S</strong>를 통해 단열 보완을 요청하시기 바랍니다.'
+                    + '</p>'
+                + '</div>'
+
+                + '<div style="background:#f0fdf4;border:1px solid #86efac;border-radius:10px;padding:22px;margin-bottom:24px;">'
+                    + '<h4 style="margin:0 0 12px 0;font-size:16px;color:#166534;">✅ 금일 점검 항목 결과</h4>'
+                    + '<div style="font-size:14px;color:#15803d;line-height:2;">'
+                        + '• 벽체 수직 시공상태: <strong>양호</strong><br>'
+                        + '• 바닥 수평 시공상태: <strong>양호</strong><br>'
+                        + '• 바닥 단열 시공상태: <strong>양호</strong><br>'
+                        + '• 열화상 표면온도 이상 여부: <strong>특이사항 없음</strong>'
+                    + '</div>'
+                + '</div>'
+
+                + '<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:22px;">'
+                    + '<h4 style="margin:0 0 12px 0;font-size:15px;color:#334155;">💡 참고사항</h4>'
+                    + '<div style="font-size:13px;color:#475569;line-height:1.8;">'
+                        + '• 열화상 단열 판독은 <strong>실내외 온도차 10°C 이상</strong>일 때 가장 정확합니다<br>'
+                        + '• 일반적으로 <strong>겨울철(12월~2월)</strong>이 가장 적합한 시기입니다<br>'
+                        + '• 현재 점검은 벽체·바닥 시공 품질 위주로 진행되었습니다<br>'
+                        + '• 신축 아파트의 경우 입주 후 1~2년간 건조 수축에 의한 미세 균열이 발생할 수 있으며,<br>'
+                        + '&nbsp;&nbsp;이는 시공사 하자보수 대상에 해당합니다'
+                    + '</div>'
+                + '</div>'
+
+                + '<div style="position:absolute;bottom:20px;left:30px;right:30px;padding-top:12px;border-top:1px solid #ddd;font-size:11px;color:#000;text-align:center;">'
+                    + '<div>더홈점검 | 대표: 1668-5322 / 직통: 010-9985-0128 | 사전점검 전문업체</div>'
+                + '</div>'
+            + '</div>';
+        };
+
         window.createAirQualityDetailPage = function() {
             const airQualityData = projectData.airQuality.filter(room => 
                 room.radon || room.formaldehyde || room.vocs
@@ -10471,6 +10575,13 @@
             for (let i = 0; i < equipmentWithPhotos.length; i++) {
                 doc.addPage();
                 await window.addHTMLPageToPDF(doc, window.createEquipmentPage([equipmentWithPhotos[i]]), W, H);
+            }
+
+            // 열화상 단열 안내 페이지 (토글 ON일 때만)
+            if (projectData.thermalNotice) {
+                doc.addPage();
+                const thermalNoticeHTML = window.createThermalNoticePage();
+                await window.addHTMLPageToPDF(doc, thermalNoticeHTML, W, H);
             }
 
             // 4-1. 공기질 측정 페이지 추가
