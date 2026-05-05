@@ -3389,6 +3389,13 @@
                                 await window.addHTMLPageToPDF(equipDoc, equipmentHTML, pageWidth, pageHeight);
                             }
                             
+                            // 열화상 단열 안내 페이지 (토글 ON일 때만)
+                            if (projectData.thermalNotice) {
+                                equipDoc.addPage();
+                                const thermalHTML2 = window.createThermalNoticePage();
+                                await window.addHTMLPageToPDF(equipDoc, thermalHTML2, pageWidth, pageHeight);
+                            }
+
                             equipmentPdfBlob = equipDoc.output('blob');
                             equipmentPdfFileName = `${projectName}_장비점검보고서.pdf`;
                         } catch (equipError) {
@@ -9614,19 +9621,8 @@
                     + '<h3 style="margin:0 0 16px 0;font-size:18px;color:#92400e;">📌 열화상 카메라 단열 판독 안내</h3>'
                     + '<p style="margin:0;font-size:15px;color:#78350f;line-height:1.8;">'
                         + '점검일 기준 <strong>실내외 온도차이가 크지 않아</strong> 열화상 카메라의 단열 판독이 제한적입니다.<br><br>'
-                        + '벽체 시공상태 및 바닥 단열시공은 <strong>육안·장비 점검 결과 양호</strong>합니다.<br><br>'
                         + '입주 후 겨울철 <strong>결로나 냉기</strong>가 느껴지시면 <strong>시공사 A/S</strong>를 통해 단열 보완을 요청하시기 바랍니다.'
                     + '</p>'
-                + '</div>'
-
-                + '<div style="background:#f0fdf4;border:1px solid #86efac;border-radius:10px;padding:22px;margin-bottom:24px;">'
-                    + '<h4 style="margin:0 0 12px 0;font-size:16px;color:#166534;">✅ 금일 점검 항목 결과</h4>'
-                    + '<div style="font-size:14px;color:#15803d;line-height:2;">'
-                        + '• 벽체 수직 시공상태: <strong>양호</strong><br>'
-                        + '• 바닥 수평 시공상태: <strong>양호</strong><br>'
-                        + '• 바닥 단열 시공상태: <strong>양호</strong><br>'
-                        + '• 열화상 표면온도 이상 여부: <strong>특이사항 없음</strong>'
-                    + '</div>'
                 + '</div>'
 
                 + '<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:22px;">'
