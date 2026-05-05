@@ -418,6 +418,10 @@
             justify-content: center;
         }
 
+        /* 열화상 토글 */
+        #thermalNoticeToggle:checked + span { background: #f59e0b !important; }
+        #thermalNoticeToggle:checked + span + .thermal-slider-dot { transform: translateX(22px); }
+
         /* 공기질 측정 */
         .air-quality-card {
             background: var(--card-bg);
@@ -1270,6 +1274,19 @@
                 <p style="color: var(--text-secondary); font-size: 14px;">
                     열화상 카메라 및 실물 사진 촬영 (우측 하단 ➕ 버튼)
                 </p>
+            </div>
+
+            <!-- 열화상 단열 안내 토글 -->
+            <div class="card" id="thermalNoticeToggleCard" style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;margin-bottom:10px;border-left:4px solid #f59e0b;">
+                <div>
+                    <div style="font-size:14px;font-weight:700;color:var(--text-primary);">🌡️ 실내외 온도차 적음 안내</div>
+                    <div style="font-size:12px;color:var(--text-secondary);margin-top:3px;">ON 시 보고서에 열화상 단열 판독 제한 안내 문구 삽입</div>
+                </div>
+                <label style="position:relative;display:inline-block;width:50px;height:28px;flex-shrink:0;margin-left:12px;">
+                    <input type="checkbox" id="thermalNoticeToggle" onchange="toggleThermalNotice(this.checked)" style="opacity:0;width:0;height:0;">
+                    <span style="position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#ccc;border-radius:28px;transition:.3s;"></span>
+                    <span class="thermal-slider-dot" style="position:absolute;content:'';height:22px;width:22px;left:3px;bottom:3px;background:white;border-radius:50%;transition:.3s;"></span>
+                </label>
             </div>
 
             <div id="equipmentList"></div>
@@ -2975,6 +2992,13 @@
                         await window.addHTMLPageToPDF(equipDoc, equipmentHTML, pageWidth, pageHeight);
                     }
                     
+                    // 열화상 단열 안내 페이지 (토글 ON일 때만)
+                    if (projectData.thermalNotice) {
+                        equipDoc.addPage();
+                        const thermalHTML = window.createThermalNoticePage();
+                        await window.addHTMLPageToPDF(equipDoc, thermalHTML, pageWidth, pageHeight);
+                    }
+
                     const equipmentPdfBlob = equipDoc.output('blob');
                     const equipmentPdfFileName = `${projectName}_장비점검보고서.pdf`;
                     
@@ -3114,6 +3138,14 @@
                 }
 
                 // 공기질 페이지
+
+                // 열화상 단열 안내 페이지 (토글 ON일 때만)
+                if (projectData.thermalNotice) {
+                    doc.addPage();
+                    const thermalHTML = window.createThermalNoticePage();
+                    await window.addHTMLPageToPDF(doc, thermalHTML, pageWidth, pageHeight);
+                }
+
                 const airQualityWithData = projectData.airQuality.filter(room => 
                     room.radon || room.formaldehyde || room.vocs
                 );
@@ -3357,6 +3389,13 @@
                                 await window.addHTMLPageToPDF(equipDoc, equipmentHTML, pageWidth, pageHeight);
                             }
                             
+                            // 열화상 단열 안내 페이지 (토글 ON일 때만)
+                            if (projectData.thermalNotice) {
+                                equipDoc.addPage();
+                                const thermalHTML2 = window.createThermalNoticePage();
+                                await window.addHTMLPageToPDF(equipDoc, thermalHTML2, pageWidth, pageHeight);
+                            }
+
                             equipmentPdfBlob = equipDoc.output('blob');
                             equipmentPdfFileName = `${projectName}_장비점검보고서.pdf`;
                         } catch (equipError) {
@@ -3931,6 +3970,7 @@
             // 하자, 장비, 공기질 목록 렌더링
             renderDefects();
             renderEquipment();
+            restoreThermalToggle();
             renderAirQuality();
         }
         
@@ -4173,6 +4213,7 @@
                         displayFloorplan();
                         renderDefects();
                         renderEquipment();
+                        restoreThermalToggle();
                         renderAirQuality();
                     }
                 } else {
@@ -4445,6 +4486,7 @@
                     
                     renderDefects();
                     renderEquipment();
+                    restoreThermalToggle();
                     renderAirQuality();
                     displayFloorplan();
                     showToast('새 프로젝트를 시작합니다');
@@ -5359,6 +5401,17 @@
                     showToast('사진이 삭제되었습니다');
                 }
             }
+        }
+
+        // ==================== 열화상 단열 안내 토글 ====================
+        window.toggleThermalNotice = function(checked) {
+            projectData.thermalNotice = checked;
+            saveProjectsToLocalStorage();
+        };
+
+        function restoreThermalToggle() {
+            const toggle = document.getElementById('thermalNoticeToggle');
+            if (toggle) toggle.checked = !!projectData.thermalNotice;
         }
 
         // ==================== 공기질 측정 ====================
@@ -6838,6 +6891,14 @@
                     }
                 }
 
+
+                // 열화상 단열 안내 페이지 (토글 ON일 때만)
+                if (projectData.thermalNotice) {
+                    doc.addPage();
+                    const thermalHTML = window.createThermalNoticePage();
+                    await window.addHTMLPageToPDF(doc, thermalHTML, pageWidth, pageHeight);
+                }
+
                 const airQualityWithData = projectData.airQuality.filter(room => 
                     room.radon || room.formaldehyde || room.vocs
                 );
@@ -7424,6 +7485,14 @@
                 }
 
                 // 공기질 상세 페이지 추가
+
+                // 열화상 단열 안내 페이지 (토글 ON일 때만)
+                if (projectData.thermalNotice) {
+                    doc.addPage();
+                    const thermalHTML = window.createThermalNoticePage();
+                    await window.addHTMLPageToPDF(doc, thermalHTML, pageWidth, pageHeight);
+                }
+
                 const airQualityWithData = projectData.airQuality.filter(room => 
                     room.radon || room.formaldehyde || room.vocs
                 );
@@ -7648,6 +7717,13 @@
                     doc.addPage();
                     const equipmentHTML = window.createEquipmentPage([equipmentWithPhotos[i]]);
                     await window.addHTMLPageToPDF(doc, equipmentHTML, pageWidth, pageHeight);
+                }
+
+                // 열화상 단열 안내 페이지 (토글 ON일 때만)
+                if (projectData.thermalNotice) {
+                    doc.addPage();
+                    const thermalHTML = window.createThermalNoticePage();
+                    await window.addHTMLPageToPDF(doc, thermalHTML, pageWidth, pageHeight);
                 }
 
                 // 파일명 생성
@@ -9542,93 +9618,222 @@
                 </div>
             `;
         }
+        // ==================== 열화상 단열 안내 페이지 ====================
+        window.createThermalNoticePage = function() {
+            return '<div style="width:794px;min-height:1123px;background:white;font-family:\'Malgun Gothic\',sans-serif;padding:30px;position:relative;box-sizing:border-box;">'
+                + '<div style="background:linear-gradient(135deg,#d97706 0%,#f59e0b 100%);color:white;padding:20px;margin-bottom:30px;border-radius:8px;">'
+                    + '<h1 style="margin:0 0 6px 0;font-size:22px;">🌡️ 열화상 단열 점검 안내</h1>'
+                    + '<p style="margin:0;font-size:13px;opacity:0.9;">' + (projectData.apartmentName || '') + ' ' + (projectData.dong || '') + '동 ' + (projectData.ho || '') + '호 | ' + (projectData.inspectionDate || '') + '</p>'
+                + '</div>'
+
+                + '<div style="background:#fffbeb;border:2px solid #f59e0b;border-radius:12px;padding:28px;margin-bottom:24px;">'
+                    + '<h3 style="margin:0 0 16px 0;font-size:18px;color:#92400e;">📌 열화상 카메라 단열 판독 안내</h3>'
+                    + '<p style="margin:0;font-size:15px;color:#78350f;line-height:1.8;">'
+                        + '점검일 기준 <strong>실내외 온도차이가 크지 않아</strong> 열화상 카메라의 단열 판독이 제한적입니다.<br><br>'
+                        + '입주 후 겨울철 <strong>결로나 냉기</strong>가 느껴지시면 <strong>시공사 A/S</strong>를 통해 단열 보완을 요청하시기 바랍니다.'
+                    + '</p>'
+                + '</div>'
+
+                + '<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:22px;">'
+                    + '<h4 style="margin:0 0 12px 0;font-size:15px;color:#334155;">💡 참고사항</h4>'
+                    + '<div style="font-size:13px;color:#475569;line-height:1.8;">'
+                        + '• 열화상 단열 판독은 <strong>실내외 온도차 10°C 이상</strong>일 때 가장 정확합니다<br>'
+                        + '• 일반적으로 <strong>겨울철(12월~2월)</strong>이 가장 적합한 시기입니다<br>'
+                        + '• 현재 점검은 벽체·바닥 시공 품질 위주로 진행되었습니다<br>'
+                        + '• 신축 아파트의 경우 입주 후 1~2년간 건조 수축에 의한 미세 균열이 발생할 수 있으며,<br>'
+                        + '&nbsp;&nbsp;이는 시공사 하자보수 대상에 해당합니다'
+                    + '</div>'
+                + '</div>'
+
+                + '<div style="position:absolute;bottom:20px;left:30px;right:30px;padding-top:12px;border-top:1px solid #ddd;font-size:11px;color:#000;text-align:center;">'
+                    + '<div>더홈점검 | 대표: 1668-5322 / 직통: 010-9985-0128 | 사전점검 전문업체</div>'
+                + '</div>'
+            + '</div>';
+        };
+
         window.createAirQualityDetailPage = function() {
             const airQualityData = projectData.airQuality.filter(room => 
                 room.radon || room.formaldehyde || room.vocs
             );
+            if (airQualityData.length === 0) return '';
 
-            // 기준치
-            const standards = {
-                radon: 148,
-                formaldehyde: 0.210,
-                vocs: 0.500
+            const standards = { radon: 148, formaldehyde: 0.210, vocs: 0.500 };
+            const C = { safe: '#16a085', danger: '#e74c3c', barBg: '#f1f5f9', text: '#1e293b', muted: '#64748b' };
+            const n = airQualityData.length;
+
+            // ── 동적 사이즈 (방 수에 따라 자동 조절) ──
+            const S = {
+                barH:   n <= 6 ? 24 : n <= 8 ? 20 : n <= 10 ? 17 : 14,
+                barGap: n <= 6 ? 6  : n <= 8 ? 4  : n <= 10 ? 3  : 2,
+                barInH: n <= 6 ? 20 : n <= 8 ? 17 : n <= 10 ? 14 : 12,
+                tblPad: n <= 6 ? 7  : n <= 8 ? 5  : 4,
+                chartPad: n <= 6 ? 14 : n <= 8 ? 10 : 8,
+                secGap: n <= 8 ? 16 : n <= 10 ? 12 : 10,
             };
 
-            // 표 생성
+            // ── 통계 ──
+            let total = 0, pass = 0;
+            airQualityData.forEach(r => {
+                if (parseFloat(r.radon) > 0) { total++; if (parseFloat(r.radon) <= standards.radon) pass++; }
+                if (parseFloat(r.formaldehyde) > 0) { total++; if (parseFloat(r.formaldehyde) <= standards.formaldehyde) pass++; }
+                if (parseFloat(r.vocs) > 0) { total++; if (parseFloat(r.vocs) <= standards.vocs) pass++; }
+            });
+            const fail = total - pass;
+            const rate = total > 0 ? ((pass / total) * 100).toFixed(0) : 0;
+
+            // ── 막대 그래프 ──
+            function makeChart(title, emoji, unit, stdVal, key, maxMul) {
+                const mx = stdVal * maxMul;
+                const stdPct = (stdVal / mx) * 100;
+                let bars = '';
+                airQualityData.forEach(room => {
+                    const v = parseFloat(room[key]) || 0;
+                    if (v === 0) return;
+                    const pct = Math.min((v / mx) * 100, 100);
+                    const over = v > stdVal;
+                    const bc = over ? C.danger : C.safe;
+
+                    bars += '<div style="display:flex;align-items:center;margin-bottom:' + S.barGap + 'px;height:' + S.barH + 'px;">'
+                        + '<div style="width:60px;font-size:12px;font-weight:700;color:' + C.text + ';text-align:right;padding-right:8px;flex-shrink:0;">' + room.name + '</div>'
+                        + '<div style="flex:1;position:relative;height:' + S.barInH + 'px;background:' + C.barBg + ';border-radius:4px;">'
+                            + '<div style="position:absolute;top:1px;left:1px;bottom:1px;width:calc(' + pct + '% - 2px);background:linear-gradient(90deg,' + bc + 'bb,' + bc + ');border-radius:3px;"></div>'
+                            + '<div style="position:absolute;top:50%;transform:translateY(-50%);' + (pct > 35 ? 'right:' + (101 - pct) + '%;color:white;' : 'left:' + (pct + 2) + '%;color:' + C.text + ';') + 'font-size:11px;font-weight:700;white-space:nowrap;">' + v + '</div>'
+                            + '<div style="position:absolute;top:-2px;bottom:-2px;left:' + stdPct + '%;width:1.5px;background:' + C.danger + ';z-index:2;"></div>'
+                        + '</div>'
+                        + '<div style="width:42px;flex-shrink:0;text-align:center;margin-left:4px;">'
+                            + '<div style="display:inline-block;padding:2px 6px;border-radius:8px;font-size:10px;font-weight:700;background:' + (over ? '#fef2f2' : '#f0fdf4') + ';color:' + (over ? C.danger : C.safe) + ';border:1px solid ' + (over ? '#fecaca' : '#bbf7d0') + ';">' + (over ? '초과' : '적합') + '</div>'
+                        + '</div>'
+                    + '</div>';
+                });
+                if (!bars) return '';
+
+                return '<div style="flex:1;min-width:0;">'
+                    + '<div style="display:flex;align-items:center;margin-bottom:6px;">'
+                        + '<span style="font-size:14px;">' + emoji + '</span>'
+                        + '<h4 style="margin:0 0 0 4px;font-size:13px;color:' + C.text + ';">' + title + '</h4>'
+                        + '<span style="margin-left:auto;font-size:10px;color:' + C.muted + ';white-space:nowrap;">기준 ' + stdVal + '</span>'
+                    + '</div>'
+                    + '<div style="background:white;border:1px solid #e2e8f0;border-radius:8px;padding:' + S.chartPad + 'px 10px ' + (S.chartPad - 4) + 'px 10px;position:relative;">'
+                        + bars
+                    + '</div>'
+                + '</div>';
+            }
+
+            // ── 측정 표 ──
             let tableRows = '';
-            airQualityData.forEach((room) => {
-                const radonValue = parseFloat(room.radon) || 0;
-                const formaldehydeValue = parseFloat(room.formaldehyde) || 0;
-                const vocsValue = parseFloat(room.vocs) || 0;
+            airQualityData.forEach(room => {
+                const rv = parseFloat(room.radon) || 0;
+                const fv = parseFloat(room.formaldehyde) || 0;
+                const vv = parseFloat(room.vocs) || 0;
+                const rs = rv > 0 ? (rv <= standards.radon ? '적합' : '부적합') : '-';
+                const fs = fv > 0 ? (fv <= standards.formaldehyde ? '적합' : '부적합') : '-';
+                const vs = vv > 0 ? (vv <= standards.vocs ? '적합' : '부적합') : '-';
+                const rsc = rv > standards.radon ? C.danger : C.safe;
+                const fsc = fv > standards.formaldehyde ? C.danger : C.safe;
+                const vsc = vv > standards.vocs ? C.danger : C.safe;
 
-                const radonStatus = radonValue > 0 ? (radonValue <= standards.radon ? '적합' : '부적합') : '-';
-                const formaldehydeStatus = formaldehydeValue > 0 ? (formaldehydeValue <= standards.formaldehyde ? '적합' : '부적합') : '-';
-                const vocsStatus = vocsValue > 0 ? (vocsValue <= standards.vocs ? '적합' : '부적합') : '-';
-
-                tableRows += `
-                    <tr style="border-bottom: 1px solid #ddd;">
-                        <td style="padding: 10px; text-align: center; font-weight: bold; background: #f8f9fa; color: #000000;">${room.name}</td>
-                        <td style="padding: 10px; text-align: center; color: #000000;">${room.radon || '-'}</td>
-                        <td style="padding: 10px; text-align: center; color: ${radonValue > standards.radon ? '#e74c3c' : '#10b981'}; font-weight: bold;">${radonStatus}</td>
-                        <td style="padding: 10px; text-align: center; color: #000000;">${room.formaldehyde || '-'}</td>
-                        <td style="padding: 10px; text-align: center; color: ${formaldehydeValue > standards.formaldehyde ? '#e74c3c' : '#10b981'}; font-weight: bold;">${formaldehydeStatus}</td>
-                        <td style="padding: 10px; text-align: center; color: #000000;">${room.vocs || '-'}</td>
-                        <td style="padding: 10px; text-align: center; color: ${vocsValue > standards.vocs ? '#e74c3c' : '#10b981'}; font-weight: bold;">${vocsStatus}</td>
-                    </tr>
-                `;
+                tableRows += '<tr style="border-bottom:1px solid #eee;">'
+                    + '<td style="padding:' + S.tblPad + 'px 8px;text-align:center;font-weight:700;background:#f8f9fa;color:#000;font-size:13px;">' + room.name + '</td>'
+                    + '<td style="padding:' + S.tblPad + 'px;text-align:center;color:#000;font-size:13px;">' + (room.radon || '-') + '</td>'
+                    + '<td style="padding:' + S.tblPad + 'px;text-align:center;color:' + rsc + ';font-weight:700;font-size:12px;">' + rs + '</td>'
+                    + '<td style="padding:' + S.tblPad + 'px;text-align:center;color:#000;font-size:13px;">' + (room.formaldehyde || '-') + '</td>'
+                    + '<td style="padding:' + S.tblPad + 'px;text-align:center;color:' + fsc + ';font-weight:700;font-size:12px;">' + fs + '</td>'
+                    + '<td style="padding:' + S.tblPad + 'px;text-align:center;color:#000;font-size:13px;">' + (room.vocs || '-') + '</td>'
+                    + '<td style="padding:' + S.tblPad + 'px;text-align:center;color:' + vsc + ';font-weight:700;font-size:12px;">' + vs + '</td>'
+                + '</tr>';
             });
 
-            return `
-                <div style="width: 794px; min-height: 1123px; background: white; font-family: 'Malgun Gothic', sans-serif; padding: 30px;">
-                    <div style="background: linear-gradient(135deg, #16a085 0%, #1abc9c 100%); color: white; padding: 20px; margin-bottom: 25px; border-radius: 8px;">
-                        <h1 style="margin: 0 0 8px 0; font-size: 26px;">실내 공기질 측정 결과</h1>
-                        <p style="margin: 0; font-size: 14px; opacity: 0.9;">${projectData.apartmentName} ${projectData.dong}동 ${projectData.ho}호 | ${projectData.inspectionDate || ''}</p>
-                    </div>
+            const radonChart = makeChart('라돈 (Bq/m³)', '☢️', 'Bq/m³', standards.radon, 'radon', 2.5);
+            const hchoChart = makeChart('포름알데히드 (mg/m³)', '🧪', 'mg/m³', standards.formaldehyde, 'formaldehyde', 3);
+            const vocsChart = makeChart('총VOCs (mg/m³)', '💨', 'mg/m³', standards.vocs, 'vocs', 3);
 
-                    <div style="margin-bottom: 25px;">
-                        <h3 style="margin: 0 0 15px 0; font-size: 18px; color: #000000; border-bottom: 2px solid #16a085; padding-bottom: 8px;">📋 측정 데이터</h3>
-                        <table style="width: 100%; border-collapse: collapse; border: 1px solid #ddd; font-size: 13px;">
-                            <thead>
-                                <tr style="background: #f8f9fa; border-bottom: 2px solid #ddd;">
-                                    <th style="padding: 12px; border: 1px solid #ddd; color: #000000;">공간</th>
-                                    <th style="padding: 12px; border: 1px solid #ddd; color: #000000;">라돈<br>(Bq/m³)</th>
-                                    <th style="padding: 12px; border: 1px solid #ddd; color: #000000;">판정</th>
-                                    <th style="padding: 12px; border: 1px solid #ddd; color: #000000;">포름알데히드<br>(mg/m³)</th>
-                                    <th style="padding: 12px; border: 1px solid #ddd; color: #000000;">판정</th>
-                                    <th style="padding: 12px; border: 1px solid #ddd; color: #000000;">총VOCs<br>(mg/m³)</th>
-                                    <th style="padding: 12px; border: 1px solid #ddd; color: #000000;">판정</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${tableRows}
-                            </tbody>
-                        </table>
-                    </div>
+            return '<div style="width:794px;min-height:1123px;background:white;font-family:\'Malgun Gothic\',sans-serif;padding:28px 30px;position:relative;box-sizing:border-box;">'
+                // ── 헤더 ──
+                + '<div style="background:linear-gradient(135deg,#0f766e 0%,#14b8a6 100%);color:white;padding:16px 20px;margin-bottom:' + S.secGap + 'px;border-radius:8px;display:flex;align-items:center;justify-content:space-between;">'
+                    + '<div>'
+                        + '<h1 style="margin:0 0 4px 0;font-size:22px;">🌬️ 실내 공기질 측정 결과</h1>'
+                        + '<p style="margin:0;font-size:13px;opacity:0.9;">' + (projectData.apartmentName || '') + ' ' + (projectData.dong || '') + '동 ' + (projectData.ho || '') + '호 | ' + (projectData.inspectionDate || '') + '</p>'
+                    + '</div>'
+                    + '<div style="text-align:center;background:rgba(255,255,255,0.15);border-radius:10px;padding:8px 16px;">'
+                        + '<div style="font-size:11px;opacity:0.85;margin-bottom:2px;">종합 적합률</div>'
+                        + '<div style="font-size:28px;font-weight:800;">' + rate + '<span style="font-size:14px;">%</span></div>'
+                    + '</div>'
+                + '</div>'
 
-                    <div style="background: #e8f5e9; border: 1px solid #4caf50; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
-                        <h4 style="margin: 0 0 15px 0; color: #2e7d32; font-size: 16px;">✓ 권고기준 (실내공기질 공정시험기준)</h4>
-                        <div style="font-size: 14px; color: #1b5e20; line-height: 1.6; font-size: 13px; margin-bottom: 15px;">
-                            <div>• 라돈(Rn): <strong>148 Bq/m³ 이하</strong></div>
-                            <div>• 포름알데히드(HCHO): <strong>0.210 mg/m³ 이하</strong></div>
-                            <div>• 총휘발성유기화합물(TVOCs): <strong>0.500 mg/m³ 이하</strong></div>
-                        </div>
-                    </div>
+                // ── 요약 카드 ──
+                + '<div style="display:flex;gap:8px;margin-bottom:' + S.secGap + 'px;">'
+                    + '<div style="flex:1;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:10px;text-align:center;">'
+                        + '<div style="font-size:11px;color:' + C.muted + ';font-weight:600;">총 측정</div>'
+                        + '<div style="font-size:24px;font-weight:800;color:' + C.text + ';margin-top:2px;">' + total + '<span style="font-size:12px;color:#94a3b8;"> 건</span></div>'
+                    + '</div>'
+                    + '<div style="flex:1;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:10px;text-align:center;">'
+                        + '<div style="font-size:11px;color:#15803d;font-weight:600;">적합</div>'
+                        + '<div style="font-size:24px;font-weight:800;color:' + C.safe + ';margin-top:2px;">' + pass + '<span style="font-size:12px;color:#86efac;"> 건</span></div>'
+                    + '</div>'
+                    + '<div style="flex:1;background:' + (fail > 0 ? '#fef2f2' : '#f8fafc') + ';border:1px solid ' + (fail > 0 ? '#fecaca' : '#e2e8f0') + ';border-radius:8px;padding:10px;text-align:center;">'
+                        + '<div style="font-size:11px;color:' + (fail > 0 ? '#dc2626' : C.muted) + ';font-weight:600;">부적합</div>'
+                        + '<div style="font-size:24px;font-weight:800;color:' + (fail > 0 ? C.danger : '#94a3b8') + ';margin-top:2px;">' + fail + '<span style="font-size:12px;"> 건</span></div>'
+                    + '</div>'
+                + '</div>'
 
-                    <div style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 8px; padding: 15px; margin-bottom: 20px;">
-                        <div style="font-size: 12px; color: #856404; line-height: 1.6;">
-                            <strong>※ 참고사항</strong><br>
-                            - 측정 결과는 측정 당시의 환경 조건에 따라 달라질 수 있습니다.<br>
-                            - 부적합 판정 시 환기 등의 조치 후 재측정을 권장합니다.<br>
-                            - 라돈 농도는 계절, 시간대에 따라 변동이 있을 수 있습니다.
-                        </div>
-                    </div>
+                // ── 측정 데이터 표 ──
+                + '<div style="margin-bottom:' + S.secGap + 'px;">'
+                    + '<h3 style="margin:0 0 8px 0;font-size:15px;color:' + C.text + ';border-bottom:2px solid #16a085;padding-bottom:5px;">📋 측정 데이터</h3>'
+                    + '<table style="width:100%;border-collapse:collapse;border:1px solid #e2e8f0;">'
+                        + '<thead><tr style="background:#f0fdfa;">'
+                            + '<th style="padding:7px;border:1px solid #e2e8f0;color:#000;font-size:12px;">공간</th>'
+                            + '<th style="padding:7px;border:1px solid #e2e8f0;color:#000;font-size:12px;">라돈<br>(Bq/m³)</th>'
+                            + '<th style="padding:7px;border:1px solid #e2e8f0;color:#000;font-size:12px;">판정</th>'
+                            + '<th style="padding:7px;border:1px solid #e2e8f0;color:#000;font-size:12px;">HCHO<br>(mg/m³)</th>'
+                            + '<th style="padding:7px;border:1px solid #e2e8f0;color:#000;font-size:12px;">판정</th>'
+                            + '<th style="padding:7px;border:1px solid #e2e8f0;color:#000;font-size:12px;">TVOCs<br>(mg/m³)</th>'
+                            + '<th style="padding:7px;border:1px solid #e2e8f0;color:#000;font-size:12px;">판정</th>'
+                        + '</tr></thead>'
+                        + '<tbody>' + tableRows + '</tbody>'
+                    + '</table>'
+                + '</div>'
 
-                    <div style="position: absolute; bottom: 20px; left: 30px; right: 30px; padding-top: 15px; border-top: 1px solid #ddd; font-size: 11px; color: #000000; text-align: center;">
-                        <div>더홈점검 | 대표: 1668-5322 / 직통: 010-9985-0128 | 사전점검 전문업체</div>
-                    </div>
-                </div>
-            `;
+                // ── 그래프 섹션 ──
+                + '<div style="margin-bottom:' + S.secGap + 'px;">'
+                    + '<h3 style="margin:0 0 10px 0;font-size:15px;color:' + C.text + ';border-bottom:2px solid #16a085;padding-bottom:5px;">📊 항목별 비교 분석</h3>'
+                    + '<div style="display:flex;gap:10px;">'
+                        + radonChart
+                        + hchoChart
+                        + vocsChart
+                    + '</div>'
+                + '</div>'
+
+                // ── 범례 + 기준 ──
+                + '<div style="display:flex;gap:10px;margin-bottom:10px;">'
+                    + '<div style="flex:1;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:6px;padding:10px;font-size:12px;color:#1b5e20;line-height:1.5;">'
+                        + '<strong style="font-size:13px;">✓ 권고기준</strong><br>'
+                        + '• 라돈: <strong>148 Bq/m³</strong> 이하<br>'
+                        + '• 포름알데히드: <strong>0.210 mg/m³</strong> 이하<br>'
+                        + '• 총VOCs: <strong>0.500 mg/m³</strong> 이하'
+                    + '</div>'
+                    + '<div style="flex:1;background:#fff9db;border:1px solid #fcc419;border-radius:6px;padding:10px;font-size:11px;color:#856404;line-height:1.5;">'
+                        + '<strong style="font-size:12px;">※ 참고사항</strong><br>'
+                        + '• 측정 결과는 당시 환경 조건에 따라 달라질 수 있습니다<br>'
+                        + '• 부적합 판정 시 환기 후 재측정을 권장합니다<br>'
+                        + '• 라돈 농도는 계절, 시간대에 따라 변동 가능합니다'
+                    + '</div>'
+                + '</div>'
+
+                // ── 범례 바 ──
+                + '<div style="display:flex;justify-content:center;gap:16px;padding:6px;background:#f8fafc;border-radius:6px;border:1px solid #e2e8f0;">'
+                    + '<div style="display:flex;align-items:center;gap:4px;font-size:11px;color:' + C.muted + ';"><div style="width:14px;height:9px;background:' + C.safe + ';border-radius:2px;"></div> 적합 (기준 이하)</div>'
+                    + '<div style="display:flex;align-items:center;gap:4px;font-size:11px;color:' + C.muted + ';"><div style="width:14px;height:9px;background:' + C.danger + ';border-radius:2px;"></div> 부적합 (기준 초과)</div>'
+                    + '<div style="display:flex;align-items:center;gap:4px;font-size:11px;color:' + C.muted + ';"><div style="width:1.5px;height:12px;background:' + C.danger + ';"></div> 권고기준선</div>'
+                + '</div>'
+
+                // ── 푸터 ──
+                + '<div style="position:absolute;bottom:20px;left:30px;right:30px;padding-top:12px;border-top:1px solid #ddd;font-size:11px;color:#000;text-align:center;">'
+                    + '<div>더홈점검 | 대표: 1668-5322 / 직통: 010-9985-0128 | 사전점검 전문업체</div>'
+                + '</div>'
+            + '</div>';
         }
+
+
 
         // ==================== IndexedDB 설정 ====================
         let db;
@@ -10375,6 +10580,13 @@
             for (let i = 0; i < equipmentWithPhotos.length; i++) {
                 doc.addPage();
                 await window.addHTMLPageToPDF(doc, window.createEquipmentPage([equipmentWithPhotos[i]]), W, H);
+            }
+
+            // 열화상 단열 안내 페이지 (토글 ON일 때만)
+            if (projectData.thermalNotice) {
+                doc.addPage();
+                const thermalNoticeHTML = window.createThermalNoticePage();
+                await window.addHTMLPageToPDF(doc, thermalNoticeHTML, W, H);
             }
 
             // 4-1. 공기질 측정 페이지 추가
