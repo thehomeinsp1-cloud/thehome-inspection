@@ -3121,13 +3121,6 @@
                     doc.addPage();
                     const airQualityHTML = window.createAirQualityDetailPage();
                     await window.addHTMLPageToPDF(doc, airQualityHTML, pageWidth, pageHeight);
-
-                    // 공기질 그래프 페이지 추가
-                    doc.addPage();
-                    const airQualityGraphHTML = window.createAirQualityGraphPage();
-                    if (airQualityGraphHTML) {
-                        await window.addHTMLPageToPDF(doc, airQualityGraphHTML, pageWidth, pageHeight);
-                    }
                 }
 
                 // 견적서 페이지
@@ -6852,13 +6845,6 @@
                     doc.addPage();
                     const airQualityHTML = window.createAirQualityDetailPage();
                     await window.addHTMLPageToPDF(doc, airQualityHTML, pageWidth, pageHeight);
-
-                    // 공기질 그래프 페이지 추가
-                    doc.addPage();
-                    const airQualityGraphHTML = window.createAirQualityGraphPage();
-                    if (airQualityGraphHTML) {
-                        await window.addHTMLPageToPDF(doc, airQualityGraphHTML, pageWidth, pageHeight);
-                    }
                 }
 
                 // 견적서 페이지 추가 (실내공기질측정결과 바로 다음)
@@ -7445,13 +7431,6 @@
                     doc.addPage();
                     const airQualityHTML = window.createAirQualityDetailPage();
                     await window.addHTMLPageToPDF(doc, airQualityHTML, pageWidth, pageHeight);
-
-                    // 공기질 그래프 페이지 추가
-                    doc.addPage();
-                    const airQualityGraphHTML = window.createAirQualityGraphPage();
-                    if (airQualityGraphHTML) {
-                        await window.addHTMLPageToPDF(doc, airQualityGraphHTML, pageWidth, pageHeight);
-                    }
                 }
 
                 // 견적서 페이지 추가 (실내공기질측정결과 바로 다음)
@@ -9563,237 +9542,180 @@
                 </div>
             `;
         }
-
-        // ==================== 공기질 그래프 페이지 ====================
-        window.createAirQualityGraphPage = function() {
+        window.createAirQualityDetailPage = function() {
             const airQualityData = projectData.airQuality.filter(room => 
                 room.radon || room.formaldehyde || room.vocs
             );
 
             if (airQualityData.length === 0) return '';
 
-            const standards = {
-                radon: 148,
-                formaldehyde: 0.210,
-                vocs: 0.500
-            };
+            const standards = { radon: 148, formaldehyde: 0.210, vocs: 0.500 };
+            const C = { safe: '#16a085', danger: '#e74c3c', barBg: '#f1f5f9', text: '#1e293b', muted: '#64748b' };
 
-            const colors = {
-                safe: '#22c55e',
-                danger: '#ef4444',
-                standardLine: '#dc2626',
-                barBg: '#f1f5f9',
-                text: '#1e293b'
-            };
+            // 통계 계산
+            let total = 0, pass = 0;
+            airQualityData.forEach(r => {
+                if (parseFloat(r.radon) > 0) { total++; if (parseFloat(r.radon) <= standards.radon) pass++; }
+                if (parseFloat(r.formaldehyde) > 0) { total++; if (parseFloat(r.formaldehyde) <= standards.formaldehyde) pass++; }
+                if (parseFloat(r.vocs) > 0) { total++; if (parseFloat(r.vocs) <= standards.vocs) pass++; }
+            });
+            const fail = total - pass;
+            const rate = total > 0 ? ((pass / total) * 100).toFixed(0) : 0;
+            const rateColor = rate >= 80 ? '#16a085' : rate >= 50 ? '#f59e0b' : '#e74c3c';
 
-            // Helper: create horizontal bar chart for one metric
-            function createBarChart(title, unit, standardValue, dataKey, maxMultiplier) {
-                const maxValue = standardValue * maxMultiplier;
-                const standardPercent = (standardValue / maxValue) * 100;
-
+            // 막대 그래프 생성 함수
+            function makeChart(title, emoji, unit, stdVal, key, maxMul) {
+                const mx = stdVal * maxMul;
+                const stdPct = (stdVal / mx) * 100;
                 let bars = '';
-                airQualityData.forEach((room) => {
-                    const value = parseFloat(room[dataKey]) || 0;
-                    if (value === 0) return;
-                    const percent = Math.min((value / maxValue) * 100, 100);
-                    const isOver = value > standardValue;
-                    const barColor = isOver ? colors.danger : colors.safe;
-                    const ratio = ((value / standardValue) * 100).toFixed(0);
+                airQualityData.forEach(room => {
+                    const v = parseFloat(room[key]) || 0;
+                    if (v === 0) return;
+                    const pct = Math.min((v / mx) * 100, 100);
+                    const over = v > stdVal;
+                    const bc = over ? C.danger : C.safe;
+                    const ratio = ((v / stdVal) * 100).toFixed(0);
 
-                    bars += '<div style="display: flex; align-items: center; margin-bottom: 8px; height: 32px;">'
-                        + '<div style="width: 70px; font-size: 12px; font-weight: 600; color: ' + colors.text + '; text-align: right; padding-right: 10px; flex-shrink: 0;">' + room.name + '</div>'
-                        + '<div style="flex: 1; position: relative; height: 28px; background: ' + colors.barBg + '; border-radius: 6px; overflow: visible;">'
-                            // bar fill
-                            + '<div style="position: absolute; top: 2px; left: 2px; bottom: 2px; width: calc(' + percent + '% - 4px); background: linear-gradient(90deg, ' + barColor + 'cc, ' + barColor + '); border-radius: 4px; transition: width 0.3s;"></div>'
-                            // value label
-                            + '<div style="position: absolute; top: 50%; transform: translateY(-50%); ' + (percent > 30 ? 'left: ' + Math.max(percent - 2, 5) + '%; color: white; text-align: right; transform: translateX(-100%) translateY(-50%);' : 'left: ' + (percent + 2) + '%; color: ' + colors.text + ';') + ' font-size: 11px; font-weight: 700; z-index: 2; white-space: nowrap;">' + value + ' ' + unit + '</div>'
-                            // standard line
-                            + '<div style="position: absolute; top: -4px; bottom: -4px; left: ' + standardPercent + '%; width: 2px; background: ' + colors.standardLine + '; z-index: 3;"></div>'
-                            + '<div style="position: absolute; top: -16px; left: ' + standardPercent + '%; transform: translateX(-50%); font-size: 9px; color: ' + colors.standardLine + '; font-weight: 700; white-space: nowrap;">기준 ' + standardValue + '</div>'
+                    bars += '<div style="display:flex;align-items:center;margin-bottom:5px;height:22px;">'
+                        + '<div style="width:58px;font-size:10px;font-weight:700;color:' + C.text + ';text-align:right;padding-right:8px;flex-shrink:0;">' + room.name + '</div>'
+                        + '<div style="flex:1;position:relative;height:18px;background:' + C.barBg + ';border-radius:4px;">'
+                            + '<div style="position:absolute;top:1px;left:1px;bottom:1px;width:calc(' + pct + '% - 2px);background:linear-gradient(90deg,' + bc + 'bb,' + bc + ');border-radius:3px;"></div>'
+                            + '<div style="position:absolute;top:50%;transform:translateY(-50%);' + (pct > 35 ? 'right:' + (101 - pct) + '%;color:white;' : 'left:' + (pct + 2) + '%;color:' + C.text + ';') + 'font-size:9px;font-weight:700;white-space:nowrap;">' + v + '</div>'
+                            + '<div style="position:absolute;top:-2px;bottom:-2px;left:' + stdPct + '%;width:1.5px;background:' + C.danger + ';z-index:2;"></div>'
                         + '</div>'
-                        // ratio badge
-                        + '<div style="width: 52px; flex-shrink: 0; text-align: center; margin-left: 6px;">'
-                            + '<div style="display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 700; background: ' + (isOver ? '#fef2f2' : '#f0fdf4') + '; color: ' + (isOver ? colors.danger : colors.safe) + '; border: 1px solid ' + (isOver ? '#fecaca' : '#bbf7d0') + ';">' + ratio + '%</div>'
+                        + '<div style="width:40px;flex-shrink:0;text-align:center;margin-left:4px;">'
+                            + '<div style="display:inline-block;padding:1px 5px;border-radius:8px;font-size:8px;font-weight:700;background:' + (over ? '#fef2f2' : '#f0fdf4') + ';color:' + (over ? C.danger : C.safe) + ';border:1px solid ' + (over ? '#fecaca' : '#bbf7d0') + ';">' + (over ? '초과' : '적합') + '</div>'
                         + '</div>'
                     + '</div>';
                 });
-
                 if (!bars) return '';
 
-                return '<div style="margin-bottom: 24px;">'
-                    + '<div style="display: flex; align-items: center; margin-bottom: 12px;">'
-                        + '<div style="width: 6px; height: 22px; background: #16a085; border-radius: 3px; margin-right: 8px;"></div>'
-                        + '<h4 style="margin: 0; font-size: 15px; color: ' + colors.text + ';">' + title + ' (' + unit + ')</h4>'
-                        + '<div style="margin-left: auto; font-size: 11px; color: #64748b;">권고기준: ' + standardValue + ' ' + unit + ' 이하</div>'
+                return '<div style="flex:1;min-width:0;">'
+                    + '<div style="display:flex;align-items:center;margin-bottom:6px;">'
+                        + '<span style="font-size:13px;">' + emoji + '</span>'
+                        + '<h4 style="margin:0 0 0 4px;font-size:12px;color:' + C.text + ';">' + title + '</h4>'
+                        + '<span style="margin-left:auto;font-size:9px;color:' + C.muted + ';white-space:nowrap;">기준: ' + stdVal + ' ' + unit + '</span>'
                     + '</div>'
-                    + '<div style="background: white; border: 1px solid #e2e8f0; border-radius: 10px; padding: 20px 16px 12px 16px;">'
+                    + '<div style="background:white;border:1px solid #e2e8f0;border-radius:8px;padding:12px 10px 8px 10px;position:relative;">'
                         + bars
                     + '</div>'
                 + '</div>';
             }
 
-            // Create overall summary badges
-            let totalMeasurements = 0;
-            let passCount = 0;
+            // 측정 데이터 표
+            let tableRows = '';
             airQualityData.forEach(room => {
-                if (parseFloat(room.radon) > 0) { totalMeasurements++; if (parseFloat(room.radon) <= standards.radon) passCount++; }
-                if (parseFloat(room.formaldehyde) > 0) { totalMeasurements++; if (parseFloat(room.formaldehyde) <= standards.formaldehyde) passCount++; }
-                if (parseFloat(room.vocs) > 0) { totalMeasurements++; if (parseFloat(room.vocs) <= standards.vocs) passCount++; }
+                const rv = parseFloat(room.radon) || 0;
+                const fv = parseFloat(room.formaldehyde) || 0;
+                const vv = parseFloat(room.vocs) || 0;
+                const rs = rv > 0 ? (rv <= standards.radon ? '적합' : '부적합') : '-';
+                const fs = fv > 0 ? (fv <= standards.formaldehyde ? '적합' : '부적합') : '-';
+                const vs = vv > 0 ? (vv <= standards.vocs ? '적합' : '부적합') : '-';
+                const rsc = rv > standards.radon ? C.danger : C.safe;
+                const fsc = fv > standards.formaldehyde ? C.danger : C.safe;
+                const vsc = vv > standards.vocs ? C.danger : C.safe;
+
+                tableRows += '<tr style="border-bottom:1px solid #eee;">'
+                    + '<td style="padding:5px 8px;text-align:center;font-weight:700;background:#f8f9fa;color:#000;font-size:11px;">' + room.name + '</td>'
+                    + '<td style="padding:5px;text-align:center;color:#000;font-size:11px;">' + (room.radon || '-') + '</td>'
+                    + '<td style="padding:5px;text-align:center;color:' + rsc + ';font-weight:700;font-size:10px;">' + rs + '</td>'
+                    + '<td style="padding:5px;text-align:center;color:#000;font-size:11px;">' + (room.formaldehyde || '-') + '</td>'
+                    + '<td style="padding:5px;text-align:center;color:' + fsc + ';font-weight:700;font-size:10px;">' + fs + '</td>'
+                    + '<td style="padding:5px;text-align:center;color:#000;font-size:11px;">' + (room.vocs || '-') + '</td>'
+                    + '<td style="padding:5px;text-align:center;color:' + vsc + ';font-weight:700;font-size:10px;">' + vs + '</td>'
+                + '</tr>';
             });
-            const failCount = totalMeasurements - passCount;
-            const passRate = totalMeasurements > 0 ? ((passCount / totalMeasurements) * 100).toFixed(0) : 0;
 
-            // Pass rate gauge using CSS
-            const gaugeAngle = (passRate / 100) * 180;
-            const gaugeColor = passRate >= 80 ? '#22c55e' : passRate >= 50 ? '#f59e0b' : '#ef4444';
+            const radonChart = makeChart('라돈 (Bq/m³)', '☢️', 'Bq/m³', standards.radon, 'radon', 2.5);
+            const hchoChart = makeChart('포름알데히드 (mg/m³)', '🧪', 'mg/m³', standards.formaldehyde, 'formaldehyde', 3);
+            const vocsChart = makeChart('총VOCs (mg/m³)', '💨', 'mg/m³', standards.vocs, 'vocs', 3);
 
-            const radonChart = createBarChart('라돈 (Rn)', 'Bq/m³', standards.radon, 'radon', 2.5);
-            const hchoChart = createBarChart('포름알데히드 (HCHO)', 'mg/m³', standards.formaldehyde, 'formaldehyde', 3);
-            const vocsChart = createBarChart('총휘발성유기화합물 (TVOCs)', 'mg/m³', standards.vocs, 'vocs', 3);
-
-            return '<div style="width: 794px; min-height: 1123px; background: white; font-family: \'Malgun Gothic\', sans-serif; padding: 30px; position: relative; box-sizing: border-box;">'
-                // Header
-                + '<div style="background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%); color: white; padding: 20px; margin-bottom: 20px; border-radius: 8px;">'
-                    + '<h1 style="margin: 0 0 6px 0; font-size: 24px;">실내 공기질 분석 그래프</h1>'
-                    + '<p style="margin: 0; font-size: 13px; opacity: 0.9;">' + (projectData.apartmentName || '') + ' ' + (projectData.dong || '') + '동 ' + (projectData.ho || '') + '호 | ' + (projectData.inspectionDate || '') + '</p>'
-                + '</div>'
-
-                // Summary cards
-                + '<div style="display: flex; gap: 12px; margin-bottom: 22px;">'
-                    // Pass rate card with arc gauge
-                    + '<div style="flex: 1; background: linear-gradient(135deg, #f0fdf4, #dcfce7); border: 1px solid #bbf7d0; border-radius: 10px; padding: 16px; text-align: center;">'
-                        + '<div style="font-size: 12px; color: #15803d; font-weight: 600; margin-bottom: 6px;">종합 적합률</div>'
-                        + '<div style="font-size: 36px; font-weight: 800; color: ' + gaugeColor + ';">' + passRate + '<span style="font-size: 18px;">%</span></div>'
+            return '<div style="width:794px;min-height:1123px;background:white;font-family:\'Malgun Gothic\',sans-serif;padding:28px 30px;position:relative;box-sizing:border-box;">'
+                // ── 헤더 ──
+                + '<div style="background:linear-gradient(135deg,#0f766e 0%,#14b8a6 100%);color:white;padding:16px 20px;margin-bottom:16px;border-radius:8px;display:flex;align-items:center;justify-content:space-between;">'
+                    + '<div>'
+                        + '<h1 style="margin:0 0 4px 0;font-size:22px;">🌬️ 실내 공기질 측정 결과</h1>'
+                        + '<p style="margin:0;font-size:12px;opacity:0.9;">' + (projectData.apartmentName || '') + ' ' + (projectData.dong || '') + '동 ' + (projectData.ho || '') + '호 | ' + (projectData.inspectionDate || '') + '</p>'
                     + '</div>'
-                    // Total
-                    + '<div style="flex: 1; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px; text-align: center;">'
-                        + '<div style="font-size: 12px; color: #64748b; font-weight: 600; margin-bottom: 6px;">총 측정항목</div>'
-                        + '<div style="font-size: 36px; font-weight: 800; color: #334155;">' + totalMeasurements + '<span style="font-size: 14px; color: #94a3b8;"> 건</span></div>'
-                    + '</div>'
-                    // Pass
-                    + '<div style="flex: 1; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; padding: 16px; text-align: center;">'
-                        + '<div style="font-size: 12px; color: #15803d; font-weight: 600; margin-bottom: 6px;">적합</div>'
-                        + '<div style="font-size: 36px; font-weight: 800; color: #22c55e;">' + passCount + '<span style="font-size: 14px; color: #86efac;"> 건</span></div>'
-                    + '</div>'
-                    // Fail
-                    + '<div style="flex: 1; background: ' + (failCount > 0 ? '#fef2f2' : '#f8fafc') + '; border: 1px solid ' + (failCount > 0 ? '#fecaca' : '#e2e8f0') + '; border-radius: 10px; padding: 16px; text-align: center;">'
-                        + '<div style="font-size: 12px; color: ' + (failCount > 0 ? '#dc2626' : '#64748b') + '; font-weight: 600; margin-bottom: 6px;">부적합</div>'
-                        + '<div style="font-size: 36px; font-weight: 800; color: ' + (failCount > 0 ? '#ef4444' : '#94a3b8') + ';">' + failCount + '<span style="font-size: 14px;"> 건</span></div>'
+                    + '<div style="text-align:center;background:rgba(255,255,255,0.15);border-radius:10px;padding:8px 16px;">'
+                        + '<div style="font-size:10px;opacity:0.85;margin-bottom:2px;">종합 적합률</div>'
+                        + '<div style="font-size:28px;font-weight:800;">' + rate + '<span style="font-size:14px;">%</span></div>'
                     + '</div>'
                 + '</div>'
 
-                // Charts
-                + radonChart
-                + hchoChart
-                + vocsChart
-
-                // Legend
-                + '<div style="display: flex; justify-content: center; gap: 24px; margin-top: 8px; padding: 10px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">'
-                    + '<div style="display: flex; align-items: center; gap: 6px; font-size: 11px; color: #64748b;">'
-                        + '<div style="width: 16px; height: 10px; background: linear-gradient(90deg, #22c55ecc, #22c55e); border-radius: 3px;"></div> 적합 (기준 이하)'
+                // ── 요약 카드 ──
+                + '<div style="display:flex;gap:8px;margin-bottom:16px;">'
+                    + '<div style="flex:1;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:10px;text-align:center;">'
+                        + '<div style="font-size:9px;color:' + C.muted + ';font-weight:600;">총 측정</div>'
+                        + '<div style="font-size:22px;font-weight:800;color:' + C.text + ';margin-top:2px;">' + total + '<span style="font-size:10px;color:#94a3b8;"> 건</span></div>'
                     + '</div>'
-                    + '<div style="display: flex; align-items: center; gap: 6px; font-size: 11px; color: #64748b;">'
-                        + '<div style="width: 16px; height: 10px; background: linear-gradient(90deg, #ef4444cc, #ef4444); border-radius: 3px;"></div> 부적합 (기준 초과)'
+                    + '<div style="flex:1;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:10px;text-align:center;">'
+                        + '<div style="font-size:9px;color:#15803d;font-weight:600;">적합</div>'
+                        + '<div style="font-size:22px;font-weight:800;color:' + C.safe + ';margin-top:2px;">' + pass + '<span style="font-size:10px;color:#86efac;"> 건</span></div>'
                     + '</div>'
-                    + '<div style="display: flex; align-items: center; gap: 6px; font-size: 11px; color: #64748b;">'
-                        + '<div style="width: 2px; height: 14px; background: #dc2626;"></div> 권고기준선'
+                    + '<div style="flex:1;background:' + (fail > 0 ? '#fef2f2' : '#f8fafc') + ';border:1px solid ' + (fail > 0 ? '#fecaca' : '#e2e8f0') + ';border-radius:8px;padding:10px;text-align:center;">'
+                        + '<div style="font-size:9px;color:' + (fail > 0 ? '#dc2626' : C.muted) + ';font-weight:600;">부적합</div>'
+                        + '<div style="font-size:22px;font-weight:800;color:' + (fail > 0 ? C.danger : '#94a3b8') + ';margin-top:2px;">' + fail + '<span style="font-size:10px;"> 건</span></div>'
                     + '</div>'
                 + '</div>'
 
-                // Footer
-                + '<div style="position: absolute; bottom: 20px; left: 30px; right: 30px; padding-top: 15px; border-top: 1px solid #ddd; font-size: 11px; color: #000000; text-align: center;">'
+                // ── 측정 데이터 표 ──
+                + '<div style="margin-bottom:14px;">'
+                    + '<h3 style="margin:0 0 8px 0;font-size:13px;color:' + C.text + ';border-bottom:2px solid #16a085;padding-bottom:5px;">📋 측정 데이터</h3>'
+                    + '<table style="width:100%;border-collapse:collapse;border:1px solid #e2e8f0;font-size:11px;">'
+                        + '<thead><tr style="background:#f0fdfa;">'
+                            + '<th style="padding:6px;border:1px solid #e2e8f0;color:#000;font-size:10px;">공간</th>'
+                            + '<th style="padding:6px;border:1px solid #e2e8f0;color:#000;font-size:10px;">라돈<br>(Bq/m³)</th>'
+                            + '<th style="padding:6px;border:1px solid #e2e8f0;color:#000;font-size:10px;">판정</th>'
+                            + '<th style="padding:6px;border:1px solid #e2e8f0;color:#000;font-size:10px;">HCHO<br>(mg/m³)</th>'
+                            + '<th style="padding:6px;border:1px solid #e2e8f0;color:#000;font-size:10px;">판정</th>'
+                            + '<th style="padding:6px;border:1px solid #e2e8f0;color:#000;font-size:10px;">TVOCs<br>(mg/m³)</th>'
+                            + '<th style="padding:6px;border:1px solid #e2e8f0;color:#000;font-size:10px;">판정</th>'
+                        + '</tr></thead>'
+                        + '<tbody>' + tableRows + '</tbody>'
+                    + '</table>'
+                + '</div>'
+
+                // ── 그래프 섹션 ──
+                + '<div style="margin-bottom:12px;">'
+                    + '<h3 style="margin:0 0 10px 0;font-size:13px;color:' + C.text + ';border-bottom:2px solid #16a085;padding-bottom:5px;">📊 항목별 비교 분석</h3>'
+                    + '<div style="display:flex;gap:10px;">'
+                        + radonChart
+                        + hchoChart
+                        + vocsChart
+                    + '</div>'
+                + '</div>'
+
+                // ── 범례 + 기준 ──
+                + '<div style="display:flex;gap:10px;margin-bottom:10px;">'
+                    + '<div style="flex:1;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:6px;padding:10px;font-size:10px;color:#1b5e20;line-height:1.5;">'
+                        + '<strong style="font-size:11px;">✓ 권고기준</strong><br>'
+                        + '• 라돈: <strong>148 Bq/m³</strong> 이하<br>'
+                        + '• 포름알데히드: <strong>0.210 mg/m³</strong> 이하<br>'
+                        + '• 총VOCs: <strong>0.500 mg/m³</strong> 이하'
+                    + '</div>'
+                    + '<div style="flex:1;background:#fff9db;border:1px solid #fcc419;border-radius:6px;padding:10px;font-size:9px;color:#856404;line-height:1.5;">'
+                        + '<strong style="font-size:10px;">※ 참고사항</strong><br>'
+                        + '• 측정 결과는 당시 환경 조건에 따라 달라질 수 있습니다<br>'
+                        + '• 부적합 판정 시 환기 후 재측정을 권장합니다<br>'
+                        + '• 라돈 농도는 계절, 시간대에 따라 변동 가능합니다'
+                    + '</div>'
+                + '</div>'
+
+                // ── 범례 바 ──
+                + '<div style="display:flex;justify-content:center;gap:16px;padding:6px;background:#f8fafc;border-radius:6px;border:1px solid #e2e8f0;">'
+                    + '<div style="display:flex;align-items:center;gap:4px;font-size:9px;color:' + C.muted + ';"><div style="width:12px;height:8px;background:' + C.safe + ';border-radius:2px;"></div> 적합 (기준 이하)</div>'
+                    + '<div style="display:flex;align-items:center;gap:4px;font-size:9px;color:' + C.muted + ';"><div style="width:12px;height:8px;background:' + C.danger + ';border-radius:2px;"></div> 부적합 (기준 초과)</div>'
+                    + '<div style="display:flex;align-items:center;gap:4px;font-size:9px;color:' + C.muted + ';"><div style="width:1.5px;height:12px;background:' + C.danger + ';"></div> 권고기준선</div>'
+                + '</div>'
+
+                // ── 푸터 ──
+                + '<div style="position:absolute;bottom:20px;left:30px;right:30px;padding-top:12px;border-top:1px solid #ddd;font-size:11px;color:#000;text-align:center;">'
                     + '<div>더홈점검 | 대표: 1668-5322 / 직통: 010-9985-0128 | 사전점검 전문업체</div>'
                 + '</div>'
             + '</div>';
-        };
-
-        window.createAirQualityDetailPage = function() {
-            const airQualityData = projectData.airQuality.filter(room => 
-                room.radon || room.formaldehyde || room.vocs
-            );
-
-            // 기준치
-            const standards = {
-                radon: 148,
-                formaldehyde: 0.210,
-                vocs: 0.500
-            };
-
-            // 표 생성
-            let tableRows = '';
-            airQualityData.forEach((room) => {
-                const radonValue = parseFloat(room.radon) || 0;
-                const formaldehydeValue = parseFloat(room.formaldehyde) || 0;
-                const vocsValue = parseFloat(room.vocs) || 0;
-
-                const radonStatus = radonValue > 0 ? (radonValue <= standards.radon ? '적합' : '부적합') : '-';
-                const formaldehydeStatus = formaldehydeValue > 0 ? (formaldehydeValue <= standards.formaldehyde ? '적합' : '부적합') : '-';
-                const vocsStatus = vocsValue > 0 ? (vocsValue <= standards.vocs ? '적합' : '부적합') : '-';
-
-                tableRows += `
-                    <tr style="border-bottom: 1px solid #ddd;">
-                        <td style="padding: 10px; text-align: center; font-weight: bold; background: #f8f9fa; color: #000000;">${room.name}</td>
-                        <td style="padding: 10px; text-align: center; color: #000000;">${room.radon || '-'}</td>
-                        <td style="padding: 10px; text-align: center; color: ${radonValue > standards.radon ? '#e74c3c' : '#10b981'}; font-weight: bold;">${radonStatus}</td>
-                        <td style="padding: 10px; text-align: center; color: #000000;">${room.formaldehyde || '-'}</td>
-                        <td style="padding: 10px; text-align: center; color: ${formaldehydeValue > standards.formaldehyde ? '#e74c3c' : '#10b981'}; font-weight: bold;">${formaldehydeStatus}</td>
-                        <td style="padding: 10px; text-align: center; color: #000000;">${room.vocs || '-'}</td>
-                        <td style="padding: 10px; text-align: center; color: ${vocsValue > standards.vocs ? '#e74c3c' : '#10b981'}; font-weight: bold;">${vocsStatus}</td>
-                    </tr>
-                `;
-            });
-
-            return `
-                <div style="width: 794px; min-height: 1123px; background: white; font-family: 'Malgun Gothic', sans-serif; padding: 30px;">
-                    <div style="background: linear-gradient(135deg, #16a085 0%, #1abc9c 100%); color: white; padding: 20px; margin-bottom: 25px; border-radius: 8px;">
-                        <h1 style="margin: 0 0 8px 0; font-size: 26px;">실내 공기질 측정 결과</h1>
-                        <p style="margin: 0; font-size: 14px; opacity: 0.9;">${projectData.apartmentName} ${projectData.dong}동 ${projectData.ho}호 | ${projectData.inspectionDate || ''}</p>
-                    </div>
-
-                    <div style="margin-bottom: 25px;">
-                        <h3 style="margin: 0 0 15px 0; font-size: 18px; color: #000000; border-bottom: 2px solid #16a085; padding-bottom: 8px;">📋 측정 데이터</h3>
-                        <table style="width: 100%; border-collapse: collapse; border: 1px solid #ddd; font-size: 13px;">
-                            <thead>
-                                <tr style="background: #f8f9fa; border-bottom: 2px solid #ddd;">
-                                    <th style="padding: 12px; border: 1px solid #ddd; color: #000000;">공간</th>
-                                    <th style="padding: 12px; border: 1px solid #ddd; color: #000000;">라돈<br>(Bq/m³)</th>
-                                    <th style="padding: 12px; border: 1px solid #ddd; color: #000000;">판정</th>
-                                    <th style="padding: 12px; border: 1px solid #ddd; color: #000000;">포름알데히드<br>(mg/m³)</th>
-                                    <th style="padding: 12px; border: 1px solid #ddd; color: #000000;">판정</th>
-                                    <th style="padding: 12px; border: 1px solid #ddd; color: #000000;">총VOCs<br>(mg/m³)</th>
-                                    <th style="padding: 12px; border: 1px solid #ddd; color: #000000;">판정</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${tableRows}
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <div style="background: #e8f5e9; border: 1px solid #4caf50; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
-                        <h4 style="margin: 0 0 15px 0; color: #2e7d32; font-size: 16px;">✓ 권고기준 (실내공기질 공정시험기준)</h4>
-                        <div style="font-size: 14px; color: #1b5e20; line-height: 1.6; font-size: 13px; margin-bottom: 15px;">
-                            <div>• 라돈(Rn): <strong>148 Bq/m³ 이하</strong></div>
-                            <div>• 포름알데히드(HCHO): <strong>0.210 mg/m³ 이하</strong></div>
-                            <div>• 총휘발성유기화합물(TVOCs): <strong>0.500 mg/m³ 이하</strong></div>
-                        </div>
-                    </div>
-
-                    <div style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 8px; padding: 15px; margin-bottom: 20px;">
-                        <div style="font-size: 12px; color: #856404; line-height: 1.6;">
-                            <strong>※ 참고사항</strong><br>
-                            - 측정 결과는 측정 당시의 환경 조건에 따라 달라질 수 있습니다.<br>
-                            - 부적합 판정 시 환기 등의 조치 후 재측정을 권장합니다.<br>
-                            - 라돈 농도는 계절, 시간대에 따라 변동이 있을 수 있습니다.
-                        </div>
-                    </div>
-
-                    <div style="position: absolute; bottom: 20px; left: 30px; right: 30px; padding-top: 15px; border-top: 1px solid #ddd; font-size: 11px; color: #000000; text-align: center;">
-                        <div>더홈점검 | 대표: 1668-5322 / 직통: 010-9985-0128 | 사전점검 전문업체</div>
-                    </div>
-                </div>
-            `;
         }
+
 
         // ==================== IndexedDB 설정 ====================
         let db;
@@ -10550,12 +10472,6 @@
                 doc.addPage();
                 const airQualityHTML = window.createAirQualityDetailPage();
                 await window.addHTMLPageToPDF(doc, airQualityHTML, W, H);
-                // 공기질 그래프 페이지 추가
-                doc.addPage();
-                const airQualityGraphHTML2 = window.createAirQualityGraphPage();
-                if (airQualityGraphHTML2) {
-                    await window.addHTMLPageToPDF(doc, airQualityGraphHTML2, W, H);
-                }
             }
 
             // 견적서 페이지 추가 (실내공기질측정결과 바로 다음)
