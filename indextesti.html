@@ -3144,13 +3144,6 @@
 
                 // 공기질 페이지
 
-                // 장비점검 요약 페이지
-                const equipSummaryHTML = window.createEquipmentSummaryPage();
-                if (equipSummaryHTML) {
-                    doc.addPage();
-                    await window.addHTMLPageToPDF(doc, equipSummaryHTML, pageWidth, pageHeight);
-                }
-
                 // 열화상 단열 안내 페이지 (토글 ON일 때만)
                 if ((localStorage.getItem('thermalNoticeGlobal') === 'on')) {
                     doc.addPage();
@@ -3188,11 +3181,6 @@
                 doc.addPage();
                 const condensationGuide = window.createCondensationGuidePage();
                 await window.addHTMLPageToPDF(doc, condensationGuide, pageWidth, pageHeight);
-
-                // 하자 보증기간 안내 페이지
-                doc.addPage();
-                const warrantyPeriodHTML = window.createWarrantyPeriodPage();
-                await window.addHTMLPageToPDF(doc, warrantyPeriodHTML, pageWidth, pageHeight);
 
                 // 입주 전 체크리스트 페이지
                 doc.addPage();
@@ -6918,13 +6906,6 @@
                 }
 
 
-                // 장비점검 요약 페이지
-                const equipSummaryHTML = window.createEquipmentSummaryPage();
-                if (equipSummaryHTML) {
-                    doc.addPage();
-                    await window.addHTMLPageToPDF(doc, equipSummaryHTML, pageWidth, pageHeight);
-                }
-
                 // 열화상 단열 안내 페이지 (토글 ON일 때만)
                 if ((localStorage.getItem('thermalNoticeGlobal') === 'on')) {
                     doc.addPage();
@@ -6961,11 +6942,6 @@
                 doc.addPage();
                 const condensationGuide = window.createCondensationGuidePage();
                 await window.addHTMLPageToPDF(doc, condensationGuide, pageWidth, pageHeight);
-
-                // 하자 보증기간 안내 페이지
-                doc.addPage();
-                const warrantyPeriodHTML = window.createWarrantyPeriodPage();
-                await window.addHTMLPageToPDF(doc, warrantyPeriodHTML, pageWidth, pageHeight);
 
                 // 입주 전 체크리스트 페이지
                 doc.addPage();
@@ -7534,13 +7510,6 @@
 
                 // 공기질 상세 페이지 추가
 
-                // 장비점검 요약 페이지
-                const equipSummaryHTML = window.createEquipmentSummaryPage();
-                if (equipSummaryHTML) {
-                    doc.addPage();
-                    await window.addHTMLPageToPDF(doc, equipSummaryHTML, pageWidth, pageHeight);
-                }
-
                 // 열화상 단열 안내 페이지 (토글 ON일 때만)
                 if ((localStorage.getItem('thermalNoticeGlobal') === 'on')) {
                     doc.addPage();
@@ -7583,11 +7552,6 @@
                 doc.addPage();
                 const condensationGuide = window.createCondensationGuidePage();
                 await window.addHTMLPageToPDF(doc, condensationGuide, pageWidth, pageHeight);
-
-                // 하자 보증기간 안내 페이지
-                doc.addPage();
-                const warrantyPeriodHTML = window.createWarrantyPeriodPage();
-                await window.addHTMLPageToPDF(doc, warrantyPeriodHTML, pageWidth, pageHeight);
 
                 // 입주 전 체크리스트 페이지
                 doc.addPage();
@@ -8954,66 +8918,88 @@
 
         // 참고자료 페이지 생성 함수들
         window.createWarrantyGuidePage1 = function() {
-            return `
-                <div style="width: 794px; min-height: 1123px; background: white; font-family: 'Malgun Gothic', sans-serif; padding: 40px; position: relative;">
-                    <h2 style="margin: 0 0 25px 0; font-size: 22px; color: #1a1a1a; border-bottom: 3px solid #e74c3c; padding-bottom: 12px;">📝 하자보수 청구 가이드</h2>
+            return '<div style="width:794px;min-height:1123px;background:white;font-family:\'Malgun Gothic\',sans-serif;padding:30px;position:relative;box-sizing:border-box;">'
 
-                    <div style="background: #ffebee; border-left: 4px solid #e74c3c; padding: 18px; margin-bottom: 25px; border-radius: 4px;">
-                        <p style="margin: 0; color: #1a1a1a; font-size: 14px; line-height: 1.8; font-weight: 500;">
-                            하자를 발견하셨나요? 하자담보책임 기간 내에 적절한 절차로 보수 청구하시면 무상으로 수리받으실 수 있습니다.
-                        </p>
-                    </div>
+                // 헤더
+                + '<div style="background:#1e3a5f;color:white;padding:18px 22px;margin-bottom:20px;border-radius:8px;">'
+                    + '<h1 style="margin:0 0 4px 0;font-size:22px;">하자보수 청구 및 보증기간 안내</h1>'
+                    + '<p style="margin:0;font-size:12px;opacity:0.9;">공동주택관리법 시행령 제36조 제1항 제2호 및 별표4</p>'
+                + '</div>'
 
-                    <div style="border: 2px solid #ddd; border-radius: 8px; padding: 20px; margin-bottom: 20px; background: white;">
-                        <div style="background: #e3f2fd; color: #1a1a1a; border-bottom: 2px solid #3498db; padding: 12px 18px; margin: -20px -20px 18px -20px; border-radius: 6px 6px 0 0; font-size: 16px; font-weight: bold;">
-                            1단계: 하자 발견 즉시 사진 촬영 및 기록
-                        </div>
-                        <ul style="margin: 0; padding-left: 20px; font-size: 13px; color: #1a1a1a; line-height: 2;">
-                            <li><strong>원경 사진:</strong> 하자가 어느 위치에 있는지 전체적인 공간 촬영</li>
-                            <li><strong>근접 사진:</strong> 하자 부위를 확대하여 상세하게 촬영</li>
-                            <li><strong>기록 사항:</strong> 발견 날짜, 위치(공간), 하자 내용을 메모</li>
-                        </ul>
-                    </div>
+                // 보증기간 표
+                + '<h3 style="font-size:15px;color:#1e293b;margin:0 0 10px 0;border-left:4px solid #E84848;padding-left:10px;">하자담보 책임기간</h3>'
 
-                    <div style="border: 2px solid #ddd; border-radius: 8px; padding: 20px; margin-bottom: 20px; background: white;">
-                        <div style="background: #e8f5e9; color: #1a1a1a; border-bottom: 2px solid #2ecc71; padding: 12px 18px; margin: -20px -20px 18px -20px; border-radius: 6px 6px 0 0; font-size: 16px; font-weight: bold;">
-                            2단계: 하자보수 신청
-                        </div>
-                        <div style="background: #fff3e0; padding: 15px; border-radius: 4px; border: 1px solid #f39c12; margin-bottom: 15px;">
-                            <p style="margin: 0; color: #1a1a1a; font-size: 13px; line-height: 1.8;">
-                                <strong>신청 방법</strong><br>
-                                ① <strong>관리사무소</strong>에 접수 (일반적인 방법)<br>
-                                ② <strong>시공사 A/S센터</strong>에 직접 접수 (긴급 하자, 대응 미흡 시)
-                            </p>
-                        </div>
-                        
-                        <div style="background: #e3f2fd; padding: 15px; border-radius: 4px; border: 1px solid #3498db;">
-                            <p style="margin: 0 0 10px 0; color: #1a1a1a; font-size: 13px; font-weight: bold;">📌 제출 서류</p>
-                            <ul style="margin: 0; padding-left: 20px; font-size: 13px; color: #1a1a1a; line-height: 1.8;">
-                                <li>하자보수 신청서</li>
-                                <li>하자 사진 (원경, 근접)</li>
-                                <li>입주자 정보 (동/호수, 연락처)</li>
-                            </ul>
-                        </div>
-                    </div>
+                + '<div style="display:flex;margin-bottom:5px;font-size:12px;">'
+                    + '<div style="width:50px;padding:10px 0;text-align:center;background:#E84848;color:white;font-weight:700;border-radius:6px 0 0 6px;">2년</div>'
+                    + '<div style="flex:1;padding:8px 12px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:0 6px 6px 0;color:#334155;line-height:1.5;"><strong>마감공사:</strong> 미장, 수장, 도장, 도배, 타일, 석공사, 옥내가구, 주방기구, 가전제품</div>'
+                + '</div>'
+                + '<div style="display:flex;margin-bottom:5px;font-size:12px;">'
+                    + '<div style="width:50px;padding:10px 0;text-align:center;background:#e67e22;color:white;font-weight:700;border-radius:6px 0 0 6px;">3년</div>'
+                    + '<div style="flex:1;padding:8px 12px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:0 6px 6px 0;color:#334155;line-height:1.5;"><strong>건축:</strong> 균열, 누수, 결로 | <strong>창호:</strong> 창문틀, 문짝 | <strong>설비:</strong> 냉난방, 환기, 위생</div>'
+                + '</div>'
+                + '<div style="display:flex;margin-bottom:5px;font-size:12px;">'
+                    + '<div style="width:50px;padding:10px 0;text-align:center;background:#f59e0b;color:white;font-weight:700;border-radius:6px 0 0 6px;">5년</div>'
+                    + '<div style="flex:1;padding:8px 12px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:0 6px 6px 0;color:#334155;line-height:1.5;"><strong>전기/전력설비</strong> | <strong>급/배수, 가스, 소방설비</strong> | <strong>정보통신</strong> | <strong>조경공사</strong></div>'
+                + '</div>'
+                + '<div style="display:flex;margin-bottom:14px;font-size:12px;">'
+                    + '<div style="width:50px;padding:10px 0;text-align:center;background:#16a085;color:white;font-weight:700;border-radius:6px 0 0 6px;">10년</div>'
+                    + '<div style="flex:1;padding:8px 12px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:0 6px 6px 0;color:#334155;line-height:1.5;"><strong>내력구조부:</strong> 기둥, 보, 내력벽 | <strong>방수공사</strong> | <strong>철근콘크리트</strong> | <strong>지붕공사</strong></div>'
+                + '</div>'
 
-                    <div style="border: 2px solid #ddd; border-radius: 8px; padding: 20px; background: white;">
-                        <div style="background: #fff3e0; color: #1a1a1a; border-bottom: 2px solid #f39c12; padding: 12px 18px; margin: -20px -20px 18px -20px; border-radius: 6px 6px 0 0; font-size: 16px; font-weight: bold;">
-                            3단계: 시공사의 하자 확인 및 보수
-                        </div>
-                        <ul style="margin: 0; padding-left: 20px; font-size: 13px; color: #1a1a1a; line-height: 2;">
-                            <li>시공사에서 하자 확인을 위해 방문 (일정 협의, 보통 1~2주 소요)</li>
-                            <li>하자 인정 시 보수 일정 협의 및 시행</li>
-                            <li>보수 완료 후 입주자 확인 및 서명</li>
-                            <li><strong>대응 지연 시:</strong> 시공사 본사 A/S센터, 한국소비자원(1372) 상담</li>
-                        </ul>
-                    </div>
+                // 자주 묻는 하자
+                + '<div style="display:flex;gap:6px;margin-bottom:18px;">'
+                    + '<div style="flex:1;padding:8px;background:#fef2f2;border:1px solid #fecaca;border-radius:6px;text-align:center;"><div style="font-size:11px;color:#64748b;">도배 들뜸</div><div style="font-size:18px;font-weight:800;color:#E84848;">2년</div></div>'
+                    + '<div style="flex:1;padding:8px;background:#fff7ed;border:1px solid #fed7aa;border-radius:6px;text-align:center;"><div style="font-size:11px;color:#64748b;">창호 결함</div><div style="font-size:18px;font-weight:800;color:#e67e22;">3년</div></div>'
+                    + '<div style="flex:1;padding:8px;background:#fffbeb;border:1px solid #fde68a;border-radius:6px;text-align:center;"><div style="font-size:11px;color:#64748b;">배관 누수</div><div style="font-size:18px;font-weight:800;color:#f59e0b;">5년</div></div>'
+                    + '<div style="flex:1;padding:8px;background:#f0fdfa;border:1px solid #99f6e4;border-radius:6px;text-align:center;"><div style="font-size:11px;color:#64748b;">구조체 균열</div><div style="font-size:18px;font-weight:800;color:#16a085;">10년</div></div>'
+                + '</div>'
 
-                    <div style="position: absolute; bottom: 25px; left: 40px; right: 40px; padding-top: 15px; border-top: 1px solid #ddd; font-size: 12px; color: #1a1a1a; text-align: center; font-weight: 500;">
-                        <div>더홈점검 | 대표: 1668-5322 / 직통: 010-9985-0128</div>
-                    </div>
-                </div>
-            `;
+                // 하자보수 청구 절차
+                + '<h3 style="font-size:15px;color:#1e293b;margin:0 0 10px 0;border-left:4px solid #3498db;padding-left:10px;">하자보수 청구 절차</h3>'
+
+                + '<div style="display:flex;gap:8px;margin-bottom:14px;">'
+                    // 1단계
+                    + '<div style="flex:1;border:1px solid #e2e8f0;border-radius:8px;padding:12px;background:white;">'
+                        + '<div style="background:#e3f2fd;color:#1565c0;padding:6px 10px;border-radius:4px;font-size:13px;font-weight:700;margin-bottom:8px;">1단계: 사진 촬영</div>'
+                        + '<div style="font-size:11px;color:#334155;line-height:1.6;">'
+                            + '- 원경 사진: 전체 공간<br>'
+                            + '- 근접 사진: 하자 부위 확대<br>'
+                            + '- 발견 날짜, 위치, 내용 기록'
+                        + '</div>'
+                    + '</div>'
+                    // 2단계
+                    + '<div style="flex:1;border:1px solid #e2e8f0;border-radius:8px;padding:12px;background:white;">'
+                        + '<div style="background:#e8f5e9;color:#2e7d32;padding:6px 10px;border-radius:4px;font-size:13px;font-weight:700;margin-bottom:8px;">2단계: 보수 신청</div>'
+                        + '<div style="font-size:11px;color:#334155;line-height:1.6;">'
+                            + '- 관리사무소에 접수<br>'
+                            + '- 또는 시공사 A/S센터 직접 접수<br>'
+                            + '- 하자 사진 + 동/호수 제출'
+                        + '</div>'
+                    + '</div>'
+                    // 3단계
+                    + '<div style="flex:1;border:1px solid #e2e8f0;border-radius:8px;padding:12px;background:white;">'
+                        + '<div style="background:#fff3e0;color:#e65100;padding:6px 10px;border-radius:4px;font-size:13px;font-weight:700;margin-bottom:8px;">3단계: 확인 및 보수</div>'
+                        + '<div style="font-size:11px;color:#334155;line-height:1.6;">'
+                            + '- 시공사 방문 확인 (1~2주)<br>'
+                            + '- 보수 일정 협의 및 시행<br>'
+                            + '- 완료 후 입주자 확인 서명'
+                        + '</div>'
+                    + '</div>'
+                + '</div>'
+
+                // 참고사항
+                + '<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px;font-size:11px;color:#64748b;line-height:1.6;">'
+                    + '<strong style="color:#334155;">참고사항</strong><br>'
+                    + '- 대응 지연 시: 시공사 본사 A/S센터 또는 한국소비자원(1372) 상담<br>'
+                    + '- 조치 미이행 시 500만원 과태료 부과 가능 (공동주택관리법 시행령 제102조)<br>'
+                    + '- 하자보수 청구는 입주자대표회의 또는 개별 입주자가 할 수 있습니다'
+                + '</div>'
+
+                // 푸터
+                + '<div style="position:absolute;bottom:20px;left:30px;right:30px;padding-top:12px;border-top:1px solid #ddd;font-size:11px;color:#000;text-align:center;">'
+                    + '<div>더홈점검 | 대표: 1668-5322 / 직통: 010-9985-0128 | 사전점검 전문업체</div>'
+                + '</div>'
+            + '</div>';
         }
 
         window.createWarrantyGuidePage2 = function() {
@@ -9699,9 +9685,7 @@
             if (hasEquipment) {
                 sections.push({num: '3', title: '장비 점검 결과', desc: '열화상 카메라, 레이저 레벨기 등 장비 점검 결과'});
             }
-            if (hasEquipment) {
-                sections.push({num: '4', title: '장비 점검 요약', desc: '장비 점검 항목별 종합 결과 요약'});
-            }
+
             if (hasThermal) {
                 sections.push({num: '', title: '열화상 단열 점검 안내', desc: '실내외 온도차에 따른 단열 판독 안내'});
             }
@@ -9892,62 +9876,72 @@
 
         // ==================== 입주 전 체크리스트 페이지 ====================
         window.createMoveInChecklistPage = function() {
-            function section(title, color, items) {
-                let rows = '';
+            function section(title, timing, color, items) {
+                var rows = '';
                 items.forEach(function(item) {
-                    rows += '<div style="display:flex;align-items:center;padding:7px 0;border-bottom:1px solid #f1f5f9;">'
-                        + '<div style="width:18px;height:18px;border:2px solid #cbd5e1;border-radius:4px;flex-shrink:0;"></div>'
-                        + '<div style="margin-left:10px;font-size:13px;color:#334155;">' + item + '</div>'
+                    rows += '<div style="display:flex;align-items:center;padding:6px 0;border-bottom:1px solid #f1f5f9;">'
+                        + '<div style="width:16px;height:16px;border:2px solid #cbd5e1;border-radius:3px;flex-shrink:0;"></div>'
+                        + '<div style="margin-left:10px;font-size:12px;color:#334155;line-height:1.4;">' + item + '</div>'
                     + '</div>';
                 });
-                return '<div style="margin-bottom:16px;">'
-                    + '<div style="display:flex;align-items:center;margin-bottom:8px;">'
-                        + '<div style="width:5px;height:20px;background:' + color + ';border-radius:3px;margin-right:8px;"></div>'
-                        + '<h4 style="margin:0;font-size:15px;color:#1e293b;">' + title + '</h4>'
+                return '<div style="margin-bottom:14px;">'
+                    + '<div style="display:flex;align-items:center;margin-bottom:6px;">'
+                        + '<div style="width:5px;height:18px;background:' + color + ';border-radius:3px;margin-right:8px;"></div>'
+                        + '<h4 style="margin:0;font-size:14px;color:#1e293b;">' + title + '</h4>'
+                        + '<span style="margin-left:8px;font-size:10px;color:#94a3b8;background:#f1f5f9;padding:2px 8px;border-radius:10px;">' + timing + '</span>'
                     + '</div>'
                     + '<div style="padding-left:8px;">' + rows + '</div>'
                 + '</div>';
             }
 
             return '<div style="width:794px;min-height:1123px;background:white;font-family:\'Malgun Gothic\',sans-serif;padding:30px;position:relative;box-sizing:border-box;">'
-                + '<div style="background:#7c3aed;color:white;padding:18px 22px;margin-bottom:24px;border-radius:8px;">'
+                + '<div style="background:#7c3aed;color:white;padding:18px 22px;margin-bottom:20px;border-radius:8px;">'
                     + '<h1 style="margin:0 0 4px 0;font-size:22px;">입주 전 체크리스트</h1>'
-                    + '<p style="margin:0;font-size:13px;opacity:0.9;">입주 준비부터 당일까지 꼭 확인하세요</p>'
+                    + '<p style="margin:0;font-size:12px;opacity:0.9;">입주 준비부터 당일까지 꼭 확인하세요</p>'
                 + '</div>'
 
-                + section('사전점검 기간', '#E84848', [
+                + section('사전점검 기간', 'D-90 ~ D-60', '#E84848', [
                     '세대 내부 실측 (가구 배치 계획)',
-                    '하자 접수 확인하기',
-                    '가구 배치 구상',
-                    '대출 상담 (중도금 대출 전환)',
-                    '입주 예상일 계산하기'
+                    '하자 접수 확인 및 사진 보관',
+                    '대출 상담 (중도금 대출 전환 준비)',
+                    '입주 예상일 계산 및 일정 수립'
                 ])
 
-                + section('사전점검 이후 (입주 1~3개월 전)', '#e67e22', [
-                    '입주 청소 예약 (이사 1~3달 전)',
-                    '이사 업체 예약 (이사 1달 전)',
-                    '도시가스 차단 및 전출 신청 (이사 1주일 전)',
-                    '도시가스 전입 신청 (이사 1주일 전)',
-                    '인터넷 이전 신청 (이사 최소 14일 전)',
-                    '폐기물 처리 예약 (이사 3일 전)',
-                    '가전제품 이전 예약',
-                    '사용 승인일 확인',
-                    '입주 지원센터 이사 예약'
+                + section('입주 1~3개월 전', 'D-90 ~ D-30', '#e67e22', [
+                    '입주 청소 업체 예약',
+                    '이사 업체 선정 및 예약 (포장이사 허가업소 확인)',
+                    '인터넷/TV 이전 설치 예약 (최소 2주 전)',
+                    '가전제품 이전 예약 (에어컨, 비데, 정수기 등)',
+                    '폐기물 처리 예약 (대형폐기물 스티커 발부)',
+                    '관리사무소에 이사 일정 통보 및 엘리베이터 예약'
                 ])
 
-                + section('입주 당일', '#16a085', [
-                    '옵션 대금 납부',
-                    '중도금 / 잔금 납부',
-                    '대출 전환 (중도금 -> 주택 담보 대출)',
-                    '관리비 예치금 납부 후 확인서 수령',
-                    '입주증 및 주차증 발급',
-                    '세대 시설물 인수인계',
-                    '주민등록 전입 신고',
-                    '국민건강보험 주소 이전',
-                    '차량 이전 등록',
-                    '전화 가입 신청',
-                    '우편물 주소 변경',
+                + section('입주 1주 전', 'D-7', '#f59e0b', [
+                    '도시가스 전출 신청 (기존 거주지) - 이사 2~3일 전',
+                    '도시가스 전입 신청 (새 거주지) - 이사 2~3일 전',
+                    '전기 명의변경 신청 (한국전력 123)',
+                    '수도 명의변경 신청 (지역 수도사업소)',
+                    '우편물 주소 변경 (우체국 전입지 이전 신청)',
+                    '사용승인일(입주가능일) 최종 확인'
+                ])
+
+                + section('입주 당일', 'D-Day', '#16a085', [
+                    '잔금 납부 (분양대금, 옵션 대금)',
+                    '중도금 대출 전환 (주택담보대출)',
+                    '관리비 예치금(선수관리비) 납부',
+                    '입주증 및 주차증 발급 수령',
+                    '세대 시설물 인수인계 (관리사무소)',
+                    '가스 안전점검 및 개통 확인',
                     '디지털 도어록 비밀번호 설정'
+                ])
+
+                + section('입주 후 즉시', 'D+1 ~ D+14', '#3b82f6', [
+                    '주민등록 전입신고 (정부24 또는 주민센터)',
+                    '확정일자 받기 (전월세 거주 시 필수)',
+                    '국민건강보험 주소 이전',
+                    '차량 이전 등록 (관할 구청)',
+                    '자녀 학교 전학 수속 (해당 시)',
+                    '하자 추가 발견 시 관리사무소 즉시 접수'
                 ])
 
                 + '<div style="position:absolute;bottom:20px;left:30px;right:30px;padding-top:12px;border-top:1px solid #ddd;font-size:11px;color:#000;text-align:center;">'
@@ -10924,13 +10918,6 @@
                 await window.addHTMLPageToPDF(doc, window.createEquipmentPage([equipmentWithPhotos[i]]), W, H);
             }
 
-            // 장비점검 요약 페이지
-            const equipSummaryHTML4 = window.createEquipmentSummaryPage();
-            if (equipSummaryHTML4) {
-                doc.addPage();
-                await window.addHTMLPageToPDF(doc, equipSummaryHTML4, W, H);
-            }
-
             // 열화상 단열 안내 페이지 (토글 ON일 때만)
             if ((localStorage.getItem('thermalNoticeGlobal') === 'on')) {
                 doc.addPage();
@@ -10958,9 +10945,6 @@
             doc.addPage(); await window.addHTMLPageToPDF(doc, window.createWarrantyGuidePage1(), W, H);
             doc.addPage(); await window.addHTMLPageToPDF(doc, window.createAirQualityManagementGuidePage(), W, H);
             doc.addPage(); await window.addHTMLPageToPDF(doc, window.createCondensationGuidePage(), W, H);
-
-            // 하자 보증기간 안내 페이지
-            doc.addPage(); await window.addHTMLPageToPDF(doc, window.createWarrantyPeriodPage(), W, H);
 
             // 입주 전 체크리스트 페이지
             doc.addPage(); await window.addHTMLPageToPDF(doc, window.createMoveInChecklistPage(), W, H);
