@@ -2993,7 +2993,7 @@
                     }
                     
                     // 열화상 단열 안내 페이지 (토글 ON일 때만)
-                    if (projectData.thermalNotice) {
+                    if ((localStorage.getItem('thermalNoticeGlobal') === 'on')) {
                         equipDoc.addPage();
                         const thermalHTML = window.createThermalNoticePage();
                         await window.addHTMLPageToPDF(equipDoc, thermalHTML, pageWidth, pageHeight);
@@ -3140,7 +3140,7 @@
                 // 공기질 페이지
 
                 // 열화상 단열 안내 페이지 (토글 ON일 때만)
-                if (projectData.thermalNotice) {
+                if ((localStorage.getItem('thermalNoticeGlobal') === 'on')) {
                     doc.addPage();
                     const thermalHTML = window.createThermalNoticePage();
                     await window.addHTMLPageToPDF(doc, thermalHTML, pageWidth, pageHeight);
@@ -3390,7 +3390,7 @@
                             }
                             
                             // 열화상 단열 안내 페이지 (토글 ON일 때만)
-                            if (projectData.thermalNotice) {
+                            if ((localStorage.getItem('thermalNoticeGlobal') === 'on')) {
                                 equipDoc.addPage();
                                 const thermalHTML2 = window.createThermalNoticePage();
                                 await window.addHTMLPageToPDF(equipDoc, thermalHTML2, pageWidth, pageHeight);
@@ -5405,13 +5405,12 @@
 
         // ==================== 열화상 단열 안내 토글 ====================
         window.toggleThermalNotice = function(checked) {
-            projectData.thermalNotice = checked;
-            saveProjectsToLocalStorage();
+            localStorage.setItem('thermalNoticeGlobal', checked ? 'on' : 'off');
         };
 
         function restoreThermalToggle() {
             const toggle = document.getElementById('thermalNoticeToggle');
-            if (toggle) toggle.checked = !!projectData.thermalNotice;
+            if (toggle) toggle.checked = (localStorage.getItem('thermalNoticeGlobal') === 'on');
         }
 
         // ==================== 공기질 측정 ====================
@@ -6893,7 +6892,7 @@
 
 
                 // 열화상 단열 안내 페이지 (토글 ON일 때만)
-                if (projectData.thermalNotice) {
+                if ((localStorage.getItem('thermalNoticeGlobal') === 'on')) {
                     doc.addPage();
                     const thermalHTML = window.createThermalNoticePage();
                     await window.addHTMLPageToPDF(doc, thermalHTML, pageWidth, pageHeight);
@@ -7487,7 +7486,7 @@
                 // 공기질 상세 페이지 추가
 
                 // 열화상 단열 안내 페이지 (토글 ON일 때만)
-                if (projectData.thermalNotice) {
+                if ((localStorage.getItem('thermalNoticeGlobal') === 'on')) {
                     doc.addPage();
                     const thermalHTML = window.createThermalNoticePage();
                     await window.addHTMLPageToPDF(doc, thermalHTML, pageWidth, pageHeight);
@@ -7720,7 +7719,7 @@
                 }
 
                 // 열화상 단열 안내 페이지 (토글 ON일 때만)
-                if (projectData.thermalNotice) {
+                if ((localStorage.getItem('thermalNoticeGlobal') === 'on')) {
                     doc.addPage();
                     const thermalHTML = window.createThermalNoticePage();
                     await window.addHTMLPageToPDF(doc, thermalHTML, pageWidth, pageHeight);
@@ -10583,7 +10582,7 @@
             }
 
             // 열화상 단열 안내 페이지 (토글 ON일 때만)
-            if (projectData.thermalNotice) {
+            if ((localStorage.getItem('thermalNoticeGlobal') === 'on')) {
                 doc.addPage();
                 const thermalNoticeHTML = window.createThermalNoticePage();
                 await window.addHTMLPageToPDF(doc, thermalNoticeHTML, W, H);
