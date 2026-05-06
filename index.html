@@ -9622,12 +9622,12 @@
         window.createThermalNoticePage = function() {
             return '<div style="width:794px;min-height:1123px;background:white;font-family:\'Malgun Gothic\',sans-serif;padding:30px;position:relative;box-sizing:border-box;">'
                 + '<div style="background:linear-gradient(135deg,#d97706 0%,#f59e0b 100%);color:white;padding:20px;margin-bottom:30px;border-radius:8px;">'
-                    + '<h1 style="margin:0 0 6px 0;font-size:22px;">🌡️ 열화상 단열 점검 안내</h1>'
+                    + '<h1 style="margin:0 0 6px 0;font-size:22px;">열화상 단열 점검 안내</h1>'
                     + '<p style="margin:0;font-size:13px;opacity:0.9;">' + (projectData.apartmentName || '') + ' ' + (projectData.dong || '') + '동 ' + (projectData.ho || '') + '호 | ' + (projectData.inspectionDate || '') + '</p>'
                 + '</div>'
 
                 + '<div style="background:#fffbeb;border:2px solid #f59e0b;border-radius:12px;padding:28px;margin-bottom:24px;">'
-                    + '<h3 style="margin:0 0 16px 0;font-size:18px;color:#92400e;">📌 열화상 카메라 단열 판독 안내</h3>'
+                    + '<h3 style="margin:0 0 16px 0;font-size:18px;color:#92400e;">열화상 카메라 단열 판독 안내</h3>'
                     + '<p style="margin:0;font-size:15px;color:#78350f;line-height:1.8;">'
                         + '점검일 기준 <strong>실내외 온도차이가 크지 않아</strong> 열화상 카메라의 단열 판독이 제한적입니다.<br><br>'
                         + '입주 후 겨울철 <strong>결로나 냉기</strong>가 느껴지시면 <strong>시공사 A/S</strong>를 통해 단열 보완을 요청하시기 바랍니다.'
@@ -9635,7 +9635,7 @@
                 + '</div>'
 
                 + '<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:22px;">'
-                    + '<h4 style="margin:0 0 12px 0;font-size:15px;color:#334155;">💡 참고사항</h4>'
+                    + '<h4 style="margin:0 0 12px 0;font-size:15px;color:#334155;">참고사항</h4>'
                     + '<div style="font-size:13px;color:#475569;line-height:1.8;">'
                         + '• 열화상 단열 판독은 <strong>실내외 온도차 10°C 이상</strong>일 때 가장 정확합니다<br>'
                         + '• 일반적으로 <strong>겨울철(12월~2월)</strong>이 가장 적합한 시기입니다<br>'
@@ -9709,7 +9709,7 @@
 
                 return '<div style="flex:1;min-width:0;">'
                     + '<div style="display:flex;align-items:center;margin-bottom:6px;">'
-                        + '<span style="font-size:14px;">' + emoji + '</span>'
+                        + (emoji ? '<span style="font-size:14px;">' + emoji + '</span>' : '')
                         + '<h4 style="margin:0 0 0 4px;font-size:13px;color:' + C.text + ';">' + title + '</h4>'
                         + '<span style="margin-left:auto;font-size:10px;color:' + C.muted + ';white-space:nowrap;">기준 ' + stdVal + '</span>'
                     + '</div>'
@@ -9743,15 +9743,15 @@
                 + '</tr>';
             });
 
-            const radonChart = makeChart('라돈 (Bq/m³)', '☢️', 'Bq/m³', standards.radon, 'radon', 2.5);
-            const hchoChart = makeChart('포름알데히드 (mg/m³)', '🧪', 'mg/m³', standards.formaldehyde, 'formaldehyde', 3);
-            const vocsChart = makeChart('총VOCs (mg/m³)', '💨', 'mg/m³', standards.vocs, 'vocs', 3);
+            const radonChart = makeChart('라돈 (Bq/m³)', '', 'Bq/m³', standards.radon, 'radon', 2.5);
+            const hchoChart = makeChart('포름알데히드 (mg/m³)', '', 'mg/m³', standards.formaldehyde, 'formaldehyde', 3);
+            const vocsChart = makeChart('총VOCs (mg/m³)', '', 'mg/m³', standards.vocs, 'vocs', 3);
 
             return '<div style="width:794px;min-height:1123px;background:white;font-family:\'Malgun Gothic\',sans-serif;padding:28px 30px;position:relative;box-sizing:border-box;">'
                 // ── 헤더 ──
                 + '<div style="background:linear-gradient(135deg,#0f766e 0%,#14b8a6 100%);color:white;padding:16px 20px;margin-bottom:' + S.secGap + 'px;border-radius:8px;display:flex;align-items:center;justify-content:space-between;">'
                     + '<div>'
-                        + '<h1 style="margin:0 0 4px 0;font-size:22px;">🌬️ 실내 공기질 측정 결과</h1>'
+                        + '<h1 style="margin:0 0 4px 0;font-size:22px;">실내 공기질 측정 결과</h1>'
                         + '<p style="margin:0;font-size:13px;opacity:0.9;">' + (projectData.apartmentName || '') + ' ' + (projectData.dong || '') + '동 ' + (projectData.ho || '') + '호 | ' + (projectData.inspectionDate || '') + '</p>'
                     + '</div>'
                     + '<div style="text-align:center;background:rgba(255,255,255,0.15);border-radius:10px;padding:8px 16px;">'
@@ -9778,7 +9778,7 @@
 
                 // ── 측정 데이터 표 ──
                 + '<div style="margin-bottom:' + S.secGap + 'px;">'
-                    + '<h3 style="margin:0 0 8px 0;font-size:15px;color:' + C.text + ';border-bottom:2px solid #16a085;padding-bottom:5px;">📋 측정 데이터</h3>'
+                    + '<h3 style="margin:0 0 8px 0;font-size:15px;color:' + C.text + ';border-bottom:2px solid #16a085;padding-bottom:5px;">측정 데이터</h3>'
                     + '<table style="width:100%;border-collapse:collapse;border:1px solid #e2e8f0;">'
                         + '<thead><tr style="background:#f0fdfa;">'
                             + '<th style="padding:7px;border:1px solid #e2e8f0;color:#000;font-size:12px;">공간</th>'
@@ -9795,7 +9795,7 @@
 
                 // ── 그래프 섹션 ──
                 + '<div style="margin-bottom:' + S.secGap + 'px;">'
-                    + '<h3 style="margin:0 0 10px 0;font-size:15px;color:' + C.text + ';border-bottom:2px solid #16a085;padding-bottom:5px;">📊 항목별 비교 분석</h3>'
+                    + '<h3 style="margin:0 0 10px 0;font-size:15px;color:' + C.text + ';border-bottom:2px solid #16a085;padding-bottom:5px;">항목별 비교 분석</h3>'
                     + '<div style="display:flex;gap:10px;">'
                         + radonChart
                         + hchoChart
@@ -9806,7 +9806,7 @@
                 // ── 범례 + 기준 ──
                 + '<div style="display:flex;gap:10px;margin-bottom:10px;">'
                     + '<div style="flex:1;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:6px;padding:10px;font-size:12px;color:#1b5e20;line-height:1.5;">'
-                        + '<strong style="font-size:13px;">✓ 권고기준</strong><br>'
+                        + '<strong style="font-size:13px;">권고기준</strong><br>'
                         + '• 라돈: <strong>148 Bq/m³</strong> 이하<br>'
                         + '• 포름알데히드: <strong>0.210 mg/m³</strong> 이하<br>'
                         + '• 총VOCs: <strong>0.500 mg/m³</strong> 이하'
