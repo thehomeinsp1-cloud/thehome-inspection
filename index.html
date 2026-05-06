@@ -9695,7 +9695,7 @@
                     bars += '<div style="display:flex;align-items:center;margin-bottom:' + S.barGap + 'px;height:' + S.barH + 'px;">'
                         + '<div style="width:60px;font-size:12px;font-weight:700;color:' + C.text + ';text-align:right;padding-right:8px;flex-shrink:0;">' + room.name + '</div>'
                         + '<div style="flex:1;position:relative;height:' + S.barInH + 'px;background:' + C.barBg + ';border-radius:4px;">'
-                            + '<div style="position:absolute;top:1px;left:1px;bottom:1px;width:calc(' + pct + '% - 2px);background:linear-gradient(90deg,' + bc + 'bb,' + bc + ');border-radius:3px;"></div>'
+                            + '<div style="position:absolute;top:1px;left:1px;bottom:1px;width:calc(' + Math.max(pct, 2) + '% - 2px);min-width:2px;background:' + bc + ';border-radius:3px;"></div>'
                             + '<div style="position:absolute;top:50%;transform:translateY(-50%);' + (pct > 35 ? 'right:' + (101 - pct) + '%;color:white;' : 'left:' + (pct + 2) + '%;color:' + C.text + ';') + 'font-size:11px;font-weight:700;white-space:nowrap;">' + v + '</div>'
                             + '<div style="position:absolute;top:-2px;bottom:-2px;left:' + stdPct + '%;width:1.5px;background:' + C.danger + ';z-index:2;"></div>'
                         + '</div>'
