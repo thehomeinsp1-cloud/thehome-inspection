@@ -9885,74 +9885,83 @@
 
         // ==================== 입주 전 체크리스트 페이지 ====================
         window.createMoveInChecklistPage = function() {
-            function section(title, timing, color, items) {
+            function card(title, timing, color, items) {
                 var rows = '';
                 items.forEach(function(item) {
-                    rows += '<div style="display:flex;align-items:center;padding:6px 0;border-bottom:1px solid #f1f5f9;">'
-                        + '<div style="width:16px;height:16px;border:2px solid #cbd5e1;border-radius:3px;flex-shrink:0;"></div>'
-                        + '<div style="margin-left:10px;font-size:12px;color:#334155;line-height:1.4;">' + item + '</div>'
+                    rows += '<div style="display:flex;align-items:flex-start;padding:3px 0;">'
+                        + '<div style="width:12px;height:12px;border:1.5px solid #cbd5e1;border-radius:2px;flex-shrink:0;margin-top:2px;"></div>'
+                        + '<div style="margin-left:6px;font-size:11px;color:#334155;line-height:1.4;">' + item + '</div>'
                     + '</div>';
                 });
-                return '<div style="margin-bottom:14px;">'
-                    + '<div style="display:flex;align-items:center;margin-bottom:6px;">'
-                        + '<div style="width:5px;height:18px;background:' + color + ';border-radius:3px;margin-right:8px;"></div>'
-                        + '<h4 style="margin:0;font-size:14px;color:#1e293b;">' + title + '</h4>'
-                        + '<span style="margin-left:8px;font-size:10px;color:#94a3b8;background:#f1f5f9;padding:2px 8px;border-radius:10px;">' + timing + '</span>'
+                return '<div style="background:white;border:1px solid #e2e8f0;border-radius:8px;padding:12px;border-top:3px solid ' + color + ';">'
+                    + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">'
+                        + '<div style="font-size:13px;font-weight:700;color:#1e293b;">' + title + '</div>'
+                        + '<div style="font-size:9px;color:white;background:' + color + ';padding:2px 8px;border-radius:10px;font-weight:600;">' + timing + '</div>'
                     + '</div>'
-                    + '<div style="padding-left:8px;">' + rows + '</div>'
+                    + rows
                 + '</div>';
             }
 
+            var c1 = card('사전점검 기간', 'D-90~D-60', '#E84848', [
+                '세대 내부 실측 (가구 배치 계획)',
+                '하자 접수 확인 및 사진 보관',
+                '대출 상담 (중도금 대출 전환 준비)',
+                '입주 예상일 계산 및 일정 수립'
+            ]);
+            var c2 = card('입주 1~3개월 전', 'D-90~D-30', '#e67e22', [
+                '입주 청소 업체 예약',
+                '이사 업체 선정 및 예약',
+                '인터넷/TV 이전 설치 예약 (2주 전)',
+                '가전제품 이전 예약 (에어컨, 비데 등)',
+                '폐기물 처리 예약 (대형폐기물 스티커)',
+                '관리사무소 이사 통보 및 엘리베이터 예약'
+            ]);
+            var c3 = card('입주 1주 전', 'D-7', '#f59e0b', [
+                '도시가스 전출/전입 신청 (2~3일 전)',
+                '전기 명의변경 (한국전력 123)',
+                '수도 명의변경 (지역 수도사업소)',
+                '우편물 주소 변경 (우체국)',
+                '사용승인일(입주가능일) 최종 확인'
+            ]);
+            var c4 = card('입주 당일', 'D-Day', '#16a085', [
+                '잔금 납부 (분양대금, 옵션 대금)',
+                '중도금 대출 전환 (주택담보대출)',
+                '관리비 예치금 납부',
+                '입주증 및 주차증 발급 수령',
+                '세대 시설물 인수인계',
+                '가스 안전점검 및 개통 확인',
+                '디지털 도어록 비밀번호 설정'
+            ]);
+            var c5 = card('입주 후 즉시', 'D+1~D+14', '#3b82f6', [
+                '주민등록 전입신고 (정부24 또는 주민센터)',
+                '확정일자 받기 (전월세 시 필수)',
+                '국민건강보험 주소 이전',
+                '차량 이전 등록 (관할 구청)',
+                '자녀 학교 전학 수속 (해당 시)',
+                '하자 추가 발견 시 관리사무소 즉시 접수'
+            ]);
+
             return '<div style="width:794px;min-height:1123px;background:white;font-family:\'Malgun Gothic\',sans-serif;padding:30px;position:relative;box-sizing:border-box;">'
-                + '<div style="background:#7c3aed;color:white;padding:18px 22px;margin-bottom:20px;border-radius:8px;">'
+                + '<div style="background:#7c3aed;color:white;padding:16px 22px;margin-bottom:18px;border-radius:8px;">'
                     + '<h1 style="margin:0 0 4px 0;font-size:22px;">입주 전 체크리스트</h1>'
                     + '<p style="margin:0;font-size:12px;opacity:0.9;">입주 준비부터 당일까지 꼭 확인하세요</p>'
                 + '</div>'
-
-                + section('사전점검 기간', 'D-90 ~ D-60', '#E84848', [
-                    '세대 내부 실측 (가구 배치 계획)',
-                    '하자 접수 확인 및 사진 보관',
-                    '대출 상담 (중도금 대출 전환 준비)',
-                    '입주 예상일 계산 및 일정 수립'
-                ])
-
-                + section('입주 1~3개월 전', 'D-90 ~ D-30', '#e67e22', [
-                    '입주 청소 업체 예약',
-                    '이사 업체 선정 및 예약 (포장이사 허가업소 확인)',
-                    '인터넷/TV 이전 설치 예약 (최소 2주 전)',
-                    '가전제품 이전 예약 (에어컨, 비데, 정수기 등)',
-                    '폐기물 처리 예약 (대형폐기물 스티커 발부)',
-                    '관리사무소에 이사 일정 통보 및 엘리베이터 예약'
-                ])
-
-                + section('입주 1주 전', 'D-7', '#f59e0b', [
-                    '도시가스 전출 신청 (기존 거주지) - 이사 2~3일 전',
-                    '도시가스 전입 신청 (새 거주지) - 이사 2~3일 전',
-                    '전기 명의변경 신청 (한국전력 123)',
-                    '수도 명의변경 신청 (지역 수도사업소)',
-                    '우편물 주소 변경 (우체국 전입지 이전 신청)',
-                    '사용승인일(입주가능일) 최종 확인'
-                ])
-
-                + section('입주 당일', 'D-Day', '#16a085', [
-                    '잔금 납부 (분양대금, 옵션 대금)',
-                    '중도금 대출 전환 (주택담보대출)',
-                    '관리비 예치금(선수관리비) 납부',
-                    '입주증 및 주차증 발급 수령',
-                    '세대 시설물 인수인계 (관리사무소)',
-                    '가스 안전점검 및 개통 확인',
-                    '디지털 도어록 비밀번호 설정'
-                ])
-
-                + section('입주 후 즉시', 'D+1 ~ D+14', '#3b82f6', [
-                    '주민등록 전입신고 (정부24 또는 주민센터)',
-                    '확정일자 받기 (전월세 거주 시 필수)',
-                    '국민건강보험 주소 이전',
-                    '차량 이전 등록 (관할 구청)',
-                    '자녀 학교 전학 수속 (해당 시)',
-                    '하자 추가 발견 시 관리사무소 즉시 접수'
-                ])
-
+                // 2x2 그리드 상단
+                + '<div style="display:flex;gap:10px;margin-bottom:10px;">'
+                    + '<div style="flex:1;">' + c1 + '</div>'
+                    + '<div style="flex:1;">' + c2 + '</div>'
+                + '</div>'
+                // 2x2 그리드 하단
+                + '<div style="display:flex;gap:10px;margin-bottom:10px;">'
+                    + '<div style="flex:1;">' + c3 + '</div>'
+                    + '<div style="flex:1;">' + c4 + '</div>'
+                + '</div>'
+                // 하단 풀폭
+                + '<div style="margin-bottom:10px;">' + c5 + '</div>'
+                // 팁
+                + '<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:10px 14px;font-size:11px;color:#64748b;line-height:1.5;">'
+                    + '<strong style="color:#334155;">TIP</strong> 사전점검 시 발견된 하자는 사진과 함께 보관하시고, 입주 후에도 추가 하자 발견 시 보증기간 내 시공사 A/S를 요청하세요.'
+                + '</div>'
                 + '<div style="position:absolute;bottom:20px;left:30px;right:30px;padding-top:12px;border-top:1px solid #ddd;font-size:11px;color:#000;text-align:center;">'
                     + '<div>더홈점검 | 대표: 1668-5322 / 직통: 010-9985-0128 | 사전점검 전문업체</div>'
                 + '</div>'
