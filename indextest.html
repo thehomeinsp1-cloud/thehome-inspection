@@ -451,6 +451,10 @@
             justify-content: center;
         }
 
+        /* 열화상 토글 */
+        #thermalNoticeToggle:checked + span { background: #f59e0b !important; }
+        #thermalNoticeToggle:checked + span + .thermal-slider-dot { transform: translateX(22px); }
+
         /* 공기질 측정 */
         .air-quality-card {
             background: var(--card-bg);
@@ -1076,13 +1080,13 @@
     
     <!-- ==================== 인앱브라우저 감지 모달 ==================== -->
     <div id="inAppBrowserModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); z-index: 999999; align-items: center; justify-content: center; padding: 20px;">
-        <div style="background: white; border-radius: 20px; max-width: 340px; width: 100%; text-align: center; overflow: hidden;">
+        <div style="background: white; border-radius: 20px; max-width: 340px; width: 100%; text-align: center; overflow: hidden; color: #1a1a1a;">
             <div style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); padding: 30px 20px;">
                 <div style="font-size: 50px; margin-bottom: 10px;">⚠️</div>
                 <div style="color: white; font-size: 18px; font-weight: bold;">외부 브라우저에서 열어주세요</div>
             </div>
             <div style="padding: 25px 20px;">
-                <p style="color: #666; font-size: 14px; margin-bottom: 20px; line-height: 1.6;">
+                <p style="color: #1a1a1a; font-size: 14px; margin-bottom: 20px; line-height: 1.6;">
                     현재 카카오톡/네이버 등의<br>인앱브라우저에서 접속 중입니다.<br><br>
                     <strong>Google 로그인</strong>이 정상 작동하려면<br>
                     외부 브라우저로 열어주세요.
@@ -1090,7 +1094,7 @@
                 <button onclick="openInExternalBrowser()" style="width: 100%; padding: 14px; background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; margin-bottom: 10px;">
                     🌐 외부 브라우저로 열기
                 </button>
-                <button onclick="closeInAppBrowserModal()" style="width: 100%; padding: 12px; background: #f3f4f6; color: #666; border: none; border-radius: 12px; font-size: 14px; cursor: pointer;">
+                <button onclick="closeInAppBrowserModal()" style="width: 100%; padding: 12px; background: #f3f4f6; color: #1a1a1a; border: none; border-radius: 12px; font-size: 14px; cursor: pointer;">
                     그냥 계속하기
                 </button>
             </div>
@@ -1099,7 +1103,7 @@
     
     <!-- ==================== 홈화면 추가 안내 모달 ==================== -->
     <div id="pwaInstallModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); z-index: 999998; align-items: center; justify-content: center; padding: 20px;">
-        <div style="background: white; border-radius: 20px; max-width: 340px; width: 100%; text-align: center; overflow: hidden;">
+        <div style="background: white; border-radius: 20px; max-width: 340px; width: 100%; text-align: center; overflow: hidden; color: #1a1a1a;">
             <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 30px 20px;">
                 <div style="font-size: 50px; margin-bottom: 10px;">📱</div>
                 <div style="color: white; font-size: 18px; font-weight: bold;">홈 화면에 추가하세요!</div>
@@ -1112,7 +1116,7 @@
                 <button onclick="closePwaInstallModal(false)" style="width: 100%; padding: 14px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; margin-bottom: 10px;">
                     확인했어요 👍
                 </button>
-                <button onclick="closePwaInstallModal(true)" style="width: 100%; padding: 12px; background: #f3f4f6; color: #666; border: none; border-radius: 12px; font-size: 14px; cursor: pointer;">
+                <button onclick="closePwaInstallModal(true)" style="width: 100%; padding: 12px; background: #f3f4f6; color: #1a1a1a; border: none; border-radius: 12px; font-size: 14px; cursor: pointer;">
                     다시 보지 않기
                 </button>
             </div>
@@ -1305,6 +1309,19 @@
                 </p>
             </div>
 
+            <!-- 열화상 단열 안내 토글 -->
+            <div class="card" id="thermalNoticeToggleCard" style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;margin-bottom:10px;border-left:4px solid #f59e0b;">
+                <div>
+                    <div style="font-size:14px;font-weight:700;color:var(--text-primary);">🌡️ 실내외 온도차 적음 안내</div>
+                    <div style="font-size:12px;color:var(--text-secondary);margin-top:3px;">ON 시 보고서에 열화상 단열 판독 제한 안내 문구 삽입</div>
+                </div>
+                <label style="position:relative;display:inline-block;width:50px;height:28px;flex-shrink:0;margin-left:12px;">
+                    <input type="checkbox" id="thermalNoticeToggle" onchange="toggleThermalNotice(this.checked)" style="opacity:0;width:0;height:0;">
+                    <span style="position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#ccc;border-radius:28px;transition:.3s;"></span>
+                    <span class="thermal-slider-dot" style="position:absolute;content:'';height:22px;width:22px;left:3px;bottom:3px;background:white;border-radius:50%;transition:.3s;"></span>
+                </label>
+            </div>
+
             <div id="equipmentList"></div>
         </div>
 
@@ -1418,17 +1435,15 @@
 
     <!-- 카메라 모달 -->
     <div id="cameraModal" class="camera-modal">
-        <!-- ✅ 하자번호/원경·근경 표시 배지 -->
-        <div id="cameraInfoBadge" style="display: none; position: absolute; top: 12px; left: 12px; z-index: 20; background: rgba(0,0,0,0.7); color: #fff; padding: 6px 14px; border-radius: 20px; font-size: 14px; font-weight: 700; letter-spacing: 0.5px; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); pointer-events: none;">
-            <span id="cameraInfoText"></span>
-        </div>
-        
         <!-- ✅ iOS 터치 마커 좌표 문제 해결: wrapper로 감싸기 -->
         <div id="cameraWrapper" style="position: relative; width: 100%; max-width: 600px;">
             <video id="cameraPreview" autoplay playsinline></video>
             
             <!-- 터치 포인트 마커 표시용 캔버스 오버레이 -->
             <canvas id="markerCanvas" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10;"></canvas>
+            
+            <!-- 촬영 정보 라벨 (하자번호 + 원경/근경) -->
+            <div id="cameraInfoLabel" style="display: none; position: absolute; top: 12px; left: 12px; background: rgba(0,0,0,0.7); color: #fff; font-size: 14px; font-weight: 700; padding: 6px 14px; border-radius: 8px; z-index: 20; pointer-events: none;"></div>
         </div>
         
         <!-- 줌 레벨 표시 -->
@@ -2907,7 +2922,7 @@
                     
                     const equipDoc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
                     
-                    // 장비점검 표지 (프로 버전)
+                    // 장비점검 표지
                     const equipCoverHTML = `
                         <div style="width:794px;height:1123px;background:#fff;font-family:'Malgun Gothic',sans-serif;position:relative;box-sizing:border-box;overflow:hidden;">
                             <div style="position:absolute;left:0;top:0;width:8px;height:100%;background:linear-gradient(180deg,#2563eb 0%,#1d4ed8 100%);"></div>
@@ -3010,6 +3025,14 @@
                         await window.addHTMLPageToPDF(equipDoc, equipmentHTML, pageWidth, pageHeight);
                     }
                     
+
+                    // 열화상 단열 안내 페이지 (토글 ON일 때만)
+                    if ((localStorage.getItem('thermalNoticeGlobal') === 'on')) {
+                        equipDoc.addPage();
+                        const thermalHTML = window.createThermalNoticePage();
+                        await window.addHTMLPageToPDF(equipDoc, thermalHTML, pageWidth, pageHeight);
+                    }
+
                     const equipmentPdfBlob = equipDoc.output('blob');
                     const equipmentPdfFileName = `${projectName}_장비점검보고서.pdf`;
                     
@@ -3101,12 +3124,15 @@
                 const firstPageHTML = window.createSummaryFirstPage();
                 await window.addHTMLPageToPDF(doc, firstPageHTML, pageWidth, pageHeight);
 
-                // 프로젝트 요약 (공종별 차트)
-                if (window.createProjectSummaryPage) {
-                    doc.addPage();
-                    const summaryPageHTML = window.createProjectSummaryPage();
-                    await window.addHTMLPageToPDF(doc, summaryPageHTML, pageWidth, pageHeight);
-                }
+                // 프로젝트 요약 페이지
+                // 목차 페이지
+                doc.addPage();
+                const tocHTML = window.createTableOfContentsPage();
+                await window.addHTMLPageToPDF(doc, tocHTML, pageWidth, pageHeight);
+
+                doc.addPage();
+                const summaryPageHTML = window.createProjectSummaryPage();
+                await window.addHTMLPageToPDF(doc, summaryPageHTML, pageWidth, pageHeight);
 
                 // 하자 목록 페이지
                 if (projectData.defects.length > 0) {
@@ -3150,6 +3176,13 @@
                     }
                 }
 
+                // 열화상 단열 안내 페이지 (토글 ON일 때만)
+                if ((localStorage.getItem('thermalNoticeGlobal') === 'on')) {
+                    doc.addPage();
+                    const thermalHTML = window.createThermalNoticePage();
+                    await window.addHTMLPageToPDF(doc, thermalHTML, pageWidth, pageHeight);
+                }
+
                 // 공기질 페이지
                 const airQualityWithData = projectData.airQuality.filter(room => 
                     room.radon || room.formaldehyde || room.vocs
@@ -3181,6 +3214,11 @@
                 doc.addPage();
                 const condensationGuide = window.createCondensationGuidePage();
                 await window.addHTMLPageToPDF(doc, condensationGuide, pageWidth, pageHeight);
+
+                // 입주 전 체크리스트 페이지
+                doc.addPage();
+                const moveInChecklistHTML = window.createMoveInChecklistPage();
+                await window.addHTMLPageToPDF(doc, moveInChecklistHTML, pageWidth, pageHeight);
 
                 // PDF Blob 생성
                 const pdfBlob = doc.output('blob');
@@ -3394,6 +3432,14 @@
                                 await window.addHTMLPageToPDF(equipDoc, equipmentHTML, pageWidth, pageHeight);
                             }
                             
+
+                            // 열화상 단열 안내 페이지 (토글 ON일 때만)
+                            if ((localStorage.getItem('thermalNoticeGlobal') === 'on')) {
+                                equipDoc.addPage();
+                                const thermalHTML2 = window.createThermalNoticePage();
+                                await window.addHTMLPageToPDF(equipDoc, thermalHTML2, pageWidth, pageHeight);
+                            }
+
                             equipmentPdfBlob = equipDoc.output('blob');
                             equipmentPdfFileName = `${projectName}_장비점검보고서.pdf`;
                         } catch (equipError) {
@@ -3432,7 +3478,7 @@
                             if (photo !== null) {
                                 const photoType = photoNum === 0 ? '원경' : '근접';
                                 const fileName = `${num}_${space}_${location}_${photoType}.jpg`;
-                                const wmText = photoNum === 0 ? `${dongHo}_${num} 원경` : `${dongHo}_${num} 근경`;
+                                const wmText = photoNum === 0 ? `${dongHo}_${String(defectIndex + 1).padStart(2, '0')} 원경` : `${dongHo}_${String(defectIndex + 1).padStart(2, '0')} 근경`;
                                 photoTasks.push({ photo, fileName, wmText });
                                 photoNum++;
                             }
@@ -4263,6 +4309,7 @@
                         displayFloorplan();
                         renderDefects();
                         renderEquipment();
+                        restoreThermalToggle();
                         renderAirQuality();
                     }
                 } else {
@@ -4535,6 +4582,7 @@
                     
                     renderDefects();
                     renderEquipment();
+                    restoreThermalToggle();
                     renderAirQuality();
                     displayFloorplan();
                     showToast('새 프로젝트를 시작합니다');
@@ -4568,9 +4616,9 @@
             input.onchange = async (e) => {
                 const file = e.target.files[0];
                 if (file) {
-                    // 평면도는 더 높은 해상도 사용 (글씨 선명도 개선)
-                    const maxWidth = deviceInfo.isIOS ? 1920 : 2560;
-                    const quality = 0.9;
+                    // 평면도는 최대 해상도 + 고품질 사용 (글씨 선명도 확보)
+                    const maxWidth = deviceInfo.isIOS ? 2560 : 3840;
+                    const quality = 0.95;
                     const compressed = await compressImage(file, maxWidth, quality);
                     const project = getCurrentProject(); // ✅ 현재 프로젝트 가져오기
                     
@@ -5451,6 +5499,16 @@
             }
         }
 
+        // ==================== 열화상 단열 안내 토글 ====================
+        window.toggleThermalNotice = function(checked) {
+            localStorage.setItem('thermalNoticeGlobal', checked ? 'on' : 'off');
+        };
+
+        function restoreThermalToggle() {
+            const toggle = document.getElementById('thermalNoticeToggle');
+            if (toggle) toggle.checked = (localStorage.getItem('thermalNoticeGlobal') === 'on');
+        }
+
         // ==================== 공기질 측정 ====================
         function renderAirQuality() {
             const container = document.getElementById('airQualityList');
@@ -5612,34 +5670,6 @@
         }
 
         // ==================== 카메라 기능 ====================
-        // ✅ 카메라 하자정보 배지 업데이트
-        function updateCameraInfoBadge() {
-            const badge = document.getElementById('cameraInfoBadge');
-            const text = document.getElementById('cameraInfoText');
-            if (!badge || !text) return;
-            
-            if (currentPhotoTarget && typeof currentPhotoTarget === 'object' && currentPhotoTarget.defectId) {
-                const defectIdx = projectData.defects.findIndex(d => d.id === currentPhotoTarget.defectId);
-                const defectNum = defectIdx >= 0 ? defectIdx + 1 : '?';
-                
-                let shotType = '';
-                if (currentPhotoTarget.step === 'far' || currentPhotoTarget.photoType === 'far') {
-                    shotType = '원경';
-                } else if (currentPhotoTarget.step === 'close' || currentPhotoTarget.photoType === 'close') {
-                    shotType = '근경';
-                } else if (currentPhotoTarget.photoIndex === 0) {
-                    shotType = '원경';
-                } else if (currentPhotoTarget.photoIndex === 1) {
-                    shotType = '근경';
-                }
-                
-                text.textContent = `#${defectNum} ${shotType}`;
-                badge.style.display = 'block';
-            } else {
-                badge.style.display = 'none';
-            }
-        }
-
         async function openCamera() {
             try {
                 // 카메라 API 지원 확인
@@ -6028,10 +6058,39 @@
                 }
                 
                 // 모달 표시
+                // ==================== 촬영 정보 라벨 업데이트 ====================
+                const cameraInfoLabel = document.getElementById('cameraInfoLabel');
+                if (cameraInfoLabel) {
+                    let labelText = '';
+                    if (currentPhotoTarget && currentPhotoTarget.defectId) {
+                        const defectIndex = projectData.defects.findIndex(d => d.id === currentPhotoTarget.defectId);
+                        const defectNum = defectIndex >= 0 ? defectIndex + 1 : '?';
+                        if (currentPhotoTarget.step === 'far' || currentPhotoTarget.photoType === 'far') {
+                            labelText = `하자 ${defectNum}번 · 원경`;
+                        } else if (currentPhotoTarget.step === 'close' || currentPhotoTarget.photoType === 'close') {
+                            labelText = `하자 ${defectNum}번 · 근경`;
+                        } else {
+                            labelText = `하자 ${defectNum}번`;
+                        }
+                    } else if (currentPhotoTarget && currentPhotoTarget.equipmentId) {
+                        const eqIndex = projectData.equipment ? projectData.equipment.findIndex(e => e.id === currentPhotoTarget.equipmentId) : -1;
+                        const eqNum = eqIndex >= 0 ? eqIndex + 1 : '?';
+                        const locName = currentPhotoTarget.location || '';
+                        labelText = `장비 ${eqNum}번${locName ? ' · ' + locName : ''}`;
+                    } else if (currentPhotoTarget === 'floorplan') {
+                        labelText = '평면도 촬영';
+                    }
+                    if (labelText) {
+                        cameraInfoLabel.textContent = labelText;
+                        cameraInfoLabel.style.display = 'block';
+                    } else {
+                        cameraInfoLabel.style.display = 'none';
+                    }
+                }
+                // ==================== 촬영 정보 라벨 업데이트 끝 ====================
                 document.getElementById('cameraModal').classList.add('active');
                 
-                // ✅ 하자번호/원경·근경 배지 표시
-                updateCameraInfoBadge();
+                // 성공 시 메시지 없음
                 
             } catch (error) {
                 console.error('카메라 오류:', error);
@@ -6143,11 +6202,11 @@
                 modal.classList.remove('active');
             }
             
-            currentPhotoTarget = null;
+            // 촬영 정보 라벨 숨기기
+            const cameraInfoLabel = document.getElementById('cameraInfoLabel');
+            if (cameraInfoLabel) cameraInfoLabel.style.display = 'none';
             
-            // ✅ 하자정보 배지 숨기기
-            const badge = document.getElementById('cameraInfoBadge');
-            if (badge) badge.style.display = 'none';
+            currentPhotoTarget = null;
             
             // ✅ 촬영 플래그도 초기화 (안전장치)
             isCapturing = false;
@@ -6427,9 +6486,9 @@
             // 이미지 압축 (평면도는 더 높은 해상도 사용)
             let imageData;
             if (currentPhotoTarget === 'floorplan') {
-                // 평면도: 더 높은 해상도로 글씨 선명도 개선
-                const maxWidth = deviceInfo.isIOS ? 1920 : 2560;
-                const quality = 0.9;
+                // 평면도: 최대 해상도 + 고품질로 글씨 선명도 확보
+                const maxWidth = deviceInfo.isIOS ? 2560 : 3840;
+                const quality = 0.95;
                 imageData = await compressImage(originalImage, maxWidth, quality);
             } else {
                 // 일반 사진: 기본 설정
@@ -6900,12 +6959,15 @@
                 const firstPageHTML = window.createSummaryFirstPage();
                 await window.addHTMLPageToPDF(doc, firstPageHTML, pageWidth, pageHeight);
 
-                // 프로젝트 요약 (공종별 차트)
-                if (window.createProjectSummaryPage) {
-                    doc.addPage();
-                    const summaryPageHTML = window.createProjectSummaryPage();
-                    await window.addHTMLPageToPDF(doc, summaryPageHTML, pageWidth, pageHeight);
-                }
+                // 프로젝트 요약 페이지
+                // 목차 페이지
+                doc.addPage();
+                const tocHTML = window.createTableOfContentsPage();
+                await window.addHTMLPageToPDF(doc, tocHTML, pageWidth, pageHeight);
+
+                doc.addPage();
+                const summaryPageHTML = window.createProjectSummaryPage();
+                await window.addHTMLPageToPDF(doc, summaryPageHTML, pageWidth, pageHeight);
 
                 // 2페이지~: 하자 목록 (18개씩, 0번부터 시작)
                 if (projectData.defects.length > 0) {
@@ -6961,6 +7023,14 @@
                     await window.addHTMLPageToPDF(doc, airQualityHTML, pageWidth, pageHeight);
                 }
 
+
+                // 열화상 단열 안내 페이지 (토글 ON일 때만)
+                if ((localStorage.getItem('thermalNoticeGlobal') === 'on')) {
+                    doc.addPage();
+                    const thermalHTML = window.createThermalNoticePage();
+                    await window.addHTMLPageToPDF(doc, thermalHTML, pageWidth, pageHeight);
+                }
+
                 // 견적서 페이지 추가 (실내공기질측정결과 바로 다음)
                 doc.addPage();
                 const quotationPage = window.createQuotationPage(projectData.apartmentName, projectData.dong, projectData.ho, projectData.inspectionDate || new Date().toLocaleDateString('ko-KR'));
@@ -6981,6 +7051,11 @@
                 doc.addPage();
                 const condensationGuide = window.createCondensationGuidePage();
                 await window.addHTMLPageToPDF(doc, condensationGuide, pageWidth, pageHeight);
+
+                // 입주 전 체크리스트 페이지
+                doc.addPage();
+                const moveInChecklistHTML = window.createMoveInChecklistPage();
+                await window.addHTMLPageToPDF(doc, moveInChecklistHTML, pageWidth, pageHeight);
                 
                 // PDF를 Blob으로 변환하여 ZIP에 추가
                 const pdfBlob = doc.output('blob');
@@ -7097,32 +7172,36 @@
                 if (projectData.defects && projectData.defects.length > 0) {
                     const defectFolder = zip.folder('하자사진');
                     
+                    const dongHo = `${projectData.dong}동${projectData.ho}호`;
+                    
+                    // 작업 목록 생성
+                    const wmTasks = [];
                     for (let index = 0; index < projectData.defects.length; index++) {
                         const defect = projectData.defects[index];
                         if (defect.photos && defect.photos.length > 0) {
                             const defectNum = String(index + 1).padStart(2, '0');
-                            // ✅ 배열에서 첫 번째 값 가져오기
                             const spaceName = (defect.spaces && defect.spaces.length > 0) ? defect.spaces[0] : '미지정';
                             const locationName = (defect.locations && defect.locations.length > 0) ? defect.locations[0] : '미지정';
                             
                             for (let photoIndex = 0; photoIndex < defect.photos.length; photoIndex++) {
                                 const photo = defect.photos[photoIndex];
-                                
-                                // null 사진 건너뛰기
                                 if (photo === null) continue;
-                                
                                 const photoType = photoIndex === 0 ? '원경' : '근접';
-                                
-                                // 워터마크 추가 (동호수 포함)
-                                const dongHo = `${projectData.dong}동${projectData.ho}호`;
-                                const watermarkText = photoIndex === 0 ? `${dongHo}_${String(index + 1).padStart(2, '0')} 원경` : `${dongHo}_${String(index + 1).padStart(2, '0')} 근경`;
-                                const photoWithWatermark = await window.addWatermarkToPhoto(photo, watermarkText);
-                                
-                                const photoData = photoWithWatermark.split(',')[1];
+                                const wmText = photoIndex === 0 ? `${dongHo}_${String(index + 1).padStart(2, '0')} 원경` : `${dongHo}_${String(index + 1).padStart(2, '0')} 근경`;
                                 const fileName = `${defectNum}_${spaceName}_${locationName}_${photoType}.jpg`.replace(/\//g, '-');
-                                defectFolder.file(fileName, photoData, { base64: true });
-                                photoCount++;
+                                wmTasks.push({ photo, wmText, fileName });
                             }
+                        }
+                    }
+                    
+                    // 5장씩 병렬 처리 (iOS 메모리 최적화)
+                    for (let i = 0; i < wmTasks.length; i += 5) {
+                        const batch = wmTasks.slice(i, i + 5);
+                        const results = await Promise.all(batch.map(t => window.addWatermarkToPhoto(t.photo, t.wmText)));
+                        for (let j = 0; j < batch.length; j++) {
+                            const photoData = results[j].split(',')[1];
+                            defectFolder.file(batch[j].fileName, photoData, { base64: true });
+                            photoCount++;
                         }
                     }
                 }
@@ -7341,32 +7420,34 @@
                 if (projectData.defects && projectData.defects.length > 0) {
                     const defectFolder = zip.folder('하자사진');
                     
+                    const dongHo = `${projectData.dong}동${projectData.ho}호`;
+                    
+                    const wmTasks2 = [];
                     for (let index = 0; index < projectData.defects.length; index++) {
                         const defect = projectData.defects[index];
                         if (defect.photos && defect.photos.length > 0) {
-                            const defectNum = String(index + 1).padStart(2, '0'); // 01, 02, 03...
-                            // ✅ 배열에서 첫 번째 값 가져오기
+                            const defectNum = String(index + 1).padStart(2, '0');
                             const spaceName = (defect.spaces && defect.spaces.length > 0) ? defect.spaces[0] : '미지정';
                             const locationName = (defect.locations && defect.locations.length > 0) ? defect.locations[0] : '미지정';
                             
                             for (let photoIndex = 0; photoIndex < defect.photos.length; photoIndex++) {
                                 const photo = defect.photos[photoIndex];
-                                
-                                // null 사진 건너뛰기
                                 if (photo === null) continue;
-                                
                                 const photoType = photoIndex === 0 ? '원경' : '근접';
-                                
-                                // 워터마크 추가 (동호수 포함)
-                                const dongHo = `${projectData.dong}동${projectData.ho}호`;
-                                const watermarkText = photoIndex === 0 ? `${dongHo}_${String(index + 1).padStart(2, '0')} 원경` : `${dongHo}_${String(index + 1).padStart(2, '0')} 근경`;
-                                const photoWithWatermark = await window.addWatermarkToPhoto(photo, watermarkText);
-                                
-                                const photoData = photoWithWatermark.split(',')[1];
+                                const wmText = photoIndex === 0 ? `${dongHo}_${String(index + 1).padStart(2, '0')} 원경` : `${dongHo}_${String(index + 1).padStart(2, '0')} 근경`;
                                 const fileName = `${defectNum}_${spaceName}_${locationName}_${photoType}.jpg`.replace(/\//g, '-');
-                                defectFolder.file(fileName, photoData, { base64: true });
-                                photoCount++;
+                                wmTasks2.push({ photo, wmText, fileName });
                             }
+                        }
+                    }
+                    
+                    for (let i = 0; i < wmTasks2.length; i += 5) {
+                        const batch = wmTasks2.slice(i, i + 5);
+                        const results = await Promise.all(batch.map(t => window.addWatermarkToPhoto(t.photo, t.wmText)));
+                        for (let j = 0; j < batch.length; j++) {
+                            const photoData = results[j].split(',')[1];
+                            defectFolder.file(batch[j].fileName, photoData, { base64: true });
+                            photoCount++;
                         }
                     }
                 }
@@ -7478,12 +7559,15 @@
                 const firstPageHTML = window.createSummaryFirstPage();
                 await window.addHTMLPageToPDF(doc, firstPageHTML, pageWidth, pageHeight);
 
-                // 프로젝트 요약 (공종별 차트)
-                if (window.createProjectSummaryPage) {
-                    doc.addPage();
-                    const summaryPageHTML = window.createProjectSummaryPage();
-                    await window.addHTMLPageToPDF(doc, summaryPageHTML, pageWidth, pageHeight);
-                }
+                // 프로젝트 요약 페이지
+                // 목차 페이지
+                doc.addPage();
+                const tocHTML = window.createTableOfContentsPage();
+                await window.addHTMLPageToPDF(doc, tocHTML, pageWidth, pageHeight);
+
+                doc.addPage();
+                const summaryPageHTML = window.createProjectSummaryPage();
+                await window.addHTMLPageToPDF(doc, summaryPageHTML, pageWidth, pageHeight);
 
                 // 2페이지~: 하자 목록 (18개씩)
                 if (projectData.defects.length > 0) {
@@ -7535,6 +7619,13 @@
                     }
                 }
 
+
+                // 열화상 단열 안내 페이지 (토글 ON일 때만)
+                if ((localStorage.getItem('thermalNoticeGlobal') === 'on')) {
+                    doc.addPage();
+                    const thermalHTML = window.createThermalNoticePage();
+                    await window.addHTMLPageToPDF(doc, thermalHTML, pageWidth, pageHeight);
+                }
                 // 공기질 상세 페이지 추가
                 const airQualityWithData = projectData.airQuality.filter(room => 
                     room.radon || room.formaldehyde || room.vocs
@@ -7571,6 +7662,11 @@
                 doc.addPage();
                 const condensationGuide = window.createCondensationGuidePage();
                 await window.addHTMLPageToPDF(doc, condensationGuide, pageWidth, pageHeight);
+
+                // 입주 전 체크리스트 페이지
+                doc.addPage();
+                const moveInChecklistHTML = window.createMoveInChecklistPage();
+                await window.addHTMLPageToPDF(doc, moveInChecklistHTML, pageWidth, pageHeight);
 
                 doc.addPage();
                 const movingInGuide = window.createMovingInGuidePage();
@@ -7764,7 +7860,15 @@
                 }
 
                 // 파일명 생성
-                const filename = `${projectData.apartmentName}_${projectData.dong}_${projectData.ho}_장비점검.pdf`;
+                
+                // 열화상 단열 안내 페이지 (토글 ON일 때만)
+                if ((localStorage.getItem('thermalNoticeGlobal') === 'on')) {
+                    doc.addPage();
+                    const thermalHTML = window.createThermalNoticePage();
+                    await window.addHTMLPageToPDF(doc, thermalHTML, pageWidth, pageHeight);
+                }
+
+const filename = `${projectData.apartmentName}_${projectData.dong}_${projectData.ho}_장비점검.pdf`;
                 
                 // iOS에서 다운로드
                 if (navigator.userAgent.match(/iPhone|iPad|iPod/i)) {
@@ -8035,19 +8139,20 @@
                 const ws = workbook.addWorksheet('하자점검리스트');
 
                 // ===== 컬럼 너비 설정 =====
-                ws.getColumn(1).width = 10;  // 동구분
-                ws.getColumn(2).width = 10;  // 호구분
-                ws.getColumn(3).width = 12;  // 실구분
-                ws.getColumn(4).width = 14;  // 공종구분
-                ws.getColumn(5).width = 14;  // 하자유형
-                ws.getColumn(6).width = 35;  // 하자내용
-                ws.getColumn(7).width = 20;  // 원경
-                ws.getColumn(8).width = 20;  // 근경
-                ws.getColumn(9).width = 14;  // 보수방법
-                ws.getColumn(10).width = 14; // 비고
+                ws.getColumn(1).width = 7;   // No
+                ws.getColumn(2).width = 10;  // 동구분
+                ws.getColumn(3).width = 10;  // 호구분
+                ws.getColumn(4).width = 12;  // 실구분
+                ws.getColumn(5).width = 14;  // 공종구분
+                ws.getColumn(6).width = 14;  // 하자유형
+                ws.getColumn(7).width = 35;  // 하자내용
+                ws.getColumn(8).width = 20;  // 원경
+                ws.getColumn(9).width = 20;  // 근경
+                ws.getColumn(10).width = 14; // 보수방법
+                ws.getColumn(11).width = 14; // 비고
 
                 // ===== 제목행 =====
-                ws.mergeCells('A1:J1');
+                ws.mergeCells('A1:K1');
                 const titleCell = ws.getCell('A1');
                 titleCell.value = '세대 하자점검 LIST';
                 titleCell.font = { size: 18, bold: true, color: { argb: 'FF000000' } };
@@ -8055,7 +8160,7 @@
                 ws.getRow(1).height = 40;
 
                 // ===== 헤더행 =====
-                const headers = ['동구분', '호구분', '실구분', '공종구분', '하자유형', '하자내용', '원경', '근경', '보수방법', '비고'];
+                const headers = ['No', '동구분', '호구분', '실구분', '공종구분', '하자유형', '하자내용', '원경', '근경', '보수방법', '비고'];
                 const headerRow = ws.getRow(2);
                 headerRow.height = 25;
                 headers.forEach((h, i) => {
@@ -8081,19 +8186,20 @@
                     row.height = ROW_HEIGHT;
 
                     // 텍스트 데이터
-                    row.getCell(1).value = projectData.dong || '';
-                    row.getCell(2).value = projectData.ho || '';
-                    row.getCell(3).value = (defect.spaces || []).join(', ');
-                    row.getCell(4).value = detectGongJong(defect);
-                    row.getCell(5).value = (defect.types || []).join(', ');
-                    row.getCell(6).value = defect.description || '';
-                    row.getCell(9).value = '';
+                    row.getCell(1).value = idx + 1;
+                    row.getCell(2).value = projectData.dong || '';
+                    row.getCell(3).value = projectData.ho || '';
+                    row.getCell(4).value = (defect.spaces || []).join(', ');
+                    row.getCell(5).value = detectGongJong(defect);
+                    row.getCell(6).value = (defect.types || []).join(', ');
+                    row.getCell(7).value = defect.description || '';
                     row.getCell(10).value = '';
+                    row.getCell(11).value = '';
 
                     // 셀 스타일
-                    for (let c = 1; c <= 10; c++) {
+                    for (let c = 1; c <= 11; c++) {
                         const cell = row.getCell(c);
-                        cell.alignment = { vertical: 'middle', horizontal: c === 6 ? 'left' : 'center', wrapText: true };
+                        cell.alignment = { vertical: 'middle', horizontal: c === 7 ? 'left' : 'center', wrapText: true };
                         cell.border = {
                             top: { style: 'thin' }, bottom: { style: 'thin' },
                             left: { style: 'thin' }, right: { style: 'thin' }
@@ -8111,8 +8217,8 @@
                             for (let i = 0; i < binaryStr.length; i++) bytes[i] = binaryStr.charCodeAt(i);
                             const imageId = workbook.addImage({ buffer: bytes, extension: 'jpeg' });
                             ws.addImage(imageId, {
-                                tl: { col: 6, row: rowNum - 1 },
-                                br: { col: 7, row: rowNum },
+                                tl: { col: 8, row: rowNum - 1 },
+                                br: { col: 9, row: rowNum },
                                 editAs: 'oneCell'
                             });
                             photoSuccessCount++;
@@ -8667,14 +8773,14 @@
                     <div style="border: 1px solid #ddd; border-radius: 8px; padding: 0; background: white; margin-bottom: 20px; page-break-inside: avoid;">
                         <!-- 헤더 -->
                         <div style="background: #f8f9fa; padding: 10px 15px; border-bottom: 1px solid #ddd;">
-                            <strong style="font-size: 16px; color: #000;">장비점검 ${globalIndex} - ${space}</strong>
+                            <strong style="font-size: 16px; color: #1a1a1a;">장비점검 ${globalIndex} - ${space}</strong>
                         </div>
                         
                         <!-- 점검결과 -->
                         <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px;">
                             <tr>
-                                <td style="padding: 10px; border-bottom: 1px solid #ddd; font-weight: bold; text-align: center; background: #f8f9fa; color: #000; width: 25%;">점검결과</td>
-                                <td style="padding: 10px; border-bottom: 1px solid #ddd; color: #000;">${item.inspection || '벽체수직 및 바닥수평 / 단열시공 양호'}</td>
+                                <td style="padding: 10px; border-bottom: 1px solid #ddd; font-weight: bold; text-align: center; background: #f8f9fa; color: #1a1a1a; width: 25%;">점검결과</td>
+                                <td style="padding: 10px; border-bottom: 1px solid #ddd; color: #1a1a1a;">${item.inspection || '벽체수직 및 바닥수평 / 단열시공 양호'}</td>
                             </tr>
                         </table>
 
@@ -8701,7 +8807,7 @@
                                     
                                     if (photoList.length === 0) {
                                         return `
-                                            <div style="padding: 40px; text-align: center; color: #333; background: #f8f9fa; border-radius: 6px;">
+                                            <div style="padding: 40px; text-align: center; color: #1a1a1a; background: #f8f9fa; border-radius: 6px;">
                                                 <div style="font-size: 14px; margin-bottom: 8px;">📷 촬영된 사진이 없습니다</div>
                                                 <div style="font-size: 11px;">장비점검 시 사진을 첨부해주세요</div>
                                             </div>
@@ -8721,7 +8827,7 @@
                                         topPhotos.forEach(loc => {
                                             html += `
                                                 <div style="border: 1px solid #ddd; border-radius: 4px; overflow: hidden;">
-                                                    <div style="padding: 8px; text-align: center; font-weight: bold; font-size: 12px; color: #333; border-bottom: 3px solid ${loc.color};">
+                                                    <div style="padding: 8px; text-align: center; font-weight: bold; font-size: 12px; color: #1a1a1a; border-bottom: 3px solid ${loc.color};">
                                                         ${loc.icon} ${loc.name}
                                                     </div>
                                                     <img src="${loc.photo}" style="width: 100%; height: 240px; object-fit: cover; display: block;" />
@@ -8732,7 +8838,7 @@
                                         if (topPhotos.length === 1) {
                                             html += `
                                                 <div style="border: 1px solid #ddd; border-radius: 4px; overflow: hidden; background: #f8f9fa;">
-                                                    <div style="padding: 8px; text-align: center; font-weight: bold; font-size: 12px; color: #333; border-bottom: 3px solid #ddd;">
+                                                    <div style="padding: 8px; text-align: center; font-weight: bold; font-size: 12px; color: #1a1a1a; border-bottom: 3px solid #ddd;">
                                                         사진 없음
                                                     </div>
                                                     <div style="width: 100%; height: 240px; display: flex; align-items: center; justify-content: center; color: #ccc; font-size: 48px;">📷</div>
@@ -8751,13 +8857,13 @@
                                         html += `
                                             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                                                 <div style="border: 1px solid #ddd; border-radius: 4px; overflow: hidden;">
-                                                    <div style="padding: 8px; text-align: center; font-weight: bold; font-size: 12px; color: #333; border-bottom: 3px solid ${colors['바닥1']};">
+                                                    <div style="padding: 8px; text-align: center; font-weight: bold; font-size: 12px; color: #1a1a1a; border-bottom: 3px solid ${colors['바닥1']};">
                                                         ${icons['바닥1']} 바닥1
                                                     </div>
                                                     <img src="${item.photos['바닥1']}" style="width: 100%; height: 240px; object-fit: cover; display: block;" />
                                                 </div>
                                                 <div style="border: 1px solid #ddd; border-radius: 4px; overflow: hidden;">
-                                                    <div style="padding: 8px; text-align: center; font-weight: bold; font-size: 12px; color: #333; border-bottom: 3px solid ${colors['바닥2']};">
+                                                    <div style="padding: 8px; text-align: center; font-weight: bold; font-size: 12px; color: #1a1a1a; border-bottom: 3px solid ${colors['바닥2']};">
                                                         ${icons['바닥2']} 바닥2
                                                     </div>
                                                     <img src="${item.photos['바닥2']}" style="width: 100%; height: 240px; object-fit: cover; display: block;" />
@@ -8771,7 +8877,7 @@
                                         html += `
                                             <div style="display: flex; justify-content: center;">
                                                 <div style="width: 60%; border: 1px solid #ddd; border-radius: 4px; overflow: hidden;">
-                                                    <div style="padding: 8px; text-align: center; font-weight: bold; font-size: 12px; color: #333; border-bottom: 3px solid ${floorPhoto.color};">
+                                                    <div style="padding: 8px; text-align: center; font-weight: bold; font-size: 12px; color: #1a1a1a; border-bottom: 3px solid ${floorPhoto.color};">
                                                         ${floorPhoto.icon} ${floorPhoto.name}
                                                     </div>
                                                     <img src="${floorPhoto.photo}" style="width: 100%; height: 280px; object-fit: cover; display: block;" />
@@ -8786,13 +8892,13 @@
                         ` : `
                             <!-- 단일 사진 (구 버전 호환) -->
                             <div style="text-align: center;">
-                                <div style="padding: 8px; text-align: center; font-weight: bold; font-size: 12px; color: #333; border: 1px solid #ddd; border-bottom: 3px solid #2c3e50; border-radius: 4px 4px 0 0;">
+                                <div style="padding: 8px; text-align: center; font-weight: bold; font-size: 12px; color: #1a1a1a; border: 1px solid #ddd; border-bottom: 3px solid #2c3e50; border-radius: 4px 4px 0 0;">
                                     촬영 사진
                                 </div>
                                 ${item.photo ? `
                                     <img src="${item.photo}" style="width: 100%; max-height: 350px; object-fit: contain; border: 1px solid #ddd; border-top: none;" />
                                 ` : `
-                                    <div style="width: 100%; height: 250px; background: #f9f9f9; border: 1px solid #ddd; border-top: none; display: flex; align-items: center; justify-content: center; color: #333; font-size: 12px;">사진 없음</div>
+                                    <div style="width: 100%; height: 250px; background: #f9f9f9; border: 1px solid #ddd; border-top: none; display: flex; align-items: center; justify-content: center; color: #1a1a1a; font-size: 12px;">사진 없음</div>
                                 `}
                             </div>
                         `}
@@ -8802,14 +8908,14 @@
 
             return `
                 <div style="width: 794px; min-height: 1123px; background: white; font-family: 'Malgun Gothic', sans-serif; padding: 30px;">
-                    <div style="background: white; color: #000; padding: 15px 20px; margin-bottom: 20px; border-radius: 8px; border: 1px solid #ddd;">
+                    <div style="background: white; color: #1a1a1a; padding: 15px 20px; margin-bottom: 20px; border-radius: 8px; border: 1px solid #ddd;">
                         <h2 style="margin: 0; font-size: 20px; font-weight: bold;">장비 측정 보고서</h2>
-                        <p style="margin: 5px 0 0 0; font-size: 13px; color: #333;">${projectData.apartmentName} ${projectData.dong}동 ${projectData.ho}호 | ${projectData.inspectionDate || ''}</p>
+                        <p style="margin: 5px 0 0 0; font-size: 13px; color: #1a1a1a;">${projectData.apartmentName} ${projectData.dong}동 ${projectData.ho}호 | ${projectData.inspectionDate || ''}</p>
                     </div>
 
                     ${contentHTML}
 
-                    <div style="position: absolute; bottom: 20px; left: 30px; right: 30px; padding-top: 15px; border-top: 1px solid #ddd; font-size: 11px; color: #333;">
+                    <div style="position: absolute; bottom: 20px; left: 30px; right: 30px; padding-top: 15px; border-top: 1px solid #ddd; font-size: 11px; color: #1a1a1a;">
                         <div style="display: flex; justify-content: space-between; align-items: center;">
                             <div>더홈점검 | 1668-5322</div>
                         </div>
@@ -8820,128 +8926,150 @@
 
         // 참고자료 페이지 생성 함수들
         window.createWarrantyGuidePage1 = function() {
-            return `
-                <div style="width: 794px; min-height: 1123px; background: white; font-family: 'Malgun Gothic', sans-serif; padding: 40px; position: relative;">
-                    <h2 style="margin: 0 0 25px 0; font-size: 22px; color: #000; border-bottom: 3px solid #e74c3c; padding-bottom: 12px;">📝 하자보수 청구 가이드</h2>
+            return '<div style="width:794px;min-height:1123px;background:white;font-family:\'Malgun Gothic\',sans-serif;padding:30px;position:relative;box-sizing:border-box;">'
 
-                    <div style="background: #ffebee; border-left: 4px solid #e74c3c; padding: 18px; margin-bottom: 25px; border-radius: 4px;">
-                        <p style="margin: 0; color: #000; font-size: 14px; line-height: 1.8; font-weight: 500;">
-                            하자를 발견하셨나요? 하자담보책임 기간 내에 적절한 절차로 보수 청구하시면 무상으로 수리받으실 수 있습니다.
-                        </p>
-                    </div>
+                // 헤더
+                + '<div style="background:#1e3a5f;color:white;padding:18px 22px;margin-bottom:20px;border-radius:8px;">'
+                    + '<h1 style="margin:0 0 4px 0;font-size:22px;">하자보수 청구 및 보증기간 안내</h1>'
+                    + '<p style="margin:0;font-size:12px;opacity:0.9;">공동주택관리법 시행령 제36조 제1항 제2호 및 별표4</p>'
+                + '</div>'
 
-                    <div style="border: 2px solid #ddd; border-radius: 8px; padding: 20px; margin-bottom: 20px; background: white;">
-                        <div style="background: #e3f2fd; color: #000; border-bottom: 2px solid #3498db; padding: 12px 18px; margin: -20px -20px 18px -20px; border-radius: 6px 6px 0 0; font-size: 16px; font-weight: bold;">
-                            1단계: 하자 발견 즉시 사진 촬영 및 기록
-                        </div>
-                        <ul style="margin: 0; padding-left: 20px; font-size: 13px; color: #000; line-height: 2;">
-                            <li><strong>원경 사진:</strong> 하자가 어느 위치에 있는지 전체적인 공간 촬영</li>
-                            <li><strong>근접 사진:</strong> 하자 부위를 확대하여 상세하게 촬영</li>
-                            <li><strong>기록 사항:</strong> 발견 날짜, 위치(공간), 하자 내용을 메모</li>
-                        </ul>
-                    </div>
+                // 보증기간 표
+                + '<h3 style="font-size:15px;color:#1e293b;margin:0 0 10px 0;border-left:4px solid #E84848;padding-left:10px;">하자담보 책임기간</h3>'
 
-                    <div style="border: 2px solid #ddd; border-radius: 8px; padding: 20px; margin-bottom: 20px; background: white;">
-                        <div style="background: #e8f5e9; color: #000; border-bottom: 2px solid #2ecc71; padding: 12px 18px; margin: -20px -20px 18px -20px; border-radius: 6px 6px 0 0; font-size: 16px; font-weight: bold;">
-                            2단계: 하자보수 신청
-                        </div>
-                        <div style="background: #fff3e0; padding: 15px; border-radius: 4px; border: 1px solid #f39c12; margin-bottom: 15px;">
-                            <p style="margin: 0; color: #000; font-size: 13px; line-height: 1.8;">
-                                <strong>신청 방법</strong><br>
-                                ① <strong>관리사무소</strong>에 접수 (일반적인 방법)<br>
-                                ② <strong>시공사 A/S센터</strong>에 직접 접수 (긴급 하자, 대응 미흡 시)
-                            </p>
-                        </div>
-                        
-                        <div style="background: #e3f2fd; padding: 15px; border-radius: 4px; border: 1px solid #3498db;">
-                            <p style="margin: 0 0 10px 0; color: #000; font-size: 13px; font-weight: bold;">📌 제출 서류</p>
-                            <ul style="margin: 0; padding-left: 20px; font-size: 13px; color: #000; line-height: 1.8;">
-                                <li>하자보수 신청서</li>
-                                <li>하자 사진 (원경, 근접)</li>
-                                <li>입주자 정보 (동/호수, 연락처)</li>
-                            </ul>
-                        </div>
-                    </div>
+                + '<div style="display:flex;margin-bottom:5px;font-size:12px;">'
+                    + '<div style="width:50px;padding:10px 0;text-align:center;background:#E84848;color:white;font-weight:700;border-radius:6px 0 0 6px;">2년</div>'
+                    + '<div style="flex:1;padding:8px 12px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:0 6px 6px 0;color:#334155;line-height:1.5;"><strong>마감공사:</strong> 미장, 수장, 도장, 도배, 타일, 석공사, 옥내가구, 주방기구, 가전제품</div>'
+                + '</div>'
+                + '<div style="display:flex;margin-bottom:5px;font-size:12px;">'
+                    + '<div style="width:50px;padding:10px 0;text-align:center;background:#e67e22;color:white;font-weight:700;border-radius:6px 0 0 6px;">3년</div>'
+                    + '<div style="flex:1;padding:8px 12px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:0 6px 6px 0;color:#334155;line-height:1.5;"><strong>건축:</strong> 균열, 누수, 결로 | <strong>창호:</strong> 창문틀, 문짝 | <strong>설비:</strong> 냉난방, 환기, 위생</div>'
+                + '</div>'
+                + '<div style="display:flex;margin-bottom:5px;font-size:12px;">'
+                    + '<div style="width:50px;padding:10px 0;text-align:center;background:#f59e0b;color:white;font-weight:700;border-radius:6px 0 0 6px;">5년</div>'
+                    + '<div style="flex:1;padding:8px 12px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:0 6px 6px 0;color:#334155;line-height:1.5;"><strong>전기/전력설비</strong> | <strong>급/배수, 가스, 소방설비</strong> | <strong>정보통신</strong> | <strong>조경공사</strong></div>'
+                + '</div>'
+                + '<div style="display:flex;margin-bottom:14px;font-size:12px;">'
+                    + '<div style="width:50px;padding:10px 0;text-align:center;background:#16a085;color:white;font-weight:700;border-radius:6px 0 0 6px;">10년</div>'
+                    + '<div style="flex:1;padding:8px 12px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:0 6px 6px 0;color:#334155;line-height:1.5;"><strong>내력구조부:</strong> 기둥, 보, 내력벽 | <strong>방수공사</strong> | <strong>철근콘크리트</strong> | <strong>지붕공사</strong></div>'
+                + '</div>'
 
-                    <div style="border: 2px solid #ddd; border-radius: 8px; padding: 20px; background: white;">
-                        <div style="background: #fff3e0; color: #000; border-bottom: 2px solid #f39c12; padding: 12px 18px; margin: -20px -20px 18px -20px; border-radius: 6px 6px 0 0; font-size: 16px; font-weight: bold;">
-                            3단계: 시공사의 하자 확인 및 보수
-                        </div>
-                        <ul style="margin: 0; padding-left: 20px; font-size: 13px; color: #000; line-height: 2;">
-                            <li>시공사에서 하자 확인을 위해 방문 (일정 협의, 보통 1~2주 소요)</li>
-                            <li>하자 인정 시 보수 일정 협의 및 시행</li>
-                            <li>보수 완료 후 입주자 확인 및 서명</li>
-                            <li><strong>대응 지연 시:</strong> 시공사 본사 A/S센터, 한국소비자원(1372) 상담</li>
-                        </ul>
-                    </div>
+                // 자주 묻는 하자
+                + '<div style="display:flex;gap:6px;margin-bottom:18px;">'
+                    + '<div style="flex:1;padding:8px;background:#fef2f2;border:1px solid #fecaca;border-radius:6px;text-align:center;"><div style="font-size:11px;color:#64748b;">도배 들뜸</div><div style="font-size:18px;font-weight:800;color:#E84848;">2년</div></div>'
+                    + '<div style="flex:1;padding:8px;background:#fff7ed;border:1px solid #fed7aa;border-radius:6px;text-align:center;"><div style="font-size:11px;color:#64748b;">창호 결함</div><div style="font-size:18px;font-weight:800;color:#e67e22;">3년</div></div>'
+                    + '<div style="flex:1;padding:8px;background:#fffbeb;border:1px solid #fde68a;border-radius:6px;text-align:center;"><div style="font-size:11px;color:#64748b;">배관 누수</div><div style="font-size:18px;font-weight:800;color:#f59e0b;">5년</div></div>'
+                    + '<div style="flex:1;padding:8px;background:#f0fdfa;border:1px solid #99f6e4;border-radius:6px;text-align:center;"><div style="font-size:11px;color:#64748b;">구조체 균열</div><div style="font-size:18px;font-weight:800;color:#16a085;">10년</div></div>'
+                + '</div>'
 
-                    <div style="position: absolute; bottom: 25px; left: 40px; right: 40px; padding-top: 15px; border-top: 1px solid #ddd; font-size: 12px; color: #000; text-align: center; font-weight: 500;">
-                        <div>더홈점검 | 대표: 1668-5322 / 직통: 010-9985-0128</div>
-                    </div>
-                </div>
-            `;
+                // 하자보수 청구 절차
+                + '<h3 style="font-size:15px;color:#1e293b;margin:0 0 10px 0;border-left:4px solid #3498db;padding-left:10px;">하자보수 청구 절차</h3>'
+
+                + '<div style="display:flex;gap:8px;margin-bottom:14px;">'
+                    // 1단계
+                    + '<div style="flex:1;border:1px solid #e2e8f0;border-radius:8px;padding:12px;background:white;">'
+                        + '<div style="background:#e3f2fd;color:#1565c0;padding:6px 10px;border-radius:4px;font-size:13px;font-weight:700;margin-bottom:8px;">1단계: 사진 촬영</div>'
+                        + '<div style="font-size:11px;color:#334155;line-height:1.6;">'
+                            + '- 원경 사진: 전체 공간<br>'
+                            + '- 근접 사진: 하자 부위 확대<br>'
+                            + '- 발견 날짜, 위치, 내용 기록'
+                        + '</div>'
+                    + '</div>'
+                    // 2단계
+                    + '<div style="flex:1;border:1px solid #e2e8f0;border-radius:8px;padding:12px;background:white;">'
+                        + '<div style="background:#e8f5e9;color:#2e7d32;padding:6px 10px;border-radius:4px;font-size:13px;font-weight:700;margin-bottom:8px;">2단계: 보수 신청</div>'
+                        + '<div style="font-size:11px;color:#334155;line-height:1.6;">'
+                            + '- 관리사무소에 접수<br>'
+                            + '- 또는 시공사 A/S센터 직접 접수<br>'
+                            + '- 하자 사진 + 동/호수 제출'
+                        + '</div>'
+                    + '</div>'
+                    // 3단계
+                    + '<div style="flex:1;border:1px solid #e2e8f0;border-radius:8px;padding:12px;background:white;">'
+                        + '<div style="background:#fff3e0;color:#e65100;padding:6px 10px;border-radius:4px;font-size:13px;font-weight:700;margin-bottom:8px;">3단계: 확인 및 보수</div>'
+                        + '<div style="font-size:11px;color:#334155;line-height:1.6;">'
+                            + '- 시공사 방문 확인 (1~2주)<br>'
+                            + '- 보수 일정 협의 및 시행<br>'
+                            + '- 완료 후 입주자 확인 서명'
+                        + '</div>'
+                    + '</div>'
+                + '</div>'
+
+                // 참고사항
+                + '<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px;font-size:11px;color:#64748b;line-height:1.6;">'
+                    + '<strong style="color:#334155;">참고사항</strong><br>'
+                    + '- 대응 지연 시: 시공사 본사 A/S센터 또는 한국소비자원(1372) 상담<br>'
+                    + '- 조치 미이행 시 500만원 과태료 부과 가능 (공동주택관리법 시행령 제102조)<br>'
+                    + '- 하자보수 청구는 입주자대표회의 또는 개별 입주자가 할 수 있습니다'
+                + '</div>'
+
+                // 푸터
+                + '<div style="position:absolute;bottom:20px;left:30px;right:30px;padding-top:12px;border-top:1px solid #ddd;font-size:11px;color:#000;text-align:center;">'
+                    + '<div>더홈점검 | 대표: 1668-5322 / 직통: 010-9985-0128 | 사전점검 전문업체</div>'
+                + '</div>'
+            + '</div>';
         }
 
         window.createWarrantyGuidePage2 = function() {
             return `
                 <div style="width: 794px; min-height: 1123px; background: white; font-family: 'Malgun Gothic', sans-serif; padding: 40px; position: relative;">
-                    <h2 style="margin: 0 0 25px 0; font-size: 22px; color: #000; border-bottom: 3px solid #e74c3c; padding-bottom: 12px;">⏰ 하자담보책임 기간 상세</h2>
+                    <h2 style="margin: 0 0 25px 0; font-size: 22px; color: #1a1a1a; border-bottom: 3px solid #e74c3c; padding-bottom: 12px;">⏰ 하자담보책임 기간 상세</h2>
 
                     <div style="background: #ffebee; border-left: 4px solid #e74c3c; padding: 18px; margin-bottom: 25px; border-radius: 4px;">
-                        <p style="margin: 0; color: #000; font-size: 14px; line-height: 1.8; font-weight: 500;">
+                        <p style="margin: 0; color: #1a1a1a; font-size: 14px; line-height: 1.8; font-weight: 500;">
                             <strong>공동주택관리법 시행령 제36조</strong>에 따라 사업주체는 하자담보책임 기간 동안 무상 보수 의무가 있습니다.
                         </p>
                     </div>
 
                     <div style="border: 2px solid #e74c3c; border-radius: 8px; padding: 20px; margin-bottom: 20px; background: white;">
-                        <div style="background: #ffebee; color: #000; padding: 12px; margin: -20px -20px 18px -20px; border-radius: 6px 6px 0 0; font-size: 16px; font-weight: bold;">
+                        <div style="background: #ffebee; color: #1a1a1a; padding: 12px; margin: -20px -20px 18px -20px; border-radius: 6px 6px 0 0; font-size: 16px; font-weight: bold;">
                             ① 내력구조부 - 10년
                         </div>
                         <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
                             <tr style="border-bottom: 1px solid #ddd;">
-                                <td style="padding: 12px; width: 25%; background: #f8f9fa; font-weight: bold; color: #000;">대상</td>
-                                <td style="padding: 12px; color: #000;">기둥, 보, 내력벽, 주계단, 지붕틀, 바닥</td>
+                                <td style="padding: 12px; width: 25%; background: #f8f9fa; font-weight: bold; color: #1a1a1a;">대상</td>
+                                <td style="padding: 12px; color: #1a1a1a;">기둥, 보, 내력벽, 주계단, 지붕틀, 바닥</td>
                             </tr>
                             <tr>
-                                <td style="padding: 12px; background: #f8f9fa; font-weight: bold; color: #000;">예시</td>
-                                <td style="padding: 12px; color: #000;">구조 균열, 부등침하, 기둥·보 파손</td>
+                                <td style="padding: 12px; background: #f8f9fa; font-weight: bold; color: #1a1a1a;">예시</td>
+                                <td style="padding: 12px; color: #1a1a1a;">구조 균열, 부등침하, 기둥·보 파손</td>
                             </tr>
                         </table>
                     </div>
 
                     <div style="border: 2px solid #f39c12; border-radius: 8px; padding: 20px; margin-bottom: 20px; background: white;">
-                        <div style="background: #fff3e0; color: #000; padding: 12px; margin: -20px -20px 18px -20px; border-radius: 6px 6px 0 0; font-size: 16px; font-weight: bold;">
+                        <div style="background: #fff3e0; color: #1a1a1a; padding: 12px; margin: -20px -20px 18px -20px; border-radius: 6px 6px 0 0; font-size: 16px; font-weight: bold;">
                             ② 주요 설비 - 3년
                         </div>
                         <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
                             <tr style="border-bottom: 1px solid #ddd;">
-                                <td style="padding: 12px; width: 25%; background: #f8f9fa; font-weight: bold; color: #000;">대상</td>
-                                <td style="padding: 12px; color: #000;">난방·급배수·전기·가스·소방·환기</td>
+                                <td style="padding: 12px; width: 25%; background: #f8f9fa; font-weight: bold; color: #1a1a1a;">대상</td>
+                                <td style="padding: 12px; color: #1a1a1a;">난방·급배수·전기·가스·소방·환기</td>
                             </tr>
                             <tr>
-                                <td style="padding: 12px; background: #f8f9fa; font-weight: bold; color: #000;">예시</td>
-                                <td style="padding: 12px; color: #000;">보일러 고장, 수전 누수, 배관 막힘, 누전</td>
+                                <td style="padding: 12px; background: #f8f9fa; font-weight: bold; color: #1a1a1a;">예시</td>
+                                <td style="padding: 12px; color: #1a1a1a;">보일러 고장, 수전 누수, 배관 막힘, 누전</td>
                             </tr>
                         </table>
                     </div>
 
                     <div style="border: 2px solid #3498db; border-radius: 8px; padding: 20px; background: white;">
-                        <div style="background: #e3f2fd; color: #000; padding: 12px; margin: -20px -20px 18px -20px; border-radius: 6px 6px 0 0; font-size: 16px; font-weight: bold;">
+                        <div style="background: #e3f2fd; color: #1a1a1a; padding: 12px; margin: -20px -20px 18px -20px; border-radius: 6px 6px 0 0; font-size: 16px; font-weight: bold;">
                             ③ 마감재 - 2년
                         </div>
                         <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
                             <tr style="border-bottom: 1px solid #ddd;">
-                                <td style="padding: 12px; width: 25%; background: #f8f9fa; font-weight: bold; color: #000;">대상</td>
-                                <td style="padding: 12px; color: #000;">도배, 장판, 타일, 도장, 창호</td>
+                                <td style="padding: 12px; width: 25%; background: #f8f9fa; font-weight: bold; color: #1a1a1a;">대상</td>
+                                <td style="padding: 12px; color: #1a1a1a;">도배, 장판, 타일, 도장, 창호</td>
                             </tr>
                             <tr>
-                                <td style="padding: 12px; background: #f8f9fa; font-weight: bold; color: #000;">예시</td>
-                                <td style="padding: 12px; color: #000;">도배 들뜸, 장판 변색, 타일 균열</td>
+                                <td style="padding: 12px; background: #f8f9fa; font-weight: bold; color: #1a1a1a;">예시</td>
+                                <td style="padding: 12px; color: #1a1a1a;">도배 들뜸, 장판 변색, 타일 균열</td>
                             </tr>
                         </table>
                     </div>
 
-                    <div style="position: absolute; bottom: 25px; left: 40px; right: 40px; padding-top: 15px; border-top: 1px solid #ddd; font-size: 12px; color: #000; text-align: center; font-weight: 500;">
+                    <div style="position: absolute; bottom: 25px; left: 40px; right: 40px; padding-top: 15px; border-top: 1px solid #ddd; font-size: 12px; color: #1a1a1a; text-align: center; font-weight: 500;">
                         <div>더홈점검 | 대표: 1668-5322 / 직통: 010-9985-0128</div>
                     </div>
                 </div>
@@ -8951,45 +9079,45 @@
         window.createAirQualityManagementGuidePage = function() {
             return `
                 <div style="width: 794px; min-height: 1123px; background: white; font-family: 'Malgun Gothic', sans-serif; padding: 40px; position: relative;">
-                    <h2 style="margin: 0 0 25px 0; font-size: 22px; color: #000; border-bottom: 3px solid #2ecc71; padding-bottom: 12px;">🌿 실내 공기질 관리 가이드</h2>
+                    <h2 style="margin: 0 0 25px 0; font-size: 22px; color: #1a1a1a; border-bottom: 3px solid #2ecc71; padding-bottom: 12px;">🌿 실내 공기질 관리 가이드</h2>
 
                     <div style="background: #e8f5e9; border-left: 4px solid #2ecc71; padding: 18px; margin-bottom: 25px; border-radius: 4px;">
-                        <p style="margin: 0; color: #000; font-size: 14px; line-height: 1.8; font-weight: 500;">
+                        <p style="margin: 0; color: #1a1a1a; font-size: 14px; line-height: 1.8; font-weight: 500;">
                             새 아파트는 자재에서 나오는 유해물질로 인해 실내 공기질이 나쁠 수 있습니다. 
                             입주 전후 적절한 환기와 관리로 쾌적한 실내 환경을 만드세요.
                         </p>
                     </div>
 
                     <div style="border: 2px solid #ddd; border-radius: 8px; padding: 20px; margin-bottom: 20px; background: white;">
-                        <div style="background: #e3f2fd; color: #000; border-bottom: 2px solid #3498db; padding: 12px 18px; margin: -20px -20px 18px -20px; border-radius: 6px 6px 0 0; font-size: 16px; font-weight: bold;">
+                        <div style="background: #e3f2fd; color: #1a1a1a; border-bottom: 2px solid #3498db; padding: 12px 18px; margin: -20px -20px 18px -20px; border-radius: 6px 6px 0 0; font-size: 16px; font-weight: bold;">
                             1. 자주 환기하기 (가장 중요!)
                         </div>
                         <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
                             <tr style="border-bottom: 1px solid #ddd;">
-                                <td style="padding: 12px; width: 30%; background: #f8f9fa; font-weight: bold; color: #000;">환기 횟수</td>
-                                <td style="padding: 12px; color: #000;">하루 3회 이상 (아침, 점심, 저녁)</td>
+                                <td style="padding: 12px; width: 30%; background: #f8f9fa; font-weight: bold; color: #1a1a1a;">환기 횟수</td>
+                                <td style="padding: 12px; color: #1a1a1a;">하루 3회 이상 (아침, 점심, 저녁)</td>
                             </tr>
                             <tr style="border-bottom: 1px solid #ddd;">
-                                <td style="padding: 12px; background: #f8f9fa; font-weight: bold; color: #000;">환기 시간</td>
-                                <td style="padding: 12px; color: #000;">회당 최소 30분 (맞바람 치도록 대각선 창문 개방)</td>
+                                <td style="padding: 12px; background: #f8f9fa; font-weight: bold; color: #1a1a1a;">환기 시간</td>
+                                <td style="padding: 12px; color: #1a1a1a;">회당 최소 30분 (맞바람 치도록 대각선 창문 개방)</td>
                             </tr>
                             <tr>
-                                <td style="padding: 12px; background: #f8f9fa; font-weight: bold; color: #000;">환기 시기</td>
-                                <td style="padding: 12px; color: #000;">입주 2주 전부터 매일 환기</td>
+                                <td style="padding: 12px; background: #f8f9fa; font-weight: bold; color: #1a1a1a;">환기 시기</td>
+                                <td style="padding: 12px; color: #1a1a1a;">입주 2주 전부터 매일 환기</td>
                             </tr>
                         </table>
                     </div>
 
                     <div style="border: 2px solid #ddd; border-radius: 8px; padding: 20px; margin-bottom: 20px; background: white;">
-                        <div style="background: #ffebee; color: #000; border-bottom: 2px solid #e74c3c; padding: 12px 18px; margin: -20px -20px 18px -20px; border-radius: 6px 6px 0 0; font-size: 16px; font-weight: bold;">
+                        <div style="background: #ffebee; color: #1a1a1a; border-bottom: 2px solid #e74c3c; padding: 12px 18px; margin: -20px -20px 18px -20px; border-radius: 6px 6px 0 0; font-size: 16px; font-weight: bold;">
                             2. 베이크아웃 (Bake-Out)
                         </div>
                         <div style="background: #fff3e0; padding: 15px; border-radius: 4px; border: 1px solid #f39c12; margin-bottom: 15px;">
-                            <p style="margin: 0; color: #000; font-size: 13px; line-height: 1.8; font-weight: 500;">
+                            <p style="margin: 0; color: #1a1a1a; font-size: 13px; line-height: 1.8; font-weight: 500;">
                                 <strong>베이크아웃이란?</strong> 실내 온도를 높여서 건축 자재의 유해물질을 빠르게 배출시키는 방법
                             </p>
                         </div>
-                        <ul style="margin: 0; padding-left: 20px; font-size: 13px; color: #000; line-height: 2;">
+                        <ul style="margin: 0; padding-left: 20px; font-size: 13px; color: #1a1a1a; line-height: 2;">
                             <li><strong>방법:</strong> 모든 창문 닫고 난방으로 30~35도까지 올림</li>
                             <li><strong>시간:</strong> 6~8시간 유지 후 2시간 이상 환기</li>
                             <li><strong>반복:</strong> 이 과정을 3~5회 반복하면 효과적</li>
@@ -9001,37 +9129,37 @@
                         <table style="width: 100%; border-collapse: collapse; font-size: 13px; background: white;">
                             <thead>
                                 <tr style="background: #f8f9fa; border: 1px solid #ddd;">
-                                    <th style="padding: 12px; color: #000; font-weight: bold; border: 1px solid #ddd;">오염물질</th>
-                                    <th style="padding: 12px; color: #000; font-weight: bold; border: 1px solid #ddd;">권고기준</th>
-                                    <th style="padding: 12px; color: #000; font-weight: bold; border: 1px solid #ddd;">건강영향</th>
+                                    <th style="padding: 12px; color: #1a1a1a; font-weight: bold; border: 1px solid #ddd;">오염물질</th>
+                                    <th style="padding: 12px; color: #1a1a1a; font-weight: bold; border: 1px solid #ddd;">권고기준</th>
+                                    <th style="padding: 12px; color: #1a1a1a; font-weight: bold; border: 1px solid #ddd;">건강영향</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr style="border: 1px solid #ddd;">
-                                    <td style="padding: 10px; font-weight: bold; color: #000; border: 1px solid #ddd;">라돈(Rn)</td>
+                                    <td style="padding: 10px; font-weight: bold; color: #1a1a1a; border: 1px solid #ddd;">라돈(Rn)</td>
                                     <td style="padding: 10px; color: #e74c3c; font-weight: bold; text-align: center; border: 1px solid #ddd;">148 이하</td>
-                                    <td style="padding: 10px; color: #000; border: 1px solid #ddd;">폐암 유발 1급 발암물질</td>
+                                    <td style="padding: 10px; color: #1a1a1a; border: 1px solid #ddd;">폐암 유발 1급 발암물질</td>
                                 </tr>
                                 <tr style="border: 1px solid #ddd;">
-                                    <td style="padding: 10px; font-weight: bold; color: #000; border: 1px solid #ddd;">포름알데히드</td>
+                                    <td style="padding: 10px; font-weight: bold; color: #1a1a1a; border: 1px solid #ddd;">포름알데히드</td>
                                     <td style="padding: 10px; color: #e74c3c; font-weight: bold; text-align: center; border: 1px solid #ddd;">0.210 이하</td>
-                                    <td style="padding: 10px; color: #000; border: 1px solid #ddd;">눈·코 자극, 새집증후군</td>
+                                    <td style="padding: 10px; color: #1a1a1a; border: 1px solid #ddd;">눈·코 자극, 새집증후군</td>
                                 </tr>
                                 <tr style="border: 1px solid #ddd;">
-                                    <td style="padding: 10px; font-weight: bold; color: #000; border: 1px solid #ddd;">총VOCs</td>
+                                    <td style="padding: 10px; font-weight: bold; color: #1a1a1a; border: 1px solid #ddd;">총VOCs</td>
                                     <td style="padding: 10px; color: #e74c3c; font-weight: bold; text-align: center; border: 1px solid #ddd;">0.500 이하</td>
-                                    <td style="padding: 10px; color: #000; border: 1px solid #ddd;">현기증, 피로, 호흡기 자극</td>
+                                    <td style="padding: 10px; color: #1a1a1a; border: 1px solid #ddd;">현기증, 피로, 호흡기 자극</td>
                                 </tr>
                             </tbody>
                         </table>
                         <div style="background: white; padding: 12px; margin-top: 15px; border-radius: 4px; border: 1px solid #3498db;">
-                            <p style="margin: 0; color: #000; font-size: 12px; line-height: 1.6; font-weight: 500;">
+                            <p style="margin: 0; color: #1a1a1a; font-size: 12px; line-height: 1.6; font-weight: 500;">
                                 <strong>⚠️ 중요:</strong> 신축 공동주택 3개 항목은 법적 권고기준입니다. 입주 전 반드시 측정하세요.
                             </p>
                         </div>
                     </div>
 
-                    <div style="position: absolute; bottom: 25px; left: 40px; right: 40px; padding-top: 15px; border-top: 1px solid #ddd; font-size: 12px; color: #000; text-align: center; font-weight: 500;">
+                    <div style="position: absolute; bottom: 25px; left: 40px; right: 40px; padding-top: 15px; border-top: 1px solid #ddd; font-size: 12px; color: #1a1a1a; text-align: center; font-weight: 500;">
                         <div>더홈점검 | 대표: 1668-5322 / 직통: 010-9985-0128</div>
                     </div>
                 </div>
@@ -9041,23 +9169,23 @@
         window.createCondensationGuidePage = function() {
             return `
                 <div style="width: 794px; min-height: 1123px; background: white; font-family: 'Malgun Gothic', sans-serif; padding: 40px; position: relative;">
-                    <h2 style="margin: 0 0 25px 0; font-size: 22px; color: #000; border-bottom: 3px solid #3498db; padding-bottom: 12px;">💧 결로 예방 및 관리 가이드</h2>
+                    <h2 style="margin: 0 0 25px 0; font-size: 22px; color: #1a1a1a; border-bottom: 3px solid #3498db; padding-bottom: 12px;">💧 결로 예방 및 관리 가이드</h2>
 
                     <div style="background: #e3f2fd; border-left: 4px solid #3498db; padding: 18px; margin-bottom: 25px; border-radius: 4px;">
-                        <p style="margin: 0; color: #000; font-size: 14px; line-height: 1.8; font-weight: 500;">
+                        <p style="margin: 0; color: #1a1a1a; font-size: 14px; line-height: 1.8; font-weight: 500;">
                             결로는 실내외 온도차와 습도로 인해 발생하는 자연현상입니다. 
                             적절한 환기와 실내 습도 관리로 결로 발생을 최소화할 수 있습니다.
                         </p>
                     </div>
 
                     <div style="border: 2px solid #ddd; border-radius: 8px; padding: 20px; margin-bottom: 20px; background: white;">
-                        <div style="background: #e3f2fd; color: #000; border-bottom: 2px solid #3498db; padding: 12px 18px; margin: -20px -20px 18px -20px; border-radius: 6px 6px 0 0; font-size: 16px; font-weight: bold;">
+                        <div style="background: #e3f2fd; color: #1a1a1a; border-bottom: 2px solid #3498db; padding: 12px 18px; margin: -20px -20px 18px -20px; border-radius: 6px 6px 0 0; font-size: 16px; font-weight: bold;">
                             1. 결로 예방 방법
                         </div>
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
                             <div style="background: #e8f5e9; padding: 15px; border-radius: 4px; border: 1px solid #2ecc71; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 120px;">
                                 <div style="font-weight: bold; color: #2ecc71; margin-bottom: 8px; font-size: 14px; text-align: center;">✓ 환기하기</div>
-                                <div style="font-size: 13px; color: #000; line-height: 1.8; text-align: center;">
+                                <div style="font-size: 13px; color: #1a1a1a; line-height: 1.8; text-align: center;">
                                     • 하루 3회, 10분 이상<br>
                                     • 요리·샤워 후 즉시 환기<br>
                                     • 맞바람 치도록 개방
@@ -9065,7 +9193,7 @@
                             </div>
                             <div style="background: #e3f2fd; padding: 15px; border-radius: 4px; border: 1px solid #3498db; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 120px;">
                                 <div style="font-weight: bold; color: #3498db; margin-bottom: 8px; font-size: 14px; text-align: center;">✓ 습도 조절</div>
-                                <div style="font-size: 13px; color: #000; line-height: 1.8; text-align: center;">
+                                <div style="font-size: 13px; color: #1a1a1a; line-height: 1.8; text-align: center;">
                                     • 실내 습도 40~60% 유지<br>
                                     • 가습기 사용 자제<br>
                                     • 빨래 실내 건조 금지
@@ -9073,7 +9201,7 @@
                             </div>
                             <div style="background: #fff3e0; padding: 15px; border-radius: 4px; border: 1px solid #f39c12; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 120px;">
                                 <div style="font-weight: bold; color: #f39c12; margin-bottom: 8px; font-size: 14px; text-align: center;">✓ 실내 온도</div>
-                                <div style="font-size: 13px; color: #000; line-height: 1.8; text-align: center;">
+                                <div style="font-size: 13px; color: #1a1a1a; line-height: 1.8; text-align: center;">
                                     • 18~22도 적정 유지<br>
                                     • 난방 과도하게 높이지 않기<br>
                                     • 외출 시에도 최소 난방
@@ -9081,7 +9209,7 @@
                             </div>
                             <div style="background: #ffebee; padding: 15px; border-radius: 4px; border: 1px solid #e74c3c; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 120px;">
                                 <div style="font-weight: bold; color: #e74c3c; margin-bottom: 8px; font-size: 14px; text-align: center;">✓ 가구 배치</div>
-                                <div style="font-size: 13px; color: #000; line-height: 1.8; text-align: center;">
+                                <div style="font-size: 13px; color: #1a1a1a; line-height: 1.8; text-align: center;">
                                     • 외벽에서 5~10cm 띄우기<br>
                                     • 통풍 공간 확보<br>
                                     • 붙박이장 환기구 열어두기
@@ -9091,10 +9219,10 @@
                     </div>
 
                     <div style="border: 2px solid #ddd; border-radius: 8px; padding: 20px; background: white;">
-                        <div style="background: #ffebee; color: #000; border-bottom: 2px solid #e74c3c; padding: 12px 18px; margin: -20px -20px 18px -20px; border-radius: 6px 6px 0 0; font-size: 16px; font-weight: bold;">
+                        <div style="background: #ffebee; color: #1a1a1a; border-bottom: 2px solid #e74c3c; padding: 12px 18px; margin: -20px -20px 18px -20px; border-radius: 6px 6px 0 0; font-size: 16px; font-weight: bold;">
                             2. 결로 발생 시 대처 방법
                         </div>
-                        <ul style="margin: 0; padding-left: 20px; font-size: 13px; color: #000; line-height: 2;">
+                        <ul style="margin: 0; padding-left: 20px; font-size: 13px; color: #1a1a1a; line-height: 2;">
                             <li><strong>물기 제거:</strong> 즉시 마른 걸레로 물기를 닦아냄</li>
                             <li><strong>환기:</strong> 물기 제거 후 즉시 환기하여 습기 배출</li>
                             <li><strong>제습:</strong> 제습기 또는 제습제 사용</li>
@@ -9102,7 +9230,7 @@
                         </ul>
                     </div>
 
-                    <div style="position: absolute; bottom: 25px; left: 40px; right: 40px; padding-top: 15px; border-top: 1px solid #ddd; font-size: 12px; color: #000; text-align: center; font-weight: 500;">
+                    <div style="position: absolute; bottom: 25px; left: 40px; right: 40px; padding-top: 15px; border-top: 1px solid #ddd; font-size: 12px; color: #1a1a1a; text-align: center; font-weight: 500;">
                         <div>더홈점검 | 대표: 1668-5322 / 직통: 010-9985-0128</div>
                     </div>
                 </div>
@@ -9112,53 +9240,53 @@
         window.createMovingInGuidePage = function() {
             return `
                 <div style="width: 794px; min-height: 1123px; background: white; font-family: 'Malgun Gothic', sans-serif; padding: 40px; position: relative;">
-                    <h2 style="margin: 0 0 25px 0; font-size: 22px; color: #000; border-bottom: 3px solid #9b59b6; padding-bottom: 12px;">🏡 입주 시 알아두면 유용한 정보</h2>
+                    <h2 style="margin: 0 0 25px 0; font-size: 22px; color: #1a1a1a; border-bottom: 3px solid #9b59b6; padding-bottom: 12px;">🏡 입주 시 알아두면 유용한 정보</h2>
 
                     <div style="background: #f3e5f5; border-left: 4px solid #9b59b6; padding: 18px; margin-bottom: 25px; border-radius: 4px;">
-                        <p style="margin: 0; color: #000; font-size: 14px; line-height: 1.8; font-weight: 500;">
+                        <p style="margin: 0; color: #1a1a1a; font-size: 14px; line-height: 1.8; font-weight: 500;">
                             새 아파트 입주를 앞두고 계신가요? 입주 전후 알아두면 도움이 되는 실용 정보를 정리했습니다.
                         </p>
                     </div>
 
                     <div style="border: 2px solid #ddd; border-radius: 8px; padding: 20px; margin-bottom: 20px; background: white;">
-                        <div style="background: #f3e5f5; color: #000; border-bottom: 2px solid #9b59b6; padding: 12px 18px; margin: -20px -20px 18px -20px; border-radius: 6px 6px 0 0; font-size: 16px; font-weight: bold;">
+                        <div style="background: #f3e5f5; color: #1a1a1a; border-bottom: 2px solid #9b59b6; padding: 12px 18px; margin: -20px -20px 18px -20px; border-radius: 6px 6px 0 0; font-size: 16px; font-weight: bold;">
                             1. 입주 전 필수 준비사항
                         </div>
                         <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
                             <tr style="border-bottom: 1px solid #ddd;">
-                                <td style="padding: 12px; width: 30%; background: #f8f9fa; font-weight: bold; color: #000;">전입신고</td>
-                                <td style="padding: 12px; color: #000;">입주일로부터 14일 이내</td>
+                                <td style="padding: 12px; width: 30%; background: #f8f9fa; font-weight: bold; color: #1a1a1a;">전입신고</td>
+                                <td style="padding: 12px; color: #1a1a1a;">입주일로부터 14일 이내</td>
                             </tr>
                             <tr style="border-bottom: 1px solid #ddd;">
-                                <td style="padding: 12px; background: #f8f9fa; font-weight: bold; color: #000;">화재보험</td>
-                                <td style="padding: 12px; color: #000;">의무가입 (관리사무소 일괄 가입 가능)</td>
+                                <td style="padding: 12px; background: #f8f9fa; font-weight: bold; color: #1a1a1a;">화재보험</td>
+                                <td style="padding: 12px; color: #1a1a1a;">의무가입 (관리사무소 일괄 가입 가능)</td>
                             </tr>
                             <tr style="border-bottom: 1px solid #ddd;">
-                                <td style="padding: 12px; background: #f8f9fa; font-weight: bold; color: #000;">인터넷/TV</td>
-                                <td style="padding: 12px; color: #000;">입주 2주 전 신청</td>
+                                <td style="padding: 12px; background: #f8f9fa; font-weight: bold; color: #1a1a1a;">인터넷/TV</td>
+                                <td style="padding: 12px; color: #1a1a1a;">입주 2주 전 신청</td>
                             </tr>
                             <tr>
-                                <td style="padding: 12px; background: #f8f9fa; font-weight: bold; color: #000;">가스 개통</td>
-                                <td style="padding: 12px; color: #000;">도시가스 회사 신청 (방문 검사)</td>
+                                <td style="padding: 12px; background: #f8f9fa; font-weight: bold; color: #1a1a1a;">가스 개통</td>
+                                <td style="padding: 12px; color: #1a1a1a;">도시가스 회사 신청 (방문 검사)</td>
                             </tr>
                         </table>
                     </div>
 
                     <div style="border: 2px solid #ddd; border-radius: 8px; padding: 20px; margin-bottom: 20px; background: white;">
-                        <div style="background: #e8f5e9; color: #000; border-bottom: 2px solid #2ecc71; padding: 12px 18px; margin: -20px -20px 18px -20px; border-radius: 6px 6px 0 0; font-size: 16px; font-weight: bold;">
+                        <div style="background: #e8f5e9; color: #1a1a1a; border-bottom: 2px solid #2ecc71; padding: 12px 18px; margin: -20px -20px 18px -20px; border-radius: 6px 6px 0 0; font-size: 16px; font-weight: bold;">
                             2. 관리비 절약 노하우
                         </div>
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
                             <div style="background: #f8f9fa; padding: 15px; border-radius: 4px; border: 1px solid #ddd;">
                                 <div style="font-weight: bold; color: #2ecc71; margin-bottom: 8px; font-size: 14px;">난방비</div>
-                                <ul style="margin: 5px 0 0 0; padding-left: 15px; font-size: 13px; color: #000; line-height: 1.8;">
+                                <ul style="margin: 5px 0 0 0; padding-left: 15px; font-size: 13px; color: #1a1a1a; line-height: 1.8;">
                                     <li>적정온도 유지 (20~22도)</li>
                                     <li>외출 시 저온모드</li>
                                 </ul>
                             </div>
                             <div style="background: #f8f9fa; padding: 15px; border-radius: 4px; border: 1px solid #ddd;">
                                 <div style="font-weight: bold; color: #3498db; margin-bottom: 8px; font-size: 14px;">전기세</div>
-                                <ul style="margin: 5px 0 0 0; padding-left: 15px; font-size: 13px; color: #000; line-height: 1.8;">
+                                <ul style="margin: 5px 0 0 0; padding-left: 15px; font-size: 13px; color: #1a1a1a; line-height: 1.8;">
                                     <li>대기전력 차단</li>
                                     <li>LED 조명 사용</li>
                                 </ul>
@@ -9167,30 +9295,30 @@
                     </div>
 
                     <div style="border: 2px solid #ddd; border-radius: 8px; padding: 20px; background: white;">
-                        <div style="background: #e3f2fd; color: #000; border-bottom: 2px solid #3498db; padding: 12px 18px; margin: -20px -20px 18px -20px; border-radius: 6px 6px 0 0; font-size: 16px; font-weight: bold;">
+                        <div style="background: #e3f2fd; color: #1a1a1a; border-bottom: 2px solid #3498db; padding: 12px 18px; margin: -20px -20px 18px -20px; border-radius: 6px 6px 0 0; font-size: 16px; font-weight: bold;">
                             3. 비상 연락처
                         </div>
                         <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
                             <tr style="border-bottom: 1px solid #ddd;">
-                                <td style="padding: 12px; width: 35%; background: #f8f9fa; font-weight: bold; color: #000;">관리사무소</td>
-                                <td style="padding: 12px; color: #000;">일반 문의, 하자보수</td>
+                                <td style="padding: 12px; width: 35%; background: #f8f9fa; font-weight: bold; color: #1a1a1a;">관리사무소</td>
+                                <td style="padding: 12px; color: #1a1a1a;">일반 문의, 하자보수</td>
                             </tr>
                             <tr style="border-bottom: 1px solid #ddd;">
-                                <td style="padding: 12px; background: #f8f9fa; font-weight: bold; color: #000;">도시가스 (119)</td>
-                                <td style="padding: 12px; color: #000;">가스 누출 신고</td>
+                                <td style="padding: 12px; background: #f8f9fa; font-weight: bold; color: #1a1a1a;">도시가스 (119)</td>
+                                <td style="padding: 12px; color: #1a1a1a;">가스 누출 신고</td>
                             </tr>
                             <tr style="border-bottom: 1px solid #ddd;">
-                                <td style="padding: 12px; background: #f8f9fa; font-weight: bold; color: #000;">한국전력 (123)</td>
-                                <td style="padding: 12px; color: #000;">정전, 전기 고장</td>
+                                <td style="padding: 12px; background: #f8f9fa; font-weight: bold; color: #1a1a1a;">한국전력 (123)</td>
+                                <td style="padding: 12px; color: #1a1a1a;">정전, 전기 고장</td>
                             </tr>
                             <tr>
-                                <td style="padding: 12px; background: #f8f9fa; font-weight: bold; color: #000;">수도 (120)</td>
-                                <td style="padding: 12px; color: #000;">수도 고장, 수질 문제</td>
+                                <td style="padding: 12px; background: #f8f9fa; font-weight: bold; color: #1a1a1a;">수도 (120)</td>
+                                <td style="padding: 12px; color: #1a1a1a;">수도 고장, 수질 문제</td>
                             </tr>
                         </table>
                     </div>
 
-                    <div style="position: absolute; bottom: 25px; left: 40px; right: 40px; padding-top: 15px; border-top: 1px solid #ddd; font-size: 12px; color: #000; text-align: center; font-weight: 500;">
+                    <div style="position: absolute; bottom: 25px; left: 40px; right: 40px; padding-top: 15px; border-top: 1px solid #ddd; font-size: 12px; color: #1a1a1a; text-align: center; font-weight: 500;">
                         <div>더홈점검 | 대표: 1668-5322 / 직통: 010-9985-0128</div>
                     </div>
                 </div>
@@ -9200,7 +9328,7 @@
         // ==================== 견적서 페이지 생성 ====================
         window.createQuotationPage = function(apartmentName, dong, ho, date) {
             return `
-                <div style="width: 794px; height: 1123px; background: #ffffff; color: #1a1a1a; font-family: 'Malgun Gothic', sans-serif; padding: 28px 30px 20px 30px; box-sizing: border-box; overflow: hidden; display: flex; flex-direction: column;">
+                <div style="width: 794px; height: 1123px; background: #ffffff; font-family: 'Malgun Gothic', sans-serif; padding: 28px 30px 20px 30px; box-sizing: border-box; overflow: hidden; display: flex; flex-direction: column;">
                     <!-- 헤더 -->
                     <div style="text-align: center; margin-bottom: 14px; padding-bottom: 10px; border-bottom: 3px solid #1e293b;">
                         <div style="font-size: 30px; font-weight: 900; color: #1e293b; letter-spacing: 5px;">더홈점검 견적서</div>
@@ -9401,7 +9529,7 @@
             const imgStyle = "width: 100%; height: 100%; object-fit: cover;";
             
             return `
-                <div style="width: 794px; min-height: 1123px; background: #ffffff; color: #1a1a1a; font-family: 'Malgun Gothic', sans-serif; padding: 30px 35px; position: relative;">
+                <div style="width: 794px; min-height: 1123px; background: #ffffff; font-family: 'Malgun Gothic', sans-serif; padding: 30px 35px; position: relative;">
                     <div style="text-align: center; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid #1e3a5f;">
                         <div style="font-size: 18px; font-weight: 900; color: #1e3a5f; letter-spacing: 1px;">시공안내</div>
                         <div style="font-size: 10px; color: #1a1a1a; margin-top: 2px;">더홈점검이 제공하는 전문 시공 서비스를 안내드립니다</div>
@@ -9549,92 +9677,519 @@
                 </div>
             `;
         }
-        window.createAirQualityDetailPage = function() {
+
+
+        // ==================== 목차 페이지 ====================
+        window.createTableOfContentsPage = function() {
+            const hasDefects = projectData.defects && projectData.defects.length > 0;
+            const hasEquipment = projectData.equipment && projectData.equipment.some(e => e.photos && Object.values(e.photos).some(p => p));
+            const hasAirQuality = projectData.airQuality && projectData.airQuality.some(r => r.radon || r.formaldehyde || r.vocs);
+
+            const sections = [];
+            // numbered: true = 자동 순번, false = 순번 없이 참고 표시
+            sections.push({numbered: true, title: '프로젝트 요약', desc: '점검 대상 아파트 정보 및 점검 개요'});
+            if (hasDefects) {
+                sections.push({numbered: true, title: '하자 점검 목록', desc: '육안 점검으로 발견된 하자 항목 리스트'});
+                sections.push({numbered: true, title: '하자 상세 리포트', desc: '하자별 원경/근경 사진 및 상세 내용'});
+            }
+            if (hasEquipment) {
+                sections.push({numbered: true, title: '장비 점검 결과', desc: '열화상 카메라, 레이저 레벨기 등 장비 점검 결과'});
+            } else {
+                sections.push({numbered: false, title: '장비 점검 보고서', desc: '별도 생성된 장비점검 보고서를 참고해 주세요'});
+            }
+            if (hasAirQuality) {
+                sections.push({numbered: true, title: '실내 공기질 측정 결과', desc: '라돈, 포름알데히드, 총VOCs 측정 및 분석 그래프'});
+            }
+            sections.push({numbered: true, title: '홈케어서비스 견적서', desc: '입주 청소, 줄눈, 코팅 등 홈케어 서비스 비용 안내'});
+            sections.push({numbered: true, title: '홈케어서비스 시공안내', desc: '입주 시 필요한 시공 서비스 상세 안내'});
+            sections.push({numbered: true, title: '공기질 관리 가이드', desc: '환기, 베이크아웃 등 실내 공기질 관리 방법'});
+            sections.push({numbered: true, title: '결로 현상 안내', desc: '결로 원인 및 예방 생활 습관 안내'});
+            sections.push({numbered: true, title: '하자보수 청구 및 보증기간', desc: '하자담보 책임기간 및 보수 청구 절차 안내'});
+            sections.push({numbered: true, title: '입주 전 체크리스트', desc: '입주 준비부터 입주 당일까지 확인사항'});
+
+            let sectionHTML = '';
+            let autoNum = 0;
+            sections.forEach(function(s) {
+                if (s.numbered) {
+                    autoNum++;
+                    var numColor = autoNum % 2 === 0 ? '#16a085' : '#E84848';
+                    sectionHTML += '<div style="display:flex;align-items:center;padding:14px 0;border-bottom:1px solid #eee;">'
+                        + '<div style="width:48px;height:48px;background:' + numColor + ';color:white;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;flex-shrink:0;">' + autoNum + '</div>'
+                        + '<div style="margin-left:16px;">'
+                            + '<div style="font-size:16px;font-weight:700;color:#1e293b;">' + s.title + '</div>'
+                            + '<div style="font-size:12px;color:#64748b;margin-top:3px;">' + s.desc + '</div>'
+                        + '</div>'
+                    + '</div>';
+                } else {
+                    sectionHTML += '<div style="display:flex;align-items:center;padding:14px 0;border-bottom:1px solid #eee;">'
+                        + '<div style="width:48px;height:48px;background:#94a3b8;color:white;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0;">별도</div>'
+                        + '<div style="margin-left:16px;">'
+                            + '<div style="font-size:16px;font-weight:700;color:#94a3b8;">' + s.title + '</div>'
+                            + '<div style="font-size:12px;color:#94a3b8;margin-top:3px;">' + s.desc + '</div>'
+                        + '</div>'
+                    + '</div>';
+                }
+            });
+
+            return '<div style="width:794px;min-height:1123px;background:white;font-family:\'Malgun Gothic\',sans-serif;padding:40px 50px;position:relative;box-sizing:border-box;">'
+                + '<div style="border-left:6px solid #E84848;padding-left:16px;margin-bottom:30px;">'
+                    + '<h1 style="margin:0;font-size:28px;color:#1e293b;">CONTENTS</h1>'
+                    + '<p style="margin:4px 0 0 0;font-size:14px;color:#64748b;">보고서 목차</p>'
+                + '</div>'
+                + '<div style="margin-top:20px;">' + sectionHTML + '</div>'
+                + '<div style="position:absolute;bottom:20px;left:50px;right:50px;padding-top:12px;border-top:1px solid #ddd;font-size:11px;color:#000;text-align:center;">'
+                    + '<div>더홈점검 | 대표: 1668-5322 / 직통: 010-9985-0128 | 사전점검 전문업체</div>'
+                + '</div>'
+            + '</div>';
+        };
+
+        // ==================== 장비점검 요약 페이지 ====================
+        window.createEquipmentSummaryPage = function() {
+            const equipment = projectData.equipment || [];
+            const airQuality = projectData.airQuality || [];
+            const hasThermal = (localStorage.getItem('thermalNoticeGlobal') === 'on');
+
+            // 장비 점검 통계
+            const equipWithPhotos = equipment.filter(function(e) { return e.photos && Object.values(e.photos).some(function(p) { return p; }); });
+            const totalEquip = equipWithPhotos.length;
+
+            // 공기질 통계
+            const standards = { radon: 148, formaldehyde: 0.210, vocs: 0.500 };
+            let aqTotal = 0, aqPass = 0;
+            airQuality.forEach(function(r) {
+                if (parseFloat(r.radon) > 0) { aqTotal++; if (parseFloat(r.radon) <= standards.radon) aqPass++; }
+                if (parseFloat(r.formaldehyde) > 0) { aqTotal++; if (parseFloat(r.formaldehyde) <= standards.formaldehyde) aqPass++; }
+                if (parseFloat(r.vocs) > 0) { aqTotal++; if (parseFloat(r.vocs) <= standards.vocs) aqPass++; }
+            });
+            const aqFail = aqTotal - aqPass;
+
+            // 체크 아이템 생성
+            function checkItem(label, status, detail) {
+                const isGood = status === 'pass';
+                const statusText = isGood ? '양호' : (status === 'caution' ? '확인필요' : '부적합');
+                const statusColor = isGood ? '#16a085' : (status === 'caution' ? '#f59e0b' : '#E84848');
+                const statusBg = isGood ? '#f0fdf4' : (status === 'caution' ? '#fffbeb' : '#fef2f2');
+                return '<div style="display:flex;align-items:center;padding:14px 16px;margin-bottom:8px;background:' + statusBg + ';border:1px solid ' + statusColor + '33;border-radius:8px;">'
+                    + '<div style="width:8px;height:8px;background:' + statusColor + ';border-radius:50%;flex-shrink:0;"></div>'
+                    + '<div style="flex:1;margin-left:12px;">'
+                        + '<div style="font-size:14px;font-weight:600;color:#1e293b;">' + label + '</div>'
+                        + (detail ? '<div style="font-size:11px;color:#64748b;margin-top:2px;">' + detail + '</div>' : '')
+                    + '</div>'
+                    + '<div style="padding:4px 12px;border-radius:12px;background:' + statusColor + ';color:white;font-size:12px;font-weight:700;">' + statusText + '</div>'
+                + '</div>';
+            }
+
+            let checksHTML = '';
+
+            // 열화상 점검
+            if (totalEquip > 0) {
+                const thermalStatus = hasThermal ? 'caution' : 'pass';
+                const thermalDetail = hasThermal ? '실내외 온도차 적어 판독 제한적 (총 ' + totalEquip + '개 구역 점검)' : '총 ' + totalEquip + '개 구역 점검 완료';
+                checksHTML += checkItem('열화상 카메라 점검', thermalStatus, thermalDetail);
+            }
+
+            // 벽체 수직/바닥 수평
+            if (totalEquip > 0) {
+                checksHTML += checkItem('벽체 수직 시공 점검', 'pass', '레이저 레벨기 점검 완료');
+                checksHTML += checkItem('바닥 수평/단열 시공 점검', 'pass', '레이저 레벨기 점검 완료');
+            }
+
+            // 공기질
+            if (aqTotal > 0) {
+                const aqStatus = aqFail > 0 ? 'fail' : 'pass';
+                const aqDetail = '총 ' + aqTotal + '건 측정 | 적합 ' + aqPass + '건, 부적합 ' + aqFail + '건';
+                checksHTML += checkItem('실내 공기질 측정', aqStatus, aqDetail);
+
+                // 항목별
+                airQuality.forEach(function(r) {
+                    if (parseFloat(r.radon) > 0) {
+                        const v = parseFloat(r.radon);
+                        checksHTML += checkItem(r.name + ' - 라돈', v <= 148 ? 'pass' : 'fail', v + ' Bq/m3 (기준: 148 이하)');
+                    }
+                    if (parseFloat(r.formaldehyde) > 0) {
+                        const v = parseFloat(r.formaldehyde);
+                        checksHTML += checkItem(r.name + ' - 포름알데히드', v <= 0.21 ? 'pass' : 'fail', v + ' mg/m3 (기준: 0.210 이하)');
+                    }
+                    if (parseFloat(r.vocs) > 0) {
+                        const v = parseFloat(r.vocs);
+                        checksHTML += checkItem(r.name + ' - 총VOCs', v <= 0.5 ? 'pass' : 'fail', v + ' mg/m3 (기준: 0.500 이하)');
+                    }
+                });
+            }
+
+            if (!checksHTML) return '';
+
+            return '<div style="width:794px;min-height:1123px;background:white;font-family:\'Malgun Gothic\',sans-serif;padding:30px;position:relative;box-sizing:border-box;">'
+                + '<div style="background:#0f766e;color:white;padding:18px 22px;margin-bottom:24px;border-radius:8px;">'
+                    + '<h1 style="margin:0 0 4px 0;font-size:22px;">장비 점검 종합 요약</h1>'
+                    + '<p style="margin:0;font-size:13px;opacity:0.9;">' + (projectData.apartmentName || '') + ' ' + (projectData.dong || '') + '동 ' + (projectData.ho || '') + '호 | ' + (projectData.inspectionDate || '') + '</p>'
+                + '</div>'
+                + checksHTML
+                + '<div style="margin-top:20px;padding:14px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;font-size:12px;color:#64748b;line-height:1.6;">'
+                    + '<strong style="color:#334155;">참고사항</strong><br>'
+                    + '- 장비 점검 결과는 점검 당일 환경 조건에 따라 달라질 수 있습니다<br>'
+                    + '- 열화상 카메라 단열 점검은 실내외 온도차 10도C 이상일 때 가장 정확합니다<br>'
+                    + '- 부적합 항목은 시공사 A/S를 통해 보완을 요청하시기 바랍니다'
+                + '</div>'
+                + '<div style="position:absolute;bottom:20px;left:30px;right:30px;padding-top:12px;border-top:1px solid #ddd;font-size:11px;color:#000;text-align:center;">'
+                    + '<div>더홈점검 | 대표: 1668-5322 / 직통: 010-9985-0128 | 사전점검 전문업체</div>'
+                + '</div>'
+            + '</div>';
+        };
+
+        // ==================== 하자 보증기간 안내 페이지 ====================
+        window.createWarrantyPeriodPage = function() {
+            function periodRow(period, color, items) {
+                return '<div style="display:flex;margin-bottom:6px;font-size:13px;">'
+                    + '<div style="width:60px;padding:10px 0;text-align:center;background:' + color + ';color:white;font-weight:700;border-radius:6px 0 0 6px;">' + period + '</div>'
+                    + '<div style="flex:1;padding:10px 14px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:0 6px 6px 0;color:#334155;line-height:1.5;">' + items + '</div>'
+                + '</div>';
+            }
+
+            return '<div style="width:794px;min-height:1123px;background:white;font-family:\'Malgun Gothic\',sans-serif;padding:30px;position:relative;box-sizing:border-box;">'
+                + '<div style="background:#1e3a5f;color:white;padding:18px 22px;margin-bottom:24px;border-radius:8px;">'
+                    + '<h1 style="margin:0 0 4px 0;font-size:22px;">하자 보증기간 안내</h1>'
+                    + '<p style="margin:0;font-size:13px;opacity:0.9;">공동주택관리법 시행령 제36조 제1항 제2호 및 별표4</p>'
+                + '</div>'
+
+                + '<div style="background:#fff3cd;border:1px solid #ffc107;border-radius:8px;padding:14px 18px;margin-bottom:20px;font-size:13px;color:#856404;line-height:1.6;">'
+                    + '<strong>꼭 알아두세요!</strong> 신축 아파트의 하자보수 보증기간을 알고 있어야 적시에 A/S를 요청할 수 있습니다. 보증기간이 지나면 시공사의 보수 의무가 소멸됩니다.'
+                + '</div>'
+
+                + '<h3 style="font-size:16px;color:#1e293b;margin:0 0 14px 0;border-bottom:2px solid #E84848;padding-bottom:6px;">하자담보 책임기간</h3>'
+
+                + periodRow('2년', '#E84848', '<strong>마감공사:</strong> 미장, 수장, 도장, 도배, 타일, 석공사, 옥내가구, 주방기구, 가전제품<br><strong>잡공사:</strong> 주방가구 | <strong>목공사:</strong> 구조체, 바탕체')
+                + periodRow('3년', '#e67e22', '<strong>건축공사:</strong> 균열, 누수, 결로, 백화<br><strong>창호공사:</strong> 창문틀, 문짝, 창호철물 | <strong>설비:</strong> 옥외급수, 냉난방, 환기, 위생설비')
+                + periodRow('5년', '#f59e0b', '<strong>전기 및 전력설비공사</strong> | <strong>급/배수 및 위생, 가스설비공사</strong><br><strong>소방설비공사</strong> | <strong>정보통신공사</strong> | <strong>조경공사</strong>')
+                + periodRow('10년', '#16a085', '<strong>대지조성공사</strong> | <strong>철근콘크리트공사</strong> | <strong>철골공사</strong><br><strong>조적공사</strong> | <strong>지붕공사</strong> | <strong>방수공사</strong> | <strong>내력구조부</strong>')
+
+                + '<div style="margin-top:24px;background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px;padding:16px;">'
+                    + '<h4 style="margin:0 0 10px 0;font-size:14px;color:#0369a1;">자주 묻는 하자 유형별 보증기간</h4>'
+                    + '<div style="display:flex;gap:8px;flex-wrap:wrap;">'
+                        + '<div style="flex:1;min-width:200px;padding:10px;background:white;border-radius:6px;border:1px solid #e0e7ff;">'
+                            + '<div style="font-size:12px;color:#64748b;">도배 들뜸/찢어짐</div><div style="font-size:18px;font-weight:700;color:#E84848;">2년</div>'
+                        + '</div>'
+                        + '<div style="flex:1;min-width:200px;padding:10px;background:white;border-radius:6px;border:1px solid #e0e7ff;">'
+                            + '<div style="font-size:12px;color:#64748b;">창호 결함/결로</div><div style="font-size:18px;font-weight:700;color:#e67e22;">3년</div>'
+                        + '</div>'
+                        + '<div style="flex:1;min-width:200px;padding:10px;background:white;border-radius:6px;border:1px solid #e0e7ff;">'
+                            + '<div style="font-size:12px;color:#64748b;">배관 누수</div><div style="font-size:18px;font-weight:700;color:#f59e0b;">5년</div>'
+                        + '</div>'
+                        + '<div style="flex:1;min-width:200px;padding:10px;background:white;border-radius:6px;border:1px solid #e0e7ff;">'
+                            + '<div style="font-size:12px;color:#64748b;">구조체 균열</div><div style="font-size:18px;font-weight:700;color:#16a085;">10년</div>'
+                        + '</div>'
+                    + '</div>'
+                + '</div>'
+
+                + '<div style="margin-top:16px;font-size:11px;color:#94a3b8;line-height:1.5;">'
+                    + '* 조치계획에 따라 이행하지 않을 시 500만원의 과태료가 부과될 수 있습니다 (공동주택관리법 시행령 제102조 제3항 제27호)<br>'
+                    + '* 하자보수 청구는 입주자대표회의 또는 개별 입주자가 할 수 있습니다'
+                + '</div>'
+
+                + '<div style="position:absolute;bottom:20px;left:30px;right:30px;padding-top:12px;border-top:1px solid #ddd;font-size:11px;color:#000;text-align:center;">'
+                    + '<div>더홈점검 | 대표: 1668-5322 / 직통: 010-9985-0128 | 사전점검 전문업체</div>'
+                + '</div>'
+            + '</div>';
+        };
+
+        // ==================== 입주 전 체크리스트 페이지 ====================
+        window.createMoveInChecklistPage = function() {
+            function card(title, timing, color, items) {
+                var rows = '';
+                items.forEach(function(item) {
+                    rows += '<div style="display:flex;align-items:flex-start;padding:3px 0;">'
+                        + '<div style="width:12px;height:12px;border:1.5px solid #cbd5e1;border-radius:2px;flex-shrink:0;margin-top:2px;"></div>'
+                        + '<div style="margin-left:6px;font-size:11px;color:#334155;line-height:1.4;">' + item + '</div>'
+                    + '</div>';
+                });
+                return '<div style="background:white;border:1px solid #e2e8f0;border-radius:8px;padding:12px;border-top:3px solid ' + color + ';">'
+                    + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">'
+                        + '<div style="font-size:13px;font-weight:700;color:#1e293b;">' + title + '</div>'
+                        + '<div style="font-size:9px;color:white;background:' + color + ';padding:2px 8px;border-radius:10px;font-weight:600;">' + timing + '</div>'
+                    + '</div>'
+                    + rows
+                + '</div>';
+            }
+
+            var c1 = card('사전점검 기간', 'D-90~D-60', '#E84848', [
+                '세대 내부 실측 (가구 배치 계획)',
+                '하자 접수 확인 및 사진 보관',
+                '대출 상담 (중도금 대출 전환 준비)',
+                '입주 예상일 계산 및 일정 수립'
+            ]);
+            var c2 = card('입주 1~3개월 전', 'D-90~D-30', '#e67e22', [
+                '입주 청소 업체 예약',
+                '이사 업체 선정 및 예약',
+                '인터넷/TV 이전 설치 예약 (2주 전)',
+                '가전제품 이전 예약 (에어컨, 비데 등)',
+                '폐기물 처리 예약 (대형폐기물 스티커)',
+                '관리사무소 이사 통보 및 엘리베이터 예약'
+            ]);
+            var c3 = card('입주 1주 전', 'D-7', '#f59e0b', [
+                '도시가스 전출/전입 신청 (2~3일 전)',
+                '전기 명의변경 (한국전력 123)',
+                '수도 명의변경 (지역 수도사업소)',
+                '우편물 주소 변경 (우체국)',
+                '사용승인일(입주가능일) 최종 확인'
+            ]);
+            var c4 = card('입주 당일', 'D-Day', '#16a085', [
+                '잔금 납부 (분양대금, 옵션 대금)',
+                '중도금 대출 전환 (주택담보대출)',
+                '관리비 예치금 납부',
+                '입주증 및 주차증 발급 수령',
+                '세대 시설물 인수인계',
+                '가스 안전점검 및 개통 확인',
+                '디지털 도어록 비밀번호 설정'
+            ]);
+            var c5 = card('입주 후 즉시', 'D+1~D+14', '#3b82f6', [
+                '주민등록 전입신고 (정부24 또는 주민센터)',
+                '확정일자 받기 (전월세 시 필수)',
+                '국민건강보험 주소 이전',
+                '차량 이전 등록 (관할 구청)',
+                '자녀 학교 전학 수속 (해당 시)',
+                '하자 추가 발견 시 관리사무소 즉시 접수'
+            ]);
+
+            return '<div style="width:794px;min-height:1123px;background:white;font-family:\'Malgun Gothic\',sans-serif;padding:30px;position:relative;box-sizing:border-box;">'
+                + '<div style="background:#7c3aed;color:white;padding:16px 22px;margin-bottom:18px;border-radius:8px;">'
+                    + '<h1 style="margin:0 0 4px 0;font-size:22px;">입주 전 체크리스트</h1>'
+                    + '<p style="margin:0;font-size:12px;opacity:0.9;">입주 준비부터 당일까지 꼭 확인하세요</p>'
+                + '</div>'
+                // 2x2 그리드 상단
+                + '<div style="display:flex;gap:10px;margin-bottom:10px;">'
+                    + '<div style="flex:1;">' + c1 + '</div>'
+                    + '<div style="flex:1;">' + c2 + '</div>'
+                + '</div>'
+                // 2x2 그리드 하단
+                + '<div style="display:flex;gap:10px;margin-bottom:10px;">'
+                    + '<div style="flex:1;">' + c3 + '</div>'
+                    + '<div style="flex:1;">' + c4 + '</div>'
+                + '</div>'
+                // 하단 풀폭
+                + '<div style="margin-bottom:10px;">' + c5 + '</div>'
+                // 팁
+                + '<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:10px 14px;font-size:11px;color:#64748b;line-height:1.5;">'
+                    + '<strong style="color:#334155;">TIP</strong> 사전점검 시 발견된 하자는 사진과 함께 보관하시고, 입주 후에도 추가 하자 발견 시 보증기간 내 시공사 A/S를 요청하세요.'
+                + '</div>'
+                + '<div style="position:absolute;bottom:20px;left:30px;right:30px;padding-top:12px;border-top:1px solid #ddd;font-size:11px;color:#000;text-align:center;">'
+                    + '<div>더홈점검 | 대표: 1668-5322 / 직통: 010-9985-0128 | 사전점검 전문업체</div>'
+                + '</div>'
+            + '</div>';
+        };
+
+        // ==================== 열화상 단열 안내 페이지 ====================
+        window.createThermalNoticePage = function() {
+            return '<div style="width:794px;min-height:1123px;background:white;font-family:\'Malgun Gothic\',sans-serif;padding:30px;position:relative;box-sizing:border-box;">'
+                + '<div style="background:linear-gradient(135deg,#d97706 0%,#f59e0b 100%);color:white;padding:20px;margin-bottom:30px;border-radius:8px;">'
+                    + '<h1 style="margin:0 0 6px 0;font-size:22px;">열화상 단열 점검 안내</h1>'
+                    + '<p style="margin:0;font-size:13px;opacity:0.9;">' + (projectData.apartmentName || '') + ' ' + (projectData.dong || '') + '동 ' + (projectData.ho || '') + '호 | ' + (projectData.inspectionDate || '') + '</p>'
+                + '</div>'
+
+                + '<div style="background:#fffbeb;border:2px solid #f59e0b;border-radius:12px;padding:28px;margin-bottom:24px;">'
+                    + '<h3 style="margin:0 0 16px 0;font-size:18px;color:#92400e;">열화상 카메라 단열 판독 안내</h3>'
+                    + '<p style="margin:0;font-size:15px;color:#78350f;line-height:1.8;">'
+                        + '점검일 기준 <strong>실내외 온도차이가 크지 않아</strong> 열화상 카메라의 단열 판독이 제한적입니다.<br><br>'
+                        + '입주 후 겨울철 <strong>결로나 냉기</strong>가 느껴지시면 <strong>시공사 A/S</strong>를 통해 단열 보완을 요청하시기 바랍니다.'
+                    + '</p>'
+                + '</div>'
+
+                + '<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:22px;">'
+                    + '<h4 style="margin:0 0 12px 0;font-size:15px;color:#334155;">참고사항</h4>'
+                    + '<div style="font-size:13px;color:#475569;line-height:1.8;">'
+                        + '• 열화상 단열 판독은 <strong>실내외 온도차 10°C 이상</strong>일 때 가장 정확합니다<br>'
+                        + '• 일반적으로 <strong>겨울철(12월~2월)</strong>이 가장 적합한 시기입니다<br>'
+                        + '• 현재 점검은 벽체·바닥 시공 품질 위주로 진행되었습니다<br>'
+                        + '• 신축 아파트의 경우 입주 후 1~2년간 건조 수축에 의한 미세 균열이 발생할 수 있으며,<br>'
+                        + '&nbsp;&nbsp;이는 시공사 하자보수 대상에 해당합니다'
+                    + '</div>'
+                + '</div>'
+
+                + '<div style="position:absolute;bottom:20px;left:30px;right:30px;padding-top:12px;border-top:1px solid #ddd;font-size:11px;color:#000;text-align:center;">'
+                    + '<div>더홈점검 | 대표: 1668-5322 / 직통: 010-9985-0128 | 사전점검 전문업체</div>'
+                + '</div>'
+            + '</div>';
+        };
+
+                window.createAirQualityDetailPage = function() {
             const airQualityData = projectData.airQuality.filter(room => 
                 room.radon || room.formaldehyde || room.vocs
             );
+            if (airQualityData.length === 0) return '';
 
-            // 기준치
-            const standards = {
-                radon: 148,
-                formaldehyde: 0.210,
-                vocs: 0.500
+            const standards = { radon: 148, formaldehyde: 0.210, vocs: 0.500 };
+            const C = { safe: '#16a085', danger: '#e74c3c', barBg: '#f1f5f9', text: '#1e293b', muted: '#64748b' };
+            const n = airQualityData.length;
+
+            // ── 동적 사이즈 (방 수에 따라 자동 조절) ──
+            const S = {
+                barH:   n <= 6 ? 24 : n <= 8 ? 20 : n <= 10 ? 17 : 14,
+                barGap: n <= 6 ? 6  : n <= 8 ? 4  : n <= 10 ? 3  : 2,
+                barInH: n <= 6 ? 20 : n <= 8 ? 17 : n <= 10 ? 14 : 12,
+                tblPad: n <= 6 ? 7  : n <= 8 ? 5  : 4,
+                chartPad: n <= 6 ? 14 : n <= 8 ? 10 : 8,
+                secGap: n <= 8 ? 16 : n <= 10 ? 12 : 10,
             };
 
-            // 표 생성
+            // ── 통계 ──
+            let total = 0, pass = 0;
+            airQualityData.forEach(r => {
+                if (parseFloat(r.radon) > 0) { total++; if (parseFloat(r.radon) <= standards.radon) pass++; }
+                if (parseFloat(r.formaldehyde) > 0) { total++; if (parseFloat(r.formaldehyde) <= standards.formaldehyde) pass++; }
+                if (parseFloat(r.vocs) > 0) { total++; if (parseFloat(r.vocs) <= standards.vocs) pass++; }
+            });
+            const fail = total - pass;
+            const rate = total > 0 ? ((pass / total) * 100).toFixed(0) : 0;
+
+            // ── 막대 그래프 ──
+            function makeChart(title, emoji, unit, stdVal, key, maxMul) {
+                const mx = stdVal * maxMul;
+                const stdPct = (stdVal / mx) * 100;
+                let bars = '';
+                airQualityData.forEach(room => {
+                    const v = parseFloat(room[key]) || 0;
+                    if (v === 0) return;
+                    const pct = Math.min((v / mx) * 100, 100);
+                    const over = v > stdVal;
+                    const bc = over ? C.danger : C.safe;
+
+                    bars += '<div style="display:flex;align-items:center;margin-bottom:' + S.barGap + 'px;height:' + S.barH + 'px;">'
+                        + '<div style="width:60px;font-size:12px;font-weight:700;color:' + C.text + ';text-align:right;padding-right:8px;flex-shrink:0;">' + room.name + '</div>'
+                        + '<div style="flex:1;position:relative;height:' + S.barInH + 'px;background:' + C.barBg + ';border-radius:4px;">'
+                            + '<div style="position:absolute;top:1px;left:1px;bottom:1px;width:calc(' + Math.max(pct, 2) + '% - 2px);min-width:2px;background:' + bc + ';border-radius:3px;"></div>'
+                            + '<div style="position:absolute;top:50%;transform:translateY(-50%);' + (pct > 35 ? 'right:' + (101 - pct) + '%;color:white;' : 'left:' + (pct + 2) + '%;color:' + C.text + ';') + 'font-size:11px;font-weight:700;white-space:nowrap;">' + v + '</div>'
+                            + '<div style="position:absolute;top:-2px;bottom:-2px;left:' + stdPct + '%;width:1.5px;background:' + C.danger + ';z-index:2;"></div>'
+                        + '</div>'
+                        + '<div style="width:42px;flex-shrink:0;text-align:center;margin-left:4px;">'
+                            + '<div style="display:inline-block;padding:2px 6px;border-radius:8px;font-size:10px;font-weight:700;background:' + (over ? '#fef2f2' : '#f0fdf4') + ';color:' + (over ? C.danger : C.safe) + ';border:1px solid ' + (over ? '#fecaca' : '#bbf7d0') + ';">' + (over ? '초과' : '적합') + '</div>'
+                        + '</div>'
+                    + '</div>';
+                });
+                if (!bars) return '';
+
+                return '<div style="flex:1;min-width:0;">'
+                    + '<div style="display:flex;align-items:center;margin-bottom:6px;">'
+                        + (emoji ? '<span style="font-size:14px;">' + emoji + '</span>' : '')
+                        + '<h4 style="margin:0 0 0 4px;font-size:13px;color:' + C.text + ';">' + title + '</h4>'
+                        + '<span style="margin-left:auto;font-size:10px;color:' + C.muted + ';white-space:nowrap;">기준 ' + stdVal + '</span>'
+                    + '</div>'
+                    + '<div style="background:white;border:1px solid #e2e8f0;border-radius:8px;padding:' + S.chartPad + 'px 10px ' + (S.chartPad - 4) + 'px 10px;position:relative;">'
+                        + bars
+                    + '</div>'
+                + '</div>';
+            }
+
+            // ── 측정 표 ──
             let tableRows = '';
-            airQualityData.forEach((room) => {
-                const radonValue = parseFloat(room.radon) || 0;
-                const formaldehydeValue = parseFloat(room.formaldehyde) || 0;
-                const vocsValue = parseFloat(room.vocs) || 0;
+            airQualityData.forEach(room => {
+                const rv = parseFloat(room.radon) || 0;
+                const fv = parseFloat(room.formaldehyde) || 0;
+                const vv = parseFloat(room.vocs) || 0;
+                const rs = rv > 0 ? (rv <= standards.radon ? '적합' : '부적합') : '-';
+                const fs = fv > 0 ? (fv <= standards.formaldehyde ? '적합' : '부적합') : '-';
+                const vs = vv > 0 ? (vv <= standards.vocs ? '적합' : '부적합') : '-';
+                const rsc = rv > standards.radon ? C.danger : C.safe;
+                const fsc = fv > standards.formaldehyde ? C.danger : C.safe;
+                const vsc = vv > standards.vocs ? C.danger : C.safe;
 
-                const radonStatus = radonValue > 0 ? (radonValue <= standards.radon ? '적합' : '부적합') : '-';
-                const formaldehydeStatus = formaldehydeValue > 0 ? (formaldehydeValue <= standards.formaldehyde ? '적합' : '부적합') : '-';
-                const vocsStatus = vocsValue > 0 ? (vocsValue <= standards.vocs ? '적합' : '부적합') : '-';
-
-                tableRows += `
-                    <tr style="border-bottom: 1px solid #ddd;">
-                        <td style="padding: 10px; text-align: center; font-weight: bold; background: #f8f9fa; color: #000000;">${room.name}</td>
-                        <td style="padding: 10px; text-align: center; color: #000000;">${room.radon || '-'}</td>
-                        <td style="padding: 10px; text-align: center; color: ${radonValue > standards.radon ? '#e74c3c' : '#10b981'}; font-weight: bold;">${radonStatus}</td>
-                        <td style="padding: 10px; text-align: center; color: #000000;">${room.formaldehyde || '-'}</td>
-                        <td style="padding: 10px; text-align: center; color: ${formaldehydeValue > standards.formaldehyde ? '#e74c3c' : '#10b981'}; font-weight: bold;">${formaldehydeStatus}</td>
-                        <td style="padding: 10px; text-align: center; color: #000000;">${room.vocs || '-'}</td>
-                        <td style="padding: 10px; text-align: center; color: ${vocsValue > standards.vocs ? '#e74c3c' : '#10b981'}; font-weight: bold;">${vocsStatus}</td>
-                    </tr>
-                `;
+                tableRows += '<tr style="border-bottom:1px solid #eee;">'
+                    + '<td style="padding:' + S.tblPad + 'px 8px;text-align:center;font-weight:700;background:#f8f9fa;color:#000;font-size:13px;">' + room.name + '</td>'
+                    + '<td style="padding:' + S.tblPad + 'px;text-align:center;color:#000;font-size:13px;">' + (room.radon || '-') + '</td>'
+                    + '<td style="padding:' + S.tblPad + 'px;text-align:center;color:' + rsc + ';font-weight:700;font-size:12px;">' + rs + '</td>'
+                    + '<td style="padding:' + S.tblPad + 'px;text-align:center;color:#000;font-size:13px;">' + (room.formaldehyde || '-') + '</td>'
+                    + '<td style="padding:' + S.tblPad + 'px;text-align:center;color:' + fsc + ';font-weight:700;font-size:12px;">' + fs + '</td>'
+                    + '<td style="padding:' + S.tblPad + 'px;text-align:center;color:#000;font-size:13px;">' + (room.vocs || '-') + '</td>'
+                    + '<td style="padding:' + S.tblPad + 'px;text-align:center;color:' + vsc + ';font-weight:700;font-size:12px;">' + vs + '</td>'
+                + '</tr>';
             });
 
-            return `
-                <div style="width: 794px; min-height: 1123px; background: white; font-family: 'Malgun Gothic', sans-serif; padding: 30px;">
-                    <div style="background: linear-gradient(135deg, #16a085 0%, #1abc9c 100%); color: white; padding: 20px; margin-bottom: 25px; border-radius: 8px;">
-                        <h1 style="margin: 0 0 8px 0; font-size: 26px;">실내 공기질 측정 결과</h1>
-                        <p style="margin: 0; font-size: 14px; opacity: 0.9;">${projectData.apartmentName} ${projectData.dong}동 ${projectData.ho}호 | ${projectData.inspectionDate || ''}</p>
-                    </div>
+            const radonChart = makeChart('라돈 (Bq/m³)', '', 'Bq/m³', standards.radon, 'radon', 2.5);
+            const hchoChart = makeChart('포름알데히드 (mg/m³)', '', 'mg/m³', standards.formaldehyde, 'formaldehyde', 3);
+            const vocsChart = makeChart('총VOCs (mg/m³)', '', 'mg/m³', standards.vocs, 'vocs', 3);
 
-                    <div style="margin-bottom: 25px;">
-                        <h3 style="margin: 0 0 15px 0; font-size: 18px; color: #000000; border-bottom: 2px solid #16a085; padding-bottom: 8px;">📋 측정 데이터</h3>
-                        <table style="width: 100%; border-collapse: collapse; border: 1px solid #ddd; font-size: 13px;">
-                            <thead>
-                                <tr style="background: #f8f9fa; border-bottom: 2px solid #ddd;">
-                                    <th style="padding: 12px; border: 1px solid #ddd; color: #000000;">공간</th>
-                                    <th style="padding: 12px; border: 1px solid #ddd; color: #000000;">라돈<br>(Bq/m³)</th>
-                                    <th style="padding: 12px; border: 1px solid #ddd; color: #000000;">판정</th>
-                                    <th style="padding: 12px; border: 1px solid #ddd; color: #000000;">포름알데히드<br>(mg/m³)</th>
-                                    <th style="padding: 12px; border: 1px solid #ddd; color: #000000;">판정</th>
-                                    <th style="padding: 12px; border: 1px solid #ddd; color: #000000;">총VOCs<br>(mg/m³)</th>
-                                    <th style="padding: 12px; border: 1px solid #ddd; color: #000000;">판정</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${tableRows}
-                            </tbody>
-                        </table>
-                    </div>
+            return '<div style="width:794px;min-height:1123px;background:white;font-family:\'Malgun Gothic\',sans-serif;padding:28px 30px;position:relative;box-sizing:border-box;">'
+                // ── 헤더 ──
+                + '<div style="background:linear-gradient(135deg,#0f766e 0%,#14b8a6 100%);color:white;padding:16px 20px;margin-bottom:' + S.secGap + 'px;border-radius:8px;display:flex;align-items:center;justify-content:space-between;">'
+                    + '<div>'
+                        + '<h1 style="margin:0 0 4px 0;font-size:22px;">실내 공기질 측정 결과</h1>'
+                        + '<p style="margin:0;font-size:13px;opacity:0.9;">' + (projectData.apartmentName || '') + ' ' + (projectData.dong || '') + '동 ' + (projectData.ho || '') + '호 | ' + (projectData.inspectionDate || '') + '</p>'
+                    + '</div>'
+                    + '<div style="text-align:center;background:rgba(255,255,255,0.15);border-radius:10px;padding:8px 16px;">'
+                        + '<div style="font-size:11px;opacity:0.85;margin-bottom:2px;">종합 적합률</div>'
+                        + '<div style="font-size:28px;font-weight:800;">' + rate + '<span style="font-size:14px;">%</span></div>'
+                    + '</div>'
+                + '</div>'
 
-                    <div style="background: #e8f5e9; border: 1px solid #4caf50; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
-                        <h4 style="margin: 0 0 15px 0; color: #2e7d32; font-size: 16px;">✓ 권고기준 (실내공기질 공정시험기준)</h4>
-                        <div style="font-size: 14px; color: #1b5e20; line-height: 1.6; font-size: 13px; margin-bottom: 15px;">
-                            <div>• 라돈(Rn): <strong>148 Bq/m³ 이하</strong></div>
-                            <div>• 포름알데히드(HCHO): <strong>0.210 mg/m³ 이하</strong></div>
-                            <div>• 총휘발성유기화합물(TVOCs): <strong>0.500 mg/m³ 이하</strong></div>
-                        </div>
-                    </div>
+                // ── 요약 카드 ──
+                + '<div style="display:flex;gap:8px;margin-bottom:' + S.secGap + 'px;">'
+                    + '<div style="flex:1;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:10px;text-align:center;">'
+                        + '<div style="font-size:11px;color:' + C.muted + ';font-weight:600;">총 측정</div>'
+                        + '<div style="font-size:24px;font-weight:800;color:' + C.text + ';margin-top:2px;">' + total + '<span style="font-size:12px;color:#94a3b8;"> 건</span></div>'
+                    + '</div>'
+                    + '<div style="flex:1;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:10px;text-align:center;">'
+                        + '<div style="font-size:11px;color:#15803d;font-weight:600;">적합</div>'
+                        + '<div style="font-size:24px;font-weight:800;color:' + C.safe + ';margin-top:2px;">' + pass + '<span style="font-size:12px;color:#86efac;"> 건</span></div>'
+                    + '</div>'
+                    + '<div style="flex:1;background:' + (fail > 0 ? '#fef2f2' : '#f8fafc') + ';border:1px solid ' + (fail > 0 ? '#fecaca' : '#e2e8f0') + ';border-radius:8px;padding:10px;text-align:center;">'
+                        + '<div style="font-size:11px;color:' + (fail > 0 ? '#dc2626' : C.muted) + ';font-weight:600;">부적합</div>'
+                        + '<div style="font-size:24px;font-weight:800;color:' + (fail > 0 ? C.danger : '#94a3b8') + ';margin-top:2px;">' + fail + '<span style="font-size:12px;"> 건</span></div>'
+                    + '</div>'
+                + '</div>'
 
-                    <div style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 8px; padding: 15px; margin-bottom: 20px;">
-                        <div style="font-size: 12px; color: #856404; line-height: 1.6;">
-                            <strong>※ 참고사항</strong><br>
-                            - 측정 결과는 측정 당시의 환경 조건에 따라 달라질 수 있습니다.<br>
-                            - 부적합 판정 시 환기 등의 조치 후 재측정을 권장합니다.<br>
-                            - 라돈 농도는 계절, 시간대에 따라 변동이 있을 수 있습니다.
-                        </div>
-                    </div>
+                // ── 측정 데이터 표 ──
+                + '<div style="margin-bottom:' + S.secGap + 'px;">'
+                    + '<h3 style="margin:0 0 8px 0;font-size:15px;color:' + C.text + ';border-bottom:2px solid #16a085;padding-bottom:5px;">측정 데이터</h3>'
+                    + '<table style="width:100%;border-collapse:collapse;border:1px solid #e2e8f0;">'
+                        + '<thead><tr style="background:#f0fdfa;">'
+                            + '<th style="padding:7px;border:1px solid #e2e8f0;color:#000;font-size:12px;">공간</th>'
+                            + '<th style="padding:7px;border:1px solid #e2e8f0;color:#000;font-size:12px;">라돈<br>(Bq/m³)</th>'
+                            + '<th style="padding:7px;border:1px solid #e2e8f0;color:#000;font-size:12px;">판정</th>'
+                            + '<th style="padding:7px;border:1px solid #e2e8f0;color:#000;font-size:12px;">HCHO<br>(mg/m³)</th>'
+                            + '<th style="padding:7px;border:1px solid #e2e8f0;color:#000;font-size:12px;">판정</th>'
+                            + '<th style="padding:7px;border:1px solid #e2e8f0;color:#000;font-size:12px;">TVOCs<br>(mg/m³)</th>'
+                            + '<th style="padding:7px;border:1px solid #e2e8f0;color:#000;font-size:12px;">판정</th>'
+                        + '</tr></thead>'
+                        + '<tbody>' + tableRows + '</tbody>'
+                    + '</table>'
+                + '</div>'
 
-                    <div style="position: absolute; bottom: 20px; left: 30px; right: 30px; padding-top: 15px; border-top: 1px solid #ddd; font-size: 11px; color: #000000; text-align: center;">
-                        <div>더홈점검 | 대표: 1668-5322 / 직통: 010-9985-0128 | 사전점검 전문업체</div>
-                    </div>
-                </div>
-            `;
+                // ── 그래프 섹션 ──
+                + '<div style="margin-bottom:' + S.secGap + 'px;">'
+                    + '<h3 style="margin:0 0 10px 0;font-size:15px;color:' + C.text + ';border-bottom:2px solid #16a085;padding-bottom:5px;">항목별 비교 분석</h3>'
+                    + '<div style="display:flex;gap:10px;">'
+                        + radonChart
+                        + hchoChart
+                        + vocsChart
+                    + '</div>'
+                + '</div>'
+
+                // ── 범례 + 기준 ──
+                + '<div style="display:flex;gap:10px;margin-bottom:10px;">'
+                    + '<div style="flex:1;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:6px;padding:10px;font-size:12px;color:#1b5e20;line-height:1.5;">'
+                        + '<strong style="font-size:13px;">권고기준</strong><br>'
+                        + '• 라돈: <strong>148 Bq/m³</strong> 이하<br>'
+                        + '• 포름알데히드: <strong>0.210 mg/m³</strong> 이하<br>'
+                        + '• 총VOCs: <strong>0.500 mg/m³</strong> 이하'
+                    + '</div>'
+                    + '<div style="flex:1;background:#fff9db;border:1px solid #fcc419;border-radius:6px;padding:10px;font-size:11px;color:#856404;line-height:1.5;">'
+                        + '<strong style="font-size:12px;">※ 참고사항</strong><br>'
+                        + '• 측정 결과는 당시 환경 조건에 따라 달라질 수 있습니다<br>'
+                        + '• 부적합 판정 시 환기 후 재측정을 권장합니다<br>'
+                        + '• 라돈 농도는 계절, 시간대에 따라 변동 가능합니다'
+                    + '</div>'
+                + '</div>'
+
+                // ── 범례 바 ──
+                + '<div style="display:flex;justify-content:center;gap:16px;padding:6px;background:#f8fafc;border-radius:6px;border:1px solid #e2e8f0;">'
+                    + '<div style="display:flex;align-items:center;gap:4px;font-size:11px;color:' + C.muted + ';"><div style="width:14px;height:9px;background:' + C.safe + ';border-radius:2px;"></div> 적합 (기준 이하)</div>'
+                    + '<div style="display:flex;align-items:center;gap:4px;font-size:11px;color:' + C.muted + ';"><div style="width:14px;height:9px;background:' + C.danger + ';border-radius:2px;"></div> 부적합 (기준 초과)</div>'
+                    + '<div style="display:flex;align-items:center;gap:4px;font-size:11px;color:' + C.muted + ';"><div style="width:1.5px;height:12px;background:' + C.danger + ';"></div> 권고기준선</div>'
+                + '</div>'
+
+                // ── 푸터 ──
+                + '<div style="position:absolute;bottom:20px;left:30px;right:30px;padding-top:12px;border-top:1px solid #ddd;font-size:11px;color:#000;text-align:center;">'
+                    + '<div>더홈점검 | 대표: 1668-5322 / 직통: 010-9985-0128 | 사전점검 전문업체</div>'
+                + '</div>'
+            + '</div>';
         }
 
         // ==================== IndexedDB 설정 ====================
@@ -10202,7 +10757,7 @@
             let photoGridHtml = '';
             
             if (photos.length === 0) {
-                photoGridHtml = `<div style="text-align:center; padding:30px; color:#ccc;">사진 없음</div>`;
+                photoGridHtml = `<div style="text-align:center; padding:30px; color:#888;">사진 없음</div>`;
             } else if (photos.length === 1) {
                 // 1장: 중앙 정렬 (최대 크기)
                 photoGridHtml = `
@@ -10352,11 +10907,13 @@
             // 1. 표지 (미니멀 모던 레드)
             await window.addHTMLPageToPDF(doc, window.createSummaryFirstPage(), W, H);
 
-            // 1-1. 프로젝트 요약 (공종별 차트)
-            if (window.createProjectSummaryPage) {
-                doc.addPage();
-                await window.addHTMLPageToPDF(doc, window.createProjectSummaryPage(), W, H);
-            }
+            // 목차 페이지
+            doc.addPage();
+            await window.addHTMLPageToPDF(doc, window.createTableOfContentsPage(), W, H);
+
+            // 프로젝트 요약 페이지
+            doc.addPage();
+            await window.addHTMLPageToPDF(doc, window.createProjectSummaryPage(), W, H);
 
             // 2. 하자 목록 (18개씩, 0번부터)
             if (projectData.defects.length > 0) {
@@ -10386,6 +10943,14 @@
                 await window.addHTMLPageToPDF(doc, window.createEquipmentPage([equipmentWithPhotos[i]]), W, H);
             }
 
+
+            // 열화상 단열 안내 페이지 (토글 ON일 때만)
+            if ((localStorage.getItem('thermalNoticeGlobal') === 'on')) {
+                doc.addPage();
+                const thermalNoticeHTML = window.createThermalNoticePage();
+                await window.addHTMLPageToPDF(doc, thermalNoticeHTML, W, H);
+            }
+
             // 4-1. 공기질 측정 페이지 추가
             const airQualityWithData = projectData.airQuality.filter(room => 
                 room.radon || room.formaldehyde || room.vocs
@@ -10406,6 +10971,9 @@
             doc.addPage(); await window.addHTMLPageToPDF(doc, window.createWarrantyGuidePage1(), W, H);
             doc.addPage(); await window.addHTMLPageToPDF(doc, window.createAirQualityManagementGuidePage(), W, H);
             doc.addPage(); await window.addHTMLPageToPDF(doc, window.createCondensationGuidePage(), W, H);
+
+            // 입주 전 체크리스트 페이지
+            doc.addPage(); await window.addHTMLPageToPDF(doc, window.createMoveInChecklistPage(), W, H);
 
             const filename = `더홈점검_${projectData.apartmentName}_${projectData.dong}${projectData.ho}.pdf`;
             doc.save(filename);
@@ -10627,13 +11195,11 @@
     }
     // [하자점검 관련 함수들 - 기존 디자인 유지]
     // v5.1과 동일하므로 간략히 포함 (필수)
+            // 첫 페이지: 표지
     window.createSummaryFirstPage = function() {
         return `
             <div style="width:794px;height:1123px;background:#fff;font-family:'Malgun Gothic',sans-serif;position:relative;box-sizing:border-box;overflow:hidden;">
-                <!-- 좌측 코랄레드 액센트 바 -->
                 <div style="position:absolute;left:0;top:0;width:8px;height:100%;background:linear-gradient(180deg,#E84848 0%,#D43F3F 100%);"></div>
-
-                <!-- 도트 패턴 (아크 형태 - 우측) -->
                 <div style="position:absolute;left:639px;top:127px;width:18px;height:18px;border-radius:50%;background:#E84848;opacity:0.9;"></div>
                 <div style="position:absolute;left:665px;top:147px;width:14px;height:14px;border-radius:50%;background:#1A2744;opacity:0.9;"></div>
                 <div style="position:absolute;left:688px;top:171px;width:20px;height:20px;border-radius:50%;background:#2A9D8F;opacity:0.9;"></div>
@@ -10684,24 +11250,14 @@
                 <div style="position:absolute;left:622px;top:384px;width:10px;height:10px;border-radius:50%;background:#2A9D8F;opacity:0.7;"></div>
                 <div style="position:absolute;left:610px;top:411px;width:8px;height:8px;border-radius:50%;background:#D4A853;opacity:0.5;"></div>
                 <div style="position:absolute;left:592px;top:435px;width:6px;height:6px;border-radius:50%;background:#E84848;opacity:0.5;"></div>
-
-                <!-- 건축 와이어프레임 배경 -->
                 <div style="position:absolute;left:390px;top:560px;width:1px;height:240px;background:#1A2744;opacity:0.06;"></div>
-                <div style="position:absolute;left:430px;top:600px;width:1px;height:184px;background:#E84848;opacity:0.06;"></div>
                 <div style="position:absolute;left:470px;top:576px;width:1px;height:224px;background:#1A2744;opacity:0.06;"></div>
-                <div style="position:absolute;left:510px;top:560px;width:1px;height:200px;background:#1A2744;opacity:0.06;"></div>
                 <div style="position:absolute;left:550px;top:584px;width:1px;height:216px;background:#E84848;opacity:0.06;"></div>
-                <div style="position:absolute;left:590px;top:560px;width:1px;height:224px;background:#1A2744;opacity:0.06;"></div>
                 <div style="position:absolute;left:630px;top:600px;width:1px;height:200px;background:#1A2744;opacity:0.06;"></div>
                 <div style="position:absolute;left:374px;top:600px;width:280px;height:1px;background:#1A2744;opacity:0.06;"></div>
                 <div style="position:absolute;left:350px;top:640px;width:280px;height:1px;background:#E84848;opacity:0.06;"></div>
                 <div style="position:absolute;left:390px;top:680px;width:280px;height:1px;background:#1A2744;opacity:0.06;"></div>
-                <div style="position:absolute;left:366px;top:720px;width:280px;height:1px;background:#1A2744;opacity:0.06;"></div>
-                <div style="position:absolute;left:414px;top:760px;width:256px;height:1px;background:#E84848;opacity:0.06;"></div>
-
-                <!-- 메인 컨텐츠 -->
                 <div style="position:relative;z-index:2;padding:95px 50px 50px 75px;height:100%;box-sizing:border-box;display:flex;flex-direction:column;">
-                    <!-- 브랜드 헤더 -->
                     <div style="margin-bottom:70px;">
                         <div style="display:flex;align-items:center;gap:14px;">
                             <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAYAAADimHc4AAABCGlDQ1BJQ0MgUHJvZmlsZQAAeJxjYGA8wQAELAYMDLl5JUVB7k4KEZFRCuwPGBiBEAwSk4sLGHADoKpv1yBqL+viUYcLcKakFicD6Q9ArFIEtBxopAiQLZIOYWuA2EkQtg2IXV5SUAJkB4DYRSFBzkB2CpCtkY7ETkJiJxcUgdT3ANk2uTmlyQh3M/Ck5oUGA2kOIJZhKGYIYnBncAL5H6IkfxEDg8VXBgbmCQixpJkMDNtbGRgkbiHEVBYwMPC3MDBsO48QQ4RJQWJRIliIBYiZ0tIYGD4tZ2DgjWRgEL7AwMAVDQsIHG5TALvNnSEfCNMZchhSgSKeDHkMyQx6QJYRgwGDIYMZAKbWPz9HbOBQAAASwElEQVR42u2ce3hU1bnG32+tvWeSuWcyCYLIpeItaU9VqPWpVRihHp4eL61tplbP6emxFHusFlur9dTLZNAWfby0aIvFonhDZAaQi3gJ4JBWVFJQKgUUBOSaCwm5Zy577/WdPyaJ2KIkIeGi+/c8efhjZjZrv+9a3/q+b+0ZwMbGxsbGxsamV0SjAswSzBLRqLAFOZow/6vgUbZNOCokWQOAkY8sPD24bHs89NKHc4ZNe/wLudeSmi3QURD/5Mdf/WpBxd5qX5XB3iqDC17ZvWfwEyvOBQDMXKvbQg0EncIO/XNyYqBib6vnry3srqhOeyr2pT2vt3JgRXXDoBnLLj7YqBMBOmFmfpjMk+ev/05b8OTnLKE5ON1hkNurQymgo82Ey6NJI53J2/deWe0Pxi3t+szxfmsDu3ExE5KsIckamKlPE6RL/AXvXtdeOGy+CXJwJpWVBSFd31/9rtZS/wEKQhrS7VlT6o70yaVLQn9eMQlhMk+ElTCwBhAxwmQiTCaIuNfmxVkgTOaQ+X+/ve2kU/9kKFPBNLLSX+iQe7au8z1169hhu7dd4Gys3UCBkIOyGcMiKOOMMX8ufG7NzR+ZwITPFcwEMJ1x33NDQs99OCM0Z+fDp/9iZgjM1KOVkMvxBQEoemHzQ/63UuxeUWt4KqqzvjVZLpj/j4rgqFE+UO5Sw266Z3Dhizte91Zl2f3qvqxnZZ3pf6ODByXW392dtvLnyYQ4SwAoeH7XgsCbzIE3mYNPvj+nUwz56eLn8nkBILRo65O+qgy7K2oMz/LarG9NhoPz/v5sGSBB1G0UAIyeHHUVLd6yzFuVZXdFdda9vM7wv9nBoSVbHiYAIIHPT8HWKWJgUctq76ts+CrYKJhXve4Ti6hu4+ISAMbO3pEXenXXAm9Vhj2vVmfdK2oN31spLpj/9+ndK+xgMaMsQIQ4IIsWbH7OtybL7uXVhue1GsOXSHHhbesWDgXyAQLK4vJzU6kWLGha5atg9lUwBxP7//qpFWun+Gfe9tvCgvkrVnrfbGFPRV3GvbLW9K9u51D87Wj3CjpUODkobA1avPX3/jVp9j5dY3hjO7O+6e1ccMc7fx1aUhYEcFyZMKBLUtFBQn3azI8mNUQi1mkPPnpy7ehzVhhu18W8tyoLYelSz5P61vU31UfOjYFZgkgdckOPxRQA5jjL2itOu8m59r2o3O/QyOkQaGswVGjU19u+c2dlIHzzcCQiFqLHR9V87AeRTGoIh80RM2adUV887EXD7RmF1pYsHJpDtn6gHDXmtfv/N/wkkqyBDpPX54xRSLJWF6apxT9f0Z4Z/MUHFOVM4MKRXxQX/s+qApfnssZY+B+IJjXEwuZndgWAD1PxdYr/hVnPjWkaNLLSyHeNQmtzFnn5DmlYKf2DDZfmxE/2pqjirvSz7ncTHtR3Vv1Ysmmx06VzW4OhCoaO4K9eszJ4zWPnIxY2ET22tcIA1wHqI1XEocUfNnvu+APBQa+ZujYI7a1ZuL0OmWpvcLy3YUL9Lde/nCvE+jBLw2Ri5lq9/o+Xz8pv3vFNYaRS5PToaG8ylLuoWJ05fnno2mf+AzEyMfnY9Y/EsQw7w2bP/06Lv+gVQwgv0h1ZePwO0db8oXPTOxfvv/OXb/Ry5v8r140xMHmtXj3twuXO95dfJtJNLezy65xqNlSe32OMumhR6MbFETyWe9/nw4DLIBEOm4OfWvjj5sLQfBOQlM1k4Stw6C2N7+a/XRWui93+LqLJvs38f+axMQaiSa3uqUkr5fol42VLbTW5gzqy7VmWTmkOPW9u8PrFN+Ted/TDkThalycQMTNhDBmD5iy6rSM06DHLMBQr06BAwKE3NrzuXP3KhNr7Yh8iHpf9ujnGwiaiSa1hwS/W6uvmXiQbd34Ad9DBZta0QFAjv/ZI4S2rb0aMzFx2dPSq5qOzAghQgCmIuGjekgfShYOmmekOE6xM6Qs6tP21SxzL5k6seeSR/YjHJSIRq9/HEAubiMfl/qWxD3yVj14oGneuEZ6gDsswLcu0rCGlDxTdXnUPYmET3NVO+cyEIIZKtWuFs5/9UyY4+GaztdUkViy9fodet/epCddccWXtnGfbEY2KARG/i0jEQllc7qycUaMnfjpB1m1eKdxBB5SpVKbdzBaX3B789d8eixIRhOSjccw5MC4zCxAp/8LGSvYFLkIqa8Gslyy3gLOGBSKWLo+mVe9++MC1kSnMTCgvp85i6ui0SqYKNZpZ337L6/OsoWd/mzuaDWKG8BToVPveYsdvvnlNLWrbURaXSAzcpBg4h3O9mm6DWUpwJm2CJIm8PM25b3e04drIFO5sQRw18QEgRgp33SXWMZuN93/9Sn332sdlvldnIchqb8yqojOuMGIrXhp29bQCJCJWV3PxxKHzICSQqH/Nt5LZtzRjel/YozwLVyj/otc4OPPpG7rT0WN6KsfUJW5wSsV9gYca2Tdtr+m5d2/W9zxz8NG6dwaV3T2yu11yYoifG+iIGTPOCCxpqPG+ZCrfkrTlXVbP/oXLs0XTZ/0XAGDmzOPl8Jy6+lSFNyy91f9QA3tmW5bnCSvrnccc+GP17kGTniw9MUzoFPXkGc+cH3ihYp/35Sb2LU5bvpdNK7C4pjX04B++eZyJ/5EJnTVA8NerrvXP7lCeZ5g9j1tZz1zmgj/VNxTdmPgaABzLqrlH4g9+4rlv+BclmzxLk+xbuM/yLTNM30vMgXs3v3FweDqeQ2fxHVWX+2e1ZDxzmD2zzKxnDrP/8ebWop+/MrG/70H0W9i57jrjpNmJso6CQS9aBD9SKYN1SUib4G0tEGliMAusgjpuDejsH9Xdc96SvPerJmrptnq4pY6UylpOnyf7pQsXh+74y1X9eeAvjnjpdvZ1Bj/9wuRUMBQ3AQfSGRMul04dFvEHjUBGAYIAon4Tn8HEURbxsriMIir6rXq9LteSqL1/QtKxY93FWkvTHniFAxmVNTWXbpx23tzQnW/+7CAT6NgYwEyIxwXCYXPQ0wt+1V4YmmmZliLDMCgQ0PQD9WtpY10tsRAkADAfsTZRREVybFJjMBGIKUYqkohYMcQUQMxlLOP9cdoVIxNR1uruGbfB/fbKix1NDRvJKxwwlGHBqYwzvjo9OPXtKMJk5jbwvpsv+iw+QIhErOLnl05LFw+5V6XTJpRliUCBrjXsX3rKMzPHEeuN0DTqD/HjZSxjiKlwZdgkEM+8dEno6Uve+vIT41d95cnwylMvHX2pixJkRRIRi8GUWxVHZsLYaFLbO/O7W/0vPjjeUVddJXzCAdOyLJMs6/Rzyovu/cfvQWSB0ecDf9FH8cFEXBRfNjNdUHyb2dZqMDMLr0931NY887OrL/vWu8uXd0CXol9mfpRFJEHWjefdO3TOxWvvWjph61unZL60pRhD1w+Vo6qKtFGbf1Lw8HsLvrFp3iMXvXw5gTiGmOrraogiKghAZSxsTp48U9+xdFpt6JGfTND37FopfFJnhlIpmNmRpVMK7982O0pEmHq36osJ1GvxiXji9OnOtYNHPZsNhL5rNTcZRETS49UcNbsfrv9hZAoLgaLCQk920qtbOHjKYAgJra3ujQPRMy9AlAViPd4LiKNMFCP19Pi3JhfKQb8JaEUhw8ogY6WgwCYBTAwhhC7zpQsGZ9DMDRWbOtbc+OvX/3tLvCwuI31tJTAIBO5qXZQxy5XTdz5jDR72fasDBhiQbuj67h1Lh998wVXrUN3RpdFArABCeTkNjkZda4tGvtgpfhZSCuFyaXrN7jv3/zAyhZNJDZZFYv9+BpjQ9wVA8TIWFCP1vdKXHjPN02d6yR1qSjdkMiqNfM0Lnx7QPI6A7nEEpCY0tBpNRspKmUVy6CVnu8e98eD5c8ZGEhGrpyuBO8NW/NyrR28774a3951/06al53z/KsRIRS+6S0swq8Ypw68WOzY/LvKhg0BWG7KZ4SMv2/HgGy+Pmhj1oRzUmz2h5wbE4wKxmHIOK/2KGSyaYDU3pUhquqZp0lmz56f1P4zcgzhLhFepXj+GeAjKyuIikiDr6i8u+d0I13k/fruxwdiXSZkFeUFnWrWn92W2v7ilfcMD76fW/nZnavOjzeaB9U4tT88jp9ZiNmedHWbhKS2eJXecNbX0e4nvWT3aE8bm9CgR/ltHSt85BXCcOUL47wOgTa2MmaByYmbR+KuSSdq2d++VTmgsIFULOozhIy5qvnTSJYiRQnRVj0Nfz3PZjRsZYFKZJ3ZTa1OzCBb5RXOTkVe39we1k655/qDjQ+oH8WUiEbG+XfLM5SflnX1TxmgxFIi2phya4vfnvdP8+p33r79p6z+vmKcmvPntYjlkujNLQxtqN2Z9ms93Kk6de1bJWWOwCV1j++TJUbyJASBAurPFyqgsW8gXsgOAlftQTIFihCRrB8L0f8HytS0YdfZvlVO6RBYQ7fUNAIDS/dz/BsRiClxOu+hH24fOfOLClMN5ib73w8qaGyetzc38Tz+7Vb2ov+KJMnXaqInOkH7q/UJpbHAKbodX29hSNePONVf8tCsrKqrrMnsVxlWOs2gFLYyOf3x9Sf1JK10yf0Sb1Z4dog390g3WL39wPa6dxWUsKUGH3Q+YWAkiIZhAuScL+GORKkwm4iwPRGha8R2rN5vDR36ftm/7S+20C//SuQdY/W8A0PncDdOe62gDgA2doUkiQv3WLy8ri0tKkBVxzr/Eq51yesZqzzqlz9GQ3rLm+c1X3MBlLCOJBCKHEDJeEndEVka2x07/zX/+m3buKgEhDDbZA/cvgLLZSPRwFuQ2309PVCJkIcqiLkaLACw6SKOBrgOIEY0KJJMaotzvJ1gldUUEAB5ReIUkJxMIJqdQl956F4F4XN0qSuDQ/2dkUySbHMtadMvtq5vQuMClubWslVb5lH/G1LNGn0kgPuL64J/PFeKd39Ts45lB3wYTiymEw2Yv0skeU145zgIATXjPUsogSbqjw6rfs93x0CoGUFn56Yf1q1COKKLC0syEBQtMMN3CLYpQVHrwRttvRMgCkdXXKDBgJ2ICYJBQvdySiSAYKHEQUKzYhCANILVr06ZNWYY67NVKK0s5hpiyBO3KcgbEEAISZImi3DvGHVf9v4EwgAFgH5AiR34rmAFmcI8qYgbA8PvbXYrNIIMBEAQ5MgBQ3osMyymE6h4MCIYyPMef/AO1ApiJAOZgqIWLCsCFPpDX78jFmMOXZkJIZkBxt4BH2ulkcH/0RAaAgTkcKe/Mt12eDji1nHxuX/Zjrx1uYAxIBiQA0cedRkFAAVCQUL2Ya6ozEepccHziGdB9Jwe1Irh3KrY6BSwpIEmgw+r9AnBwK7koH4oYbgLyRarHn5XCgiYMMBQIptYZKdSJZ8AR8O4QF2SeG0I4YabdwN+AWBRA7HCFRAJIAG0dqwsvyC8FS1YeLQ8G7+7Okw5HIL8DLpEGlIUWI+UDkA+g/bCV9PGUBR0xnRGAqW/NDVNYouujve9MqY8GcEJuwjbHhwF8HJ+/fy4MoH67fO/DrrRsA44plrQN+IxAnyUDmLCpK7c51F/uNaW8A3LXDJC3rZo4lxj9yx/q6nL/HmH4O34MOPhWqPM+E1CfcP+c+1olsda854gj+Mf2AAK48xdEtq9rVJ80A1BZqQhgcXDiOsANjKNWiFlmRh89erKeujRBRYgeMj1qqx5CnsH7eO+clXmw+udJNyKALQAstGQyquFJaMkR0UNee+uBAzJ5ZdDK3LVNzyf50QVOVAO48wcKOAMrmHGfm7nyd++T1Lke3zpElkPgLwApMBw/ulXnfemg2p2xpCtf9nkeEtjKkkx72/G1MfIWx8KOSewB0QHwx67YVd9yHo18IcXm8IIhmV1N7JQaYYCbeANrAEEyYBY2Kctr5OnsECN7ErEYDqjhLousZhN1ihnU60fC83SHYkOQw5dWRV9uM/U8FEDJgu6ge6hClwAwQwu6lEFkYmcLCR7YMD0wBpTmbk1vqWkP5I/QPEpoytW5C/ZgOoucGJJL/FJ4AXP9/u0AULYJlDjMZzcmSpgA6KZ7gzq5xRhytsMB4QAU5VqrPdwb9cFOAY8X1sbtNQBSzEzUD4/bHB0DNpYzABSuWfHzvNO+cQvn+x1WS12ILaV1yy8IAgJKKUBKQ/OEDqiOxoBSppT5BQ2KmSGAlDrQIpsqYwCQ6MGhegwxxdGooFhs345/v/5bbQheRSmTlGBxsPOCOtub3NX7Ed2zw4KCzEB1CM687TH/AEChvFwM/Jb8GYJPkF+EHNhBRqNiLMoFABSXgkvKDj2DNiVAdRtBxaW51+s2fnxclTFYfelpclmZREkJYRV6dhZ56PcpOprf4LSxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxOSH5f+OUDH/HE69CAAAAAElFTkSuQmCC" style="width:48px;height:48px;object-fit:contain;" />
@@ -10711,36 +11267,18 @@
                             </div>
                         </div>
                     </div>
-
-                    <!-- 메인 타이틀 -->
                     <div style="margin-bottom:100px;">
                         <h1 style="font-size:52px;font-weight:900;color:#1A2744;margin:0;line-height:1.2;letter-spacing:-2px;">사전점검 보고서</h1>
                         <div style="font-size:16px;color:#666;letter-spacing:2px;margin-top:12px;">PRE-INSPECTION REPORT</div>
                     </div>
-
-                    <!-- 프로젝트 정보 (2x2 그리드) -->
                     <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
                         <div style="display:grid;grid-template-columns:1fr 1fr;gap:35px 50px;max-width:500px;">
-                            <div>
-                                <div style="font-size:11px;font-weight:500;color:#E84848;letter-spacing:2px;margin-bottom:8px;">PROJECT</div>
-                                <div style="font-size:22px;font-weight:700;color:#1A2744;">${projectData.apartmentName}</div>
-                            </div>
-                            <div>
-                                <div style="font-size:11px;font-weight:500;color:#E84848;letter-spacing:2px;margin-bottom:8px;">UNIT</div>
-                                <div style="font-size:22px;font-weight:700;color:#1A2744;">${projectData.dong}동 ${projectData.ho}호</div>
-                            </div>
-                            <div>
-                                <div style="font-size:11px;font-weight:500;color:#E84848;letter-spacing:2px;margin-bottom:8px;">DATE</div>
-                                <div style="font-size:18px;font-weight:700;color:#1A2744;">${projectData.inspectionDate || new Date().toLocaleDateString('ko-KR')}</div>
-                            </div>
-                            <div>
-                                <div style="font-size:11px;font-weight:500;color:#E84848;letter-spacing:2px;margin-bottom:8px;">CLIENT</div>
-                                <div style="font-size:18px;font-weight:700;color:#1A2744;">${projectData.customerName || '-'}</div>
-                            </div>
+                            <div><div style="font-size:11px;font-weight:500;color:#E84848;letter-spacing:2px;margin-bottom:8px;">PROJECT</div><div style="font-size:22px;font-weight:700;color:#1A2744;">${projectData.apartmentName}</div></div>
+                            <div><div style="font-size:11px;font-weight:500;color:#E84848;letter-spacing:2px;margin-bottom:8px;">UNIT</div><div style="font-size:22px;font-weight:700;color:#1A2744;">${projectData.dong}동 ${projectData.ho}호</div></div>
+                            <div><div style="font-size:11px;font-weight:500;color:#E84848;letter-spacing:2px;margin-bottom:8px;">DATE</div><div style="font-size:18px;font-weight:700;color:#1A2744;">${projectData.inspectionDate || new Date().toLocaleDateString('ko-KR')}</div></div>
+                            <div><div style="font-size:11px;font-weight:500;color:#E84848;letter-spacing:2px;margin-bottom:8px;">CLIENT</div><div style="font-size:18px;font-weight:700;color:#1A2744;">${projectData.customerName || '-'}</div></div>
                         </div>
                     </div>
-
-                    <!-- 푸터 -->
                     <div style="margin-top:auto;padding-top:40px;border-top:1px solid #eee;display:flex;justify-content:space-between;align-items:center;">
                         <div style="font-size:14px;font-weight:500;color:#1A2744;"><b>더홈점검</b> | The Home Inspection</div>
                         <div style="text-align:right;">
@@ -10752,7 +11290,6 @@
             </div>
         `;
     }
-
 
 
     window.createDefectListPage = function(startIndex, itemsPerPage=18) {
@@ -11102,8 +11639,8 @@
                         <strong>더홈점검 앱</strong> 사용법을 안내합니다.
                     </p>
                 </div>
-                <div style="background: rgba(16, 185, 129, 0.15); padding: 15px; border-radius: 10px; border-left: 4px solid #10b981;">
-                    <div style="font-weight: bold; color: #34d399; margin-bottom: 8px;">📋 점검 흐름</div>
+                <div style="background: #f0fdf4; padding: 15px; border-radius: 10px; border-left: 4px solid #10b981;">
+                    <div style="font-weight: bold; color: #059669; margin-bottom: 8px;">📋 점검 흐름</div>
                     <div style="font-size: 14px; color: #f1f5f9; line-height: 1.8;">
                         1️⃣ 프로젝트 정보 입력<br/>
                         2️⃣ 하자점검 (사진 2장 필수)<br/>
@@ -11118,8 +11655,8 @@
             title: '👔 소장님 vs 매니저 역할',
             content: `
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                    <div style="background: rgba(251, 191, 36, 0.15); padding: 15px; border-radius: 10px;">
-                        <div style="font-weight: bold; color: #fbbf24; margin-bottom: 10px; font-size: 15px; color: #fbbf24;">👔 소장님 (현장 총괄)</div>
+                    <div style="background: #fef3c7; padding: 15px; border-radius: 10px;">
+                        <div style="font-weight: bold; color: #d97706; margin-bottom: 10px; font-size: 15px;">👔 소장님 (현장 총괄)</div>
                         <div style="font-size: 13px; color: #f1f5f9; line-height: 1.7;">
                             • 고객 연락 & 세대 동행<br/>
                             • <strong>육안 하자점검</strong><br/>
@@ -11128,8 +11665,8 @@
                             • 물고임 확인 사진
                         </div>
                     </div>
-                    <div style="background: rgba(59, 130, 246, 0.15); padding: 15px; border-radius: 10px;">
-                        <div style="font-weight: bold; color: #60a5fa; margin-bottom: 10px; font-size: 15px; color: #60a5fa;">📱 매니저 (기록 및 관리)</div>
+                    <div style="background: #dbeafe; padding: 15px; border-radius: 10px;">
+                        <div style="font-weight: bold; color: #2563eb; margin-bottom: 10px; font-size: 15px;">📱 매니저 (기록 및 관리)</div>
                         <div style="font-size: 13px; color: #f1f5f9; line-height: 1.7;">
                             • 프로젝트 정보 입력<br/>
                             • <strong>하자 사진 촬영</strong> (2장)<br/>
@@ -11139,7 +11676,7 @@
                         </div>
                     </div>
                 </div>
-                <div style="margin-top: 15px; padding: 12px; background: rgba(239, 68, 68, 0.15); border-radius: 8px; font-size: 13px; color: #f87171;">
+                <div style="margin-top: 15px; padding: 12px; background: #fef2f2; border-radius: 8px; font-size: 13px; color: #dc2626;">
                     ⚠️ <strong>주의:</strong> 스티커는 발코니/페인트 도장면에 부착 자제!
                 </div>
             `
@@ -11147,7 +11684,7 @@
         {
             title: '📁 STEP 1: 프로젝트 정보',
             content: `
-                <div style="background: rgba(30, 41, 59, 0.6); padding: 20px; border-radius: 12px; margin-bottom: 15px;">
+                <div style="background: #f8fafc; padding: 20px; border-radius: 12px; margin-bottom: 15px;">
                     <div style="font-size: 40px; text-align: center; margin-bottom: 15px;">📁</div>
                     <div style="font-size: 14px; color: #f1f5f9; line-height: 1.8;">
                         <strong>프로젝트 탭</strong>에서 기본 정보를 입력합니다:
