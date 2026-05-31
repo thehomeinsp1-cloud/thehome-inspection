@@ -730,8 +730,9 @@
         /* 플로팅 버튼 */
         .floating-btn {
             position: fixed;
-            bottom: 30px;
-            right: 30px;
+            /* [수정] iOS 제스처바/노치 겹침 방지 (safe-area) */
+            bottom: calc(30px + env(safe-area-inset-bottom, 0px));
+            right: calc(30px + env(safe-area-inset-right, 0px));
             width: 60px;
             height: 60px;
             border-radius: 50%;
@@ -4386,6 +4387,8 @@
             
             if (evt && evt.target) {
                 evt.target.classList.add('active');
+                // [추가] 활성 탭 자동 스크롤 (가로 스크롤 시 가려짐 방지)
+                try { evt.target.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' }); } catch (e) {}
             }
             document.getElementById(tabName).classList.add('active');
             
@@ -4662,6 +4665,58 @@
             }, 100);
         }
 
+        // ==================== 최근 사용 빠른선택 + 공종 색상 칩 (추가 기능) ====================
+        const RECENT_PICK_KEY = 'thehome_recent_picks_v1';
+        function loadRecentPicks() {
+            try { return JSON.parse(localStorage.getItem(RECENT_PICK_KEY)) || {}; } catch (e) { return {}; }
+        }
+        function recordRecentPick(field, value) {
+            try {
+                const store = loadRecentPicks();
+                if (!store[field]) store[field] = [];
+                store[field] = store[field].filter(function (v) { return v !== value; });
+                store[field].unshift(value);
+                if (store[field].length > 8) store[field] = store[field].slice(0, 8);
+                localStorage.setItem(RECENT_PICK_KEY, JSON.stringify(store));
+            } catch (e) {}
+        }
+        function renderRecentRow(defect, field) {
+            try {
+                const store = loadRecentPicks();
+                const recents = (store[field] || []).slice(0, 6);
+                if (recents.length === 0) return '';
+                const cur = defect[field] || [];
+                const btns = recents.map(function (v) {
+                    const sel = cur.indexOf(v) > -1 ? 'selected' : '';
+                    const dis = (cur.length >= 4 && cur.indexOf(v) === -1) ? 'disabled' : '';
+                    return '<button type="button" class="touch-btn ' + sel + '" ' + dis +
+                        ' onclick="toggleDefectSelection(' + defect.id + ', \'' + field + '\', \'' + v + '\')">' + v + '</button>';
+                }).join('');
+                return '<div style="margin-bottom:8px;">' +
+                    '<div style="font-size:12px;color:var(--text-secondary);margin-bottom:6px;font-weight:600;">\u2b50 \uCD5C\uADFC \uC0AC\uC6A9</div>' +
+                    '<div class="touch-button-grid">' + btns + '</div></div>';
+            } catch (e) { return ''; }
+        }
+        function gongJongChip(defect) {
+            try {
+                const has = (defect.locations && defect.locations.length) || (defect.types && defect.types.length);
+                if (!has || !window.detectGongJong) return '';
+                const g = window.detectGongJong(defect);
+                const colors = {
+                    'PL\uCC3D\uD638': '#0d9488', '\uAC00\uAD6C': '#9333ea', '\uACE8\uC870': '#57534e',
+                    '\uAE08\uC18D': '#64748b', '\uAE30\uACC4\uC124\uBE44': '#475569', '\uAE30\uD0C0\uACF5\uC885': '#94a3b8',
+                    '\uB3C4\uBC30': '#7c3aed', '\uB3C4\uC7A5': '#2563eb', '\uBAA9\uCC3D\uD638': '#a16207',
+                    '\uBBF8\uC7A5': '#ca8a04', '\uBC14\uB2E5\uC7AC': '#b45309', '\uBC29\uC218': '#0ea5e9',
+                    '\uC11D\uACF5\uC0AC': '#78716c', '\uC218\uC7A5': '#16a34a', '\uC2E4\uB9AC\uCF58': '#db2777',
+                    '\uC720\uB9AC': '#0284c7', '\uC7A1\uACF5\uC0AC': '#737373', '\uC804\uAE30': '#ea580c',
+                    '\uC900\uACF5\uCCAD\uC18C': '#65a30d', '\uCCA0\uC7AC\uBC29\uD654\uBB38': '#dc2626', '\uD0C0\uC77C': '#0891b2'
+                };
+                const c = colors[g] || '#94a3b8';
+                return '<span style="display:inline-block;background:' + c + ';color:#fff;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:700;margin-left:8px;">' + g + '</span>';
+            } catch (e) { return ''; }
+        }
+        // ==================== 추가 기능 끝 ====================
+
         function renderDefects() {
             const container = document.getElementById('defectsList');
             
@@ -4679,7 +4734,7 @@
                 return `
                 <div class="defect-card">
                     <div class="defect-header">
-                        <span class="defect-number">하자 ${index + 1}</span>
+                        <span class="defect-number">하자 ${index + 1}</span>${gongJongChip(defect)}
                         <select class="defect-status ${defect.status === 'completed' ? 'status-completed' : 'status-pending'}" 
                                 onchange="updateDefectStatus(${defect.id}, this.value)">
                             <option value="pending" ${defect.status === 'pending' ? 'selected' : ''}>미완료</option>
@@ -4812,6 +4867,7 @@
                     <div class="form-field">
                         <label class="form-label">공간 선택 (최대 4개)</label>
                         <div class="selected-count">${defect.spaces.length}/4 선택됨</div>
+                        ${renderRecentRow(defect, 'spaces')}
                         <div class="touch-button-grid">
                             ${getSpaceButtons().map(space => `
                                 <button type="button" class="touch-btn ${defect.spaces.includes(space) ? 'selected' : ''}" 
@@ -4836,7 +4892,7 @@
                                        style="width: 100%; font-size: 14px; margin-bottom: 4px;"
                                        onkeydown="if(event.key==='Enter' && !event.isComposing){event.preventDefault();addCustomSpace(${defect.id});}"
                                        onchange="addCustomSpace(${defect.id})">
-                                <div style="font-size: 11px; color: var(--text-secondary);">
+                                <div style="font-size: 12px; color: var(--text-secondary);">
                                     💡 입력 후 엔터 또는 다른 곳 클릭
                                 </div>
                             </div>
@@ -4846,6 +4902,7 @@
                     <div class="form-field">
                         <label class="form-label">위치 선택 (최대 4개)</label>
                         <div class="selected-count">${defect.locations.length}/4 선택됨</div>
+                        ${renderRecentRow(defect, 'locations')}
                         <div class="touch-button-grid">
                             ${['벽','바닥','천장','도배','가구','창','문','짝','틀','마감판','수전','타일','도장','줄눈','코킹'].map(location => `
                                 <button type="button" class="touch-btn ${defect.locations.includes(location) ? 'selected' : ''}" 
@@ -4871,10 +4928,11 @@
                     <div class="form-field">
                         <label class="form-label">하자내용 선택 (최대 4개)</label>
                         <div class="selected-count">${defect.types.length}/4 선택됨</div>
+                        ${renderRecentRow(defect, 'types')}
                         
                         <!-- 상단 그룹: 하자 유형 -->
                         <div style="margin-bottom: 8px;">
-                            <div style="font-size: 11px; color: var(--text-secondary); margin-bottom: 6px; font-weight: 600;">
+                            <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 6px; font-weight: 600;">
                                 하자 유형
                             </div>
                             <div class="touch-button-grid">
@@ -4893,7 +4951,7 @@
                         
                         <!-- 하단 그룹: 상태/정도 -->
                         <div>
-                            <div style="font-size: 11px; color: var(--text-secondary); margin-bottom: 6px; font-weight: 600;">
+                            <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 6px; font-weight: 600;">
                                 상태 / 정도
                             </div>
                             <div class="touch-button-grid">
@@ -4914,7 +4972,7 @@
                                   readonly
                                   style="background: rgba(16, 185, 129, 0.05); cursor: default;"
                                   placeholder="공간, 위치, 하자내용을 선택하면 자동으로 생성됩니다">${defect.description || ''}</textarea>
-                        <div style="font-size: 11px; color: var(--text-secondary); margin-top: 5px;">
+                        <div style="font-size: 12px; color: var(--text-secondary); margin-top: 5px;">
                             💡 공간, 위치, 하자내용, 상세위치를 선택하면 자동으로 생성됩니다
                         </div>
                     </div>
@@ -5171,7 +5229,7 @@
                                        style="width: 100%; font-size: 14px; margin-bottom: 4px;"
                                        onkeydown="if(event.key==='Enter' && !event.isComposing){event.preventDefault();addCustomSpaceEquipment(${item.id});}"
                                        onchange="addCustomSpaceEquipment(${item.id})">
-                                <div style="font-size: 11px; color: var(--text-secondary);">
+                                <div style="font-size: 12px; color: var(--text-secondary);">
                                     💡 입력 후 엔터 또는 다른 곳 클릭
                                 </div>
                             </div>
@@ -6577,6 +6635,7 @@
                 // 선택되어 있지 않으면 추가 (최대 4개까지)
                 if (defect[field].length < 4) {
                     defect[field].push(value);
+                    recordRecentPick(field, value); // [추가] 최근 사용 기록
                 } else {
                     showToast('최대 4개까지만 선택할 수 있습니다');
                     return;
