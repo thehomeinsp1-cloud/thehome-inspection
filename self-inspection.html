@@ -7,6 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>더홈 셀프점검</title>
 <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 <style>
 :root{
   --primary:#5b6cff; --primary-dark:#4453d6; --secondary:#e0a82e; --danger:#e5484d;
@@ -252,7 +253,7 @@ body.light-mode .gate-inner{background:#fff;box-shadow:0 8px 30px rgba(0,0,0,.08
     <div class="gate-field"><label>점검할 아파트 단지명</label><input id="g_apt" class="form-input" placeholder="예: 행복아파트"></div>
     <label class="gate-agree" onclick="toggleAgree()"><span class="gate-chk" id="agreeChk"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 6"/></svg></span><span>개인정보 수집·이용에 동의합니다 (서비스 안내 목적, 보관기간 6개월)</span></label>
     <button class="btn btn-primary" style="margin-top:18px" onclick="submitGate()">동의하고 시작하기</button>
-    <p class="gate-foot">문의 <b id="gateTel">010-9985-0128</b> · 더홈점검</p>
+    <p class="gate-foot">문의 <b id="gateTel">1668-5322</b> · 더홈점검</p>
   </div>
 </div>
 
@@ -390,6 +391,7 @@ body.light-mode .gate-inner{background:#fff;box-shadow:0 8px 30px rgba(0,0,0,.08
     </div>
     <button class="btn btn-primary" onclick="makeReport()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg> 보고서 미리보기 / 검토</button>
     <button class="btn btn-secondary" style="margin-top:10px" onclick="exportExcel()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 10h16M10 4v16"/></svg> 엑셀 리스트 저장 (.xlsx)</button>
+    <button class="btn btn-secondary" style="margin-top:10px" onclick="exportPhotos()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg> 사진 전체 저장 (ZIP)</button>
     <div style="margin-top:20px">
       <div class="upsell">
         <h3>놓친 하자가 걱정되시나요?</h3>
@@ -425,9 +427,10 @@ body.light-mode .gate-inner{background:#fff;box-shadow:0 8px 30px rgba(0,0,0,.08
 
 
 <div class="cam" id="cam">
-  <div class="stg"><video id="vid" autoplay playsinline muted></video><canvas id="ov"></canvas>
+  <div class="stg" ontouchstart="pinchStart(event)" ontouchmove="pinchMove(event)"><video id="vid" autoplay playsinline muted></video><canvas id="ov"></canvas>
     <div class="ctag" id="camTag">원경</div>
-    <div class="gl">화면을 탭해 하자 위치 표시 · 다시 탭하면 취소</div></div>
+    <div id="zoomState" style="display:none;position:absolute;top:14px;right:14px;background:rgba(0,0,0,.55);color:#fff;font-size:13px;font-weight:700;padding:5px 11px;border-radius:20px">1.0x</div>
+    <div class="gl">화면을 탭해 하자 위치 표시 · 두 손가락으로 확대</div></div>
   <div class="bar2"><button class="cb" onclick="clearMarks()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 4v4h4"/></svg></button>
     <button class="shutter" onclick="capture()"></button><button class="cb" onclick="closeCam()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
 </div>
@@ -443,7 +446,7 @@ body.light-mode .gate-inner{background:#fff;box-shadow:0 8px 30px rgba(0,0,0,.08
     <div class="promo-t" id="promoTitle">전문가의 눈으로 다시 한번</div>
     <div class="promo-d" id="promoDesc">열화상 카메라·레이저 레벨 등 전문 장비로 눈에 안 보이는 하자까지 더홈점검이 꼼꼼히 확인해드립니다.</div>
     <button class="btn btn-primary" onclick="goPro()">전문가 점검 알아보기</button>
-    <a id="promoTelBtn" class="btn btn-secondary" style="margin-top:10px;text-decoration:none" href="tel:01099850128">전화 상담 010-9985-0128</a>
+    <a id="promoTelBtn" class="btn btn-secondary" style="margin-top:10px;text-decoration:none" href="tel:16685322">전화 상담 1668-5322</a>
     <button class="promo-skip" onclick="closePromo()">계속 셀프점검 하기</button>
   </div>
 </div>
@@ -473,7 +476,7 @@ const CONFIG={
   validatorUrl:'',
   proInspectionUrl:'#',
   companyName:'더홈점검',
-  companyTel:'010-9985-0128',
+  companyTel:'1668-5322',
   companyMainTel:'1668-5322',
   companyDesc:'신축 아파트 입주 전 사전점검 전문업체',
   companySite:'',                 // 홈페이지 URL (있으면 보고서/팝업에 노출)
@@ -589,7 +592,7 @@ function renderFloorBox(){
 function shootFloor(){target={floor:true};marks=[];document.getElementById('camTag').textContent='평면도';
   document.getElementById('cam').classList.add('on');
   navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1920}},audio:false})
-    .then(s=>{stream=s;const v=document.getElementById('vid');v.srcObject=s;v.play();setTimeout(sizeOv,200);})
+    .then(s=>{stream=s;const v=document.getElementById('vid');v.srcObject=s;v.play();setTimeout(sizeOv,200);setTimeout(()=>setupZoom(s),400);})
     .catch(()=>{toast('카메라를 열 수 없어 갤러리로 전환합니다');closeCam();pickFloor();});}
 function pickFloor(){target={floor:true};const inp=document.getElementById('gallery');
   inp.onchange=()=>{const fl=inp.files[0];if(fl)resizeFile(fl,applyPhoto);inp.value='';};inp.click();}
@@ -685,7 +688,7 @@ function svgCamBig(){return "<span class='pic'><svg width='22' height='22' viewB
 function shootNew(idx){target={newIdx:idx};marks=[];document.getElementById('camTag').textContent=idx===0?'원경':'근경';
   document.getElementById('cam').classList.add('on');
   navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1920}},audio:false})
-    .then(s=>{stream=s;const v=document.getElementById('vid');v.srcObject=s;v.play();setTimeout(sizeOv,200);})
+    .then(s=>{stream=s;const v=document.getElementById('vid');v.srcObject=s;v.play();setTimeout(sizeOv,200);setTimeout(()=>setupZoom(s),400);})
     .catch(()=>{toast('카메라를 열 수 없어 갤러리로 전환합니다');closeCam();pickNew(idx);});}
 function pickNew(idx){target={newIdx:idx};const inp=document.getElementById('gallery');
   inp.onchange=()=>{const fl=inp.files[0];if(fl)resizeFile(fl,applyPhoto);inp.value='';};inp.click();}
@@ -766,17 +769,42 @@ function delFinding(id){if(!confirm('이 하자를 삭제할까요?'))return;
 function rmPhoto(id,idx){const f=data.findings.find(x=>x.id===id);if(f){f.photos[idx]=null;saveNow();renderFindings();updateProgress();}}
 
 let stream=null,target=null,marks=[];
+let zoomTrack=null,zoomCap=null,curZoom=1,pinchBase=0;
+function setupZoom(s){
+  zoomTrack=null;zoomCap=null;curZoom=1;
+  try{
+    const tr=s.getVideoTracks()[0];const cap=tr.getCapabilities?tr.getCapabilities():{};
+    if(cap&&cap.zoom){zoomTrack=tr;zoomCap=cap;curZoom=(tr.getSettings&&tr.getSettings().zoom)||cap.zoom.min||1;}
+  }catch(e){}
+  const zs=document.getElementById('zoomState');if(zs)zs.style.display=zoomTrack?'block':'none';
+}
+function applyZoom(z){
+  if(!zoomTrack||!zoomCap)return;
+  const mn=zoomCap.zoom.min||1,mx=zoomCap.zoom.max||4;
+  z=Math.max(mn,Math.min(mx,z));curZoom=z;
+  try{zoomTrack.applyConstraints({advanced:[{zoom:z}]});}catch(e){}
+  const zs=document.getElementById('zoomState');if(zs)zs.textContent=z.toFixed(1)+'x';
+}
+function pinchStart(e){if(e.touches&&e.touches.length===2){pinchBase=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);}}
+function pinchMove(e){
+  if(e.touches&&e.touches.length===2&&pinchBase){
+    e.preventDefault();
+    const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
+    const ratio=d/pinchBase;pinchBase=d;
+    applyZoom(curZoom*ratio);
+  }
+}
 function shoot(id,idx){target={id,idx};marks=[];document.getElementById('camTag').textContent=idx===0?'원경':'근경';
   document.getElementById('cam').classList.add('on');
   navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1920}},audio:false})
-    .then(s=>{stream=s;const v=document.getElementById('vid');v.srcObject=s;v.play();setTimeout(sizeOv,200);})
+    .then(s=>{stream=s;const v=document.getElementById('vid');v.srcObject=s;v.play();setTimeout(sizeOv,200);setTimeout(()=>setupZoom(s),400);})
     .catch(()=>{toast('카메라를 열 수 없어 갤러리로 전환합니다');closeCam();pick(id,idx);});}
 function sizeOv(){const v=document.getElementById('vid'),c=document.getElementById('ov');c.width=v.clientWidth;c.height=v.clientHeight;drawMarks();
   c.onpointerdown=e=>{const r=c.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;
     const h=marks.findIndex(m=>Math.hypot(m.x-x,m.y-y)<32);if(h>-1)marks.splice(h,1);else if(marks.length<10)marks.push({x,y});drawMarks();};}
 function drawMarks(){const c=document.getElementById('ov'),g=c.getContext('2d');g.clearRect(0,0,c.width,c.height);
-  marks.forEach((m,i)=>{g.beginPath();g.arc(m.x,m.y,24,0,7);g.lineWidth=4;g.strokeStyle='#5b6cff';g.stroke();
-    g.fillStyle='rgba(91,108,255,.28)';g.fill();g.fillStyle='#fff';g.font='bold 15px sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText(i+1,m.x,m.y);});}
+  marks.forEach((m,i)=>{g.beginPath();g.arc(m.x,m.y,24,0,7);g.lineWidth=4;g.strokeStyle='#e5343d';g.stroke();
+    g.fillStyle='rgba(229,52,61,.30)';g.fill();g.fillStyle='#fff';g.font='bold 15px sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText(i+1,m.x,m.y);});}
 function clearMarks(){marks=[];drawMarks();}
 function capture(){const v=document.getElementById('vid');if(!v.videoWidth){toast('잠시 후 다시 시도');return;}
   const cw=v.clientWidth,ch=v.clientHeight,sc=Math.max(v.videoWidth/cw,v.videoHeight/ch),ow=v.videoWidth,oh=v.videoHeight;
@@ -784,8 +812,8 @@ function capture(){const v=document.getElementById('vid');if(!v.videoWidth){toas
   const c=document.createElement('canvas');c.width=tw;c.height=th;const g=c.getContext('2d');g.drawImage(v,0,0,tw,th);
   const ox=(ow-cw*sc)/2,oy=(oh-ch*sc)/2,k=tw/ow;
   marks.forEach((m,i)=>{const X=(m.x*sc+ox)*k,Y=(m.y*sc+oy)*k,R=24*sc*k;
-    g.beginPath();g.arc(X,Y,R,0,7);g.lineWidth=Math.max(3,4*sc*k);g.strokeStyle='#5b6cff';g.stroke();
-    g.fillStyle='rgba(91,108,255,.28)';g.fill();g.fillStyle='#fff';g.font='bold '+Math.round(15*sc*k)+'px sans-serif';
+    g.beginPath();g.arc(X,Y,R,0,7);g.lineWidth=Math.max(3,4*sc*k);g.strokeStyle='#e5343d';g.stroke();
+    g.fillStyle='rgba(229,52,61,.30)';g.fill();g.fillStyle='#fff';g.font='bold '+Math.round(15*sc*k)+'px sans-serif';
     g.textAlign='center';g.textBaseline='middle';g.fillText(i+1,X,Y);});
   applyPhoto(c.toDataURL('image/jpeg',.82));closeCam();}
 function applyPhoto(d){if(!target)return;
@@ -837,23 +865,23 @@ function buildReportHTML(){
 
   /* === 평면도 === */
   if(data.floorplan)h+='<div style="font-size:15px;font-weight:800;border-left:4px solid '+C+';padding-left:10px;margin:6px 0 12px">평면도</div>'+
-    '<img src="'+data.floorplan+'" style="width:100%;border:1px solid '+LINE+';border-radius:6px;margin-bottom:22px">';
+    '<div style="text-align:center;margin-bottom:22px"><img src="'+data.floorplan+'" style="max-width:100%;max-height:360px;width:auto;border:1px solid '+LINE+';border-radius:6px"></div>';
 
   /* === 제출용 하자 표 === */
   h+='<div style="font-size:15px;font-weight:800;border-left:4px solid '+C+';padding-left:10px;margin:6px 0 12px">하자 점검 리스트 (제출용)</div>';
   if(!total){h+='<p style="color:#667;font-size:13px;padding:10px 0">기록된 하자가 없습니다.</p>';}
   else{
-    h+='<table style="width:100%;border-collapse:collapse;font-size:12px;border:2px solid '+INK+';table-layout:fixed">'+
+    h+='<div style="overflow-x:auto;-webkit-overflow-scrolling:touch"><table style="width:100%;min-width:440px;border-collapse:collapse;font-size:12px;border:2px solid '+INK+';table-layout:fixed">'+
       '<thead><tr style="background:#eceefb">'+
-      '<th style="padding:8px 4px;border:1px solid '+INK+';width:34px">No</th>'+
-      '<th style="padding:8px 4px;border:1px solid '+INK+';width:62px">공간</th>'+
+      '<th style="padding:8px 4px;border:1px solid '+INK+';width:30px">No</th>'+
+      '<th style="padding:8px 4px;border:1px solid '+INK+';width:56px">공간</th>'+
       '<th style="padding:8px 4px;border:1px solid '+INK+';white-space:nowrap">하자 내용</th>'+
-      '<th style="padding:8px 4px;border:1px solid '+INK+';width:104px">원경</th>'+
-      '<th style="padding:8px 4px;border:1px solid '+INK+';width:104px">근경</th></tr></thead><tbody>';
+      '<th style="padding:8px 4px;border:1px solid '+INK+';width:90px">원경</th>'+
+      '<th style="padding:8px 4px;border:1px solid '+INK+';width:90px">근경</th></tr></thead><tbody>';
     const order=allSpaces();
     const sorted=data.findings.slice().sort((a,b)=>{const ia=order.indexOf(a.room||a.roomName),ib=order.indexOf(b.room||b.roomName);return (ia<0?999:ia)-(ib<0?999:ib);});
     const cell='padding:4px;border:1px solid '+INK+';text-align:center;vertical-align:middle';
-    const noimg='<div style="width:100px;height:80px;border:1px dashed '+LINE+';display:flex;align-items:center;justify-content:center;font-size:10px;color:#aab;margin:0 auto">사진없음</div>';
+    const noimg='<div style="width:82px;height:64px;border:1px dashed '+LINE+';display:flex;align-items:center;justify-content:center;font-size:9px;color:#aab;margin:0 auto">사진없음</div>';
     sorted.forEach((f,i)=>{
       const sp=(f.spaces&&f.spaces.length?f.spaces.join(', '):(f.roomName||f.room||'-'));
       const loc=(f.locations||[]).join(', ');
@@ -863,8 +891,8 @@ function buildReportHTML(){
       const desc=esc(built||f.tag||'-');
       const detail=f.detailLoc?'<div style="font-size:10px;color:#667;margin-top:2px">위치: '+esc(f.detailLoc)+'</div>':'';
       const note=f.note?'<div style="font-size:10px;color:#667;margin-top:2px">메모: '+esc(f.note)+'</div>':'';
-      const p1=f.photos&&f.photos[0]?'<img src="'+f.photos[0]+'" style="width:100px;height:80px;object-fit:cover;border:1px solid '+INK+';display:block;margin:0 auto">':noimg;
-      const p2=f.photos&&f.photos[1]?'<img src="'+f.photos[1]+'" style="width:100px;height:80px;object-fit:cover;border:1px solid '+INK+';display:block;margin:0 auto">':noimg;
+      const p1=f.photos&&f.photos[0]?'<img src="'+f.photos[0]+'" style="width:82px;max-width:100%;height:64px;object-fit:cover;border:1px solid '+INK+';display:block;margin:0 auto">':noimg;
+      const p2=f.photos&&f.photos[1]?'<img src="'+f.photos[1]+'" style="width:82px;max-width:100%;height:64px;object-fit:cover;border:1px solid '+INK+';display:block;margin:0 auto">':noimg;
       h+='<tr style="page-break-inside:avoid">'+
         '<td style="'+cell+';font-weight:bold">'+(i+1)+'</td>'+
         '<td style="'+cell+';font-weight:bold;font-size:11px">'+esc(sp)+'</td>'+
@@ -872,7 +900,7 @@ function buildReportHTML(){
         '<td style="'+cell+'">'+p1+'</td>'+
         '<td style="'+cell+'">'+p2+'</td></tr>';
     });
-    h+='</tbody></table>';
+    h+='</tbody></table></div>';
   }
 
   /* === 보증기간 안내 (정보형 + 신뢰 형성) === */
@@ -898,7 +926,7 @@ function buildReportHTML(){
   h+='<div style="background:'+INK+';color:#fff;padding:18px 30px;text-align:center">'+
     '<div style="font-size:15px;font-weight:800;letter-spacing:1px">'+esc(CONFIG.companyName)+'</div>'+
     '<div style="font-size:12px;opacity:.8;margin-top:4px">'+esc(CONFIG.companyDesc)+'</div>'+
-    '<div style="font-size:12px;opacity:.9;margin-top:8px">대표 '+esc(CONFIG.companyMainTel)+'  ·  직통 '+esc(CONFIG.companyTel)+'</div>'+
+    '<div style="font-size:12px;opacity:.9;margin-top:8px">대표전화 '+esc(CONFIG.companyMainTel)+'</div>'+
     (CONFIG.companySite?'<div style="font-size:12px;opacity:.9;margin-top:2px">'+esc(CONFIG.companySite)+'</div>':'')+
     '</div>';
 
@@ -948,6 +976,42 @@ async function exportExcel(){if(!data.findings.length){toast('기록된 하자�
     toast('엑셀 파일을 저장했습니다');
   }catch(e){try{exportCSV();toast('엑셀 모듈 없이 CSV로 저장했습니다');}catch(e2){toast('저장에 실패했습니다');}}
   finally{hideLoading();}}
+
+/* 사진 전체 ZIP 다운로드 (파일명: 순번_공간_원경/근경.jpg) */
+function dataURLtoBlob(durl){
+  const parts=durl.split(',');const mime=(parts[0].match(/:(.*?);/)||[])[1]||'image/jpeg';
+  const bin=atob(parts[1]);const n=bin.length;const arr=new Uint8Array(n);
+  for(let i=0;i<n;i++)arr[i]=bin.charCodeAt(i);
+  return new Blob([arr],{type:mime});
+}
+function safeName(s){return (s||'').replace(/[\\/:*?"<>|]/g,'').replace(/\s+/g,'').slice(0,20);}
+async function exportPhotos(){
+  const hasFloor=!!data.floorplan;
+  const hasAny=data.findings.some(f=>f.photos&&(f.photos[0]||f.photos[1]));
+  if(!hasFloor&&!hasAny){toast('저장할 사진이 없습니다');return;}
+  if(typeof JSZip==='undefined'){toast('사진 저장 모듈을 불러오지 못했어요. 인터넷 연결 후 다시 시도해 주세요');return;}
+  showLoading('사진 모으는 중...');
+  try{
+    const zip=new JSZip();
+    if(hasFloor){try{zip.file('00_평면도.jpg',dataURLtoBlob(data.floorplan));}catch(e){}}
+    const order=allSpaces();
+    const sorted=data.findings.slice().sort((a,b)=>{const ia=order.indexOf(a.room||a.roomName),ib=order.indexOf(b.room||b.roomName);return (ia<0?999:ia)-(ib<0?999:ib);});
+    let no=1;
+    sorted.forEach(f=>{
+      const nn=String(no).padStart(2,'0');
+      const sp=safeName(f.spaces&&f.spaces.length?f.spaces[0]:(f.roomName||f.room||'공간'));
+      if(f.photos&&f.photos[0]){try{zip.file(nn+'_'+sp+'_원경.jpg',dataURLtoBlob(f.photos[0]));}catch(e){}}
+      if(f.photos&&f.photos[1]){try{zip.file(nn+'_'+sp+'_근경.jpg',dataURLtoBlob(f.photos[1]));}catch(e){}}
+      no++;
+    });
+    const blob=await zip.generateAsync({type:'blob'});
+    const apt=safeName(data.apt||'점검사진');
+    const dt=(data.date||new Date().toISOString().slice(0,10)).replace(/[^0-9]/g,'');
+    dlBlob(blob,apt+'_사진_'+dt+'.zip');
+    toast('사진을 ZIP으로 저장했습니다');
+  }catch(e){toast('사진 저장에 실패했습니다');}
+  finally{hideLoading();}
+}
 function exportCSV(){const rows=[['No','공간','위치','상세위치','하자유형','하자내용','메모','사진']];let no=1;
   const push=f=>{const pc=(f.photos||[]).filter(Boolean).length;rows.push([no++,f.roomName||f.room||'-',(f.locations||[]).join(' ')||'-',f.detailLoc||'',(f.types||[]).join(' ')||'-',f.tag||'-',(f.note||'').replace(/\n/g,' '),pc+'/2']);};
   const order=allSpaces();
