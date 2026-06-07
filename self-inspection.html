@@ -1239,27 +1239,36 @@ function setStar(n){reviewStar=n;document.querySelectorAll('#stars button').forE
 function setPro(v){reviewPro=v;document.getElementById('rv_y').classList.toggle('selected',v===true);
   document.getElementById('rv_n').classList.toggle('selected',v===false);
   document.getElementById('rv_contact').classList.toggle('hidden',!v);}
+/* 공통 전송: fetch(no-cors) 먼저, 실패 시 JSONP 폴백 (인앱브라우저 대응) */
+async function thsSend(params){
+  var api=CONFIG.apiUrl||CONFIG.validatorUrl;
+  if(!api)return;
+  var qs=Object.keys(params).map(function(k){return k+'='+encodeURIComponent(params[k]);}).join('&');
+  // 1) fetch no-cors (모바일/인앱브라우저에서 가장 안정적)
+  try{
+    await fetch(api+(api.indexOf('?')<0?'?':'&')+qs,{method:'GET',mode:'no-cors',cache:'no-store'});
+    return; // no-cors는 응답을 못 읽지만 전송은 됨
+  }catch(e){}
+  // 2) JSONP 폴백
+  try{
+    var cb='thsCb'+Date.now();
+    window[cb]=function(){try{delete window[cb];}catch(e){}};
+    await new Promise(function(res){
+      var s=document.createElement('script');
+      s.src=api+(api.indexOf('?')<0?'?':'&')+qs+'&callback='+cb;
+      s.onload=function(){res();};s.onerror=function(){res();};
+      document.body.appendChild(s);
+      setTimeout(res,4000);
+    });
+  }catch(e){}
+}
+
 async function submitReview(){if(!reviewStar){toast('별점을 선택해 주세요');return;}
   const text=document.getElementById('rv_text').value.trim();
   if(!text){toast('후기 내용을 입력해 주세요');return;}
   const phone=reviewPro?document.getElementById('rv_phone').value.trim():'';
   showLoading('전송 중...');
-  var api=CONFIG.apiUrl||CONFIG.validatorUrl;
-  if(api){
-    try{
-      var q='action=selfReview&kind=review&stars='+encodeURIComponent(reviewStar)+
-            '&text='+encodeURIComponent(text)+'&apt='+encodeURIComponent(data.apt||'')+
-            '&phone='+encodeURIComponent(phone)+'&name='+encodeURIComponent('');
-      var url=api+(api.indexOf('?')<0?'?':'&')+q+'&callback=thsRevCb';
-      window.thsRevCb=function(){};
-      await new Promise(function(res){
-        var s=document.createElement('script');s.src=url;
-        s.onload=function(){res();};s.onerror=function(){res();};
-        document.body.appendChild(s);
-        setTimeout(res,4000);
-      });
-    }catch(e){}
-  }
+  await thsSend({action:'selfReview',kind:'review',stars:reviewStar,text:text,apt:data.apt||'',phone:phone,name:''});
   hideLoading();data.reviewed=true;save();
   if(reviewPro===true){toast('감사합니다! 전문점검 안내로 이동합니다');setTimeout(goPro,800);}
   else{toast('소중한 후기 감사합니다');setTimeout(()=>switchTab('report'),800);}}
@@ -1301,21 +1310,7 @@ async function submitGate(){
   if(!gateAgreed){toast('개인정보 수집·이용에 동의해 주세요');return;}
   // 백엔드(v8.6)로 리드 전송 (실패해도 진행)
   showLoading('확인 중...');
-  var api=CONFIG.apiUrl||CONFIG.validatorUrl;
-  if(api){
-    try{
-      var q='action=selfLead&name='+encodeURIComponent(name)+'&phone='+encodeURIComponent(phone)+
-            '&apt='+encodeURIComponent(apt)+'&ua='+encodeURIComponent(navigator.userAgent.slice(0,120));
-      var url=api+(api.indexOf('?')<0?'?':'&')+q+'&callback=thsLeadCb';
-      window.thsLeadCb=function(){};
-      await new Promise(function(res){
-        var s=document.createElement('script');s.src=url;
-        s.onload=function(){res();};s.onerror=function(){res();};
-        document.body.appendChild(s);
-        setTimeout(res,4000);
-      });
-    }catch(e){}
-  }
+  await thsSend({action:'selfLead',name:name,phone:phone,apt:apt,ua:navigator.userAgent.slice(0,120)});
   hideLoading();
   try{sessionStorage.setItem('ths_lead','1');}catch(e){}
   // 입력한 단지명을 현재 세대에 자동 반영
