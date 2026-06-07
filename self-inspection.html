@@ -1026,39 +1026,129 @@ function printReport(){
 }
 
 /* 보고서 PDF 다운로드 (html2canvas + jsPDF, A4 자동 페이지 분할) */
+/* ===== PDF 전용: A4 페이지 단위로 깔끔하게 빌드 =====
+   각 페이지를 794×1123px(A4 비율) div로 만들어 개별 캡처 → 잘림 없음 */
+function buildPdfPages(){
+  const C='#5b6cff', INK='#1c2030', LINE='#cfd4e0';
+  const today=new Date().toLocaleDateString('ko-KR');
+  const total=data.findings.length;
+  const withPhoto=data.findings.filter(f=>f.photos&&(f.photos[0]||f.photos[1])).length;
+  const roomCnt=new Set(data.findings.map(f=>f.room||f.roomName)).size;
+  const order=allSpaces();
+  const sorted=data.findings.slice().sort((a,b)=>{const ia=order.indexOf(a.room||a.roomName),ib=order.indexOf(b.room||b.roomName);return (ia<0?999:ia)-(ib<0?999:ib);});
+
+  const PG='width:794px;min-height:1123px;box-sizing:border-box;background:#fff;font-family:\'Malgun Gothic\',sans-serif;color:'+INK+';position:relative;overflow:hidden';
+  const pages=[];
+
+  /* ── 페이지 1: 표지 + 통계 + 평면도 ── */
+  let p1='<div style="'+PG+'">';
+  p1+='<div style="background:linear-gradient(135deg,#5b6cff,#4453d6);color:#fff;padding:60px 50px 44px">'+
+    (CONFIG.logoUri?'<div style="display:inline-block;background:#fff;border-radius:14px;padding:10px 14px;margin-bottom:20px"><img src="'+CONFIG.logoUri+'" style="height:40px;width:auto;display:block"></div>':'')+
+    '<div style="font-size:14px;letter-spacing:5px;opacity:.85;font-weight:700">THE HOME · SELF INSPECTION REPORT</div>'+
+    '<div style="font-size:40px;font-weight:800;margin-top:14px;line-height:1.25">우리 집 사전점검 보고서</div>'+
+    '<div style="font-size:20px;margin-top:18px;opacity:.95;font-weight:600">'+esc(data.apt||'-')+' '+esc(data.dong||'-')+'동 '+esc(data.ho||'-')+'호</div>'+
+    '<div style="font-size:14px;margin-top:8px;opacity:.8">점검일 '+esc(data.date||'-')+'  ·  발행일 '+today+'</div></div>';
+  p1+='<div style="display:flex;border-bottom:1px solid '+LINE+'">'+
+    '<div style="flex:1;text-align:center;padding:30px 6px;border-right:1px solid '+LINE+'"><div style="font-size:40px;font-weight:800;color:'+C+'">'+total+'</div><div style="font-size:14px;color:#667;margin-top:4px">발견한 하자</div></div>'+
+    '<div style="flex:1;text-align:center;padding:30px 6px;border-right:1px solid '+LINE+'"><div style="font-size:40px;font-weight:800;color:'+C+'">'+roomCnt+'</div><div style="font-size:14px;color:#667;margin-top:4px">점검 공간</div></div>'+
+    '<div style="flex:1;text-align:center;padding:30px 6px"><div style="font-size:40px;font-weight:800;color:'+C+'">'+withPhoto+'</div><div style="font-size:14px;color:#667;margin-top:4px">사진 첨부</div></div></div>';
+  if(data.floorplan){
+    p1+='<div style="padding:30px 50px">'+
+      '<div style="font-size:18px;font-weight:800;border-left:5px solid '+C+';padding-left:12px;margin-bottom:18px">평면도</div>'+
+      '<div style="text-align:center"><img src="'+data.floorplan+'" style="max-width:100%;max-height:520px;width:auto;border:1px solid '+LINE+';border-radius:8px"></div></div>';
+  }
+  p1+='</div>';
+  pages.push(p1);
+
+  /* ── 하자 카드 페이지: 한 페이지에 2건씩 (큰 사진) ── */
+  if(total){
+    const perPage=2;
+    for(let i=0;i<sorted.length;i+=perPage){
+      let pg='<div style="'+PG+';padding:46px 50px">';
+      pg+='<div style="font-size:18px;font-weight:800;border-left:5px solid '+C+';padding-left:12px;margin-bottom:24px">하자 점검 리스트 ('+(Math.floor(i/perPage)+1)+')</div>';
+      for(let j=i;j<Math.min(i+perPage,sorted.length);j++){
+        const f=sorted[j];
+        const sp=(f.spaces&&f.spaces.length?f.spaces.join(', '):(f.roomName||f.room||'-'));
+        const loc=(f.locations||[]).join(', ');
+        const ty=(f.types||[]).join(', ');
+        const built=[loc,ty].filter(Boolean).join(' ');
+        const desc=esc(built||f.tag||'-');
+        const detail=f.detailLoc?'<span style="color:#667;font-size:13px"> · 위치: '+esc(f.detailLoc)+'</span>':'';
+        const note=f.note?'<div style="font-size:13px;color:#667;margin-top:6px">메모: '+esc(f.note)+'</div>':'';
+        const noimg='<div style="flex:1;height:230px;border:1px dashed '+LINE+';display:flex;align-items:center;justify-content:center;font-size:13px;color:#aab;border-radius:8px">사진 없음</div>';
+        const p1i=f.photos&&f.photos[0]?'<img src="'+f.photos[0]+'" style="flex:1;width:50%;height:230px;object-fit:contain;background:#f7f8fb;border:1px solid '+LINE+';border-radius:8px">':noimg;
+        const p2i=f.photos&&f.photos[1]?'<img src="'+f.photos[1]+'" style="flex:1;width:50%;height:230px;object-fit:contain;background:#f7f8fb;border:1px solid '+LINE+';border-radius:8px">':noimg;
+        pg+='<div style="border:1px solid '+LINE+';border-radius:12px;padding:20px;margin-bottom:22px">'+
+          '<div style="display:flex;align-items:center;margin-bottom:14px">'+
+            '<div style="background:'+C+';color:#fff;font-weight:800;font-size:15px;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0">'+(j+1)+'</div>'+
+            '<div style="margin-left:12px"><div style="font-size:16px;font-weight:800">'+esc(sp)+'</div>'+
+            '<div style="font-size:14px;color:'+INK+';margin-top:2px">'+desc+detail+'</div></div></div>'+
+          note+
+          '<div style="display:flex;gap:14px;margin-top:14px">'+p1i+p2i+'</div>'+
+          '<div style="display:flex;gap:14px;margin-top:5px"><div style="flex:1;text-align:center;font-size:12px;color:#889">원경</div><div style="flex:1;text-align:center;font-size:12px;color:#889">근경</div></div>'+
+          '</div>';
+      }
+      pg+='</div>';
+      pages.push(pg);
+    }
+  }
+
+  /* ── 마지막 페이지: 보증기간 + 홍보 + 푸터 ── */
+  let pl='<div style="'+PG+';padding:46px 50px">';
+  pl+='<div style="border:1px solid '+LINE+';border-radius:12px;overflow:hidden;margin-bottom:28px">'+
+    '<div style="background:#f3f5ff;padding:16px 20px;font-weight:800;font-size:17px;color:'+C+'">신축 아파트 하자보수 보증기간 (꼭 알아두세요)</div>'+
+    '<table style="width:100%;border-collapse:collapse;font-size:15px">'+
+    warrantyRow('도배·바닥재·타일·가구 등 마감공사','2년',LINE)+
+    warrantyRow('창호·방수·미장·조적 등','3년',LINE)+
+    warrantyRow('철근콘크리트 등 주요 구조부','5~10년',LINE)+
+    '</table>'+
+    '<div style="padding:14px 20px;font-size:13px;color:#667;background:#fafbff">보증기간이 지나면 시공사 보수 의무가 소멸됩니다. 발견한 하자는 사진과 함께 보관하고 기간 내 A/S를 요청하세요.</div></div>';
+  pl+='<div style="background:linear-gradient(135deg,#5b6cff,#4453d6);color:#fff;border-radius:14px;padding:32px;text-align:center;margin-bottom:24px">'+
+    '<div style="font-size:22px;font-weight:800;margin-bottom:10px">놓치기 쉬운 하자, 전문가가 다시 봐드립니다</div>'+
+    '<div style="font-size:15px;opacity:.92;line-height:1.7;margin-bottom:18px">열화상 카메라·레이저 레벨·공기질 측정 등 전문 장비로<br>눈에 안 보이는 하자까지 꼼꼼하게 점검합니다.</div>'+
+    '<div style="display:inline-block;background:#fff;color:#3641b0;font-weight:800;font-size:18px;padding:14px 30px;border-radius:10px">'+esc(CONFIG.companyName)+' 점검 예약 '+esc(CONFIG.companyTel)+'</div></div>';
+  pl+='<div style="font-size:13px;color:#9aa;text-align:center;margin-bottom:28px">본 보고서는 고객 셀프 점검 기록이며, 전문 장비 점검 결과와 다를 수 있습니다.</div>';
+  pl+='<div style="background:'+INK+';color:#fff;padding:24px 30px;text-align:center;border-radius:12px">'+
+    '<div style="font-size:18px;font-weight:800;letter-spacing:1px">'+esc(CONFIG.companyName)+'</div>'+
+    '<div style="font-size:14px;opacity:.8;margin-top:6px">'+esc(CONFIG.companyDesc||'신축 아파트 입주 전 사전점검 전문업체')+'</div>'+
+    '<div style="font-size:14px;opacity:.9;margin-top:10px">대표전화 '+esc(CONFIG.companyMainTel)+'</div></div>';
+  pl+='</div>';
+  pages.push(pl);
+
+  return pages;
+}
+
 async function downloadPDF(){
-  var paper=document.getElementById('previewPaper');
-  if(!paper||!paper.innerHTML.trim()){toast('먼저 보고서를 만들어 주세요');return;}
+  if(!data.findings.length&&!data.floorplan){toast('먼저 보고서를 만들어 주세요');return;}
   if(typeof html2canvas==='undefined'||!window.jspdf){toast('PDF 모듈 로딩 중입니다. 인터넷 연결 후 다시 시도해 주세요');return;}
   showLoading('PDF 만드는 중...');
+  // 렌더링용 임시 컨테이너 (화면 밖)
+  var holder=document.createElement('div');
+  holder.style.cssText='position:fixed;left:-9999px;top:0;width:794px;background:#fff;z-index:-1';
+  document.body.appendChild(holder);
   try{
-    // 캡처 품질 향상을 위해 흰 배경 보장
-    var canvas=await html2canvas(paper,{scale:2,useCORS:true,backgroundColor:'#ffffff',logging:false});
-    var imgW=canvas.width, imgH=canvas.height;
+    var pages=buildPdfPages();
     var jsPDF=window.jspdf.jsPDF;
     var pdf=new jsPDF('p','mm','a4');
     var pageW=pdf.internal.pageSize.getWidth();   // 210
     var pageH=pdf.internal.pageSize.getHeight();   // 297
-    // 이미지를 페이지 폭에 맞춤
-    var renderW=pageW;
-    var renderH=imgH*pageW/imgW;
-    // 페이지 단위로 잘라 넣기 (높이 자동 분할)
-    var pxPerMm=imgW/pageW;               // 캔버스 픽셀 / mm
-    var pagePxH=Math.floor(pageH*pxPerMm); // 한 페이지에 들어가는 캔버스 픽셀 높이
-    var y=0, page=0;
-    while(y<imgH){
-      var sliceH=Math.min(pagePxH,imgH-y);
-      // 한 페이지 분량을 임시 캔버스에 복사
-      var pc=document.createElement('canvas');
-      pc.width=imgW;pc.height=sliceH;
-      var pg=pc.getContext('2d');
-      pg.fillStyle='#ffffff';pg.fillRect(0,0,imgW,sliceH);
-      pg.drawImage(canvas,0,y,imgW,sliceH,0,0,imgW,sliceH);
-      var sliceData=pc.toDataURL('image/jpeg',.92);
-      var sliceMmH=sliceH/pxPerMm;
-      if(page>0)pdf.addPage();
-      pdf.addImage(sliceData,'JPEG',0,0,pageW,sliceMmH);
-      y+=sliceH;page++;
+    for(var i=0;i<pages.length;i++){
+      holder.innerHTML=pages[i];
+      var el=holder.firstChild;
+      // 이미지 로딩 대기
+      await new Promise(function(res){
+        var imgs=el.querySelectorAll('img'),n=imgs.length;
+        if(!n)return res();
+        var done=0,fin=function(){if(++done>=n)res();};
+        imgs.forEach(function(im){if(im.complete)fin();else{im.onload=fin;im.onerror=fin;}});
+        setTimeout(res,3000);
+      });
+      var canvas=await html2canvas(el,{scale:2,useCORS:true,backgroundColor:'#ffffff',logging:false,width:794,windowWidth:794});
+      var imgData=canvas.toDataURL('image/jpeg',.92);
+      var imgH=canvas.height*pageW/canvas.width;  // mm
+      if(i>0)pdf.addPage();
+      // 한 페이지보다 길면(드물게) 페이지 폭 맞춤 후 위에서부터
+      pdf.addImage(imgData,'JPEG',0,0,pageW,Math.min(imgH,pageH));
     }
     var apt=(data.apt||'사전점검보고서').replace(/[\\/:*?"<>|]/g,'');
     var dt=(data.date||new Date().toISOString().slice(0,10)).replace(/[^0-9]/g,'');
@@ -1066,8 +1156,11 @@ async function downloadPDF(){
     data.reported=true;save();
     toast('PDF를 저장했습니다');
   }catch(e){
-    toast('PDF 저장에 실패했습니다. 인쇄 기능을 이용해 주세요');
-  }finally{hideLoading();}
+    toast('PDF 저장 실패. 인쇄 기능을 이용해 주세요');
+  }finally{
+    document.body.removeChild(holder);
+    hideLoading();
+  }
 }
 function rowT(k,v){return '<tr><td style="padding:7px 10px;background:#f3f4f6;font-weight:700;width:110px;border:1px solid #e5e7eb">'+k+'</td><td style="padding:7px 10px;border:1px solid #e5e7eb">'+esc(v||'-')+'</td></tr>';}
 
