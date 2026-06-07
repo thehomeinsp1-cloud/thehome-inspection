@@ -1295,7 +1295,7 @@ function formatPhone(el){
   }
   el.value=out;
 }
-function leadDone(){try{return sessionStorage.getItem('ths_lead')==='1';}catch(e){return false;}}
+function leadDone(){try{return localStorage.getItem('ths_lead')==='1'||sessionStorage.getItem('ths_lead')==='1';}catch(e){return false;}}
 function showGateIfNeeded(){
   if(!CONFIG.requireLead||leadDone()){document.getElementById('gate').classList.add('done');return;}
   const t=document.getElementById('gateTel');if(t)t.textContent=CONFIG.companyTel;
@@ -1312,7 +1312,7 @@ async function submitGate(){
   showLoading('확인 중...');
   await thsSend({action:'selfLead',name:name,phone:phone,apt:apt,ua:navigator.userAgent.slice(0,120)});
   hideLoading();
-  try{sessionStorage.setItem('ths_lead','1');}catch(e){}
+  try{localStorage.setItem('ths_lead','1');sessionStorage.setItem('ths_lead','1');}catch(e){}
   // 입력한 단지명을 현재 세대에 자동 반영
   if(apt&&data&&!data.apt){data.apt=apt;saveNow&&saveNow();fillInfo&&fillInfo();}
   document.getElementById('gate').classList.add('done');
