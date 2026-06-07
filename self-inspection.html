@@ -1055,17 +1055,17 @@ function buildPdfPages(){
   if(data.floorplan){
     p1+='<div style="padding:30px 50px">'+
       '<div style="font-size:18px;font-weight:800;border-left:5px solid '+C+';padding-left:12px;margin-bottom:18px">평면도</div>'+
-      '<div style="text-align:center"><img src="'+data.floorplan+'" style="max-width:100%;max-height:520px;width:auto;border:1px solid '+LINE+';border-radius:8px"></div></div>';
+      '<div style="text-align:center"><div style="display:inline-block;width:440px;height:440px;border:1px solid '+LINE+';border-radius:8px;background:#f7f8fb;overflow:hidden"><img src="'+data.floorplan+'" style="width:100%;height:100%;object-fit:contain;display:block"></div></div></div>';
   }
   p1+='</div>';
   pages.push(p1);
 
   /* ── 하자 카드 페이지: 한 페이지에 2건씩 (큰 사진) ── */
   if(total){
-    const perPage=2;
+    const perPage=3;
     for(let i=0;i<sorted.length;i+=perPage){
-      let pg='<div style="'+PG+';padding:46px 50px">';
-      pg+='<div style="font-size:18px;font-weight:800;border-left:5px solid '+C+';padding-left:12px;margin-bottom:24px">하자 점검 리스트 ('+(Math.floor(i/perPage)+1)+')</div>';
+      let pg='<div style="'+PG+';padding:40px 50px">';
+      pg+='<div style="font-size:18px;font-weight:800;border-left:5px solid '+C+';padding-left:12px;margin-bottom:18px">하자 점검 리스트 ('+(Math.floor(i/perPage)+1)+')</div>';
       for(let j=i;j<Math.min(i+perPage,sorted.length);j++){
         const f=sorted[j];
         const sp=(f.spaces&&f.spaces.length?f.spaces.join(', '):(f.roomName||f.room||'-'));
@@ -1073,19 +1073,19 @@ function buildPdfPages(){
         const ty=(f.types||[]).join(', ');
         const built=[loc,ty].filter(Boolean).join(' ');
         const desc=esc(built||f.tag||'-');
-        const detail=f.detailLoc?'<span style="color:#667;font-size:13px"> · 위치: '+esc(f.detailLoc)+'</span>':'';
-        const note=f.note?'<div style="font-size:13px;color:#667;margin-top:6px">메모: '+esc(f.note)+'</div>':'';
-        const noimg='<div style="flex:1;height:230px;border:1px dashed '+LINE+';display:flex;align-items:center;justify-content:center;font-size:13px;color:#aab;border-radius:8px">사진 없음</div>';
-        const p1i=f.photos&&f.photos[0]?'<img src="'+f.photos[0]+'" style="flex:1;width:50%;height:230px;object-fit:contain;background:#f7f8fb;border:1px solid '+LINE+';border-radius:8px">':noimg;
-        const p2i=f.photos&&f.photos[1]?'<img src="'+f.photos[1]+'" style="flex:1;width:50%;height:230px;object-fit:contain;background:#f7f8fb;border:1px solid '+LINE+';border-radius:8px">':noimg;
-        pg+='<div style="border:1px solid '+LINE+';border-radius:12px;padding:20px;margin-bottom:22px">'+
-          '<div style="display:flex;align-items:center;margin-bottom:14px">'+
-            '<div style="background:'+C+';color:#fff;font-weight:800;font-size:15px;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0">'+(j+1)+'</div>'+
-            '<div style="margin-left:12px"><div style="font-size:16px;font-weight:800">'+esc(sp)+'</div>'+
-            '<div style="font-size:14px;color:'+INK+';margin-top:2px">'+desc+detail+'</div></div></div>'+
+        const detail=f.detailLoc?'<span style="color:#667;font-size:12px"> · 위치: '+esc(f.detailLoc)+'</span>':'';
+        const note=f.note?'<div style="font-size:12px;color:#667;margin-top:4px">메모: '+esc(f.note)+'</div>':'';
+        const noimg='<div style="flex:1;height:168px;border:1px dashed '+LINE+';display:flex;align-items:center;justify-content:center;font-size:12px;color:#aab;border-radius:8px">사진 없음</div>';
+        const p1i=f.photos&&f.photos[0]?'<img src="'+f.photos[0]+'" style="flex:1;width:50%;height:168px;object-fit:contain;background:#f7f8fb;border:1px solid '+LINE+';border-radius:8px">':noimg;
+        const p2i=f.photos&&f.photos[1]?'<img src="'+f.photos[1]+'" style="flex:1;width:50%;height:168px;object-fit:contain;background:#f7f8fb;border:1px solid '+LINE+';border-radius:8px">':noimg;
+        pg+='<div style="border:1px solid '+LINE+';border-radius:12px;padding:16px;margin-bottom:16px">'+
+          '<div style="display:flex;align-items:center;margin-bottom:10px">'+
+            '<div style="background:'+C+';color:#fff;font-weight:800;font-size:14px;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0">'+(j+1)+'</div>'+
+            '<div style="margin-left:11px"><div style="font-size:15px;font-weight:800">'+esc(sp)+'</div>'+
+            '<div style="font-size:13px;color:'+INK+';margin-top:2px">'+desc+detail+'</div></div></div>'+
           note+
-          '<div style="display:flex;gap:14px;margin-top:14px">'+p1i+p2i+'</div>'+
-          '<div style="display:flex;gap:14px;margin-top:5px"><div style="flex:1;text-align:center;font-size:12px;color:#889">원경</div><div style="flex:1;text-align:center;font-size:12px;color:#889">근경</div></div>'+
+          '<div style="display:flex;gap:12px;margin-top:10px">'+p1i+p2i+'</div>'+
+          '<div style="display:flex;gap:12px;margin-top:4px"><div style="flex:1;text-align:center;font-size:11px;color:#889">원경</div><div style="flex:1;text-align:center;font-size:11px;color:#889">근경</div></div>'+
           '</div>';
       }
       pg+='</div>';
