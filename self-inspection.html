@@ -401,6 +401,14 @@ body.light-mode .gate-inner{background:#fff;box-shadow:0 8px 30px rgba(0,0,0,.08
     <button class="btn btn-secondary" style="margin-top:10px" onclick="exportPhotos()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg> 사진 전체 저장 (ZIP)</button>
     <button class="btn btn-secondary" style="margin-top:10px" onclick="downloadStandardForm()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h6"/></svg> 국토부 표준점검표 다운로드 (PDF)</button>
     <div style="font-size:12px;color:var(--text-sub,#888);text-align:center;margin-top:7px;line-height:1.5">국토교통부 표준양식 기반 · 사전방문 점검 시 참고용으로 활용하세요</div>
+
+    <!-- 하자접수 대행 신청 -->
+    <div class="card" style="margin-top:20px;border:1.5px solid var(--primary)">
+      <div class="card-title"><span class="em"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg></span>하자접수까지 맡기세요</div>
+      <p style="font-size:13.5px;line-height:1.7;color:var(--text-secondary);margin-bottom:6px">시공사 앱 하자접수, 용어도 어렵고 시간도 없으시죠?<br>정리하신 하자 자료 그대로 <b>더홈점검이 대신 접수</b>해 드립니다.</p>
+      <p style="font-size:12px;line-height:1.6;color:#e58a3d;font-weight:700;margin-bottom:12px">사전점검 기간 하자접수는 마지막 행사일 자정에 마감됩니다. 늦기 전에 신청하세요!</p>
+      <button class="btn btn-primary" onclick="openAgency()">하자접수 대행 신청하기</button>
+    </div>
     <div style="margin-top:20px">
       <div class="upsell">
         <h3>놓친 하자가 걱정되시나요?</h3>
@@ -516,6 +524,17 @@ body.light-mode .gate-inner{background:#fff;box-shadow:0 8px 30px rgba(0,0,0,.08
 <!-- 자동 업데이트 안내 배너 -->
 <div id="updateBar" onclick="applyUpdate()" style="display:none;position:fixed;top:0;left:0;right:0;z-index:99996;background:#5b6cff;color:#fff;font-size:13px;font-weight:700;text-align:center;padding:10px 12px;cursor:pointer">새 버전 <span id="updateVerTxt"></span>이 나왔어요 · 탭하여 업데이트</div>
 
+<!-- 하자접수 대행 신청 모달 -->
+<div id="agencyModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:99990;align-items:center;justify-content:center;padding:18px;overflow-y:auto">
+  <div style="background:var(--card,#fff);color:var(--text,#1a1d29);border-radius:18px;max-width:360px;width:100%;overflow:hidden;margin:auto">
+    <div style="background:#5b6cff;padding:20px;color:#fff;display:flex;align-items:center;justify-content:space-between">
+      <div style="font-size:16px;font-weight:800">하자접수 대행 신청</div>
+      <button onclick="closeAgency()" style="background:none;border:none;color:#fff;font-size:22px;line-height:1;cursor:pointer;padding:0 2px">×</button>
+    </div>
+    <div id="agencyBody" style="padding:18px 18px 20px"></div>
+  </div>
+</div>
+
 <!-- 첫 사용 가이드 (3단계) -->
 <div id="guideModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:99997;align-items:center;justify-content:center;padding:22px">
   <div style="background:var(--card,#fff);color:var(--text,#1a1d29);border-radius:18px;max-width:340px;width:100%;overflow:hidden">
@@ -539,7 +558,8 @@ const CONFIG={
   companyName:'더홈점검',
   companyTel:'1668-5322',
   companyMainTel:'1668-5322',
-  appVersion:'1.3.2',
+  kakaoUrl:'https://open.kakao.com/o/sR64Xb3e',
+  appVersion:'1.4.1',
   companyDesc:'신축 아파트 입주 전 사전점검 전문업체',
   companySite:'',                 // 홈페이지 URL (있으면 보고서/팝업에 노출)
   kakaoChannel:'',                 // 카카오톡 채널 URL (있으면 버튼 노출)
@@ -1113,7 +1133,7 @@ function buildPdfPages(){
   // 평면도
   if(data.floorplan){
     p1+='<div style="padding:46px 54px 0">'+secTitle('평면도')+
-      '<div style="text-align:center"><div style="display:inline-block;width:420px;height:420px;border:1px solid '+LINE+';border-radius:10px;background:'+SOFT+';overflow:hidden"><img src="'+data.floorplan+'" style="width:100%;height:100%;object-fit:contain;display:block"></div></div></div>';
+      '<div style="text-align:center"><div style="display:inline-block;width:420px;height:420px;border:1px solid '+LINE+';border-radius:10px;background-color:'+SOFT+';background-image:url('+data.floorplan+');background-size:contain;background-position:center;background-repeat:no-repeat"></div></div></div>';
   }
   p1+=FOOT+'</div>';
   pages.push(p1);
@@ -1192,7 +1212,7 @@ function statBox(num,label,C,LINE,border){
 /* 사진 셀: 순번(좌상) + 동호수(좌하) + 원경/근경(우하) 오버레이 */
 function photoCell(src,num,label,LINE,SOFT,C,unit){
   const inner = src
-    ? '<img src="'+src+'" style="width:100%;height:172px;object-fit:contain;background:'+SOFT+';display:block">'
+    ? '<div style="width:100%;height:172px;background-color:'+SOFT+';background-image:url('+src+');background-size:contain;background-position:center;background-repeat:no-repeat"></div>'
     : '<div style="width:100%;height:172px;background:'+SOFT+';display:flex;align-items:center;justify-content:center;font-size:12px;color:#b8bdc7">사진 없음</div>';
   return '<div style="flex:0 1 270px;max-width:270px;position:relative;border:1px solid '+LINE+';border-radius:10px;overflow:hidden">'+
     inner+
@@ -1558,7 +1578,7 @@ async function submitGate(){
   showLoading('확인 중...');
   await thsSend({action:'selfLead',name:name,phone:phone,apt:apt,ua:navigator.userAgent.slice(0,120)});
   hideLoading();
-  try{localStorage.setItem('ths_lead','1');sessionStorage.setItem('ths_lead','1');}catch(e){}
+  try{localStorage.setItem('ths_lead','1');sessionStorage.setItem('ths_lead','1');localStorage.setItem('ths_lead_name',name);localStorage.setItem('ths_lead_phone',phone);}catch(e){}
   // 입력한 단지명을 현재 세대에 자동 반영
   if(apt&&data&&!data.apt){data.apt=apt;saveNow&&saveNow();fillInfo&&fillInfo();}
   document.getElementById('gate').classList.add('done');
@@ -1756,6 +1776,60 @@ async function checkServerVersion(){
 function applyUpdate(){
   try{persist();}catch(e){}
   location.replace(location.pathname+'?u='+Date.now());
+}
+
+/* [8] 하자접수 대행 신청 */
+function openAgency(){
+  var nm='',ph='';
+  try{nm=localStorage.getItem('ths_lead_name')||'';ph=localStorage.getItem('ths_lead_phone')||'';}catch(e){}
+  var phRest=ph.replace(/[^0-9]/g,'').replace(/^010/,'');
+  var unit=((data.dong?data.dong+'동 ':'')+(data.ho?data.ho+'호':'')).trim();
+  document.getElementById('agencyBody').innerHTML=
+    '<p style="font-size:12.5px;line-height:1.65;color:var(--text-secondary,#778);margin-bottom:14px">신청하시면 담당자가 연락드려 비용과 진행 방법을 안내해 드립니다. <b>사전점검 기간은 마지막 행사일 자정 마감</b>이니 서둘러 주세요.</p>'+
+    '<div class="form-field"><label class="form-label">이름</label><input class="form-input" id="ag_name" value="'+esc(nm)+'" placeholder="성함"></div>'+
+    '<div class="form-field"><label class="form-label">연락처</label><div style="display:flex;align-items:center;gap:8px"><span style="flex-shrink:0;background:var(--input-bg,#f1f3f6);border:1px solid var(--border,#d8dce4);border-radius:10px;padding:0 14px;height:48px;display:flex;align-items:center;font-weight:700;font-size:15px">010</span><input class="form-input" id="ag_phone" type="tel" inputmode="numeric" maxlength="9" value="'+esc(phRest.length===8?phRest.slice(0,4)+'-'+phRest.slice(4):'')+'" placeholder="1234-5678" style="margin:0" oninput="formatPhoneRest(this)"></div></div>'+
+    '<div class="form-field"><label class="form-label">단지명 / 동·호</label><div style="display:flex;gap:8px"><input class="form-input" id="ag_apt" value="'+esc(data.apt||'')+'" placeholder="단지명" style="flex:1.4"><input class="form-input" id="ag_unit" value="'+esc(unit)+'" placeholder="101동 1203호" style="flex:1"></div></div>'+
+    '<div class="form-field"><label class="form-label">시공사 하자접수 앱 이름 (아시면)</label><input class="form-input" id="ag_app" placeholder="예: ○○건설 입주자앱 · 모르면 비워두세요"></div>'+
+    '<div class="form-field"><label class="form-label">사전점검 마지막 날 (선택)</label><input class="form-input" id="ag_deadline" type="date"></div>'+
+    '<div class="form-field"><label class="form-label">요청사항 (선택)</label><input class="form-input" id="ag_memo" placeholder="예: 저녁에 연락 부탁드려요"></div>'+
+    '<div id="agWarn" style="display:none;margin-bottom:10px;background:#fef2f2;border:1px solid #fecaca;color:#b91c1c;font-size:12.5px;font-weight:600;padding:10px 12px;border-radius:10px"></div>'+
+    '<button class="btn btn-primary" style="width:100%" onclick="submitAgency()">대행 신청하기</button>'+
+    '<p style="font-size:11px;color:var(--text-sub,#99a);text-align:center;margin-top:10px;line-height:1.5">계정(아이디/비밀번호)·하자 자료는 신청 후<br>카카오톡으로 안전하게 보내는 방법을 안내해 드려요.</p>';
+  document.getElementById('agencyModal').style.display='flex';
+}
+function closeAgency(){document.getElementById('agencyModal').style.display='none';}
+async function submitAgency(){
+  var nm=(document.getElementById('ag_name').value||'').trim();
+  var rest=(document.getElementById('ag_phone').value||'').replace(/[^0-9]/g,'');
+  var apt=(document.getElementById('ag_apt').value||'').trim();
+  var unit=(document.getElementById('ag_unit').value||'').trim();
+  var app=(document.getElementById('ag_app').value||'').trim();
+  var dl=(document.getElementById('ag_deadline').value||'').trim();
+  var memo=(document.getElementById('ag_memo').value||'').trim();
+  var w=document.getElementById('agWarn');
+  var msg='';
+  if(nm.length<2)msg='이름을 입력해 주세요.';
+  else if(rest.length!==8)msg='연락처 뒷자리 8자리를 정확히 입력해 주세요.';
+  else if(apt.length<2)msg='단지명을 입력해 주세요.';
+  if(msg){w.textContent=msg;w.style.display='block';return;}
+  w.style.display='none';
+  var phone='010-'+rest.slice(0,4)+'-'+rest.slice(4,8);
+  showLoading('신청 접수 중...');
+  await thsSend({action:'selfAgency',name:nm,phone:phone,apt:apt,unit:unit,builderApp:app,deadline:dl,memo:memo,defects:String(data.findings.length||0)});
+  hideLoading();
+  // 완료 화면: 다음 단계(카톡으로 계정·자료 보내기) 안내
+  document.getElementById('agencyBody').innerHTML=
+    '<div style="text-align:center;padding:6px 0 2px"><svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="#22a06b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg>'+
+    '<div style="font-size:17px;font-weight:800;margin-top:8px">신청이 접수되었습니다!</div>'+
+    '<div style="font-size:13px;color:var(--text-secondary,#778);margin-top:5px">담당자가 곧 연락드려 비용·진행을 안내해 드려요.</div></div>'+
+    '<div style="background:var(--input-bg,#f5f6fa);border-radius:12px;padding:14px;margin-top:16px;font-size:13px;line-height:1.7">'+
+    '<b>빠른 진행을 원하시면 지금 카카오톡으로 보내주세요</b><br>'+
+    '① 시공사 앱 <b>계약자 계정</b> (아이디·비밀번호)<br>'+
+    '② <b>하자 사진 ZIP · 보고서 PDF</b> (보고서 탭에서 저장)<br>'+
+    '<span style="font-size:11.5px;color:var(--text-sub,#99a)">계정 정보는 보안을 위해 카카오톡으로만 받습니다.</span></div>'+
+    '<a class="btn btn-primary" style="width:100%;margin-top:14px;display:flex;align-items:center;justify-content:center;text-decoration:none" href="'+CONFIG.kakaoUrl+'" target="_blank">카카오톡으로 보내기</a>'+
+    '<button class="btn" style="width:100%;margin-top:8px;background:#eef0f5;color:#3a3f4e;border:none" onclick="closeAgency()">닫기</button>';
+  toast('하자접수 대행 신청이 접수되었습니다');
 }
 
 /* 추가 개선 초기화 */
