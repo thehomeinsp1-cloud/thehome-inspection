@@ -8284,22 +8284,47 @@
                             canvas.height = img.height;
                             var ctx = canvas.getContext('2d');
                             ctx.drawImage(img, 0, 0);
-                            
-                            var fSize = Math.max(Math.round(img.height * 0.03), 16);
-                            ctx.font = 'bold ' + fSize + 'px Arial';
-                            var tw = ctx.measureText(text).width;
-                            var bw = tw + fSize;
-                            var bh = fSize * 2;
-                            
-                            ctx.fillStyle = 'rgba(0,0,0,0.7)';
-                            ctx.fillRect(15, 15, bw, bh);
-                            
-                            ctx.fillStyle = '#FFFFFF';
+
+                            // text 형태: "103동805호_03 원경" → 큰 번호 + 작은 정보로 분리
+                            // 번호 추출: "_숫자" 패턴, 없으면 전체를 정보로만 표시
+                            var bigNum = '';
+                            var m = String(text).match(/_(\d+)/);
+                            if (m) { bigNum = String(parseInt(m[1], 10)); }
+                            var infoText = String(text); // 작은 텍스트(동호+원경/근경) = 기존 전체 텍스트 유지
+
+                            var W = img.width, H = img.height;
+
+                            // ===== 1) 우상단 큰 반투명 번호 (하자 안 가림) =====
+                            if (bigNum) {
+                                var nSize = Math.max(Math.round(H * 0.22), 60);
+                                ctx.font = '900 ' + nSize + 'px Arial';
+                                ctx.textAlign = 'right';
+                                ctx.textBaseline = 'top';
+                                var nx = W - Math.round(W * 0.025);
+                                var ny = Math.round(H * 0.02);
+                                // 검은 외곽선 (밝은 배경에서도 보이게)
+                                ctx.lineJoin = 'round';
+                                ctx.lineWidth = Math.max(Math.round(nSize * 0.06), 3);
+                                ctx.strokeStyle = 'rgba(0,0,0,0.45)';
+                                ctx.strokeText(bigNum, nx, ny);
+                                // 흰색 반투명 본체
+                                ctx.fillStyle = 'rgba(255,255,255,0.62)';
+                                ctx.fillText(bigNum, nx, ny);
+                            }
+
+                            // ===== 2) 좌상단 작은 정보 바 (동호 · 원경/근경) =====
+                            var fSize = Math.max(Math.round(H * 0.03), 16);
                             ctx.font = 'bold ' + fSize + 'px Arial';
                             ctx.textAlign = 'center';
                             ctx.textBaseline = 'middle';
-                            ctx.fillText(text, 15 + bw / 2, 15 + bh / 2);
-                            
+                            var tw = ctx.measureText(infoText).width;
+                            var bw = tw + fSize;
+                            var bh = fSize * 2;
+                            ctx.fillStyle = 'rgba(0,0,0,0.6)';
+                            ctx.fillRect(15, 15, bw, bh);
+                            ctx.fillStyle = '#FFFFFF';
+                            ctx.fillText(infoText, 15 + bw / 2, 15 + bh / 2);
+
                             resolve(canvas.toDataURL('image/jpeg', 0.92));
                         } catch(e) {
                             console.error('워터마크 렌더링 실패:', e);
