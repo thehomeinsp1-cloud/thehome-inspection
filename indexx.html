@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="ko"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>더홈점검서비스 통합 안내</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+
+
+<style>
+  :root{
+    --bg:#e9edee;
+    --paper:#ffffff;
+    --ink:#1f2d36;
+    --ink-2:#41535e;
+    --mute:#8b97a0;
+    --line:#e6ebed;
+    --line-2:#eef2f3;
+    --mint:#13c2a3;
+    --mint-deep:#0fa98e;
+    --mint-soft:#e7f7f3;
+    --navy:#27485a;
+    --navy-deep:#1c3645;
+    --coral:#e8543f;
+    --soft:#f5f8f8;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:var(--bg);}
+  body{
+    font-family:'Pretendard','Noto Sans KR',system-ui,-apple-system,sans-serif;
+    color:var(--ink);
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+    padding:36px 16px 72px;
+    word-break:keep-all;
+  }
+  .page{
+    max-width:980px;
+    margin:0 auto;
+    background:var(--paper);
+    overflow:hidden;
+    box-shadow:0 24px 60px -28px rgba(28,54,69,.35);
+  }
+
+  /* ============ HEADER ============ */
+  .masthead{
+    display:flex;align-items:center;gap:24px;
+    padding:40px 52px 30px;
+    position:relative;
+  }
+  .logo{display:flex;flex-direction:column;align-items:center;gap:0;flex-shrink:0;}
+  .logo .mark{width:104px;height:104px;flex-shrink:0;object-fit:contain;display:block;}
+  .logo .lcall{font-family:'Manrope',sans-serif;font-weight:700;font-size:18px;letter-spacing:.02em;color:var(--navy);line-height:1;white-space:nowrap;margin-top:-8px;}
+  .masthead .title{flex:1;padding-left:8px;}
+  .masthead .title .en{
+    font-family:'Manrope',sans-serif;font-weight:600;
+    font-size:30px;letter-spacing:-.01em;color:#9aa7af;line-height:1.1;
+  }
+  .masthead .title .ko{
+    font-size:33px;font-weight:800;letter-spacing:-.02em;color:var(--navy);
+    margin-top:4px;
+  }
+  .masthead .thermal{
+    width:118px;height:118px;border-radius:50%;overflow:hidden;flex-shrink:0;
+    border:4px solid #fff;box-shadow:0 10px 30px -8px rgba(28,54,69,.4);
+  }
+  .masthead .thermal img{width:100%;height:100%;object-fit:cover;}
+  .rule{height:2px;background:var(--navy);margin:0 52px;}
+
+  /* ============ SECTION SHELL ============ */
+  section.block{padding:46px 52px 8px;}
+  .sec-head{display:flex;align-items:center;gap:12px;margin-bottom:30px;}
+  .sec-head .bullet{width:14px;height:14px;border-radius:50%;background:var(--mint);box-shadow:0 0 0 5px var(--mint-soft);flex-shrink:0;}
+  .sec-head h2{display:flex;gap:.32em;font-size:29px;font-weight:800;letter-spacing:-.02em;color:var(--navy);white-space:nowrap;flex-wrap:nowrap;}
+  .sec-head h2 span{white-space:nowrap;word-break:keep-all;}
+
+  /* ============ TIMELINE (점검 순서) ============ */
+  .timeline{position:relative;padding:108px 6px 10px;}
+  .tl-track{position:relative;display:grid;grid-template-columns:repeat(7,1fr);align-items:center;margin:0 auto;}
+  .tl-line{position:absolute;left:7%;right:7%;top:50%;height:3px;background:var(--mint);transform:translateY(-50%);border-radius:2px;}
+  .tl-node{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;}
+  .tl-dot{
+    width:42px;height:42px;border-radius:50%;background:#fff;border:3px solid var(--mint);
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Manrope',sans-serif;font-weight:700;font-size:15px;color:var(--mint-deep);
+  }
+  .tl-cap{
+    position:absolute;left:50%;transform:translateX(-50%);width:150px;text-align:center;
+    background:var(--soft);border:1px solid var(--line);border-radius:12px;
+    padding:12px 11px;font-size:14px;font-weight:600;color:var(--ink-2);line-height:1.45;
+  }
+  .tl-cap .em{color:var(--navy);font-weight:700;}
+  .tl-node.up .tl-cap{bottom:calc(50% + 34px);}
+  .tl-node.down .tl-cap{top:calc(50% + 34px);}
+  .tl-cap::after{content:"";position:absolute;left:50%;transform:translateX(-50%);width:1px;height:18px;background:var(--line);}
+  .tl-node.up .tl-cap::after{bottom:-18px;}
+  .tl-node.down .tl-cap::after{top:-18px;}
+  .timeline-spacer{height:108px;}
+
+  /* ---- 점검 순서: 카드 플로우 (재구성) ---- */
+  .order-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
+  .ostep{position:relative;background:var(--soft);border:1px solid var(--line);border-radius:16px;padding:22px 20px 20px;overflow:hidden;}
+  .ostep .bignum{position:absolute;top:6px;right:15px;font-family:'Manrope',sans-serif;font-weight:800;font-size:52px;line-height:1;color:var(--mint);opacity:.15;letter-spacing:-.03em;}
+  .ostep .bar{width:26px;height:3px;border-radius:2px;background:var(--mint);margin-bottom:14px;}
+  .ostep h3{font-size:16.5px;font-weight:800;color:var(--navy);letter-spacing:-.02em;margin-bottom:7px;position:relative;}
+  .ostep p{font-size:13.5px;color:var(--ink-2);line-height:1.55;position:relative;}
+  .ostep p b{color:var(--mint-deep);font-weight:700;}
+  @media (max-width:880px){.order-grid{grid-template-columns:repeat(2,1fr);}}
+  @media (max-width:520px){.order-grid{grid-template-columns:1fr;}}
+  .ostep.opt{background:#fff;border:1.5px dashed var(--mint);}
+  .ostep.opt .bignum{color:var(--coral);opacity:.18;}
+  .ostep.opt .bar{background:var(--coral);}
+  .ostep .tagopt{position:absolute;right:14px;bottom:12px;font-size:10.5px;font-weight:700;color:var(--coral);background:rgba(232,84,63,.1);border-radius:6px;padding:3px 8px;letter-spacing:.02em;}
+  .ostep.opt{padding-bottom:34px;}
+
+  /* ============ INSPECTION ITEMS (점검 항목) ============ */
+  .items{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;}
+  .item{display:flex;flex-direction:column;align-items:center;text-align:center;}
+  .item .ph{
+    width:100%;aspect-ratio:1/1;border-radius:50%;overflow:hidden;
+    border:3px solid var(--mint-soft);position:relative;margin-bottom:14px;
+  }
+  .item .ph img{width:100%;height:100%;object-fit:cover;}
+  .item .ph.placeholder{
+    background:repeating-linear-gradient(135deg,var(--mint-soft) 0 10px,#f1faf7 10px 20px);
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Manrope',sans-serif;font-size:11px;color:var(--mint-deep);letter-spacing:.04em;
+  }
+  .item .step{font-family:'Manrope',sans-serif;font-size:13px;font-weight:700;color:var(--mint-deep);letter-spacing:.08em;margin-bottom:4px;}
+  .item h3{font-size:18px;font-weight:800;color:var(--navy);letter-spacing:-.02em;margin-bottom:5px;}
+  .item p{font-size:13.5px;color:var(--mute);font-weight:600;line-height:1.4;}
+
+  /* ============ PROCESS NOTICE (진행 안내) ============ */
+  .notice-wrap{background:var(--soft);border:1px solid var(--line);border-radius:18px;padding:8px 30px 30px;margin-top:4px;}
+  .note{padding:26px 0 4px;border-bottom:1px solid var(--line);}
+  .note:last-of-type{border-bottom:none;}
+  .note .nt{display:flex;align-items:baseline;gap:10px;margin-bottom:14px;}
+  .note .nt .nn{
+    font-family:'Manrope',sans-serif;font-weight:700;font-size:14px;color:#fff;
+    background:var(--coral);min-width:26px;height:26px;border-radius:7px;
+    display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;
+  }
+  .note .nt h3{font-size:20.5px;font-weight:800;color:var(--coral);letter-spacing:-.02em;}
+  .note .body{padding-left:36px;}
+  .sub-h{font-size:16.5px;font-weight:700;color:var(--navy);margin:12px 0 7px;}
+  .note ul{list-style:none;display:flex;flex-direction:column;gap:8px;}
+  .note li{position:relative;padding-left:16px;font-size:16px;color:var(--ink-2);line-height:1.68;}
+  .note li::before{content:"";position:absolute;left:0;top:10px;width:5px;height:5px;border-radius:50%;background:var(--mint);}
+  .note li .hl{color:var(--navy);font-weight:700;}
+  .note li.dash::before{display:none;}
+  .note li.dash{padding-left:0;color:var(--mute);font-size:14px;}
+  .note ul ul{margin-top:7px;margin-bottom:3px;padding-left:6px;display:flex;flex-direction:column;gap:6px;}
+  .note ul ul li{font-size:15px;padding-left:18px;color:var(--ink-2);}
+  .note ul ul li::before{background:transparent;border:1.6px solid var(--mint);width:7px;height:7px;top:7px;}
+  .note-lead{font-size:15px;color:var(--ink-2);line-height:1.72;margin:-2px 0 20px;}
+  .note-lead .em{color:var(--navy);font-weight:700;}
+
+  .closing{
+    margin-top:22px;background:#fff;border:1px solid var(--line);border-left:4px solid var(--mint);
+    border-radius:12px;padding:22px 26px;font-size:15.5px;color:var(--ink-2);line-height:1.82;
+  }
+  .closing strong{color:var(--navy);font-weight:700;}
+
+  /* ============ ADD-ON SERVICES (부가서비스) ============ */
+  .svc{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;}
+  .card{border:1px solid var(--line);border-radius:16px;overflow:hidden;background:#fff;display:flex;flex-direction:column;}
+  .card .cap{padding:16px 18px;background:var(--navy);color:#fff;}
+  .card .cap .t{font-size:18.5px;font-weight:800;letter-spacing:-.02em;}
+  .card .cap .s{font-size:13.5px;font-weight:600;color:#bcd1d8;margin-top:3px;}
+  .card .img{aspect-ratio:16/10;overflow:hidden;background:var(--soft);}
+  .card .img img{width:100%;height:100%;object-fit:cover;}
+  .card .ct{padding:18px 18px 20px;display:flex;flex-direction:column;gap:10px;}
+  .card .row{display:flex;gap:9px;font-size:15px;line-height:1.55;}
+  .card .row .k{color:var(--mint-deep);font-weight:700;flex-shrink:0;}
+  .card .row .v{color:var(--ink-2);}
+  .card .v .price{color:var(--coral);font-weight:700;}
+  .card .free{margin-top:2px;padding-top:12px;border-top:1px dashed var(--line);}
+  .card .free .ttl{font-size:14px;font-weight:700;color:var(--navy);margin-bottom:7px;}
+  .card .free ul{list-style:none;display:flex;flex-direction:column;gap:6px;}
+  .card .free li{position:relative;padding-left:14px;font-size:14px;color:var(--ink-2);}
+  .card .free li::before{content:"";position:absolute;left:0;top:8px;width:4px;height:4px;border-radius:50%;background:var(--mint);}
+
+  /* ============ CONTACT ============ */
+  .contact{margin:48px 52px 0;background:var(--navy);border-radius:18px;color:#fff;padding:34px 40px;display:flex;align-items:center;gap:36px;}
+  .contact .lbl{font-size:30px;font-weight:800;letter-spacing:-.02em;flex-shrink:0;}
+  .contact .divider{width:2px;height:62px;background:rgba(255,255,255,.22);}
+  .contact .info{display:flex;flex-direction:column;gap:8px;}
+  .contact .info .line{display:flex;align-items:baseline;gap:10px;}
+  .contact .info .tag{font-family:'Manrope',sans-serif;font-weight:700;font-size:14px;color:var(--mint);min-width:66px;}
+  .contact .info .val{font-size:23px;font-weight:700;letter-spacing:.01em;}
+  .contact .info .val.mail{font-size:18.5px;font-weight:600;color:#dfe9ec;}
+  footer{padding:22px 52px 30px;display:flex;justify-content:space-between;align-items:center;font-size:11.5px;color:var(--mute);}
+  footer .bm{font-family:'Manrope',sans-serif;font-weight:700;letter-spacing:.14em;color:var(--navy);}
+
+  /* ============ RESPONSIVE ============ */
+  @media (max-width:880px){
+    body{padding:0 0 50px;}
+    .page{box-shadow:none;}
+    .masthead{flex-wrap:wrap;padding:30px 26px 22px;gap:16px;}
+    .masthead .title .en{font-size:24px;}
+    .masthead .title .ko{font-size:26px;}
+    .masthead .thermal{width:84px;height:84px;}
+    .rule,.contact{margin-left:26px;margin-right:26px;}
+    section.block{padding:36px 26px 6px;}
+    .items{grid-template-columns:repeat(3,1fr);gap:20px 14px;}
+    .svc{grid-template-columns:1fr;}
+    /* timeline → vertical */
+    .timeline-spacer{display:none;}
+    .tl-track{grid-template-columns:1fr;gap:0;}
+    .tl-line{left:20px;right:auto;top:20px;bottom:20px;width:3px;height:auto;transform:none;}
+    .tl-node{flex-direction:row;align-items:flex-start;gap:16px;padding:9px 0;}
+    .tl-node .tl-dot{flex-shrink:0;}
+    .tl-cap{position:static;transform:none;width:auto;flex:1;text-align:left;}
+    .tl-cap::after{display:none;}
+    .contact{flex-direction:column;align-items:flex-start;gap:18px;}
+    .contact .divider{width:62px;height:2px;}
+  }
+  @media (max-width:520px){
+    .items{grid-template-columns:repeat(2,1fr);}
+    .note .body{padding-left:0;}
+    .note .nt{margin-bottom:10px;}
+  }
+</style>
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&display=swap">
+</head>
+<body>
+
+
+
+<main class="page" data-screen-label="더홈점검 통합안내">
+
+  <!-- ============ HEADER ============ -->
+  <header class="masthead">
+    <div class="logo">
+      <img class="mark" src="assets/df6f3c5d-ae57-4104-8e0f-ff3838755a7d.png" alt="더홈점검 로고">
+      <div class="lcall">1668-5322</div>
+    </div>
+    <div class="title">
+      <div class="en">The Home inspection</div>
+      <div class="ko">더홈점검서비스 안내</div>
+    </div>
+    <div class="thermal"><img src="assets/26fd2c73-1645-41e4-aef7-78c428a5909e.jpg" alt="열화상 카메라 점검"></div>
+  </header>
+  <div class="rule"></div>
+
+  <!-- ============ 1. 점검 순서 안내 ============ -->
+  <section class="block">
+    <div class="sec-head"><span class="bullet"></span><h2><span>점검</span><span>순서</span><span>안내</span></h2></div>
+    <div class="order-grid">
+      <div class="ostep"><span class="bignum">01</span><div class="bar"></div><h3>접수처 방문</h3><p>점검 시간 <b>30분~1시간 전</b> 도착 후 계약자 확인 절차 진행</p></div>
+      <div class="ostep"><span class="bignum">02</span><div class="bar"></div><h3>세대 입장</h3><p>시공사 매니저 동행 또는 모바일 안내 비밀번호로 입장 <b>(시공사마다 시스템 다름)</b></p></div>
+      <div class="ostep"><span class="bignum">03</span><div class="bar"></div><h3>세대 방문</h3><p>더홈점검 <b>방문 전 연락</b> 후 세대 방문</p></div>
+      <div class="ostep"><span class="bignum">04</span><div class="bar"></div><h3>하자 점검 시작</h3><p>육안 · 장비 정밀 점검 진행</p></div>
+      <div class="ostep"><span class="bignum">05</span><div class="bar"></div><h3>브리핑</h3><p>점검 종료 후 결과 브리핑 및 질의응답</p></div>
+      <div class="ostep"><span class="bignum">06</span><div class="bar"></div><h3>하자접수 대행</h3><p>시공사 접수까지 대행 등록</p></div>
+      <div class="ostep"><span class="bignum">07</span><div class="bar"></div><h3>보고서 전송</h3><p><b>당일</b> 종합 보고서 전송</p></div>
+      <div class="ostep opt"><span class="bignum">08</span><div class="bar"></div><h3>사후 점검</h3><p>입주 전 <b>화 · 수 · 목</b> 중 날짜를 지정하여 진행하는 재점검 서비스</p><span class="tagopt">유상 옵션</span></div>
+    </div>
+  </section>
+
+  <!-- ============ 2. 점검 항목 안내 ============ -->
+  <section class="block">
+    <div class="sec-head"><span class="bullet"></span><h2><span>점검</span><span>항목</span><span>안내</span></h2></div>
+    <div class="items">
+      <div class="item">
+        <div class="ph"><img src="assets/2bad1b12-e52b-43db-8d80-4ac0a526b4fa.jpg" alt="육안점검"></div>
+        <div class="step">STEP 01</div>
+        <h3>육안점검</h3>
+        <p>마감품질·기능 점검</p>
+      </div>
+      <div class="item">
+        <div class="ph"><img src="assets/a1fb4bd8-bdf8-4f68-ae1c-ddbf3d6f2822.jpg" alt="공기질 점검"></div>
+        <div class="step">STEP 02</div>
+        <h3>공기질 점검</h3>
+        <p>라돈 외 유해물질</p>
+      </div>
+      <div class="item">
+        <div class="ph"><img src="assets/29446739-b1c7-4d04-8662-a55653f44bc4.jpg" alt="레이저레벨기 점검"></div>
+        <div class="step">STEP 03</div>
+        <h3>레이저레벨기</h3>
+        <p>평활도 및 수직·수평</p>
+      </div>
+      <div class="item">
+        <div class="ph"><img src="assets/7f4e96ca-f9cc-4057-aeb9-397f5420316b.jpg" alt="바닥·타일 점검"></div>
+        <div class="step">STEP 04</div>
+        <h3>바닥·타일 점검</h3>
+        <p>들뜸·파손·단차</p>
+      </div>
+      <div class="item">
+        <div class="ph"><img src="assets/10067907-eb6d-4cd5-b25b-f7d41aa0c265.jpg" alt="열화상 점검"></div>
+        <div class="step">STEP 05</div>
+        <h3>열화상 점검</h3>
+        <p>단열·누수·난방배관<br><span style="font-size:11.5px;color:var(--mute);">※ 환경·가동 여부에 따라 상이</span></p>
+      </div>
+      <div class="item">
+        <div class="ph"><img src="assets/9ab46d5e-3aa0-4d21-b4ab-0fd709bb7126.jpg" alt="고객 브리핑"></div>
+        <div class="step">STEP 06</div>
+        <h3>고객 브리핑</h3>
+        <p>결과 설명·질의응답</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 3. 점검 진행 시 안내사항 ============ -->
+  <section class="block">
+    <div class="sec-head"><span class="bullet"></span><h2><span>점검</span><span>진행</span><span>시</span><span>안내사항</span></h2></div>
+    <div class="note-lead">소중한 보금자리의 점검을 <span class="em">더홈점검</span>에 맡겨주셔서 감사합니다. 원활하고 정밀한 서비스를 위해 아래 안내 사항을 반드시 확인해 주시기 바랍니다.</div>
+    <div class="notice-wrap">
+
+      <div class="note">
+        <div class="nt"><span class="nn">1</span><h3>예약 세대 방문 및 입장 안내</h3></div>
+        <div class="body">
+          <ul>
+            <li>점검 당일 상황에 따라 시작 시간이 다소 <span class="hl">지연될 수 있습니다.</span> 꼼꼼한 점검을 위한 과정이오니 너그러운 양해 부탁드리며, 지연 시 사전에 개별 연락 드립니다.</li>
+            <li class="dash">※ 예약 시간보다 <b>늦게 도착하시면</b> 뒤 세대 일정으로 인해 점검 시간이 단축되는 등 점검에 제약이 있을 수 있으니 시간을 꼭 지켜 주세요.</li>
+          </ul>
+          <div class="sub-h">오전 10시 예약 세대</div>
+          <ul>
+            <li><span class="hl">동행 입장</span> · 오전 9시 20분까지 단지 주출입구에서 저희 팀과 만나 함께 입장합니다.</li>
+            <li><span class="hl">비동행 입장 (선택)</span> · 개별 입장을 원하실 경우 아래 중 하나를 준비해 주세요.
+              <ul>
+                <li><b>신분증 확인</b> — 계약자 신분증 사본(뒷자리 제외)을 미리 카톡으로 전송</li>
+                <li><b>앱계정 공유</b> — 시공사 앱으로 입실 승인이 필요한 경우 계정(아이디/비번)을 미리 공유 (하자 접수 시에도 필요하니 미리 알려주시면 좋습니다.)</li>
+              </ul>
+            </li>
+          </ul>
+          <div class="sub-h">오전 11시 ~ 오후 3시 예약 세대</div>
+          <ul>
+            <li><span class="hl">예약 시간 1시간 전</span>에 행사장에 도착하여 본인 확인 후 세대로 이동해 주시기 바랍니다.</li>
+            <li>세대에 먼저 입실해 계시면, 저희 팀이 도착 전 연락 후 방문하겠습니다. (예: 12시 예약 시 11시 현장 도착 및 본인 확인 후 세대 입실)</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="note">
+        <div class="nt"><span class="nn">2</span><h3>준비물 및 요청사항</h3></div>
+        <div class="body">
+          <ul>
+            <li><span class="hl">더홈점검 준비</span> · 전문 점검 장비, 점검 스티커 등 일체</li>
+            <li><span class="hl">고객님 준비 (선택 · 필수 아님)</span> · 돗자리, 간이 의자, 마스크, 실측용 줄자 등 — <b style="color:var(--mute);font-weight:600;">꼭 준비하지 않으셔도 점검에는 지장이 없으며, 대부분 별도 지참 없이 방문하십니다.</b></li>
+            <li><span class="hl">요청사항</span> · 정확한 공기질 측정을 위해 측정 중에는 세대 환기를 자제해 주세요.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="note">
+        <div class="nt"><span class="nn">3</span><h3>하자 접수 대행 서비스 (유료)</h3></div>
+        <div class="body">
+          <ul>
+            <li>직접 앱 등록 또는 지면 접수가 어려우신 분들을 위해 대행 서비스를 운영합니다.</li>
+            <li><span class="hl">이용료 50,000원</span> (서비스 포함 고객님은 해당 없음)</li>
+            <li><b>(앱접수 시) 준비사항</b> — 시공사 앱 계정을 미리 생성하신 후, 계약자 계정을 카톡으로 보내주세요. (시공사마다 시스템 다름)</li>
+            <li>계정 생성이 어려우신 경우, 당일 현장 시공사 안내 데스크에 문의하시면 도움을 받으실 수 있습니다.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="note">
+        <div class="nt"><span class="nn">4</span><h3>점검 범위 및 유의사항</h3></div>
+        <div class="body">
+          <ul>
+            <li><span class="hl">미시공 부분</span> · 점검 당일 시공이 완료되지 않은 부분은 하자 체크가 불가능합니다.</li>
+            <li><span class="hl">장비 점검 (열화상)</span> · 시공사 난방 가동 시에만 난방 배관 점검이 가능하며, 벽체 단열 및 천장 누수 등은 열화상 카메라로 확인해 드립니다.</li>
+            <li class="dash">※ 단열 · 누수 · 난방 배관 등 열화상 점검은 <b>현장 환경(외기·실내 온도차)과 난방·설비 가동 여부</b>에 따라 점검 가능 범위가 달라질 수 있으며, 일부 항목은 점검이 제한될 수 있습니다.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="note">
+        <div class="nt"><span class="nn">5</span><h3>사후 점검(재점검) 안내</h3></div>
+        <div class="body">
+          <ul>
+            <li>준공 이후, <span class="hl">평일(화 · 수 · 목) 중 '사후 점검일'</span>을 지정하여 별도로 공지해 드립니다.</li>
+            <li>해당 공지일에 신청해 주셔야 원활한 점검이 가능하며, 기간 외 신청 시 진행이 어려울 수 있습니다.</li>
+            <li class="dash">※ 사후 점검 시 앱 접수 요청은 별도 비용이 발생합니다.</li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="closing">
+      더홈점검은 고객님의 소중한 집을 <strong>내 집처럼 꼼꼼하게</strong> 살피겠습니다. 전문가의 육안 점검은 물론, 장비 점검을 통해 육안으로 판별하기 어려운 중대하자까지 최대한 놓치지 않도록 점검합니다. 점검 완료 후에도 시공사에 추가 보수를 신청하시면 <strong>AS를 받으실 수 있으니</strong> 큰 염려는 하지 않으셔도 됩니다. 하자 관련 문의사항은 고객센터로 연락주시면 신속하게 확인 및 추가 조치해 드리겠습니다.
+    </div>
+  </section>
+
+  <!-- ============ 4. 고객 편의 부가서비스 안내 ============ -->
+  <section class="block">
+    <div class="sec-head"><span class="bullet"></span><h2><span>고객</span><span>편의</span><span>부가서비스</span><span>안내</span></h2></div>
+    <div class="svc">
+
+      <div class="card">
+        <div class="cap"><div class="t">하자접수 대행서비스</div><div class="s">시공사 접수까지 대행</div></div>
+        <div class="img"><img src="assets/73d2eb22-72d1-4de1-baf0-5a26008e5007.jpg" alt="하자접수 대행 앱"></div>
+        <div class="ct">
+          <div class="row"><span class="k">접수 방법</span><span class="v">시공사마다 자체 앱/웹 또는 위탁업체 앱을 통해 하자 내용을 입력하고 사진을 업로드합니다.</span></div>
+          <div class="row"><span class="k">신청 방법</span><span class="v">예약안내문 카카오톡 채팅창 또는 현장 직원에게 신청 진행</span></div>
+          <div class="row"><span class="k">대행 비용</span><span class="v"><span class="price">50,000원</span></span></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="cap"><div class="t">사후점검 서비스</div><div class="s">입주 전 재점검 서비스</div></div>
+        <div class="img"><img src="assets/f01a2c6a-1633-4cb2-9e72-13083b1dd5a6.jpg" alt="사후 재점검"></div>
+        <div class="ct">
+          <div class="row"><span class="k">점검 사항</span><span class="v">시공사측 보수 진행 시 추가하자 및 입주 초기 발생 하자 등의 재점검, 난방 미점검 시 재점검(난방 가동 시)</span></div>
+          <div class="row"><span class="k">신청 방법</span><span class="v">입주지정기간 시작 시 개별 공지</span></div>
+          <div class="row"><span class="k">점검 비용</span><span class="v"><span class="price">60,000원</span> (3세대 이상 충족 시)</span></div>
+          <div class="row"><span class="k"> </span><span class="v" style="color:var(--mute);font-size:13.5px;">※ 대형 타입은 별도 협의 / 하자 접수는 별도임</span></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="cap"><div class="t">입주케어 시공서비스</div><div class="s">점검 고객 한정</div></div>
+        <div class="img"><img src="assets/215a21db-1039-4e11-a8ef-dd1946fe7862.jpg" alt="입주케어 청소 시공"></div>
+        <div class="ct">
+          <div class="row"><span class="k">신청 조건</span><span class="v">더홈점검 서비스 이용 고객</span></div>
+          <div class="row"><span class="k">신청 방법</span><span class="v">고객센터 또는 카카오톡 채팅으로 견적 및 일정 문의</span></div>
+          <div class="row"><span class="k">시공 비용</span><span class="v">타입에 따른 견적 진행</span></div>
+          <div class="free">
+            <div class="ttl">점검 고객 한정 무상서비스</div>
+            <ul>
+              <li>5만원 상당 피톤치드 서비스</li>
+              <li>5만원 상당 스팀살균 서비스</li>
+              <li>청소 전문팀이 하루 한 집 진행</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============ CONTACT ============ -->
+  <div class="contact">
+    <div class="lbl">고객센터</div>
+    <div class="divider"></div>
+    <div class="info">
+      <div class="line"><span class="tag">TEL</span><span class="val">1668-5322 &nbsp;/&nbsp; 010-9985-0128</span></div>
+      <div class="line"><span class="tag">E-MAIL</span><span class="val mail">thehomeinsp@naver.com</span></div>
+    </div>
+  </div>
+
+  <footer>
+    <span class="bm">THE HOME INSPECTION</span>
+    <span>더홈점검서비스 통합 안내 · 점검 순서 · 점검 항목 · 진행 안내 · 부가서비스</span>
+  </footer>
+
+</main>
+
+<script>
+(function(){
+  function fixNoWrap(){
+    var specs=[['.nt h3','.28em','flex-start'],['.item h3','.4em','center'],['.item .step','.34em','center'],['.ostep .tagopt','.3em','flex-start'],['.logo .lcall','0','center']];
+    specs.forEach(function(sp){
+      document.querySelectorAll(sp[0]).forEach(function(el){
+        if(el.getAttribute('data-nowrapped'))return;
+        var toks=el.textContent.trim().split(/\s+/);
+        el.style.display='inline-flex';
+        el.style.gap=sp[1];
+        el.style.flexWrap='nowrap';
+        el.style.whiteSpace='nowrap';
+        el.style.justifyContent=sp[2];
+        el.innerHTML=toks.map(function(w){return '<span style="white-space:nowrap">'+w+'</span>';}).join('');
+        el.setAttribute('data-nowrapped','1');
+      });
+    });
+  }
+  if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',fixNoWrap);}else{fixNoWrap();}
+})();
+</script>
+
+
+
+<script>
+(function(){
+  function sendH(){
+    var h=Math.max(document.body.scrollHeight,document.documentElement.scrollHeight);
+    parent.postMessage({thehomeHeight:h},'*');
+  }
+  window.addEventListener('load',sendH);
+  window.addEventListener('resize',sendH);
+  if(window.ResizeObserver){new ResizeObserver(sendH).observe(document.body);}
+  setTimeout(sendH,800);setTimeout(sendH,2000);
+})();
+</script>
+</body></html>
