@@ -19,14 +19,14 @@
     <!-- manifest.json 제거 (CORS 에러 방지) -->
     
     <!-- jsPDF + html2canvas Libraries -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" integrity="sha384-JcnsjUPPylna1s1fvi1u12X5qjY5OL56iySh75FdtrwhO/SWXgMjoVqcKyIIWOLk" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" integrity="sha384-ZZ1pncU3bQe8y31yfZdMFdSpttDoPmOZg2wguVK9almUodir1PghgT0eY7Mrty8H" crossorigin="anonymous"></script>
     
     <!-- JSZip for ZIP download -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" integrity="sha384-+mbV2IY1Zk/X1p/nWllGySJSUN8uMs+gUAN10Or95UBH0fpj6GfKgPmgC5EXieXG" crossorigin="anonymous"></script>
     
     <!-- ExcelJS for Excel with images (안정적인 버전) -->
-    <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js" integrity="sha384-Pqp51FUN2/qzfxZxBCtF0stpc9ONI6MYZpVqmo8m20SoaQCzf+arZvACkLkirlPz" crossorigin="anonymous"></script>
     
     <!-- HEIC to JPEG 변환 (iOS 갤러리 사진 지원) -->
     <script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
@@ -1617,6 +1617,7 @@
                     if (now - data.loginTime < 90 * 24 * 60 * 60 * 1000) {
                         // 로그인 유효
                         hideLoginScreen();
+                        revalidateLoginOnline(); // 온라인이면 백그라운드로 직원 상태 재확인 (오프라인 시 무동작)
                         return true;
                     } else {
                         // 세션 만료
@@ -1704,6 +1705,41 @@
                     success: false, 
                     message: '서버 연결 실패. 인터넷 연결을 확인하세요.' 
                 };
+            }
+        }
+        
+        // ==================== 자동로그인 온라인 재검증 ====================
+        // 자동로그인 직후 백그라운드 실행. 온라인이면 시트에서 직원 상태를 재확인하고,
+        // 비활성/PIN변경/삭제된 계정이면 세션을 종료한다. 오프라인/네트워크 오류 시 아무것도 하지 않는다.
+        async function revalidateLoginOnline() {
+            try {
+                const saved = localStorage.getItem('dhLoginData');
+                if (!saved) return;
+                const data = JSON.parse(saved);
+                if (!data.code || !data.pin) return;
+
+                const response = await fetch(GOOGLE_SHEETS_CSV_URL, { cache: 'no-store' });
+                if (!response.ok) return; // 서버 응답 이상 시 기존 동작 유지
+
+                const lines = (await response.text()).split('\n');
+                let valid = false;
+                for (let i = 1; i < lines.length; i++) {
+                    const line = lines[i].trim();
+                    if (!line) continue;
+                    const cols = line.split(',');
+                    if (cols[0]?.trim() === data.code) {
+                        if (cols[3]?.trim() === '활성' && cols[4]?.trim() === data.pin) valid = true;
+                        break;
+                    }
+                }
+                if (valid) return;
+
+                // 계정 비활성/변경/삭제 → 세션 종료
+                localStorage.removeItem('dhLoginData');
+                alert('계정 상태가 변경되어 다시 로그인이 필요합니다.');
+                location.reload();
+            } catch (e) {
+                // 오프라인 등 — 기존 90일 자동로그인 동작 그대로 유지
             }
         }
         
@@ -3151,7 +3187,7 @@
                         for (let i = 0; i < defectsWithPhotos.length; i += 3) {
                             doc.addPage();
                             const batch = defectsWithPhotos.slice(i, i + 3);
-                            const detailHTML = await window.createDefectDetailPage(batch, i);
+                            const detailHTML = await window.createDefectDetailPage(batch, i, true);
                             await window.addHTMLPageToPDF(doc, detailHTML, pageWidth, pageHeight);
                         }
                     }
@@ -3177,7 +3213,7 @@
                 }
 
                 // 열화상 단열 안내 페이지 (토글 ON일 때만)
-                if ((localStorage.getItem('thermalNoticeGlobal') === 'on')) {
+                if ((localStorage.getItem('thermalNoticeGlobal') === 'on') && projectData.equipment && projectData.equipment.some(e => (e.photos && typeof e.photos === 'object' && Object.values(e.photos).some(p => p)) || e.photo)) {
                     doc.addPage();
                     const thermalHTML = window.createThermalNoticePage();
                     await window.addHTMLPageToPDF(doc, thermalHTML, pageWidth, pageHeight);
@@ -3486,6 +3522,16 @@
                     }
                 }
                 
+                // 워터마크 병렬 처리 (5장씩 배치, iOS 메모리 최적화)
+                const WM_BATCH = 5;
+                for (let i = 0; i < photoTasks.length; i += WM_BATCH) {
+                    const batch = photoTasks.slice(i, i + WM_BATCH);
+                    const results = await Promise.all(batch.map(t => window.addWatermarkToPhoto(t.photo, t.wmText)));
+                    for (let j = 0; j < batch.length; j++) {
+                        batch[j].photo = results[j];
+                    }
+                }
+                
                 // 장비 사진도 추가 (있을 경우)
                 if (hasEquipmentPhotos) {
                     const equipmentWithPhotos = projectData.equipment.filter(e => {
@@ -3513,16 +3559,6 @@
                 }
                 
                 const totalPhotos = photoTasks.length;
-                
-                // 워터마크 배치 처리 (iOS 메모리 고려 5장씩)
-                const WM_BATCH = 5;
-                for (let i = 0; i < photoTasks.length; i += WM_BATCH) {
-                    const batch = photoTasks.slice(i, i + WM_BATCH);
-                    const results = await Promise.all(batch.map(t => t.wmText ? window.addWatermarkToPhoto(t.photo, t.wmText) : Promise.resolve(t.photo)));
-                    for (let j = 0; j < batch.length; j++) {
-                        batch[j].photo = results[j];
-                    }
-                }
                 
                 // ZIP 생성 및 업로드
                 if (photoTasks.length > 0) {
@@ -5290,21 +5326,21 @@
                                         ${locationIcons[location]} ${location}
                                     </div>
                                     ${item.photos[location] ? `
-                                        <img src="${item.photos[location]}" style="width: 100%; height: 220px; object-fit: cover;">
+                                        <img src="${item.photos[location]}" style="width: 100%; height: 200px; object-fit: cover;">
                                         <div style="display: flex; border-top: 1px solid #ddd;">
-                                            <button class="btn btn-secondary" onclick="openEquipmentLocationCamera(${item.id}, '${location}')" style="flex: 1; border-radius: 0; border: none; padding: 12px; font-size: 13px;">
+                                            <button class="btn btn-secondary" onclick="openEquipmentLocationCamera(${item.id}, '${location}')" style="flex: 1; border-radius: 0; border: none; padding: 10px; font-size: 13px;">
                                                 🔄
                                             </button>
-                                            <button class="btn btn-secondary" onclick="openEquipmentLocationGallery(${item.id}, '${location}')" style="flex: 1; border-radius: 0; border: none; border-left: 1px solid #ddd; padding: 12px; font-size: 13px;">
+                                            <button class="btn btn-secondary" onclick="openEquipmentLocationGallery(${item.id}, '${location}')" style="flex: 1; border-radius: 0; border: none; border-left: 1px solid #ddd; padding: 10px; font-size: 13px;">
                                                 🖼️
                                             </button>
-                                            <button class="btn btn-danger" onclick="deleteEquipmentLocationPhoto(${item.id}, '${location}')" style="flex: 1; border-radius: 0; border: none; border-left: 1px solid #ddd; padding: 12px; font-size: 13px;">
+                                            <button class="btn btn-danger" onclick="deleteEquipmentLocationPhoto(${item.id}, '${location}')" style="flex: 1; border-radius: 0; border: none; border-left: 1px solid #ddd; padding: 10px; font-size: 13px;">
                                                 🗑️
                                             </button>
                                         </div>
                                     ` : `
-                                        <div style="height: 220px; background: #f8f9fa; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px;">
-                                            <div style="font-size: 36px; opacity: 0.3;">📷</div>
+                                        <div style="height: 200px; background: #f8f9fa; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;">
+                                            <div style="font-size: 32px; opacity: 0.3;">📷</div>
                                             <div style="display: flex; gap: 10px; width: 100%; padding: 0 12px;">
                                                 <button class="btn btn-primary" onclick="openEquipmentLocationCamera(${item.id}, '${location}')" style="flex: 1; padding: 14px 10px; font-size: 14px; font-weight: bold;">
                                                     📸 촬영
@@ -6987,7 +7023,7 @@
                         for (let i = 0; i < defectsWithPhotos.length; i += 3) {
                             doc.addPage();
                             const batch = defectsWithPhotos.slice(i, i + 3);
-                            const detailHTML = await window.createDefectDetailPage(batch, i);
+                            const detailHTML = await window.createDefectDetailPage(batch, i, true);
                             await window.addHTMLPageToPDF(doc, detailHTML, pageWidth, pageHeight);
                         }
                     }
@@ -7025,7 +7061,7 @@
 
 
                 // 열화상 단열 안내 페이지 (토글 ON일 때만)
-                if ((localStorage.getItem('thermalNoticeGlobal') === 'on')) {
+                if ((localStorage.getItem('thermalNoticeGlobal') === 'on') && projectData.equipment && projectData.equipment.some(e => (e.photos && typeof e.photos === 'object' && Object.values(e.photos).some(p => p)) || e.photo)) {
                     doc.addPage();
                     const thermalHTML = window.createThermalNoticePage();
                     await window.addHTMLPageToPDF(doc, thermalHTML, pageWidth, pageHeight);
@@ -7510,202 +7546,6 @@
             }
         }
 
-        // ==================== PDF 생성 ====================
-        window.generatePDF = async function() {
-            // ✅ 1. 프로젝트 정보 검증
-            if (!projectData.apartmentName || !projectData.dong || !projectData.ho) {
-                alert('프로젝트 정보를 먼저 입력해주세요');
-                return;
-            }
-            
-            // ✅ 점검일자 필수 확인
-            if (!projectData.inspectionDate) {
-                alert('⚠️ 점검일자를 입력해주세요');
-                return;
-            }
-            
-            // ✅ 2. 사진 누락 확인 (2장 미만)
-            if (projectData.defects && projectData.defects.length > 0) {
-                const defectsWithIncompletePhotos = projectData.defects.filter(d => 
-                    !d.photos || d.photos.length < 2
-                );
-                if (defectsWithIncompletePhotos.length > 0) {
-                    const photoDetails = defectsWithIncompletePhotos.map((d, idx) => {
-                        const defectIndex = projectData.defects.indexOf(d) + 1;
-                        const photoCount = d.photos ? d.photos.length : 0;
-                        return `하자 ${defectIndex}번: 사진 ${photoCount}장`;
-                    }).join('\n');
-                    
-                    if (!confirm(`⚠️ 사진이 2장 미만인 하자가 ${defectsWithIncompletePhotos.length}건 있습니다.\n\n${photoDetails}\n\n📷 권장: 원경 + 근접 사진 2장\n\n고객 보고서 품질이 저하될 수 있습니다.\n계속 진행하시겠습니까?`)) {
-                        return;
-                    }
-                }
-            }
-
-            showLoading();
-
-            try {
-                const { jsPDF } = window.jspdf;
-                const doc = new jsPDF({
-                    orientation: 'portrait',
-                    unit: 'mm',
-                    format: 'a4'
-                });
-
-                const pageWidth = 210;
-                const pageHeight = 297;
-
-                // 1페이지: 표지 (미니멀 모던 레드)
-                const firstPageHTML = window.createSummaryFirstPage();
-                await window.addHTMLPageToPDF(doc, firstPageHTML, pageWidth, pageHeight);
-
-                // 프로젝트 요약 페이지
-                // 목차 페이지
-                doc.addPage();
-                const tocHTML = window.createTableOfContentsPage();
-                await window.addHTMLPageToPDF(doc, tocHTML, pageWidth, pageHeight);
-
-                doc.addPage();
-                const summaryPageHTML = window.createProjectSummaryPage();
-                await window.addHTMLPageToPDF(doc, summaryPageHTML, pageWidth, pageHeight);
-
-                // 2페이지~: 하자 목록 (18개씩)
-                if (projectData.defects.length > 0) {
-                    const itemsPerPage = 18;
-                    for (let i = 0; i < projectData.defects.length; i += itemsPerPage) {
-                        doc.addPage();
-                        const listPageHTML = window.createDefectListPage(i, itemsPerPage);
-                        await window.addHTMLPageToPDF(doc, listPageHTML, pageWidth, pageHeight);
-                    }
-                }
-
-                // 하자 상세 사진 페이지 (3개씩, 사진 2장씩)
-                if (projectData.defects.length > 0) {
-                    const defectsWithPhotos = projectData.defects.filter(d => d.photos && d.photos.length > 0);
-                    
-                    if (defectsWithPhotos.length > 0) {
-                        for (let i = 0; i < defectsWithPhotos.length; i += 3) {
-                            doc.addPage();
-                            const batch = defectsWithPhotos.slice(i, i + 3);
-                            const detailHTML = await window.createDefectDetailPage(batch, i);
-                            await window.addHTMLPageToPDF(doc, detailHTML, pageWidth, pageHeight);
-                        }
-                    }
-                }
-
-                // 장비점검 페이지 (1개씩)
-                if (projectData.equipment && projectData.equipment.length > 0) {
-                    // 사진이 하나라도 있는 항목만 필터링
-                    const equipmentWithPhotos = projectData.equipment.filter(e => {
-                        if (e.photos && typeof e.photos === 'object') {
-                            // 새 버전: photos 객체에서 하나라도 사진이 있으면
-                            return Object.values(e.photos).some(photo => photo !== null);
-                        }
-                        // 구 버전: photo가 있으면
-                        return e.photo;
-                    });
-                    
-                    if (equipmentWithPhotos.length > 0) {
-                        // _originalIndex 설정 (장비점검 번호 표시용)
-                        equipmentWithPhotos.forEach((item, i) => item._originalIndex = i + 1);
-                        
-                        // 2개씩 페이지에 표시 (여유롭고 가독성 좋게)
-                        for (let i = 0; i < equipmentWithPhotos.length; i += 2) {
-                            doc.addPage();
-                            const batch = equipmentWithPhotos.slice(i, i + 2);
-                            const equipmentHTML = await window.createEquipmentPage(batch, i);
-                            await window.addHTMLPageToPDF(doc, equipmentHTML, pageWidth, pageHeight);
-                        }
-                    }
-                }
-
-
-                // 열화상 단열 안내 페이지 (토글 ON일 때만)
-                if ((localStorage.getItem('thermalNoticeGlobal') === 'on')) {
-                    doc.addPage();
-                    const thermalHTML = window.createThermalNoticePage();
-                    await window.addHTMLPageToPDF(doc, thermalHTML, pageWidth, pageHeight);
-                }
-                // 공기질 상세 페이지 추가
-                const airQualityWithData = projectData.airQuality.filter(room => 
-                    room.radon || room.formaldehyde || room.vocs
-                );
-                if (airQualityWithData.length > 0) {
-                    doc.addPage();
-                    const airQualityHTML = window.createAirQualityDetailPage();
-                    await window.addHTMLPageToPDF(doc, airQualityHTML, pageWidth, pageHeight);
-                }
-
-                // 견적서 페이지 추가 (실내공기질측정결과 바로 다음)
-                doc.addPage();
-                const quotationPage = window.createQuotationPage(projectData.apartmentName, projectData.dong, projectData.ho, projectData.inspectionDate || new Date().toLocaleDateString('ko-KR'));
-                await window.addHTMLPageToPDF(doc, quotationPage, pageWidth, pageHeight);
-
-                // 시공안내 페이지 추가 (견적서 다음)
-                doc.addPage();
-                const serviceGuidePage = window.createServiceGuidePage();
-                await window.addHTMLPageToPDF(doc, serviceGuidePage, pageWidth, pageHeight);
-
-                // 참고자료 페이지 추가 (보고서 뒤쪽에)
-                doc.addPage();
-                const warrantyPage1 = window.createWarrantyGuidePage1();
-                await window.addHTMLPageToPDF(doc, warrantyPage1, pageWidth, pageHeight);
-
-                doc.addPage();
-                const warrantyPage2 = window.createWarrantyGuidePage2();
-                await window.addHTMLPageToPDF(doc, warrantyPage2, pageWidth, pageHeight);
-
-                doc.addPage();
-                const airQualityGuide = window.createAirQualityManagementGuidePage();
-                await window.addHTMLPageToPDF(doc, airQualityGuide, pageWidth, pageHeight);
-
-                doc.addPage();
-                const condensationGuide = window.createCondensationGuidePage();
-                await window.addHTMLPageToPDF(doc, condensationGuide, pageWidth, pageHeight);
-
-                // 입주 전 체크리스트 페이지
-                doc.addPage();
-                const moveInChecklistHTML = window.createMoveInChecklistPage();
-                await window.addHTMLPageToPDF(doc, moveInChecklistHTML, pageWidth, pageHeight);
-
-                doc.addPage();
-                const movingInGuide = window.createMovingInGuidePage();
-                await window.addHTMLPageToPDF(doc, movingInGuide, pageWidth, pageHeight);
-
-                // 모바일 호환 다운로드
-                const filename = `더홈점검_${projectData.apartmentName}_${projectData.dong}${projectData.ho}_${new Date().toISOString().split('T')[0]}.pdf`;
-                
-                const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-                
-                if (isMobile) {
-                    const pdfBlob = doc.output('blob');
-                    const blobUrl = URL.createObjectURL(pdfBlob);
-                    
-                    const link = document.createElement('a');
-                    link.href = blobUrl;
-                    link.download = filename;
-                    document.body.appendChild(link);
-                    link.click();
-                    
-                    setTimeout(() => {
-                        document.body.removeChild(link);
-                        URL.revokeObjectURL(blobUrl);
-                    }, 100);
-                    
-                    hideLoading();
-                    showToast('PDF가 다운로드 폴더에 저장되었습니다!');
-                } else {
-                    doc.save(filename);
-                    hideLoading();
-                    showToast('PDF가 생성되었습니다');
-                }
-
-            } catch (error) {
-                console.error('PDF 생성 오류:', error);
-                hideLoading();
-                alert('PDF 생성 중 오류가 발생했습니다: ' + error.message);
-            }
-        }
 
         // ✅ 장비점검 전용 PDF 생성 (표지 + 장비측정만)
         window.generateEquipmentOnlyPDF = async function() {
@@ -7862,13 +7702,13 @@
                 // 파일명 생성
                 
                 // 열화상 단열 안내 페이지 (토글 ON일 때만)
-                if ((localStorage.getItem('thermalNoticeGlobal') === 'on')) {
+                if ((localStorage.getItem('thermalNoticeGlobal') === 'on') && projectData.equipment && projectData.equipment.some(e => (e.photos && typeof e.photos === 'object' && Object.values(e.photos).some(p => p)) || e.photo)) {
                     doc.addPage();
                     const thermalHTML = window.createThermalNoticePage();
                     await window.addHTMLPageToPDF(doc, thermalHTML, pageWidth, pageHeight);
                 }
 
-const filename = `${projectData.apartmentName}_${projectData.dong}_${projectData.ho}_장비점검.pdf`;
+                const filename = `${projectData.apartmentName}_${projectData.dong}_${projectData.ho}_장비점검.pdf`;
                 
                 // iOS에서 다운로드
                 if (navigator.userAgent.match(/iPhone|iPad|iPod/i)) {
@@ -8217,8 +8057,8 @@ const filename = `${projectData.apartmentName}_${projectData.dong}_${projectData
                             for (let i = 0; i < binaryStr.length; i++) bytes[i] = binaryStr.charCodeAt(i);
                             const imageId = workbook.addImage({ buffer: bytes, extension: 'jpeg' });
                             ws.addImage(imageId, {
-                                tl: { col: 8, row: rowNum - 1 },
-                                br: { col: 9, row: rowNum },
+                                tl: { col: 7, row: rowNum - 1 },
+                                br: { col: 8, row: rowNum },
                                 editAs: 'oneCell'
                             });
                             photoSuccessCount++;
@@ -8238,8 +8078,8 @@ const filename = `${projectData.apartmentName}_${projectData.dong}_${projectData
                             for (let i = 0; i < binaryStr.length; i++) bytes[i] = binaryStr.charCodeAt(i);
                             const imageId = workbook.addImage({ buffer: bytes, extension: 'jpeg' });
                             ws.addImage(imageId, {
-                                tl: { col: 7, row: rowNum - 1 },
-                                br: { col: 8, row: rowNum },
+                                tl: { col: 8, row: rowNum - 1 },
+                                br: { col: 9, row: rowNum },
                                 editAs: 'oneCell'
                             });
                             photoSuccessCount++;
@@ -8327,9 +8167,14 @@ const filename = `${projectData.apartmentName}_${projectData.dong}_${projectData
                 // 사진 있는 하자만 필터링
                 const defectsWithPhotos = projectData.defects.filter(d => d.photos && d.photos.length > 0);
                 
+                // 표지 (시공사 제출용)
+                const coverHTML = createFieldReportCoverPage();
+                await window.addHTMLPageToPDF(doc, coverHTML, pageWidth, pageHeight);
+
                 // 1페이지: 프로젝트 정보 + 첫 9개 하자
                 const firstPageDefects = defectsWithPhotos.slice(0, 9);
                 const firstPageHTML = createFieldReportFirstPage(firstPageDefects);
+                doc.addPage();
                 await window.addHTMLPageToPDF(doc, firstPageHTML, pageWidth, pageHeight);
 
                 // 2페이지~: 나머지 하자 (10개씩)
@@ -8379,6 +8224,67 @@ const filename = `${projectData.apartmentName}_${projectData.dong}_${projectData
         }
 
         // 현장출력보고서 첫 페이지 생성 (프로젝트 정보 + 9개 하자, 사진 108×90)
+        // ==================== 현장출력보고서 표지 (시공사 제출용) ====================
+        function createFieldReportCoverPage() {
+            const apt = projectData.apartmentName || '';
+            const dongho = `${projectData.dong || ''}동 ${projectData.ho || ''}호`;
+            const date = projectData.inspectionDate || '';
+            const total = (projectData.defects || []).length;
+
+            // 중대하자 = 설명에 '누수' 포함된 하자의 번호(전체 하자 기준 No)
+            const criticalNums = [];
+            (projectData.defects || []).forEach((d, i) => {
+                if ((d.description || d.details || '').includes('누수')) criticalNums.push(i + 1);
+            });
+            const critTxt = criticalNums.length
+                ? criticalNums.map(n => 'No.' + n).join(', ')
+                : '';
+
+            // 계약자/연락처: 입력값 있으면 자동, 없으면 손글씨용 빈칸
+            const client = projectData.customerName || '';
+            const phone = projectData.customerPhone || '';
+
+            return `
+                <div style="width:794px;height:1123px;background:#fff;font-family:'Malgun Gothic',sans-serif;box-sizing:border-box;position:relative;padding:48px 52px;">
+                    <div style="position:absolute;inset:18px;border:1px solid #000;"></div>
+                    <div style="position:absolute;inset:24px;border:3px solid #000;"></div>
+                    <div style="position:relative;height:100%;display:flex;flex-direction:column;">
+                        <div style="text-align:center;margin-top:40px;">
+                            <div style="font-size:15px;letter-spacing:7px;color:#000;font-weight:bold;">THE HOME INSPECTION</div>
+                            <div style="width:46px;height:2px;background:#000;margin:16px auto;"></div>
+                        </div>
+                        <div style="text-align:center;margin-top:30px;">
+                            <div style="font-size:56px;font-weight:900;color:#000;letter-spacing:4px;line-height:1.2;">하자점검 리스트</div>
+                            <div style="display:inline-block;margin-top:22px;font-size:21px;font-weight:bold;color:#000;letter-spacing:6px;border:2px solid #000;padding:7px 30px;">시공사 제출용</div>
+                        </div>
+                        <div style="margin-top:60px;">
+                            <table style="width:100%;border-collapse:collapse;font-size:18px;">
+                                <tr><td style="border:1.5px solid #000;background:#ededed;padding:16px 18px;font-weight:bold;width:30%;text-align:center;">아파트명</td><td style="border:1.5px solid #000;padding:16px 22px;font-weight:bold;">${apt}</td></tr>
+                                <tr><td style="border:1.5px solid #000;background:#ededed;padding:16px 18px;font-weight:bold;text-align:center;">동 / 호수</td><td style="border:1.5px solid #000;padding:16px 22px;font-weight:bold;">${dongho}</td></tr>
+                                <tr><td style="border:1.5px solid #000;background:#ededed;padding:16px 18px;font-weight:bold;text-align:center;">점검일자</td><td style="border:1.5px solid #000;padding:16px 22px;font-weight:bold;">${date}</td></tr>
+                                <tr><td style="border:1.5px solid #000;background:#ededed;padding:16px 18px;font-weight:bold;text-align:center;">총 하자 건수</td><td style="border:1.5px solid #000;padding:16px 22px;font-weight:900;font-size:22px;">${total} 건</td></tr>
+                            </table>
+                        </div>
+                        <div style="margin-top:20px;border:2.5px solid #000;">
+                            <div style="display:flex;align-items:stretch;">
+                                <div style="background:#000;color:#fff;font-weight:bold;font-size:17px;padding:16px 20px;display:flex;align-items:center;letter-spacing:2px;white-space:nowrap;">중 대 하 자</div>
+                                <div style="flex:1;padding:16px 22px;font-size:20px;font-weight:900;display:flex;align-items:center;">${critTxt}</div>
+                            </div>
+                        </div>
+                        <div style="margin-top:38px;">
+                            <div style="font-size:14px;font-weight:bold;color:#000;margin-bottom:10px;letter-spacing:2px;">■ 계약자 확인</div>
+                            <table style="width:100%;border-collapse:collapse;font-size:18px;">
+                                <tr><td style="border:1.5px solid #000;background:#ededed;padding:22px 18px;font-weight:bold;width:30%;text-align:center;">계 약 자</td><td style="border:1.5px solid #000;padding:22px;font-weight:bold;">${client}</td></tr>
+                                <tr><td style="border:1.5px solid #000;background:#ededed;padding:22px 18px;font-weight:bold;text-align:center;">연 락 처</td><td style="border:1.5px solid #000;padding:22px;font-weight:bold;">${phone}</td></tr>
+                            </table>
+                        </div>
+                        <div style="margin-top:auto;text-align:center;font-size:13px;font-weight:bold;color:#000;letter-spacing:3px;padding-bottom:8px;">더홈점검</div>
+                    </div>
+                </div>
+            `;
+        }
+
+
         function createFieldReportFirstPage(defects) {
             const rowsHTML = defects.map((defect, idx) => {
                 const globalIndex = idx + 1;
@@ -8554,64 +8460,11 @@ const filename = `${projectData.apartmentName}_${projectData.dong}_${projectData
 
 
 
-        // 나머지 페이지: 하자 목록만 (20개씩)
-        window.createDefectListPage = function(startIndex, itemsPerPage = 18) {
-            let defectRows = '';
-            const endIndex = Math.min(startIndex + itemsPerPage, projectData.defects.length);
-            const defectsToDisplay = projectData.defects.slice(startIndex, endIndex);
-            
-            defectsToDisplay.forEach((defect, index) => {
-                const globalIndex = startIndex + index + 1;
-                const spaces = defect.spaces ? defect.spaces.join(', ') : (defect.space || '-');
-                const locations = defect.locations ? defect.locations.join(', ') : (defect.location || '-');
-                const types = defect.types ? defect.types.join(', ') : (defect.type || '-');
-                const description = defect.description || '';
-                
-                defectRows += `
-                    <tr style="border-bottom: 1px solid #ddd;">
-                        <td style="padding: 10px 4px; text-align: center; font-weight: bold; color: #000; font-size: 13px; vertical-align: middle; border-right: 1px solid #e0e0e0;">${globalIndex}</td>
-                        <td style="padding: 10px 4px; text-align: center; color: #000; font-weight: 600; font-size: 13px; vertical-align: middle; border-right: 1px solid #e0e0e0;">${spaces}</td>
-                        <td style="padding: 10px 4px; text-align: center; color: #000; font-weight: 600; font-size: 13px; vertical-align: middle; border-right: 1px solid #e0e0e0;">${locations}</td>
-                        <td style="padding: 10px 4px; color: #000; font-weight: 600; font-size: 13px; vertical-align: middle; border-right: 1px solid #e0e0e0;">${types}</td>
-                        <td style="padding: 10px 6px; color: #000; font-weight: 500; font-size: 12px; word-break: break-word; white-space: normal; line-height: 1.5; vertical-align: middle;">${description || '-'}</td>
-                    </tr>
-                `;
-            });
-            
-            const totalPages = Math.ceil((projectData.defects.length - 15) / itemsPerPage) + 1;
-            const currentPage = Math.floor((startIndex - 15) / itemsPerPage) + 2;
-            const pageIndicator = ` (${currentPage}/${totalPages} 페이지)`;
 
-            return `
-                <div style="width: 794px; min-height: 1123px; max-height: 1123px; background: white; font-family: 'Malgun Gothic', sans-serif; padding: 35px; position: relative; box-sizing: border-box; overflow: hidden;">
-                    <div style="margin-bottom: 20px;">
-                        <h3 style="margin: 0 0 12px 0; font-size: 16px; color: #000; border-bottom: 2px solid #e74c3c; padding-bottom: 6px;">📋 하자점검 목록 (총 ${projectData.defects.length}건)${pageIndicator}</h3>
-                        <p style="margin: 5px 0 12px 0; font-size: 12px; color: #333;">${projectData.apartmentName} ${projectData.dong}동 ${projectData.ho}호</p>
-                    </div>
-
-                    <table style="width: 100%; border-collapse: collapse; border: 1px solid #ddd; font-size: 13px; margin-bottom: 60px;">
-                        <thead>
-                            <tr style="background: #f8f9fa; border-bottom: 2px solid #999;">
-                                <th style="padding: 10px 4px; width: 5%; color: #000; font-size: 13px; font-weight: bold; border-right: 1px solid #e0e0e0;">No</th>
-                                <th style="padding: 10px 4px; width: 12%; color: #000; font-size: 13px; font-weight: bold; border-right: 1px solid #e0e0e0;">공간</th>
-                                <th style="padding: 10px 4px; width: 12%; color: #000; font-size: 13px; font-weight: bold; border-right: 1px solid #e0e0e0;">위치</th>
-                                <th style="padding: 10px 4px; width: 15%; color: #000; font-size: 13px; font-weight: bold; border-right: 1px solid #e0e0e0;">하자내용</th>
-                                <th style="padding: 10px 6px; width: 52%; color: #000; font-size: 13px; font-weight: bold;">상세설명</th>
-                            </tr>
-                        </thead>
-                        <tbody>${defectRows}</tbody>
-                    </table>
-
-                    <div style="position: absolute; bottom: 20px; left: 35px; right: 35px; padding-top: 10px; border-top: 1px solid #ddd; font-size: 10px; color: #333; text-align: center;">
-                        <div>더홈점검 | 대표: 1668-5322 / 직통: 010-9985-0128 | 사전점검 전문업체</div>
-                    </div>
-                </div>
-            `;
-        }
 
 
         // 📷 사진에 워터마크 추가하는 함수
-        window.addWatermarkToPhoto = async function(imageDataUrl, text) {
+        window.addWatermarkToPhoto = async function(imageDataUrl, text, infoOnly) {
             if (!imageDataUrl || !text) return imageDataUrl || '';
             return new Promise((resolve) => {
                 try {
@@ -8623,27 +8476,44 @@ const filename = `${projectData.apartmentName}_${projectData.dong}_${projectData
                             canvas.height = img.height;
                             var ctx = canvas.getContext('2d');
                             ctx.drawImage(img, 0, 0);
-                            
-                            var fSize = Math.max(Math.round(img.height * 0.03), 16);
-                            ctx.font = 'bold ' + fSize + 'px Arial';
-                            var tw = ctx.measureText(text).width;
-                            var bw = tw + fSize;
-                            var bh = fSize * 2;
-                            
-                            ctx.fillStyle = 'rgba(0,0,0,0.7)';
-                            ctx.fillRect(15, 15, bw, bh);
-                            
-                            ctx.fillStyle = '#FFFFFF';
+
+                            // text 형태: "103동805호_03 원경" → 큰 번호 + 작은 정보로 분리
+                            var bigNum = '';
+                            var m = String(text).match(/_(\d+)/);
+                            if (m) { bigNum = String(parseInt(m[1], 10)); }
+                            var infoText = String(text);
+
+                            var W = img.width, H = img.height;
+
+                            // ===== 1) 중앙 오른쪽·약간 하단 흐린 번호 (사진 최소 침범) =====
+                            // infoOnly=true(보고서)면 중앙 번호 생략 → 좌상단 정보바만 표시
+                            if (bigNum && !infoOnly) {
+                                var nSize = Math.max(Math.round(H * 0.21), 60);
+                                ctx.font = '900 ' + nSize + 'px Arial';
+                                ctx.textAlign = 'center';
+                                ctx.textBaseline = 'middle';
+                                ctx.fillStyle = 'rgba(255,255,255,0.17)';
+                                ctx.fillText(bigNum, Math.round(W * 0.70), Math.round(H * 0.66));
+                            }
+
+                            // ===== 2) 좌상단 작은 정보 바 (동호 · 원경/근경) =====
+                            var fSize = Math.max(Math.round(H * 0.03), 16);
                             ctx.font = 'bold ' + fSize + 'px Arial';
                             ctx.textAlign = 'center';
                             ctx.textBaseline = 'middle';
-                            ctx.fillText(text, 15 + bw / 2, 15 + bh / 2);
-                            
-                            var result = canvas.toDataURL('image/jpeg', 0.92);
-                            // 메모리 해제
+                            var tw = ctx.measureText(infoText).width;
+                            var bw = tw + fSize;
+                            var bh = fSize * 2;
+                            ctx.fillStyle = 'rgba(0,0,0,0.6)';
+                            ctx.fillRect(15, 15, bw, bh);
+                            ctx.fillStyle = '#FFFFFF';
+                            ctx.fillText(infoText, 15 + bw / 2, 15 + bh / 2);
+
+                            var wmResult = canvas.toDataURL('image/jpeg', 0.92);
+                            // iOS 메모리 해제
                             canvas.width = 0;
                             canvas.height = 0;
-                            resolve(result);
+                            resolve(wmResult);
                         } catch(e) {
                             console.error('워터마크 렌더링 실패:', e);
                             resolve(imageDataUrl);
@@ -8657,272 +8527,10 @@ const filename = `${projectData.apartmentName}_${projectData.dong}_${projectData
             });
         }
 
-        window.createDefectDetailPage = async function(defects, startIndex) {
-            let contentHTML = '';
-            
-            for (let idx = 0; idx < defects.length; idx++) {
-                const defect = defects[idx];
-                const globalIndex = startIndex + idx + 1;
-                
-                // 원본 사진
-                const farPhotoOriginal = defect.photos && defect.photos.length > 0 ? defect.photos[0] : '';
-                const closePhotoOriginal = defect.photos && defect.photos.length > 1 ? defect.photos[1] : '';
-                
-                // 워터마크 추가된 사진 (동호수 포함)
-                const dongHo = `${projectData.dong}동${projectData.ho}호`;
-                const farPhoto = farPhotoOriginal ? await window.addWatermarkToPhoto(farPhotoOriginal, `${dongHo}_${String(globalIndex).padStart(2, '0')} 원경`) : '';
-                const closePhoto = closePhotoOriginal ? await window.addWatermarkToPhoto(closePhotoOriginal, `${dongHo}_${String(globalIndex).padStart(2, '0')} 근경`) : '';
-                
-                // 배열을 문자열로 변환 (하위 호환성)
-                const spaces = defect.spaces ? defect.spaces.join(', ') : (defect.space || '-');
-                const description = defect.description || '';
-                
-                contentHTML += `
-                    <div style="border: 1.5px solid #ddd; border-radius: 6px; padding: 12px; margin-bottom: 15px; background: white;">
-                        <!-- 하자 번호 헤더 (더 작게) -->
-                        <div style="background: #f0f9ff; color: #000; border-bottom: 1.5px solid #3498db; padding: 8px 12px; margin: -12px -12px 12px -12px; border-radius: 5px 5px 0 0; font-size: 13px; font-weight: bold;">
-                            하자 ${globalIndex}
-                        </div>
-                        
-                        <!-- 정보 테이블 (컴팩트) -->
-                        <table style="width: 100%; border-collapse: collapse; font-size: 11px; margin-bottom: 12px;">
-                            <tr style="border-bottom: 1px solid #eee;">
-                                <td style="padding: 6px; width: 18%; background: #f8f9fa; font-weight: bold; color: #000;">공간</td>
-                                <td style="padding: 6px; color: #000;">${spaces}</td>
-                            </tr>
-                            <tr>
-                                <td style="padding: 6px; background: #f8f9fa; font-weight: bold; color: #000;">상세설명</td>
-                                <td style="padding: 6px; color: #000; font-weight: 600; line-height: 1.4;">${description || '-'}</td>
-                            </tr>
-                        </table>
-
-                        <!-- 사진 영역 (최적화된 크기) -->
-                        <div style="display: flex; gap: 10px;">
-                            <div style="flex: 1; border: 1px solid #ddd; border-radius: 4px; overflow: hidden;">
-                                <div style="padding: 6px; text-align: center; font-weight: bold; font-size: 11px; color: #000; background: #e8f5e9; border-bottom: 1px solid #10b981;">
-                                    📷 원경 (멀리서)
-                                </div>
-                                ${farPhoto ? `
-                                    <img src="${farPhoto}" style="width: 100%; height: 280px; object-fit: contain; display: block; background: #fafafa;" />
-                                ` : `
-                                    <div style="width: 100%; height: 280px; background: #f5f5f5; display: flex; align-items: center; justify-content: center; color: #333; font-size: 11px;">사진 없음</div>
-                                `}
-                            </div>
-
-                            <div style="flex: 1; border: 1px solid #ddd; border-radius: 4px; overflow: hidden;">
-                                <div style="padding: 6px; text-align: center; font-weight: bold; font-size: 11px; color: #000; background: #fff7ed; border-bottom: 1px solid #f59e0b;">
-                                    📷 근경 (가까이서)
-                                </div>
-                                ${closePhoto ? `
-                                    <img src="${closePhoto}" style="width: 100%; height: 280px; object-fit: contain; display: block; background: #fafafa;" />
-                                ` : `
-                                    <div style="width: 100%; height: 280px; background: #f5f5f5; display: flex; align-items: center; justify-content: center; color: #333; font-size: 11px;">사진 없음</div>
-                                `}
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }
-
-            return `
-                <div style="width: 794px; min-height: 1123px; background: white; font-family: 'Malgun Gothic', sans-serif; padding: 35px; box-sizing: border-box;">
-                    <div style="background: #ffebee; border: 1.5px solid #e74c3c; padding: 15px; margin-bottom: 20px; border-radius: 6px;">
-                        <h2 style="margin: 0 0 5px 0; font-size: 20px; color: #000;">하자 상세 사진 (원경+근경)</h2>
-                        <p style="margin: 0; font-size: 12px; color: #000;">${projectData.apartmentName} ${projectData.dong}동 ${projectData.ho}호 | ${projectData.inspectionDate || ''}</p>
-                    </div>
-
-                    ${contentHTML}
-
-                    <div style="position: absolute; bottom: 20px; left: 35px; right: 35px; padding-top: 10px; border-top: 1px solid #ddd; font-size: 10px; color: #333; text-align: center;">
-                        <div>더홈점검 | 대표: 1668-5322 / 직통: 010-9985-0128 | 사전점검 전문업체</div>
-                    </div>
-                </div>
-            `;
-        }
 
 
-        // === 장비점검 측정 보고서 페이지 (3개씩) ===
-        window.createEquipmentPage = function(equipmentList, startIndex) {
-            let contentHTML = '';
-            
-            equipmentList.forEach((item, idx) => {
-                const globalIndex = startIndex + idx + 1;
-                
-                // 하위 호환성
-                const space = item.space || (item.spaces ? item.spaces.join(', ') : '-');
-                
-                // 하위 호환성: 기존 4개 구조를 4개로 변환
-                if (item.photos && item.photos['좌측상단']) {
-                    item.photos = {
-                        '좌측': item.photos['좌측상단'] || item.photos['좌측하단'] || null,
-                        '우측': item.photos['우측상단'] || item.photos['우측하단'] || null,
-                        '바닥1': item.photos['바닥'] || null,
-                        '바닥2': null
-                    };
-                } else if (item.photos && item.photos['바닥'] && !item.photos['바닥1']) {
-                    // 기존 '바닥'을 '바닥1'로 변환
-                    item.photos['바닥1'] = item.photos['바닥'];
-                    delete item.photos['바닥'];
-                    if (!item.photos['바닥2']) item.photos['바닥2'] = null;
-                }
-                
-                // photos 객체가 있으면 위치별 사진, 없으면 단일 사진 (구 버전)
-                const hasLocationPhotos = item.photos && typeof item.photos === 'object';
-                
-                contentHTML += `
-                    <div style="border: 1px solid #ddd; border-radius: 8px; padding: 0; background: white; margin-bottom: 20px; page-break-inside: avoid;">
-                        <!-- 헤더 -->
-                        <div style="background: #f8f9fa; padding: 10px 15px; border-bottom: 1px solid #ddd;">
-                            <strong style="font-size: 16px; color: #1a1a1a;">장비점검 ${globalIndex} - ${space}</strong>
-                        </div>
-                        
-                        <!-- 점검결과 -->
-                        <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px;">
-                            <tr>
-                                <td style="padding: 10px; border-bottom: 1px solid #ddd; font-weight: bold; text-align: center; background: #f8f9fa; color: #1a1a1a; width: 25%;">점검결과</td>
-                                <td style="padding: 10px; border-bottom: 1px solid #ddd; color: #1a1a1a;">${item.inspection || '벽체수직 및 바닥수평 / 단열시공 양호'}</td>
-                            </tr>
-                        </table>
 
-                        ${hasLocationPhotos ? `
-                            <!-- 사진 영역 -->
-                            <div style="padding: 0 15px 15px 15px;">
-                                ${(() => {
-                                    // 사진 배열로 변환 (null 아닌 것만)
-                                    const photoList = [];
-                                    const locations = ['좌측', '우측', '바닥1', '바닥2'];
-                                    const colors = { '좌측': '#3498db', '우측': '#e74c3c', '바닥1': '#f39c12', '바닥2': '#f39c12' };
-                                    const icons = { '좌측': '⬅️', '우측': '➡️', '바닥1': '⬇️', '바닥2': '⬇️' };
-                                    
-                                    locations.forEach(loc => {
-                                        if (item.photos[loc]) {
-                                            photoList.push({
-                                                name: loc,
-                                                photo: item.photos[loc],
-                                                color: colors[loc],
-                                                icon: icons[loc]
-                                            });
-                                        }
-                                    });
-                                    
-                                    if (photoList.length === 0) {
-                                        return `
-                                            <div style="padding: 40px; text-align: center; color: #1a1a1a; background: #f8f9fa; border-radius: 6px;">
-                                                <div style="font-size: 14px; margin-bottom: 8px;">📷 촬영된 사진이 없습니다</div>
-                                                <div style="font-size: 11px;">장비점검 시 사진을 첨부해주세요</div>
-                                            </div>
-                                        `;
-                                    }
-                                    
-                                    let html = '';
-                                    
-                                    // 1줄: 좌측, 우측 (2칸 고정)
-                                    const topPhotos = [
-                                        item.photos['좌측'] ? { name: '좌측', photo: item.photos['좌측'], color: colors['좌측'], icon: icons['좌측'] } : null,
-                                        item.photos['우측'] ? { name: '우측', photo: item.photos['우측'], color: colors['우측'], icon: icons['우측'] } : null
-                                    ].filter(p => p);
-                                    
-                                    if (topPhotos.length > 0) {
-                                        html += `<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">`;
-                                        topPhotos.forEach(loc => {
-                                            html += `
-                                                <div style="border: 1px solid #ddd; border-radius: 4px; overflow: hidden;">
-                                                    <div style="padding: 8px; text-align: center; font-weight: bold; font-size: 12px; color: #1a1a1a; border-bottom: 3px solid ${loc.color};">
-                                                        ${loc.icon} ${loc.name}
-                                                    </div>
-                                                    <img src="${loc.photo}" style="width: 100%; height: 240px; object-fit: cover; display: block;" />
-                                                </div>
-                                            `;
-                                        });
-                                        // 좌측이나 우측 중 하나만 있으면 빈칸 추가
-                                        if (topPhotos.length === 1) {
-                                            html += `
-                                                <div style="border: 1px solid #ddd; border-radius: 4px; overflow: hidden; background: #f8f9fa;">
-                                                    <div style="padding: 8px; text-align: center; font-weight: bold; font-size: 12px; color: #1a1a1a; border-bottom: 3px solid #ddd;">
-                                                        사진 없음
-                                                    </div>
-                                                    <div style="width: 100%; height: 240px; display: flex; align-items: center; justify-content: center; color: #ccc; font-size: 48px;">📷</div>
-                                                </div>
-                                            `;
-                                        }
-                                        html += `</div>`;
-                                    }
-                                    
-                                    // 2줄: 바닥 사진 처리
-                                    const hasFloor1 = item.photos['바닥1'] ? true : false;
-                                    const hasFloor2 = item.photos['바닥2'] ? true : false;
-                                    
-                                    if (hasFloor1 && hasFloor2) {
-                                        // 바닥 2장 모두 있으면 → 2칸으로 나란히
-                                        html += `
-                                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                                                <div style="border: 1px solid #ddd; border-radius: 4px; overflow: hidden;">
-                                                    <div style="padding: 8px; text-align: center; font-weight: bold; font-size: 12px; color: #1a1a1a; border-bottom: 3px solid ${colors['바닥1']};">
-                                                        ${icons['바닥1']} 바닥1
-                                                    </div>
-                                                    <img src="${item.photos['바닥1']}" style="width: 100%; height: 240px; object-fit: cover; display: block;" />
-                                                </div>
-                                                <div style="border: 1px solid #ddd; border-radius: 4px; overflow: hidden;">
-                                                    <div style="padding: 8px; text-align: center; font-weight: bold; font-size: 12px; color: #1a1a1a; border-bottom: 3px solid ${colors['바닥2']};">
-                                                        ${icons['바닥2']} 바닥2
-                                                    </div>
-                                                    <img src="${item.photos['바닥2']}" style="width: 100%; height: 240px; object-fit: cover; display: block;" />
-                                                </div>
-                                            </div>
-                                        `;
-                                    } else if (hasFloor1 || hasFloor2) {
-                                        // 바닥 1장만 있으면 → 중앙에 표시 (퍼지지 않게)
-                                        const floorPhoto = hasFloor1 ? { name: '바닥1', photo: item.photos['바닥1'], color: colors['바닥1'], icon: icons['바닥1'] } 
-                                                                      : { name: '바닥2', photo: item.photos['바닥2'], color: colors['바닥2'], icon: icons['바닥2'] };
-                                        html += `
-                                            <div style="display: flex; justify-content: center;">
-                                                <div style="width: 60%; border: 1px solid #ddd; border-radius: 4px; overflow: hidden;">
-                                                    <div style="padding: 8px; text-align: center; font-weight: bold; font-size: 12px; color: #1a1a1a; border-bottom: 3px solid ${floorPhoto.color};">
-                                                        ${floorPhoto.icon} ${floorPhoto.name}
-                                                    </div>
-                                                    <img src="${floorPhoto.photo}" style="width: 100%; height: 280px; object-fit: cover; display: block;" />
-                                                </div>
-                                            </div>
-                                        `;
-                                    }
-                                    
-                                    return html;
-                                })()}
-                            </div>
-                        ` : `
-                            <!-- 단일 사진 (구 버전 호환) -->
-                            <div style="text-align: center;">
-                                <div style="padding: 8px; text-align: center; font-weight: bold; font-size: 12px; color: #1a1a1a; border: 1px solid #ddd; border-bottom: 3px solid #2c3e50; border-radius: 4px 4px 0 0;">
-                                    촬영 사진
-                                </div>
-                                ${item.photo ? `
-                                    <img src="${item.photo}" style="width: 100%; max-height: 350px; object-fit: contain; border: 1px solid #ddd; border-top: none;" />
-                                ` : `
-                                    <div style="width: 100%; height: 250px; background: #f9f9f9; border: 1px solid #ddd; border-top: none; display: flex; align-items: center; justify-content: center; color: #1a1a1a; font-size: 12px;">사진 없음</div>
-                                `}
-                            </div>
-                        `}
-                    </div>
-                `;
-            });
 
-            return `
-                <div style="width: 794px; min-height: 1123px; background: white; font-family: 'Malgun Gothic', sans-serif; padding: 30px;">
-                    <div style="background: white; color: #1a1a1a; padding: 15px 20px; margin-bottom: 20px; border-radius: 8px; border: 1px solid #ddd;">
-                        <h2 style="margin: 0; font-size: 20px; font-weight: bold;">장비 측정 보고서</h2>
-                        <p style="margin: 5px 0 0 0; font-size: 13px; color: #1a1a1a;">${projectData.apartmentName} ${projectData.dong}동 ${projectData.ho}호 | ${projectData.inspectionDate || ''}</p>
-                    </div>
-
-                    ${contentHTML}
-
-                    <div style="position: absolute; bottom: 20px; left: 30px; right: 30px; padding-top: 15px; border-top: 1px solid #ddd; font-size: 11px; color: #1a1a1a;">
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <div>더홈점검 | 1668-5322</div>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
 
         // 참고자료 페이지 생성 함수들
         window.createWarrantyGuidePage1 = function() {
@@ -10928,7 +10536,7 @@ const filename = `${projectData.apartmentName}_${projectData.dong}_${projectData
             const defectsWithPhotos = projectData.defects.filter(d => d.photos && d.photos.length > 0);
             for (let i = 0; i < defectsWithPhotos.length; i += 3) {
                 doc.addPage();
-                await window.addHTMLPageToPDF(doc, await window.createDefectDetailPage(defectsWithPhotos.slice(i, i+3), i), W, H);
+                await window.addHTMLPageToPDF(doc, await window.createDefectDetailPage(defectsWithPhotos.slice(i, i+3), i, true), W, H);
             }
 
             // 4. 장비 점검 (1페이지에 1개 항목씩)
@@ -10945,7 +10553,7 @@ const filename = `${projectData.apartmentName}_${projectData.dong}_${projectData
 
 
             // 열화상 단열 안내 페이지 (토글 ON일 때만)
-            if ((localStorage.getItem('thermalNoticeGlobal') === 'on')) {
+            if ((localStorage.getItem('thermalNoticeGlobal') === 'on') && projectData.equipment && projectData.equipment.some(e => (e.photos && typeof e.photos === 'object' && Object.values(e.photos).some(p => p)) || e.photo)) {
                 doc.addPage();
                 const thermalNoticeHTML = window.createThermalNoticePage();
                 await window.addHTMLPageToPDF(doc, thermalNoticeHTML, W, H);
@@ -11308,15 +10916,15 @@ const filename = `${projectData.apartmentName}_${projectData.dong}_${projectData
         return `<div style="width:794px;min-height:1123px;background:white;font-family:'Malgun Gothic',sans-serif;padding:45px;box-sizing:border-box;position:relative;"><div style="border-bottom:2px solid ${R_THEME.bg};padding-bottom:15px;margin-bottom:25px;display:flex;justify-content:space-between;align-items:center;"><div style="display:flex;align-items:center;gap:10px;"><div style="font-size:20px;font-weight:800;color:${R_THEME.primary};">더홈점검</div><div style="height:14px;width:1px;background:${R_THEME.border};"></div><div style="font-size:16px;font-weight:700;color:${R_THEME.dark};">하자 점검 내역 상세</div></div><div style="font-size:12px;font-weight:700;color:${R_THEME.light};">${projectData.apartmentName}</div></div><table style="width:100%;border-collapse:collapse;font-size:12px;table-layout:fixed;border:1px solid ${R_THEME.border};"><thead><tr style="background:${R_THEME.bg};border-bottom:1px solid ${R_THEME.border};"><th style="padding:12px;width:50px;font-weight:800;color:${R_THEME.dark};border-right:1px solid ${R_THEME.border};">NO</th><th style="padding:12px;width:100px;font-weight:800;color:${R_THEME.dark};border-right:1px solid ${R_THEME.border};">공간</th><th style="padding:12px;width:100px;font-weight:800;color:${R_THEME.dark};border-right:1px solid ${R_THEME.border};">위치</th><th style="padding:12px;width:120px;font-weight:800;color:${R_THEME.dark};border-right:1px solid ${R_THEME.border};">유형</th><th style="padding:12px;text-align:left;font-weight:800;color:${R_THEME.dark};padding-left:15px;">상세 내용</th></tr></thead><tbody>${defectRows}</tbody></table><div style="position:absolute;bottom:40px;left:45px;right:45px;padding-top:15px;border-top:1px solid ${R_THEME.border};display:flex;justify-content:space-between;align-items:center;color:${R_THEME.light};font-size:11px;"><div style="font-weight:800;">THE HOME INSPECTION</div><div style="font-weight:800;">${R_THEME.contact}</div><div style="font-weight:700;">Page ${currentPage} / ${totalPages}</div></div></div>`;
     }
 
-    window.createDefectDetailPage = async function(defects, startIndex) {
+    window.createDefectDetailPage = async function(defects, startIndex, infoOnly) {
         // ... (기존 코드와 동일)
         let contentHTML = '';
         for (let idx = 0; idx < defects.length; idx++) {
             const defect = defects[idx];
             const globalIndex = startIndex + idx + 1;
             const dongHo = `${projectData.dong}동${projectData.ho}호`;
-            const farPhoto = defect.photos && defect.photos[0] ? await window.addWatermarkToPhoto(defect.photos[0], `${dongHo}_${String(globalIndex).padStart(2, '0')} 원경`) : '';
-            const closePhoto = defect.photos && defect.photos[1] ? await window.addWatermarkToPhoto(defect.photos[1], `${dongHo}_${String(globalIndex).padStart(2, '0')} 근경`) : '';
+            const farPhoto = defect.photos && defect.photos[0] ? await window.addWatermarkToPhoto(defect.photos[0], `${dongHo}_${String(globalIndex).padStart(2, '0')} 원경`, infoOnly) : '';
+            const closePhoto = defect.photos && defect.photos[1] ? await window.addWatermarkToPhoto(defect.photos[1], `${dongHo}_${String(globalIndex).padStart(2, '0')} 근경`, infoOnly) : '';
             const spaces = defect.spaces ? defect.spaces.join(', ') : '-';
             const description = defect.description || '-';
             contentHTML += `<div style="margin-bottom:25px;break-inside:avoid;background:white;border:1px solid ${R_THEME.border};border-radius:8px;overflow:hidden;"><div style="display:flex;align-items:center;padding:10px 15px;background:${R_THEME.bg};border-bottom:1px solid ${R_THEME.border};"><div style="background:${R_THEME.primary};color:white;font-weight:800;font-size:12px;padding:3px 10px;border-radius:20px;margin-right:15px;">#${String(globalIndex).padStart(2,'0')}</div><div style="font-size:15px;font-weight:800;color:${R_THEME.dark};margin-right:12px;">${spaces}</div><div style="color:#cbd5e1;margin-right:12px;">|</div><div style="font-size:13px;color:#1a1a1a;font-weight:700;flex:1;">${description}</div></div><div style="display:flex;gap:2px;padding:2px;background:${R_THEME.border};"><div style="flex:1;background:white;position:relative;height:280px;">${farPhoto?`<img src="${farPhoto}" style="width:100%;height:100%;object-fit:contain;"/>`:`<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#ccc;font-size:12px;">사진 없음</div>`}<div style="position:absolute;bottom:8px;left:8px;background:rgba(0,0,0,0.7);color:white;font-size:11px;padding:3px 8px;border-radius:4px;font-weight:700;">원경</div></div><div style="flex:1;background:white;position:relative;height:280px;">${closePhoto?`<img src="${closePhoto}" style="width:100%;height:100%;object-fit:contain;"/>`:`<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#ccc;font-size:12px;">사진 없음</div>`}<div style="position:absolute;bottom:8px;left:8px;background:${R_THEME.primary};color:white;font-size:11px;padding:3px 8px;border-radius:4px;font-weight:700;">근경</div></div></div></div>`;
