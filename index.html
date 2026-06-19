@@ -3153,7 +3153,7 @@
                         for (let i = 0; i < defectsWithPhotos.length; i += 3) {
                             doc.addPage();
                             const batch = defectsWithPhotos.slice(i, i + 3);
-                            const detailHTML = await window.createDefectDetailPage(batch, i);
+                            const detailHTML = await window.createDefectDetailPage(batch, i, true);
                             await window.addHTMLPageToPDF(doc, detailHTML, pageWidth, pageHeight);
                         }
                     }
@@ -6914,7 +6914,7 @@
                         for (let i = 0; i < defectsWithPhotos.length; i += 3) {
                             doc.addPage();
                             const batch = defectsWithPhotos.slice(i, i + 3);
-                            const detailHTML = await window.createDefectDetailPage(batch, i);
+                            const detailHTML = await window.createDefectDetailPage(batch, i, true);
                             await window.addHTMLPageToPDF(doc, detailHTML, pageWidth, pageHeight);
                         }
                     }
@@ -8055,9 +8055,14 @@
                 // 사진 있는 하자만 필터링
                 const defectsWithPhotos = projectData.defects.filter(d => d.photos && d.photos.length > 0);
                 
+                // 표지 (시공사 제출용)
+                const coverHTML = createFieldReportCoverPage();
+                await window.addHTMLPageToPDF(doc, coverHTML, pageWidth, pageHeight);
+
                 // 1페이지: 프로젝트 정보 + 첫 9개 하자
                 const firstPageDefects = defectsWithPhotos.slice(0, 9);
                 const firstPageHTML = createFieldReportFirstPage(firstPageDefects);
+                doc.addPage();
                 await window.addHTMLPageToPDF(doc, firstPageHTML, pageWidth, pageHeight);
 
                 // 2페이지~: 나머지 하자 (10개씩)
@@ -8107,6 +8112,66 @@
         }
 
         // 현장출력보고서 첫 페이지 생성 (프로젝트 정보 + 9개 하자, 사진 108x90)
+        // ==================== 현장출력보고서 표지 (시공사 제출용) ====================
+        function createFieldReportCoverPage() {
+            const apt = projectData.apartmentName || '';
+            const dongho = `${projectData.dong || ''}동 ${projectData.ho || ''}호`;
+            const date = projectData.inspectionDate || '';
+            const total = (projectData.defects || []).length;
+
+            // 중대하자 = 설명에 '누수' 포함된 하자의 번호(전체 하자 기준 No)
+            const criticalNums = [];
+            (projectData.defects || []).forEach((d, i) => {
+                if ((d.description || d.details || '').includes('누수')) criticalNums.push(i + 1);
+            });
+            const critTxt = criticalNums.length
+                ? criticalNums.map(n => 'No.' + n).join(', ')
+                : '';
+
+            // 계약자/연락처: 입력값 있으면 자동, 없으면 손글씨용 빈칸
+            const client = projectData.customerName || '';
+            const phone = projectData.customerPhone || '';
+
+            return `
+                <div style="width:794px;height:1123px;background:#fff;font-family:'Malgun Gothic',sans-serif;box-sizing:border-box;position:relative;padding:48px 52px;">
+                    <div style="position:absolute;inset:18px;border:1px solid #000;"></div>
+                    <div style="position:absolute;inset:24px;border:3px solid #000;"></div>
+                    <div style="position:relative;height:100%;display:flex;flex-direction:column;">
+                        <div style="text-align:center;margin-top:40px;">
+                            <div style="font-size:15px;letter-spacing:7px;color:#000;font-weight:bold;">THE HOME INSPECTION</div>
+                            <div style="width:46px;height:2px;background:#000;margin:16px auto;"></div>
+                        </div>
+                        <div style="text-align:center;margin-top:30px;">
+                            <div style="font-size:56px;font-weight:900;color:#000;letter-spacing:4px;line-height:1.2;">하자점검 리스트</div>
+                            <div style="display:inline-block;margin-top:22px;font-size:21px;font-weight:bold;color:#000;letter-spacing:6px;border:2px solid #000;padding:7px 30px;">시공사 제출용</div>
+                        </div>
+                        <div style="margin-top:60px;">
+                            <table style="width:100%;border-collapse:collapse;font-size:18px;">
+                                <tr><td style="border:1.5px solid #000;background:#ededed;padding:16px 18px;font-weight:bold;width:30%;text-align:center;">아파트명</td><td style="border:1.5px solid #000;padding:16px 22px;font-weight:bold;">${apt}</td></tr>
+                                <tr><td style="border:1.5px solid #000;background:#ededed;padding:16px 18px;font-weight:bold;text-align:center;">동 / 호수</td><td style="border:1.5px solid #000;padding:16px 22px;font-weight:bold;">${dongho}</td></tr>
+                                <tr><td style="border:1.5px solid #000;background:#ededed;padding:16px 18px;font-weight:bold;text-align:center;">점검일자</td><td style="border:1.5px solid #000;padding:16px 22px;font-weight:bold;">${date}</td></tr>
+                                <tr><td style="border:1.5px solid #000;background:#ededed;padding:16px 18px;font-weight:bold;text-align:center;">총 하자 건수</td><td style="border:1.5px solid #000;padding:16px 22px;font-weight:900;font-size:22px;">${total} 건</td></tr>
+                            </table>
+                        </div>
+                        <div style="margin-top:20px;border:2.5px solid #000;">
+                            <div style="display:flex;align-items:stretch;">
+                                <div style="background:#000;color:#fff;font-weight:bold;font-size:17px;padding:16px 20px;display:flex;align-items:center;letter-spacing:2px;white-space:nowrap;">중 대 하 자</div>
+                                <div style="flex:1;padding:16px 22px;font-size:20px;font-weight:900;display:flex;align-items:center;">${critTxt}</div>
+                            </div>
+                        </div>
+                        <div style="margin-top:38px;">
+                            <div style="font-size:14px;font-weight:bold;color:#000;margin-bottom:10px;letter-spacing:2px;">■ 계약자 확인</div>
+                            <table style="width:100%;border-collapse:collapse;font-size:18px;">
+                                <tr><td style="border:1.5px solid #000;background:#ededed;padding:22px 18px;font-weight:bold;width:30%;text-align:center;">계 약 자</td><td style="border:1.5px solid #000;padding:22px;font-weight:bold;">${client}</td></tr>
+                                <tr><td style="border:1.5px solid #000;background:#ededed;padding:22px 18px;font-weight:bold;text-align:center;">연 락 처</td><td style="border:1.5px solid #000;padding:22px;font-weight:bold;">${phone}</td></tr>
+                            </table>
+                        </div>
+                        <div style="margin-top:auto;text-align:center;font-size:13px;font-weight:bold;color:#000;letter-spacing:3px;padding-bottom:8px;">더홈점검</div>
+                    </div>
+                </div>
+            `;
+        }
+
         function createFieldReportFirstPage(defects) {
             const rowsHTML = defects.map((defect, idx) => {
                 const globalIndex = idx + 1;
@@ -8300,7 +8365,7 @@
                                 ctx.font = '900 ' + nSize + 'px Arial';
                                 ctx.textAlign = 'center';
                                 ctx.textBaseline = 'middle';
-                                ctx.fillStyle = 'rgba(255,255,255,0.15)'; // 더 흐린 흰색, 테두리 없음
+                                ctx.fillStyle = 'rgba(255,255,255,0.17)'; // 더 흐린 흰색, 테두리 없음
                                 ctx.fillText(bigNum, Math.round(W * 0.70), Math.round(H * 0.66));
                             }
 
