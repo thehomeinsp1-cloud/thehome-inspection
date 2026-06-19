@@ -10102,10 +10102,12 @@
     window.createProjectSummaryPage = function() {
         // 하자 요약 계산
         let criticalCount = 0, normalCount = 0;
-        projectData.defects.forEach(d => {
-            if ((d.description || '').toLowerCase().includes('누수')) criticalCount++;
+        const criticalNumList = [];
+        projectData.defects.forEach((d, i) => {
+            if ((d.description || '').toLowerCase().includes('누수')) { criticalCount++; criticalNumList.push(i + 1); }
             else normalCount++;
         });
+        const criticalNumText = criticalNumList.map(n => 'No.' + n).join(', ');
         const totalPhotos = projectData.defects.filter(d => d.photos && d.photos.length > 0).reduce((s, d) => s + d.photos.length, 0);
         const totalDefects = projectData.defects.length;
 
@@ -10206,6 +10208,7 @@
                         <div style="flex:1;border:2px solid #E84848;border-radius:10px;padding:16px 14px;text-align:center;">
                             <div style="color:#E84848;font-size:13px;font-weight:600;letter-spacing:1px;margin-bottom:4px;">중대하자</div>
                             <div style="color:#E84848;font-size:28px;font-weight:900;">${criticalCount}</div>
+                            ${criticalCount > 0 ? `<div style="margin-top:6px;background:#E84848;color:#fff;font-size:9px;font-weight:700;border-radius:5px;padding:2px 4px;line-height:1.3;word-break:keep-all;">${criticalNumText}</div>` : ''}
                         </div>
                         <div style="flex:1;border:2px solid #1A2744;border-radius:10px;padding:16px 14px;text-align:center;">
                             <div style="color:#1A2744;font-size:13px;font-weight:600;letter-spacing:1px;margin-bottom:4px;">일반하자</div>
