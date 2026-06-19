@@ -224,6 +224,21 @@
 </style>
 <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@1.3.9/dist/web/static/pretendard.min.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&display=swap">
+<style>
+@media (max-width:600px){
+  body{padding:0 0 40px !important;}
+  .sec-head h2{flex-wrap:wrap !important;white-space:normal !important;font-size:23px !important;line-height:1.25;}
+  .sec-head h2 span{white-space:normal !important;}
+  .masthead .title .ko{font-size:22px !important;}
+  .masthead .title .en{font-size:18px !important;}
+  .contact .lbl{font-size:24px !important;}
+  .contact .info .val{font-size:19px !important;}
+  .contact .info .val.mail{font-size:15.5px !important;}
+  .note .nt h3{font-size:18px !important;}
+  .note li{font-size:14.5px !important;}
+  .ostep h3{font-size:16px !important;}
+}
+</style>
 </head>
 <body>
 
@@ -453,6 +468,7 @@
 <script>
 (function(){
   function fixNoWrap(){
+    if(window.innerWidth<=600){return;}
     var specs=[['.nt h3','.28em','flex-start'],['.item h3','.4em','center'],['.item .step','.34em','center'],['.ostep .tagopt','.3em','flex-start'],['.logo .lcall','0','center']];
     specs.forEach(function(sp){
       document.querySelectorAll(sp[0]).forEach(function(el){
@@ -477,13 +493,20 @@
 <script>
 (function(){
   function sendH(){
-    var h=Math.max(document.body.scrollHeight,document.documentElement.scrollHeight);
+    var h=Math.max(document.body.scrollHeight,document.documentElement.scrollHeight,document.body.offsetHeight);
     parent.postMessage({thehomeHeight:h},'*');
   }
   window.addEventListener('load',sendH);
   window.addEventListener('resize',sendH);
   if(window.ResizeObserver){new ResizeObserver(sendH).observe(document.body);}
-  setTimeout(sendH,800);setTimeout(sendH,2000);
+  // 각 이미지가 늦게 떠서 높이가 바뀌는 경우까지 대응
+  Array.prototype.forEach.call(document.images,function(img){
+    if(!img.complete){img.addEventListener('load',sendH);img.addEventListener('error',sendH);}
+  });
+  // 웹폰트 로딩 완료 후 한 번 더
+  if(document.fonts&&document.fonts.ready){document.fonts.ready.then(sendH);}
+  // 초반 몇 초간 반복 전송(아임웹 모바일 대응)
+  var n=0,t=setInterval(function(){sendH();if(++n>20)clearInterval(t);},300);
 })();
 </script>
 </body></html>
