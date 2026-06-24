@@ -5962,8 +5962,8 @@
                     }
                     
                     // ==================== 터치 포인트 마커 추가 ====================
-                    // 짧은 탭 + 싱글 터치 + 드래그 아님 + 줌 안함 = 마커 추가
-                    if (e.changedTouches.length === 1 && touchDuration < 500 && currentZoom === 1.0) {
+                    // 짧은 탭 + 싱글 터치 + 드래그 아님 = 마커 추가 (확대 상태에서도 동작)
+                    if (e.changedTouches.length === 1 && touchDuration < 500) {
                         const touch = e.changedTouches[0];
                         const moveX = Math.abs(touch.clientX - touchStartX);
                         const moveY = Math.abs(touch.clientY - touchStartY);
@@ -5973,8 +5973,17 @@
                             // ✅ iOS 보정: 비디오 콘텐츠 영역 기준 좌표 계산
                             const contentRect = getVideoContentRect();
                             
-                            const x = touch.clientX - contentRect.left;
-                            const y = touch.clientY - contentRect.top;
+                            let x = touch.clientX - contentRect.left;
+                            let y = touch.clientY - contentRect.top;
+                            
+                            // ✅ 줌 보정: CSS scale()은 콘텐츠 중심 기준 확대 → 확대 전 원본 좌표로 역산
+                            // 이렇게 저장하면 마커 캔버스/사진 합성(0~1 정규화)이 기존 그대로 동작
+                            if (currentZoom && currentZoom !== 1.0) {
+                                const cx = contentRect.width / 2;
+                                const cy = contentRect.height / 2;
+                                x = cx + (x - cx) / currentZoom;
+                                y = cy + (y - cy) / currentZoom;
+                            }
                             
                             // 범위 체크 (비디오 콘텐츠 영역 내부만)
                             if (x >= 0 && x <= contentRect.width && y >= 0 && y <= contentRect.height) {
