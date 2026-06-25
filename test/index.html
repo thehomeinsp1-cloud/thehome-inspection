@@ -641,6 +641,7 @@
             pointer-events: auto;
             display: block; /* iOS: 인라인 요소로 인한 여백 제거 */
             object-fit: contain; /* ✅ iOS: 비디오 콘텐츠 영역 명시 (letterbox 처리) */
+            transform-origin: center center; /* ✅ 줌 확대 기준점 고정 (마커 좌표 보정 기준) */
         }
 
         .camera-controls {
@@ -5718,8 +5719,12 @@
                     currentZoom = Math.max(1.0, Math.min(zoom, 5.0));
                     window.currentZoom = currentZoom; // 전역 변수 동기화
                     
-                    // CSS 줌만 사용 (동기식, 안정적)
+                    // ✅ CSS 줌: 비디오와 마커 캔버스를 '동일하게' 확대 → 좌표계 일치, 마커가 영상에 정확히 고정
                     video.style.transform = `scale(${currentZoom})`;
+                    if (markerCanvas) {
+                        markerCanvas.style.transformOrigin = 'center center';
+                        markerCanvas.style.transform = `scale(${currentZoom})`;
+                    }
                     
                     updateZoomDisplay();
                 };
@@ -5819,7 +5824,12 @@
                 };
                 
                 // 마커 그리기 함수
-                const drawMarker = (x, y) => {
+                const drawMarker = (nx, ny) => {
+                    // nx, ny는 정규화(0~1) 좌표 → 현재 캔버스 CSS 크기 기준 픽셀로 환산
+                    const cssW = parseFloat(markerCanvas.style.width) || markerCanvas.width;
+                    const cssH = parseFloat(markerCanvas.style.height) || markerCanvas.height;
+                    const x = nx * cssW;
+                    const y = ny * cssH;
                     markerCtx.strokeStyle = '#ef4444'; // 빨강색
                     markerCtx.lineWidth = 2;
                     markerCtx.beginPath();
@@ -5848,13 +5858,8 @@
                 
                 // 마커 배열 가져오기 함수 (capturePhoto에서 사용)
                 window.getMarkers = () => {
-                    // ✅ iOS: 콘텐츠 영역 기준으로 정규화 (0~1 비율)
-                    const contentRect = getVideoContentRect();
-                    
-                    return markers.map(m => ({
-                        x: m.x / contentRect.width,
-                        y: m.y / contentRect.height
-                    }));
+                    // 마커는 이미 정규화(0~1)로 저장됨 → 그대로 반환
+                    return markers.map(m => ({ x: m.x, y: m.y }));
                 };
                 
                 // 초기 캔버스 크기 설정 (iOS: 비디오 로드 대기)
@@ -5970,27 +5975,19 @@
                         
                         // 드래그가 아닌 경우만 마커 추가 (이동 거리 10px 미만)
                         if (moveX < 10 && moveY < 10) {
-                            // ✅ iOS 보정: 비디오 콘텐츠 영역 기준 좌표 계산
-                            const contentRect = getVideoContentRect();
-                            
-                            let x = touch.clientX - contentRect.left;
-                            let y = touch.clientY - contentRect.top;
-                            
-                            // ✅ 줌 보정: CSS scale()은 콘텐츠 중심 기준 확대 → 확대 전 원본 좌표로 역산
-                            // 이렇게 저장하면 마커 캔버스/사진 합성(0~1 정규화)이 기존 그대로 동작
-                            if (currentZoom && currentZoom !== 1.0) {
-                                const cx = contentRect.width / 2;
-                                const cy = contentRect.height / 2;
-                                x = cx + (x - cx) / currentZoom;
-                                y = cy + (y - cy) / currentZoom;
-                            }
-                            
-                            // 범위 체크 (비디오 콘텐츠 영역 내부만)
-                            if (x >= 0 && x <= contentRect.width && y >= 0 && y <= contentRect.height) {
-                                // 마커 추가 (최대 10개까지)
-                                if (markers.length < 10) {
-                                    markers.push({ x, y });
-                                    drawMarker(x, y);
+                            // 마커 캔버스는 비디오와 동일하게 scale 확대된다(applyZoom).
+                            // 따라서 캔버스의 '확대 후' 화면 rect를 기준으로 터치 위치를 비율(0~1)로 내면
+                            // 그 값이 곧 '확대 전 캔버스 좌표계' 정규화 좌표가 된다.
+                            const rect = markerCanvas.getBoundingClientRect(); // scale 반영된 화면상 rect
+                            if (rect.width > 0 && rect.height > 0) {
+                                const nx = (touch.clientX - rect.left) / rect.width;
+                                const ny = (touch.clientY - rect.top) / rect.height;
+                                // 캔버스(=비디오 콘텐츠) 영역 내부만
+                                if (nx >= 0 && nx <= 1 && ny >= 0 && ny <= 1) {
+                                    if (markers.length < 10) {
+                                        markers.push({ x: nx, y: ny });
+                                        drawMarker(nx, ny);
+                                    }
                                 }
                             }
                         }
