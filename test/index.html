@@ -5719,12 +5719,14 @@
                     currentZoom = Math.max(1.0, Math.min(zoom, 5.0));
                     window.currentZoom = currentZoom; // 전역 변수 동기화
                     
-                    // ✅ CSS 줌: 비디오와 마커 캔버스를 '동일하게' 확대 → 좌표계 일치, 마커가 영상에 정확히 고정
+                    // 비디오만 CSS scale 확대 (transform-origin: center)
                     video.style.transform = `scale(${currentZoom})`;
                     if (markerCanvas) {
-                        markerCanvas.style.transformOrigin = 'center center';
-                        markerCanvas.style.transform = `scale(${currentZoom})`;
+                        markerCanvas.style.transform = ''; // 캔버스는 확대하지 않음
                     }
+                    
+                    // 줌 변경 시 저장된 마커들을 현재 줌 반영해 다시 그림
+                    redrawMarkers();
                     
                     updateZoomDisplay();
                 };
@@ -5825,7 +5827,8 @@
                 
                 // 마커 그리기 함수
                 const drawMarker = (nx, ny) => {
-                    // nx, ny는 정규화(0~1) 좌표 → 현재 캔버스 CSS 크기 기준 픽셀로 환산
+                    // nx,ny = 촬영 사진 정규화 = 화면에서 본 비율(s)과 동일.
+                    // 마커 캔버스는 확대하지 않으므로 비율 그대로 캔버스 픽셀로 환산해 그린다.
                     const cssW = parseFloat(markerCanvas.style.width) || markerCanvas.width;
                     const cssH = parseFloat(markerCanvas.style.height) || markerCanvas.height;
                     const x = nx * cssW;
@@ -5975,14 +5978,13 @@
                         
                         // 드래그가 아닌 경우만 마커 추가 (이동 거리 10px 미만)
                         if (moveX < 10 && moveY < 10) {
-                            // 마커 캔버스는 비디오와 동일하게 scale 확대된다(applyZoom).
-                            // 따라서 캔버스의 '확대 후' 화면 rect를 기준으로 터치 위치를 비율(0~1)로 내면
-                            // 그 값이 곧 '확대 전 캔버스 좌표계' 정규화 좌표가 된다.
-                            const rect = markerCanvas.getBoundingClientRect(); // scale 반영된 화면상 rect
+                            // 촬영(capturePhoto)은 비디오 중앙 1/zoom 영역을 크롭→전체로 확대 저장한다.
+                            // 화면 CSS scale도 동일한 중앙 크롭+확대를 보여주므로, 수학적으로
+                            // "화면에서 본 비율 s" == "촬영 사진의 정규화 좌표 p" 가 성립한다(줌 보정 불필요).
+                            const rect = markerCanvas.getBoundingClientRect();
                             if (rect.width > 0 && rect.height > 0) {
                                 const nx = (touch.clientX - rect.left) / rect.width;
                                 const ny = (touch.clientY - rect.top) / rect.height;
-                                // 캔버스(=비디오 콘텐츠) 영역 내부만
                                 if (nx >= 0 && nx <= 1 && ny >= 0 && ny <= 1) {
                                     if (markers.length < 10) {
                                         markers.push({ x: nx, y: ny });
