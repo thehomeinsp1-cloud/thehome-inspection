@@ -674,7 +674,6 @@
             pointer-events: auto;
             display: block; /* iOS: 인라인 요소로 인한 여백 제거 */
             object-fit: contain; /* ✅ iOS: 비디오 콘텐츠 영역 명시 (letterbox 처리) */
-            transform-origin: center center; /* ✅ 줌 확대 기준점 고정 (마커 좌표 보정 기준) */
         }
 
         .camera-controls {
@@ -2184,7 +2183,7 @@
                 apartmentName: '',
                 dong: '',
                 ho: '',
-                inspectionDate: (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; })(),
+                inspectionDate: new Date().toISOString().split('T')[0],
                 customerName: '',
                 customerPhone: '',
                 author: lastAuthor, // ✅ 마지막 작성자 자동 적용
@@ -4496,8 +4495,7 @@
             
             // 점검일자 기본값 설정 (저장된 값이 없을 때만)
             if (!document.getElementById('inspectionDate').value) {
-                const d = new Date();
-                document.getElementById('inspectionDate').value = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+                document.getElementById('inspectionDate').valueAsDate = new Date();
             }
             
             console.log('✅ 앱 초기화 완료');
@@ -5723,15 +5721,15 @@
                     audio: false
                 };
                 
-                // 안드로이드: 1080p (확대 시 크롭 화질 확보)
+                // 안드로이드: iOS와 동일 해상도 (업로드 속도 최적화, PDF 화질 차이 없음)
                 if (deviceInfo.isAndroid) {
-                    constraints.video.width = { ideal: 1920 };
-                    constraints.video.height = { ideal: 1080 };
+                    constraints.video.width = { ideal: 1280 };
+                    constraints.video.height = { ideal: 720 };
                 }
-                // iOS: 1080p (확대 시 크롭 화질 확보)
+                // iOS: 중간 해상도 (배터리/성능 최적화)
                 else if (deviceInfo.isIOS) {
-                    constraints.video.width = { ideal: 1920 };
-                    constraints.video.height = { ideal: 1080 };
+                    constraints.video.width = { ideal: 1280 };
+                    constraints.video.height = { ideal: 720 };
                 }
                 // 기타 데스크톱
                 else {
@@ -5806,14 +5804,8 @@
                     currentZoom = Math.max(1.0, Math.min(zoom, 5.0));
                     window.currentZoom = currentZoom; // 전역 변수 동기화
                     
-                    // 비디오만 CSS scale 확대 (transform-origin: center)
+                    // CSS 줌만 사용 (동기식, 안정적)
                     video.style.transform = `scale(${currentZoom})`;
-                    if (markerCanvas) {
-                        markerCanvas.style.transform = ''; // 캔버스는 확대하지 않음
-                    }
-                    
-                    // 줌 변경 시 저장된 마커들을 현재 줌 반영해 다시 그림
-                    redrawMarkers();
                     
                     updateZoomDisplay();
                 };
@@ -5913,18 +5905,18 @@
                 };
                 
                 // 마커 그리기 함수
-                const drawMarker = (nx, ny) => {
-                    // nx,ny = 촬영 사진 정규화 = 화면에서 본 비율(s)과 동일.
-                    // 마커 캔버스는 확대하지 않으므로 비율 그대로 캔버스 픽셀로 환산해 그린다.
-                    const cssW = parseFloat(markerCanvas.style.width) || markerCanvas.width;
-                    const cssH = parseFloat(markerCanvas.style.height) || markerCanvas.height;
-                    const x = nx * cssW;
-                    const y = ny * cssH;
+                const drawMarker = (x, y) => {
                     markerCtx.strokeStyle = '#ef4444'; // 빨강색
-                    markerCtx.lineWidth = 2;
+                    markerCtx.lineWidth = 3;
                     markerCtx.beginPath();
                     markerCtx.arc(x, y, 30, 0, 2 * Math.PI);
                     markerCtx.stroke();
+                    
+                    // 중심점
+                    markerCtx.fillStyle = '#ef4444';
+                    markerCtx.beginPath();
+                    markerCtx.arc(x, y, 5, 0, 2 * Math.PI);
+                    markerCtx.fill();
                 };
                 
                 // 모든 마커 다시 그리기
@@ -5948,8 +5940,13 @@
                 
                 // 마커 배열 가져오기 함수 (capturePhoto에서 사용)
                 window.getMarkers = () => {
-                    // 마커는 이미 정규화(0~1)로 저장됨 → 그대로 반환
-                    return markers.map(m => ({ x: m.x, y: m.y }));
+                    // ✅ iOS: 콘텐츠 영역 기준으로 정규화 (0~1 비율)
+                    const contentRect = getVideoContentRect();
+                    
+                    return markers.map(m => ({
+                        x: m.x / contentRect.width,
+                        y: m.y / contentRect.height
+                    }));
                 };
                 
                 // 초기 캔버스 크기 설정 (iOS: 비디오 로드 대기)
@@ -6057,26 +6054,26 @@
                     }
                     
                     // ==================== 터치 포인트 마커 추가 ====================
-                    // 짧은 탭 + 싱글 터치 + 드래그 아님 = 마커 추가 (확대 상태에서도 동작)
-                    if (e.changedTouches.length === 1 && touchDuration < 500) {
+                    // 짧은 탭 + 싱글 터치 + 드래그 아님 + 줌 안함 = 마커 추가
+                    if (e.changedTouches.length === 1 && touchDuration < 500 && currentZoom === 1.0) {
                         const touch = e.changedTouches[0];
                         const moveX = Math.abs(touch.clientX - touchStartX);
                         const moveY = Math.abs(touch.clientY - touchStartY);
                         
                         // 드래그가 아닌 경우만 마커 추가 (이동 거리 10px 미만)
                         if (moveX < 10 && moveY < 10) {
-                            // 촬영(capturePhoto)은 비디오 중앙 1/zoom 영역을 크롭→전체로 확대 저장한다.
-                            // 화면 CSS scale도 동일한 중앙 크롭+확대를 보여주므로, 수학적으로
-                            // "화면에서 본 비율 s" == "촬영 사진의 정규화 좌표 p" 가 성립한다(줌 보정 불필요).
-                            const rect = markerCanvas.getBoundingClientRect();
-                            if (rect.width > 0 && rect.height > 0) {
-                                const nx = (touch.clientX - rect.left) / rect.width;
-                                const ny = (touch.clientY - rect.top) / rect.height;
-                                if (nx >= 0 && nx <= 1 && ny >= 0 && ny <= 1) {
-                                    if (markers.length < 10) {
-                                        markers.push({ x: nx, y: ny });
-                                        drawMarker(nx, ny);
-                                    }
+                            // ✅ iOS 보정: 비디오 콘텐츠 영역 기준 좌표 계산
+                            const contentRect = getVideoContentRect();
+                            
+                            const x = touch.clientX - contentRect.left;
+                            const y = touch.clientY - contentRect.top;
+                            
+                            // 범위 체크 (비디오 콘텐츠 영역 내부만)
+                            if (x >= 0 && x <= contentRect.width && y >= 0 && y <= contentRect.height) {
+                                // 마커 추가 (최대 10개까지)
+                                if (markers.length < 10) {
+                                    markers.push({ x, y });
+                                    drawMarker(x, y);
                                 }
                             }
                         }
@@ -6500,10 +6497,16 @@
                     
                     // 원형 마커
                     ctx.strokeStyle = '#ef4444';
-                    ctx.lineWidth = 2 * scale;
+                    ctx.lineWidth = 3 * scale;
                     ctx.beginPath();
                     ctx.arc(x, y, radius, 0, 2 * Math.PI);
                     ctx.stroke();
+                    
+                    // 중심점
+                    ctx.fillStyle = '#ef4444';
+                    ctx.beginPath();
+                    ctx.arc(x, y, 5 * scale, 0, 2 * Math.PI);
+                    ctx.fill();
                 });
                 
                 // 마커 초기화
@@ -6523,12 +6526,9 @@
                 const maxWidth = deviceInfo.isIOS ? 2560 : 3840;
                 const quality = 0.95;
                 imageData = await compressImage(originalImage, maxWidth, quality);
-            } else if (zoomLevel > 1.0) {
-                // 확대해서 찍은 사진: 크롭으로 잃은 선명도 보완 위해 고화질 저장
-                imageData = await compressImage(originalImage, 2560, 0.92);
             } else {
-                // 일반 사진: 1080p 원본이지만 압축 조정으로 기존 용량 수준 유지 (속도/용량 최적화)
-                imageData = await compressImage(originalImage, 1440, 0.82);
+                // 일반 사진: 기본 설정
+                imageData = await compressImage(originalImage, 1920, 0.85);
             }
             
             if (currentPhotoTarget === 'floorplan') {
@@ -7531,7 +7531,7 @@
                 const url = URL.createObjectURL(content);
                 const link = document.createElement('a');
                 link.href = url;
-                link.download = `${projectName}_사진모음_${projectData.inspectionDate || (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; })()}.zip`;
+                link.download = `${projectName}_사진모음_${projectData.inspectionDate || new Date().toISOString().split('T')[0]}.zip`;
                 
                 document.body.appendChild(link);
                 link.click();
@@ -10220,7 +10220,7 @@
                         document.getElementById('apartmentName').value = '';
                         document.getElementById('dong').value = '';
                         document.getElementById('ho').value = '';
-                        (() => { const d = new Date(); document.getElementById('inspectionDate').value = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; })();
+                        document.getElementById('inspectionDate').valueAsDate = new Date();
                         document.getElementById('customerName').value = '';
                         document.getElementById('customerPhone').value = '';
                         
