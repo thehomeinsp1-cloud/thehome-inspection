@@ -5636,15 +5636,15 @@
                     audio: false
                 };
                 
-                // 안드로이드: 1080p (확대 시 크롭 화질 확보)
+                // 안드로이드: iOS와 동일 해상도 (업로드 속도 최적화, PDF 화질 차이 없음)
                 if (deviceInfo.isAndroid) {
-                    constraints.video.width = { ideal: 1920 };
-                    constraints.video.height = { ideal: 1080 };
+                    constraints.video.width = { ideal: 1280 };
+                    constraints.video.height = { ideal: 720 };
                 }
-                // iOS: 1080p (확대 시 크롭 화질 확보)
+                // iOS: 중간 해상도 (배터리/성능 최적화)
                 else if (deviceInfo.isIOS) {
-                    constraints.video.width = { ideal: 1920 };
-                    constraints.video.height = { ideal: 1080 };
+                    constraints.video.width = { ideal: 1280 };
+                    constraints.video.height = { ideal: 720 };
                 }
                 // 기타 데스크톱
                 else {
@@ -6413,12 +6413,9 @@
                 const maxWidth = deviceInfo.isIOS ? 2560 : 3840;
                 const quality = 0.95;
                 imageData = await compressImage(originalImage, maxWidth, quality);
-            } else if (zoomLevel > 1.0) {
-                // 확대해서 찍은 사진: 크롭으로 잃은 선명도 보완 위해 고화질 저장
-                imageData = await compressImage(originalImage, 2560, 0.92);
             } else {
-                // 일반 사진: 1080p 원본이지만 압축 조정으로 기존 용량 수준 유지 (속도/용량 최적화)
-                imageData = await compressImage(originalImage, 1440, 0.82);
+                // 일반 사진: 기본 설정
+                imageData = await compressImage(originalImage, 1920, 0.85);
             }
             
             if (currentPhotoTarget === 'floorplan') {
