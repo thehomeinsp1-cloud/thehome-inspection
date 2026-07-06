@@ -2183,7 +2183,7 @@
                 apartmentName: '',
                 dong: '',
                 ho: '',
-                inspectionDate: new Date().toISOString().split('T')[0],
+                inspectionDate: (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; })(),
                 customerName: '',
                 customerPhone: '',
                 author: lastAuthor, // ✅ 마지막 작성자 자동 적용
@@ -4495,7 +4495,8 @@
             
             // 점검일자 기본값 설정 (저장된 값이 없을 때만)
             if (!document.getElementById('inspectionDate').value) {
-                document.getElementById('inspectionDate').valueAsDate = new Date();
+                const d = new Date();
+                document.getElementById('inspectionDate').value = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
             }
             
             console.log('✅ 앱 초기화 완료');
@@ -5907,16 +5908,10 @@
                 // 마커 그리기 함수
                 const drawMarker = (x, y) => {
                     markerCtx.strokeStyle = '#ef4444'; // 빨강색
-                    markerCtx.lineWidth = 3;
+                    markerCtx.lineWidth = 2;
                     markerCtx.beginPath();
                     markerCtx.arc(x, y, 30, 0, 2 * Math.PI);
                     markerCtx.stroke();
-                    
-                    // 중심점
-                    markerCtx.fillStyle = '#ef4444';
-                    markerCtx.beginPath();
-                    markerCtx.arc(x, y, 5, 0, 2 * Math.PI);
-                    markerCtx.fill();
                 };
                 
                 // 모든 마커 다시 그리기
@@ -6497,16 +6492,10 @@
                     
                     // 원형 마커
                     ctx.strokeStyle = '#ef4444';
-                    ctx.lineWidth = 3 * scale;
+                    ctx.lineWidth = 2 * scale;
                     ctx.beginPath();
                     ctx.arc(x, y, radius, 0, 2 * Math.PI);
                     ctx.stroke();
-                    
-                    // 중심점
-                    ctx.fillStyle = '#ef4444';
-                    ctx.beginPath();
-                    ctx.arc(x, y, 5 * scale, 0, 2 * Math.PI);
-                    ctx.fill();
                 });
                 
                 // 마커 초기화
@@ -10220,7 +10209,7 @@
                         document.getElementById('apartmentName').value = '';
                         document.getElementById('dong').value = '';
                         document.getElementById('ho').value = '';
-                        document.getElementById('inspectionDate').valueAsDate = new Date();
+                        (() => { const d = new Date(); document.getElementById('inspectionDate').value = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; })();
                         document.getElementById('customerName').value = '';
                         document.getElementById('customerPhone').value = '';
                         
