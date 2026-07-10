@@ -6794,6 +6794,13 @@
                 return priorityA - priorityB;
             });
             
+            // ✅ '가구'가 문/짝/틀과 함께 선택된 경우: '가구'를 맨 앞으로
+            // (예: 가구+문+짝 → "가구 문 / 짝" = 가구의 문짝. 창/문/틀 등 기존 조합은 영향 없음)
+            if (locations.includes('가구') && locations.some(l => l === '문' || l === '짝' || l === '틀')) {
+                const rest = sorted.filter(l => l !== '가구');
+                return '가구 ' + rest.join(' / ');
+            }
+            
             return sorted.join(' / ');
         }
 
