@@ -1362,10 +1362,6 @@
                     📦 모든 자료 다운로드 (ZIP)
                 </button>
                 
-                <button class="btn" onclick="importProjectFromBackup()" style="width: 100%; background: #8b5cf6; color: white; font-weight: bold; font-size: 15px; padding: 13px; margin-bottom: 10px;">
-                    ♻️ 프로젝트 가져오기 (백업 복원)
-                </button>
-                
                 <button class="btn btn-primary" onclick="generatePDF()" style="width: 100%; margin-bottom: 10px;">
                     📄 PDF 보고서만 다운로드
                 </button>
@@ -1401,6 +1397,13 @@
                         </div>
                     </div>
                 </details>
+            </div>
+
+            <!-- 프로젝트 백업 복원 (자주 안 쓰는 기능 - 맨 아래 배치) -->
+            <div style="text-align: center; margin: 6px 0 14px 0;">
+                <button onclick="importProjectFromBackup()" style="background: none; border: 1px solid #cbd5e1; color: #64748b; font-size: 13px; padding: 8px 18px; border-radius: 8px; cursor: pointer;">
+                    ♻️ 프로젝트 가져오기 (백업 복원)
+                </button>
             </div>
         </div>
     </div>
@@ -2836,6 +2839,16 @@
 
         // 백업 JSON에서 프로젝트 복원 (파일 선택 → 검증 → 목록 추가)
         window.importProjectFromBackup = function() {
+            // 백업 파일 위치 안내 (확인 후 파일 선택창 진행)
+            const guide = '📂 백업 파일 위치 안내\n\n'
+                + '구글드라이브의 해당 프로젝트 폴더 안에\n'
+                + '"프로젝트백업.json" 파일이 있습니다.\n\n'
+                + '다음 화면의 파일 선택창에서\n'
+                + '· 안드로이드: 좌측 메뉴 → Google Drive 선택\n'
+                + '· 아이폰: 파일 앱 → Google Drive 선택\n'
+                + '후 백업 파일을 찾아 선택하세요.\n\n'
+                + '(ZIP으로 받은 경우: 압축 해제 후 "백업(복원용)" 폴더 안에 있습니다)';
+            if (!confirm(guide)) return;
             const input = document.createElement('input');
             input.type = 'file';
             input.accept = '.json,application/json';
