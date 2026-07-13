@@ -1377,6 +1377,12 @@
                 <button class="btn" onclick="generateDefectListExcel()" style="width: 100%; background: linear-gradient(135deg, #059669 0%, #10b981 100%); color: white; margin-top: 10px;">
                     📊 하자점검리스트 (엑셀)
                 </button>
+                
+                <div style="text-align: center; margin-top: 14px; padding-top: 12px; border-top: 1px solid #eee;">
+                    <button onclick="importProjectFromBackup()" style="background: none; border: 1px solid #cbd5e1; color: #64748b; font-size: 13px; padding: 8px 18px; border-radius: 8px; cursor: pointer;">
+                        ♻️ 프로젝트 가져오기 (백업 복원)
+                    </button>
+                </div>
             </div>
 
             <!-- 🗑️ 프로젝트 관리 카드 -->
@@ -1397,13 +1403,6 @@
                         </div>
                     </div>
                 </details>
-            </div>
-
-            <!-- 프로젝트 백업 복원 (자주 안 쓰는 기능 - 맨 아래 배치) -->
-            <div style="text-align: center; margin: 6px 0 14px 0;">
-                <button onclick="importProjectFromBackup()" style="background: none; border: 1px solid #cbd5e1; color: #64748b; font-size: 13px; padding: 8px 18px; border-radius: 8px; cursor: pointer;">
-                    ♻️ 프로젝트 가져오기 (백업 복원)
-                </button>
             </div>
         </div>
     </div>
