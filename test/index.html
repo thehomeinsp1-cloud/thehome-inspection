@@ -1362,6 +1362,10 @@
                     📦 모든 자료 다운로드 (ZIP)
                 </button>
                 
+                <button class="btn" onclick="importProjectFromBackup()" style="width: 100%; background: #8b5cf6; color: white; font-weight: bold; font-size: 15px; padding: 13px; margin-bottom: 10px;">
+                    ♻️ 프로젝트 가져오기 (백업 복원)
+                </button>
+                
                 <button class="btn btn-primary" onclick="generatePDF()" style="width: 100%; margin-bottom: 10px;">
                     📄 PDF 보고서만 다운로드
                 </button>
@@ -2812,6 +2816,64 @@
             }
         }
 
+        // ==================== 프로젝트 백업 / 복원 ====================
+        // 프로젝트 전체(하자·사진·장비·평면도 포함)를 JSON 백업으로 생성
+        function createProjectBackup(project) {
+            const backup = {
+                _type: 'thehomein_project_backup',
+                _version: 1,
+                _exportedAt: new Date().toISOString(),
+                project: project
+            };
+            return JSON.stringify(backup);
+        }
+
+        // 백업 파일명 생성
+        function getBackupFileName(project) {
+            const name = `${project.apartmentName || '프로젝트'}_${project.dong || ''}동${project.ho || ''}호`;
+            return `${name}_프로젝트백업.json`;
+        }
+
+        // 백업 JSON에서 프로젝트 복원 (파일 선택 → 검증 → 목록 추가)
+        window.importProjectFromBackup = function() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json,application/json';
+            input.onchange = async (e) => {
+                const file = e.target.files && e.target.files[0];
+                if (!file) return;
+                try {
+                    showLoading('프로젝트 복원 중...');
+                    const text = await file.text();
+                    const data = JSON.parse(text);
+                    // 검증: 우리 앱 백업 파일인지
+                    if (!data || data._type !== 'thehomein_project_backup' || !data.project) {
+                        hideLoading();
+                        alert('더홈점검 프로젝트 백업 파일이 아닙니다.');
+                        return;
+                    }
+                    const imported = data.project;
+                    // id 충돌 방지: 항상 새 id 부여 (기존 프로젝트 덮어쓰기 방지)
+                    imported.id = Date.now();
+                    imported.isUploaded = false; // 복원본은 재업로드 가능하도록
+                    projects.push(imported);
+                    currentProjectId = imported.id;
+                    await saveProjectsToLocalStorage();
+                    renderProjectList();
+                    loadProjectToUI();
+                    updateProgress();
+                    hideLoading();
+                    showToast(`✅ 프로젝트 복원 완료: ${imported.apartmentName || ''} ${imported.dong || ''}동 ${imported.ho || ''}호 (하자 ${(imported.defects || []).length}건)`);
+                } catch (err) {
+                    hideLoading();
+                    console.error('프로젝트 복원 오류:', err);
+                    alert('복원 중 오류가 발생했습니다: ' + err.message);
+                }
+            };
+            input.click();
+        }
+        // ==================== 프로젝트 백업 / 복원 끝 ====================
+
         // 메인 업로드 함수
 
         window.uploadProjectToDrive = async function(projectToUpload = null) {
@@ -2907,6 +2969,14 @@
                 showToast('📁 폴더 생성 중...');
                 const projectName = `${project.apartmentName}_${project.dong}동_${project.ho}호_${project.author}_${project.inspectionDate}`;
                 const projectFolderId = await createProjectFolder(SHARED_DRIVE_ID, projectName);
+                
+                // ✅ 프로젝트 백업(JSON) 자동 업로드 - 삭제 후에도 이 파일로 복원 가능
+                try {
+                    const backupBlob = new Blob([createProjectBackup(project)], { type: 'application/json' });
+                    await uploadFileToDrive(projectFolderId, backupBlob, getBackupFileName(project), 'application/json');
+                } catch (backupErr) {
+                    console.error('백업 파일 업로드 실패 (나머지 업로드는 계속):', backupErr);
+                }
                 
                 // ========== 장비점검만 있는 경우 (하자 없음) ==========
                 if (!hasDefects && hasEquipmentPhotos) {
@@ -5636,15 +5706,15 @@
                     audio: false
                 };
                 
-                // 안드로이드: 1080p (확대 시 크롭 화질 확보)
+                // 안드로이드: iOS와 동일 해상도 (업로드 속도 최적화, PDF 화질 차이 없음)
                 if (deviceInfo.isAndroid) {
-                    constraints.video.width = { ideal: 1920 };
-                    constraints.video.height = { ideal: 1080 };
+                    constraints.video.width = { ideal: 1280 };
+                    constraints.video.height = { ideal: 720 };
                 }
-                // iOS: 1080p (확대 시 크롭 화질 확보)
+                // iOS: 중간 해상도 (배터리/성능 최적화)
                 else if (deviceInfo.isIOS) {
-                    constraints.video.width = { ideal: 1920 };
-                    constraints.video.height = { ideal: 1080 };
+                    constraints.video.width = { ideal: 1280 };
+                    constraints.video.height = { ideal: 720 };
                 }
                 // 기타 데스크톱
                 else {
@@ -6413,12 +6483,9 @@
                 const maxWidth = deviceInfo.isIOS ? 2560 : 3840;
                 const quality = 0.95;
                 imageData = await compressImage(originalImage, maxWidth, quality);
-            } else if (zoomLevel > 1.0) {
-                // 확대해서 찍은 사진: 크롭으로 잃은 선명도 보완 위해 고화질 저장
-                imageData = await compressImage(originalImage, 2560, 0.92);
             } else {
-                // 일반 사진: 1080p 원본이지만 압축 조정으로 기존 용량 수준 유지 (속도/용량 최적화)
-                imageData = await compressImage(originalImage, 1440, 0.82);
+                // 일반 사진: 기본 설정
+                imageData = await compressImage(originalImage, 1920, 0.85);
             }
             
             if (currentPhotoTarget === 'floorplan') {
@@ -6797,6 +6864,13 @@
                 return priorityA - priorityB;
             });
             
+            // ✅ '가구'가 문/짝/틀과 함께 선택된 경우: '가구'를 맨 앞으로
+            // (예: 가구+문+짝 → "가구 문 / 짝" = 가구의 문짝. 창/문/틀 등 기존 조합은 영향 없음)
+            if (locations.includes('가구') && locations.some(l => l === '문' || l === '짝' || l === '틀')) {
+                const rest = sorted.filter(l => l !== '가구');
+                return '가구 ' + rest.join(' / ');
+            }
+            
             return sorted.join(' / ');
         }
 
@@ -6867,6 +6941,16 @@
                 // 드라이브 업로드와 동일한 파일명 형식
                 const projectName = `${projectData.apartmentName}_${projectData.dong}동_${projectData.ho}호_${projectData.author}_${projectData.inspectionDate}`;
                 let photoCount = 0;
+                
+                // ✅ 프로젝트 백업(JSON) 자동 포함 - 삭제 후에도 이 파일로 복원 가능
+                try {
+                    const currentProj = projects.find(p => p.id === currentProjectId);
+                    if (currentProj) {
+                        zip.folder('백업(복원용)').file(getBackupFileName(currentProj), createProjectBackup(currentProj));
+                    }
+                } catch (backupErr) {
+                    console.error('ZIP 백업 포함 실패 (나머지는 계속):', backupErr);
+                }
                 
                 // ========== 1. PDF 파일 생성 ==========
                 showToast('📄 PDF 보고서 생성 중...');
