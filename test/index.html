@@ -3984,9 +3984,9 @@
 
             listContainer.innerHTML = projects.map((project, index) => {
                 const isActive = project.id === currentProjectId;
-                const projectName = project.apartmentName && project.dong && project.ho 
-                    ? `${project.apartmentName} ${project.dong} ${project.ho}`
-                    : `프로젝트 ${index + 1} (정보 미입력)`;
+                const hasInfo = project.apartmentName && project.dong && project.ho;
+                const aptName = hasInfo ? project.apartmentName : `프로젝트 ${index + 1}`;
+                const dongHo = hasInfo ? `${project.dong} ${project.ho}` : '(정보 미입력)';
                 
                 // ✅ C타입 순번 배지: 오늘이면 오렌지 "오늘 N번", 지난 날이면 회색 날짜
                 const seq = seqMap[project.id] || 1;
@@ -4024,8 +4024,9 @@
                             <div style="flex: 1; min-width: 0;">
                                 <div style="display: flex; align-items: center; gap: 6px;">
                                     <span style="width: 9px; height: 9px; border-radius: 50%; background: ${statusColor}; flex-shrink: 0; box-shadow: 0 0 0 2px rgba(255,255,255,0.3);"></span>
-                                    <span style="font-size: 17px; font-weight: 800; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${isActive ? '▶ ' : ''}${projectName}</span>
+                                    <span style="font-size: 13px; color: rgba(255,255,255,0.85); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${isActive ? '▶ ' : ''}${aptName}</span>
                                 </div>
+                                <div style="font-size: 18px; font-weight: 800; color: #fff; margin-top: 2px; padding-left: 15px;">${dongHo}</div>
                                 <div style="font-size: 12px; color: rgba(255,255,255,0.75); margin-top: 5px; padding-left: 15px;">
                                     하자 ${project.defects.length} · 장비 ${project.equipment ? project.equipment.length : 0} · 공기질 ${project.airQuality.length}${authorInfo} · <span style="color: ${statusColor}; font-weight: 700;">${statusText}</span>
                                 </div>
