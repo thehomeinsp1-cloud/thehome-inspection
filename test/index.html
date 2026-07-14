@@ -4022,7 +4022,7 @@
                 const isActive = project.id === currentProjectId;
                 const hasInfo = project.apartmentName && project.dong && project.ho;
                 const aptName = hasInfo ? project.apartmentName : `프로젝트 ${index + 1}`;
-                const dongHo = hasInfo ? `${project.dong} ${project.ho}` : '(정보 미입력)';
+                const dongHo = hasInfo ? `${project.dong}동 ${project.ho}호` : '(정보 미입력)';
                 // ✅ 단지명 자동 크기: 동호와 동일한 18px 기본, 길면 단계 축소(하한 13px)
                 const nameLen = aptName.length;
                 let aptFontSize = 18;
