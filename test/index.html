@@ -1165,7 +1165,7 @@
         <div id="project" class="section active">
             <!-- 프로젝트 목록 카드 -->
             <div class="card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; margin-bottom: 20px;">
-                <h2 style="color: white; margin-bottom: 15px;">📋 프로젝트 목록</h2>
+                <h2 style="color: white; margin-bottom: 15px;">📋 프로젝트 목록 <span id="oldProjectBadge" onclick="toggleOldFilter()" style="display:none; cursor:pointer; background:#ef4444; color:#fff; font-size:13px; font-weight:800; border-radius:20px; padding:3px 11px; margin-left:6px; vertical-align:middle;"></span></h2>
                 
                 <div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
                     <button onclick="addNewProject()" class="btn" style="background: white; color: #667eea; flex: 1; min-width: 120px;">
@@ -1176,7 +1176,7 @@
                     </button>
                 </div>
 
-                <div id="projectList" style="background: rgba(255,255,255,0.1); border-radius: 8px; padding: 10px; max-height: 65vh; overflow-y: auto;">
+                <div id="projectList" style="background: rgba(255,255,255,0.1); border-radius: 8px; padding: 10px; max-height: 400px; overflow-y: auto;">
                     <!-- 프로젝트 목록이 여기 표시됩니다 -->
                 </div>
 
@@ -3954,13 +3954,44 @@
         // ==================== 프로젝트 목록 관리 함수 ====================
         
         // 프로젝트 목록 렌더링
+        // 오래된 프로젝트 필터 상태 (배지 탭 시 토글)
+        let showOnlyOldProjects = false;
+        window.toggleOldFilter = function() {
+            showOnlyOldProjects = !showOnlyOldProjects;
+            renderProjectList();
+        };
+
         function renderProjectList() {
             const listContainer = document.getElementById('projectList');
             
             if (projects.length === 0) {
                 listContainer.innerHTML = '<div style="text-align: center; padding: 20px; opacity: 0.7;">프로젝트가 없습니다. "새 프로젝트"를 추가하세요.</div>';
+                const badge0 = document.getElementById('oldProjectBadge');
+                if (badge0) badge0.style.display = 'none';
                 return;
             }
+
+            // ✅ 14일 넘은 오래된 프로젝트 계산 + 제목 옆 배지 갱신
+            const DAYS_OLD = 14;
+            const nowMs = Date.now();
+            const isOld = (p) => {
+                const t = p.createdAt ? new Date(p.createdAt).getTime() : (p.id || nowMs);
+                return (nowMs - t) > DAYS_OLD * 86400000;
+            };
+            const oldCount = projects.filter(isOld).length;
+            const badgeEl = document.getElementById('oldProjectBadge');
+            if (badgeEl) {
+                if (oldCount > 0) {
+                    badgeEl.style.display = 'inline-block';
+                    badgeEl.textContent = showOnlyOldProjects ? `전체 보기` : `🔴 오래됨 ${oldCount}`;
+                    badgeEl.style.background = showOnlyOldProjects ? 'rgba(255,255,255,0.3)' : '#ef4444';
+                } else {
+                    badgeEl.style.display = 'none';
+                    showOnlyOldProjects = false;
+                }
+            }
+            // 필터 적용: 배지 탭 시 오래된 것만 표시
+            const viewProjects = showOnlyOldProjects ? projects.filter(isOld) : projects;
 
             // ✅ 당일 순번 계산: 프로젝트 생성일(createdAt 없으면 id=timestamp)을 날짜별로 묶어
             //    각 날짜 안에서 생성 순서대로 1,2,3... 부여. 오늘 날짜 문자열도 준비.
@@ -3982,7 +4013,12 @@
                 arr.forEach((p,i) => { seqMap[p.id] = i + 1; });
             });
 
-            listContainer.innerHTML = projects.map((project, index) => {
+            // 필터된 목록이 비면 안내
+            if (viewProjects.length === 0) {
+                listContainer.innerHTML = '<div style="text-align: center; padding: 20px; opacity: 0.7;">해당하는 프로젝트가 없습니다.</div>';
+                return;
+            }
+            listContainer.innerHTML = viewProjects.map((project, index) => {
                 const isActive = project.id === currentProjectId;
                 const hasInfo = project.apartmentName && project.dong && project.ho;
                 const aptName = hasInfo ? project.apartmentName : `프로젝트 ${index + 1}`;
@@ -4109,8 +4145,18 @@
                 ? `${project.apartmentName} ${project.dong} ${project.ho}`
                 : '현재 프로젝트';
 
-            if (!confirm(`"${projectName}"를 삭제하시겠습니까?\n\n⚠️ 이 작업은 되돌릴 수 없습니다.`)) {
-                return;
+            // ✅ 업로드/백업 안 된 프로젝트는 강한 경고 (복원 불가)
+            if (!project.isUploaded) {
+                if (!confirm(`⚠️ 경고: "${projectName}"\n\n이 프로젝트는 아직 업로드(백업)되지 않았습니다.\n지금 삭제하면 사진·하자 데이터를 복원할 수 없습니다.\n\n그래도 삭제하시겠습니까?`)) {
+                    return;
+                }
+                if (!confirm(`정말 삭제할까요?\n\n백업이 없어 복구가 불가능합니다.\n(취소하고 먼저 업로드하거나 ZIP 다운로드를 권장합니다)`)) {
+                    return;
+                }
+            } else {
+                if (!confirm(`"${projectName}"를 삭제하시겠습니까?\n\n⚠️ 이 작업은 되돌릴 수 없습니다.\n(업로드된 백업 파일로는 복원 가능합니다)`)) {
+                    return;
+                }
             }
 
             // 프로젝트 삭제
