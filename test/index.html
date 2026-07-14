@@ -1176,7 +1176,7 @@
                     </button>
                 </div>
 
-                <div id="projectList" style="background: rgba(255,255,255,0.1); border-radius: 8px; padding: 10px; max-height: 400px; overflow-y: auto;">
+                <div id="projectList" style="background: rgba(255,255,255,0.1); border-radius: 8px; padding: 10px; max-height: 250px; overflow-y: auto;">
                     <!-- 프로젝트 목록이 여기 표시됩니다 -->
                 </div>
 
@@ -4100,6 +4100,15 @@
             
             // 로컬 스토리지 저장
             saveProjectsToLocalStorage();
+            
+            // ✅ 새 프로젝트 입력을 바로 시작할 수 있도록 아파트명 입력란으로 이동 + 포커스
+            setTimeout(() => {
+                const aptInput = document.getElementById('apartmentName');
+                if (aptInput) {
+                    aptInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    aptInput.focus();
+                }
+            }, 100);
         }
 
         // 프로젝트 전환
