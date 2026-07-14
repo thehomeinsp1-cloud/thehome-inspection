@@ -1165,7 +1165,7 @@
         <div id="project" class="section active">
             <!-- 프로젝트 목록 카드 -->
             <div class="card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; margin-bottom: 20px;">
-                <h2 style="color: white; margin-bottom: 15px;">📋 프로젝트 목록</h2>
+                <h2 style="color: white; margin-bottom: 15px;">📋 프로젝트 목록 <span id="oldProjectBadge" onclick="toggleOldFilter()" style="display:none; cursor:pointer; background:#ef4444; color:#fff; font-size:13px; font-weight:800; border-radius:20px; padding:3px 11px; margin-left:6px; vertical-align:middle;"></span></h2>
                 
                 <div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
                     <button onclick="addNewProject()" class="btn" style="background: white; color: #667eea; flex: 1; min-width: 120px;">
@@ -1176,7 +1176,7 @@
                     </button>
                 </div>
 
-                <div id="projectList" style="background: rgba(255,255,255,0.1); border-radius: 8px; padding: 10px; max-height: 200px; overflow-y: auto;">
+                <div id="projectList" style="background: rgba(255,255,255,0.1); border-radius: 8px; padding: 10px; max-height: 250px; overflow-y: auto;">
                     <!-- 프로젝트 목록이 여기 표시됩니다 -->
                 </div>
 
@@ -1377,6 +1377,12 @@
                 <button class="btn" onclick="generateDefectListExcel()" style="width: 100%; background: linear-gradient(135deg, #059669 0%, #10b981 100%); color: white; margin-top: 10px;">
                     📊 하자점검리스트 (엑셀)
                 </button>
+                
+                <div style="text-align: center; margin-top: 14px; padding-top: 12px; border-top: 1px solid #eee;">
+                    <button onclick="importProjectFromBackup()" style="background: none; border: 1px solid #cbd5e1; color: #64748b; font-size: 13px; padding: 8px 18px; border-radius: 8px; cursor: pointer;">
+                        ♻️ 프로젝트 가져오기 (백업 복원)
+                    </button>
+                </div>
             </div>
 
             <!-- 🗑️ 프로젝트 관리 카드 -->
@@ -2812,6 +2818,107 @@
             }
         }
 
+        // ==================== 프로젝트 백업 / 복원 ====================
+        // 프로젝트 전체(하자·사진·장비·평면도 포함)를 JSON 백업으로 생성
+        function createProjectBackup(project) {
+            const backup = {
+                _type: 'thehomein_project_backup',
+                _version: 1,
+                _exportedAt: new Date().toISOString(),
+                project: project
+            };
+            return JSON.stringify(backup);
+        }
+
+        // 백업 파일명 생성
+        function getBackupFileName(project) {
+            const name = `${project.apartmentName || '프로젝트'}_${project.dong || ''}동${project.ho || ''}호`;
+            return `${name}_프로젝트백업.json`;
+        }
+
+        // 백업 JSON에서 프로젝트 복원 (파일 선택 → 검증 → 목록 추가)
+        window.importProjectFromBackup = function() {
+            // 안내 모달 (confirm 사용 시 모바일에서 파일창이 차단되므로 자체 모달 + 직접 제스처로 열기)
+            const overlay = document.createElement('div');
+            overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;';
+            overlay.innerHTML = `
+                <div style="background:#fff;border-radius:14px;max-width:340px;width:100%;padding:22px;color:#333;">
+                    <div style="font-size:17px;font-weight:800;margin-bottom:12px;">📂 백업 파일 위치 안내</div>
+                    <div style="font-size:13px;line-height:1.7;">
+                        구글드라이브의 해당 프로젝트 폴더 안에<br>
+                        <b>"프로젝트백업.zip"</b> 파일이 있습니다.<br><br>
+                        파일 선택창에서<br>
+                        · 안드로이드: 좌측 메뉴 → <b>Google Drive</b><br>
+                        · 아이폰: 파일 앱 → <b>Google Drive</b><br>
+                        선택 후 백업 파일을 찾아주세요.<br><br>
+                        <span style="color:#777;">(ZIP으로 받은 경우: 압축 해제 후 "백업(복원용)" 폴더 안)</span>
+                    </div>
+                    <div style="display:flex;gap:10px;margin-top:18px;">
+                        <button id="backupImportCancel" style="flex:1;padding:12px;border:1px solid #ddd;background:#f5f5f5;border-radius:10px;font-size:14px;cursor:pointer;">취소</button>
+                        <button id="backupImportGo" style="flex:1.4;padding:12px;border:none;background:#059669;color:#fff;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;">파일 선택</button>
+                    </div>
+                </div>`;
+            document.body.appendChild(overlay);
+            document.getElementById('backupImportCancel').onclick = () => overlay.remove();
+            document.getElementById('backupImportGo').onclick = () => {
+                // 이 클릭이 직접 사용자 제스처 → 파일창 정상 오픈
+                overlay.remove();
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = '.json,.zip,application/json,application/zip';
+                input.style.display = 'none';
+                document.body.appendChild(input); // iOS 호환: DOM에 부착
+                input.onchange = async (e) => {
+                const file = e.target.files && e.target.files[0];
+                if (!file) { input.remove(); return; }
+                try {
+                    showLoading('프로젝트 복원 중...');
+                    let text;
+                    if (/\.zip$/i.test(file.name)) {
+                        // 드라이브 백업(zip 압축) → 내부 json 추출
+                        const loadedZip = await JSZip.loadAsync(file);
+                        const jsonEntry = Object.values(loadedZip.files).find(f => !f.dir && /\.json$/i.test(f.name));
+                        if (!jsonEntry) {
+                            hideLoading(); input.remove();
+                            alert('zip 안에서 백업 파일(json)을 찾을 수 없습니다.');
+                            return;
+                        }
+                        text = await jsonEntry.async('string');
+                    } else {
+                        text = await file.text();
+                    }
+                    const data = JSON.parse(text);
+                    // 검증: 우리 앱 백업 파일인지
+                    if (!data || data._type !== 'thehomein_project_backup' || !data.project) {
+                        hideLoading();
+                        alert('더홈점검 프로젝트 백업 파일이 아닙니다.');
+                        return;
+                    }
+                    const imported = data.project;
+                    // id 충돌 방지: 항상 새 id 부여 (기존 프로젝트 덮어쓰기 방지)
+                    imported.id = Date.now();
+                    imported.isUploaded = false; // 복원본은 재업로드 가능하도록
+                    projects.push(imported);
+                    currentProjectId = imported.id;
+                    await saveProjectsToLocalStorage();
+                    renderProjectList();
+                    loadProjectToUI();
+                    updateProgress();
+                    hideLoading();
+                    showToast(`✅ 프로젝트 복원 완료: ${imported.apartmentName || ''} ${imported.dong || ''}동 ${imported.ho || ''}호 (하자 ${(imported.defects || []).length}건)`);
+                } catch (err) {
+                    hideLoading();
+                    console.error('프로젝트 복원 오류:', err);
+                    alert('복원 중 오류가 발생했습니다: ' + err.message);
+                } finally {
+                    input.remove();
+                }
+                };
+                input.click();
+            };
+        }
+        // ==================== 프로젝트 백업 / 복원 끝 ====================
+
         // 메인 업로드 함수
 
         window.uploadProjectToDrive = async function(projectToUpload = null) {
@@ -2907,6 +3014,17 @@
                 showToast('📁 폴더 생성 중...');
                 const projectName = `${project.apartmentName}_${project.dong}동_${project.ho}호_${project.author}_${project.inspectionDate}`;
                 const projectFolderId = await createProjectFolder(SHARED_DRIVE_ID, projectName);
+                
+                // ✅ 프로젝트 백업 자동 업로드 (zip 압축 - 업로드 속도 최적화) - 삭제 후에도 이 파일로 복원 가능
+                try {
+                    const backupZip = new JSZip();
+                    backupZip.file(getBackupFileName(project), createProjectBackup(project));
+                    const backupBlob = await backupZip.generateAsync({ type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 6 } });
+                    const backupZipName = getBackupFileName(project).replace('.json', '.zip');
+                    await uploadFileToDrive(projectFolderId, backupBlob, backupZipName, 'application/zip');
+                } catch (backupErr) {
+                    console.error('백업 파일 업로드 실패 (나머지 업로드는 계속):', backupErr);
+                }
                 
                 // ========== 장비점검만 있는 경우 (하자 없음) ==========
                 if (!hasDefects && hasEquipmentPhotos) {
@@ -3836,52 +3954,124 @@
         // ==================== 프로젝트 목록 관리 함수 ====================
         
         // 프로젝트 목록 렌더링
+        // 오래된 프로젝트 필터 상태 (배지 탭 시 토글)
+        let showOnlyOldProjects = false;
+        window.toggleOldFilter = function() {
+            showOnlyOldProjects = !showOnlyOldProjects;
+            renderProjectList();
+        };
+
         function renderProjectList() {
             const listContainer = document.getElementById('projectList');
             
             if (projects.length === 0) {
                 listContainer.innerHTML = '<div style="text-align: center; padding: 20px; opacity: 0.7;">프로젝트가 없습니다. "새 프로젝트"를 추가하세요.</div>';
+                const badge0 = document.getElementById('oldProjectBadge');
+                if (badge0) badge0.style.display = 'none';
                 return;
             }
 
-            listContainer.innerHTML = projects.map((project, index) => {
+            // ✅ 14일 넘은 오래된 프로젝트 계산 + 제목 옆 배지 갱신
+            const DAYS_OLD = 14;
+            const nowMs = Date.now();
+            const isOld = (p) => {
+                const t = p.createdAt ? new Date(p.createdAt).getTime() : (p.id || nowMs);
+                return (nowMs - t) > DAYS_OLD * 86400000;
+            };
+            const oldCount = projects.filter(isOld).length;
+            const badgeEl = document.getElementById('oldProjectBadge');
+            if (badgeEl) {
+                if (oldCount > 0) {
+                    badgeEl.style.display = 'inline-block';
+                    badgeEl.textContent = showOnlyOldProjects ? `전체 보기` : `🔴 오래됨 ${oldCount}`;
+                    badgeEl.style.background = showOnlyOldProjects ? 'rgba(255,255,255,0.3)' : '#ef4444';
+                } else {
+                    badgeEl.style.display = 'none';
+                    showOnlyOldProjects = false;
+                }
+            }
+            // 필터 적용: 배지 탭 시 오래된 것만 표시
+            const viewProjects = showOnlyOldProjects ? projects.filter(isOld) : projects;
+
+            // ✅ 당일 순번 계산: 프로젝트 생성일(createdAt 없으면 id=timestamp)을 날짜별로 묶어
+            //    각 날짜 안에서 생성 순서대로 1,2,3... 부여. 오늘 날짜 문자열도 준비.
+            const getDateKey = (p) => {
+                const t = p.createdAt ? new Date(p.createdAt) : new Date(p.id || Date.now());
+                return `${t.getFullYear()}-${t.getMonth()+1}-${t.getDate()}`;
+            };
+            const getTime = (p) => (p.createdAt ? new Date(p.createdAt).getTime() : (p.id || 0));
+            const todayKey = (() => { const t = new Date(); return `${t.getFullYear()}-${t.getMonth()+1}-${t.getDate()}`; })();
+            // 날짜별 오름차순 정렬된 순번 맵 생성
+            const seqMap = {};
+            const byDate = {};
+            projects.forEach(p => {
+                const k = getDateKey(p);
+                (byDate[k] = byDate[k] || []).push(p);
+            });
+            Object.values(byDate).forEach(arr => {
+                arr.sort((a,b) => getTime(a) - getTime(b));
+                arr.forEach((p,i) => { seqMap[p.id] = i + 1; });
+            });
+
+            // 필터된 목록이 비면 안내
+            if (viewProjects.length === 0) {
+                listContainer.innerHTML = '<div style="text-align: center; padding: 20px; opacity: 0.7;">해당하는 프로젝트가 없습니다.</div>';
+                return;
+            }
+            listContainer.innerHTML = viewProjects.map((project, index) => {
                 const isActive = project.id === currentProjectId;
-                const projectName = project.apartmentName && project.dong && project.ho 
-                    ? `${project.apartmentName} ${project.dong} ${project.ho}`
-                    : `프로젝트 ${index + 1} (정보 미입력)`;
+                const hasInfo = project.apartmentName && project.dong && project.ho;
+                const aptName = hasInfo ? project.apartmentName : `프로젝트 ${index + 1}`;
+                const dongHo = hasInfo ? `${project.dong}동 ${project.ho}호` : '(정보 미입력)';
+                // ✅ 단지명 자동 크기: 동호와 동일한 18px 기본, 길면 단계 축소(하한 13px)
+                const nameLen = aptName.length;
+                let aptFontSize = 18;
+                if (nameLen > 15) aptFontSize = 13;
+                else if (nameLen > 13) aptFontSize = 14.5;
+                else if (nameLen > 11) aptFontSize = 16;
                 
-                const uploadStatus = project.isUploaded 
-                    ? '<span style="color: #10b981;">✅ 업로드 완료</span>' 
-                    : '<span style="color: #fbbf24;">⏳ 작업중</span>';
+                // ✅ C타입 순번 배지: 오늘이면 오렌지 "오늘 N번", 지난 날이면 회색 날짜
+                const seq = seqMap[project.id] || 1;
+                const dKey = getDateKey(project);
+                let seqBadge;
+                if (dKey === todayKey) {
+                    seqBadge = `<div style="background:#FF6B35;color:#fff;font-size:10px;font-weight:800;border-radius:7px;padding:5px 7px;text-align:center;line-height:1.2;white-space:nowrap;flex-shrink:0;">오늘<br>${seq}번</div>`;
+                } else {
+                    const dt = project.createdAt ? new Date(project.createdAt) : new Date(project.id || Date.now());
+                    const md = `${dt.getMonth()+1}/${dt.getDate()}`;
+                    seqBadge = `<div style="background:rgba(255,255,255,0.25);color:rgba(255,255,255,0.9);font-size:11px;font-weight:700;border-radius:7px;padding:7px 8px;text-align:center;white-space:nowrap;flex-shrink:0;">${md}</div>`;
+                }
+                
+                // ✅ 상태 색상: 완료=연두(#4ade80), 작업중=노랑(#fbbf24)
+                const statusColor = project.isUploaded ? '#4ade80' : '#fbbf24';
+                const statusText = project.isUploaded ? '완료' : '작업중';
                 
                 const authorInfo = project.author 
-                    ? `작성자: ${project.author} | ` 
-                    : ''; // ✅ 작성자 정보 추가
+                    ? ` · ${project.author}` 
+                    : '';
 
                 return `
                     <div onclick="switchProject(${project.id})" 
                          style="background: ${isActive ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.1)'}; 
                                 padding: 12px; 
-                                border-radius: 6px; 
+                                border-radius: 8px; 
                                 margin-bottom: 8px; 
                                 cursor: pointer;
                                 border: ${isActive ? '2px solid white' : '2px solid transparent'};
                                 transition: all 0.3s;"
                          onmouseover="if(!${isActive}) this.style.background='rgba(255,255,255,0.2)'"
                          onmouseout="if(!${isActive}) this.style.background='rgba(255,255,255,0.1)'">
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <div style="flex: 1;">
-                                <div style="font-weight: bold; margin-bottom: 4px;">
-                                    ${isActive ? '▶ ' : ''}${projectName}
+                        <div style="display: flex; align-items: center; gap: 11px;">
+                            ${seqBadge}
+                            <div style="flex: 1; min-width: 0;">
+                                <div style="font-size: ${aptFontSize}px; font-weight: 800; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${isActive ? '▶ ' : ''}${aptName}</div>
+                                <div style="display: flex; align-items: baseline; gap: 8px; margin-top: 2px;">
+                                    <span style="font-size: 18px; font-weight: 800; color: #fff; white-space: nowrap;">${dongHo}</span>
+                                    <span style="font-size: 11px; font-weight: 700; color: ${statusColor}; white-space: nowrap;">● ${statusText}</span>
                                 </div>
-                                <div style="font-size: 11px; opacity: 0.8;">
-                                    ${authorInfo}하자: ${project.defects.length}개 | 
-                                    장비: ${project.equipment ? project.equipment.length : 0}개 | 
-                                    공기질: ${project.airQuality.length}개
+                                <div style="font-size: 12px; color: rgba(255,255,255,0.7); margin-top: 4px;">
+                                    하자 ${project.defects.length} · 장비 ${project.equipment ? project.equipment.length : 0} · 공기질 ${project.airQuality.length}${authorInfo}
                                 </div>
-                            </div>
-                            <div style="font-size: 12px;">
-                                ${uploadStatus}
                             </div>
                         </div>
                     </div>
@@ -3910,6 +4100,15 @@
             
             // 로컬 스토리지 저장
             saveProjectsToLocalStorage();
+            
+            // ✅ 새 프로젝트 입력을 바로 시작할 수 있도록 아파트명 입력란으로 이동 + 포커스
+            setTimeout(() => {
+                const aptInput = document.getElementById('apartmentName');
+                if (aptInput) {
+                    aptInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    aptInput.focus();
+                }
+            }, 100);
         }
 
         // 프로젝트 전환
@@ -3955,8 +4154,18 @@
                 ? `${project.apartmentName} ${project.dong} ${project.ho}`
                 : '현재 프로젝트';
 
-            if (!confirm(`"${projectName}"를 삭제하시겠습니까?\n\n⚠️ 이 작업은 되돌릴 수 없습니다.`)) {
-                return;
+            // ✅ 업로드/백업 안 된 프로젝트는 강한 경고 (복원 불가)
+            if (!project.isUploaded) {
+                if (!confirm(`⚠️ 경고: "${projectName}"\n\n이 프로젝트는 아직 업로드(백업)되지 않았습니다.\n지금 삭제하면 사진·하자 데이터를 복원할 수 없습니다.\n\n그래도 삭제하시겠습니까?`)) {
+                    return;
+                }
+                if (!confirm(`정말 삭제할까요?\n\n백업이 없어 복구가 불가능합니다.\n(취소하고 먼저 업로드하거나 ZIP 다운로드를 권장합니다)`)) {
+                    return;
+                }
+            } else {
+                if (!confirm(`"${projectName}"를 삭제하시겠습니까?\n\n⚠️ 이 작업은 되돌릴 수 없습니다.\n(업로드된 백업 파일로는 복원 가능합니다)`)) {
+                    return;
+                }
             }
 
             // 프로젝트 삭제
@@ -6871,6 +7080,16 @@
                 // 드라이브 업로드와 동일한 파일명 형식
                 const projectName = `${projectData.apartmentName}_${projectData.dong}동_${projectData.ho}호_${projectData.author}_${projectData.inspectionDate}`;
                 let photoCount = 0;
+                
+                // ✅ 프로젝트 백업(JSON) 자동 포함 - 삭제 후에도 이 파일로 복원 가능
+                try {
+                    const currentProj = projects.find(p => p.id === currentProjectId);
+                    if (currentProj) {
+                        zip.folder('백업(복원용)').file(getBackupFileName(currentProj), createProjectBackup(currentProj));
+                    }
+                } catch (backupErr) {
+                    console.error('ZIP 백업 포함 실패 (나머지는 계속):', backupErr);
+                }
                 
                 // ========== 1. PDF 파일 생성 ==========
                 showToast('📄 PDF 보고서 생성 중...');
