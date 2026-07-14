@@ -4000,39 +4000,35 @@
                     seqBadge = `<div style="background:rgba(255,255,255,0.25);color:rgba(255,255,255,0.9);font-size:11px;font-weight:700;border-radius:7px;padding:7px 8px;text-align:center;white-space:nowrap;flex-shrink:0;">${md}</div>`;
                 }
                 
-                const uploadStatus = project.isUploaded 
-                    ? '<span style="color: #10b981;">✅ 업로드 완료</span>' 
-                    : '<span style="color: #fbbf24;">⏳ 작업중</span>';
+                // ✅ 상태 색상: 완료=연두(#4ade80), 작업중=노랑(#fbbf24)
+                const statusColor = project.isUploaded ? '#4ade80' : '#fbbf24';
+                const statusText = project.isUploaded ? '완료' : '작업중';
                 
                 const authorInfo = project.author 
-                    ? `작성자: ${project.author} | ` 
-                    : ''; // ✅ 작성자 정보 추가
+                    ? ` · ${project.author}` 
+                    : '';
 
                 return `
                     <div onclick="switchProject(${project.id})" 
                          style="background: ${isActive ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.1)'}; 
                                 padding: 12px; 
-                                border-radius: 6px; 
+                                border-radius: 8px; 
                                 margin-bottom: 8px; 
                                 cursor: pointer;
                                 border: ${isActive ? '2px solid white' : '2px solid transparent'};
                                 transition: all 0.3s;"
                          onmouseover="if(!${isActive}) this.style.background='rgba(255,255,255,0.2)'"
                          onmouseout="if(!${isActive}) this.style.background='rgba(255,255,255,0.1)'">
-                        <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px;">
+                        <div style="display: flex; align-items: center; gap: 11px;">
                             ${seqBadge}
                             <div style="flex: 1; min-width: 0;">
-                                <div style="font-weight: bold; margin-bottom: 4px;">
-                                    ${isActive ? '▶ ' : ''}${projectName}
+                                <div style="display: flex; align-items: center; gap: 6px;">
+                                    <span style="width: 9px; height: 9px; border-radius: 50%; background: ${statusColor}; flex-shrink: 0; box-shadow: 0 0 0 2px rgba(255,255,255,0.3);"></span>
+                                    <span style="font-size: 17px; font-weight: 800; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${isActive ? '▶ ' : ''}${projectName}</span>
                                 </div>
-                                <div style="font-size: 11px; opacity: 0.8;">
-                                    ${authorInfo}하자: ${project.defects.length}개 | 
-                                    장비: ${project.equipment ? project.equipment.length : 0}개 | 
-                                    공기질: ${project.airQuality.length}개
+                                <div style="font-size: 12px; color: rgba(255,255,255,0.75); margin-top: 5px; padding-left: 15px;">
+                                    하자 ${project.defects.length} · 장비 ${project.equipment ? project.equipment.length : 0} · 공기질 ${project.airQuality.length}${authorInfo} · <span style="color: ${statusColor}; font-weight: 700;">${statusText}</span>
                                 </div>
-                            </div>
-                            <div style="font-size: 12px;">
-                                ${uploadStatus}
                             </div>
                         </div>
                     </div>
