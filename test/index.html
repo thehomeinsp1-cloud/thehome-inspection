@@ -10551,7 +10551,7 @@
         // 공종 → { 담보(년), 조문, 해설 } 매핑 (2025-58호 / 시행령 별표4 기준)
         var GJ_META = {
             '골조':      { y:5, law:'제7·8조 (구조·콘크리트)',   desc:'콘크리트 구조체의 균열·철근노출 등' },
-            '방수':      { y:5, law:'제10·15조 (방수·결로)',     desc:'누수·결로 등 물과 관련된 하자' },
+            '방수':      { y:5, blabel:'3~5년', law:'제10·27조 (방수·설비)',   desc:'누수·결로 등 물 관련 하자(방수층 5년 / 배관·설비 누수 3년)' },
             '미장':      { y:2, law:'제9조제1항 (마감공사)',      desc:'벽·천장 바탕면의 평활·마감 상태' },
             '타일':      { y:2, law:'제18조 (마감공사)',          desc:'타일 균열·들뜸·탈락 등' },
             '석공사':    { y:2, law:'제18조 준용 (마감공사)',     desc:'현관·아트월 등 실내 석재' },
@@ -10601,9 +10601,9 @@
             return shown + ' 등 보완이 필요한 부분';
         }
         function meta(g){ return GJ_META[g] || GJ_DEFAULT; }
-        function badge(y){
+        function badge(y, label){
             var bg = y===5 ? '#c53030' : y===3 ? '#1A2744' : y===2 ? '#64748b' : '#94a3b8';
-            var txt = y===0 ? '해당없음' : (y + '년');
+            var txt = label ? label : (y===0 ? '해당없음' : (y + '년'));
             return '<span style="display:inline-block;padding:3px 9px;border-radius:11px;font-size:10px;font-weight:800;color:#fff;background:' + bg + ';white-space:nowrap;">' + txt + '</span>';
         }
 
@@ -10622,7 +10622,7 @@
               +     '<div style="font-weight:700;font-size:11px;">' + stateText(agg[g].types) + '</div>'
               +     '<div style="font-size:8.5px;color:#9aa5b1;margin-top:2px;">' + m.desc + ' · 근거 ' + m.law + '</div>'
               +   '</td>'
-              +   '<td style="padding:7px 9px;border:1px solid #e2e8f0;text-align:center;">' + badge(m.y) + '</td>'
+              +   '<td style="padding:7px 9px;border:1px solid #e2e8f0;text-align:center;">' + badge(m.y, m.blabel) + '</td>'
               + '</tr>';
         }).join('');
 
@@ -10642,7 +10642,7 @@
 
         +     '<div style="background:#f1f7f6;border:1px solid #cfe6e1;border-radius:8px;padding:12px 14px;margin-bottom:16px;">'
         +       '<p style="margin:0;color:#2f5450;font-size:11px;line-height:1.65;">'
-        +         '발견된 항목은 대부분 <b style="color:#0f6b62;">신축 아파트에서 흔히 나오는 마감·마무리 보완 사항</b>이며, <b style="color:#0f6b62;">보증기간 내 무상보수</b>가 가능한 항목입니다. '
+        +         '발견된 항목은 대부분 <b style="color:#0f6b62;">신축 건물에서 흔히 나오는 마감·마무리 보완 사항</b>이며, <b style="color:#0f6b62;">보증기간 내 무상보수</b>가 가능한 항목입니다. '
         +         '이번 점검일 기준으로 <b style="color:#0f6b62;">안전에 영향을 주는 중대하자는 확인되지 않았습니다.</b> '
         +         '다만 결로·균열 등은 입주 후 계절 변화에 따라 새로 나타날 수 있어, <b style="color:#0f6b62;">보증기간 내 주기적인 점검·관리</b>를 권장드립니다.'
         +       '</p>'
@@ -10676,6 +10676,8 @@
         +     '<div style="margin-top:12px;border-top:1px solid #eee;padding-top:9px;font-size:9px;color:#8a97a3;line-height:1.6;">'
         +       '· 위 \'상태\'는 이번 점검에서 실제로 확인된 항목만 모아 표시한 것입니다. 항목별 사진·위치는 뒤쪽 상세 리포트를 참고하세요.<br>'
         +       '· 보증기간은 입주(인도일)부터 시작되며, 기간 내에는 무상보수가 원칙입니다.<br>'
+        +       '· 방수는 원인 부위에 따라 보증기간이 다릅니다 — 바닥·벽체 방수층 누수는 5년, 세면대·수전 등 배관·설비 연결부 누수는 3년입니다.<br>'
+        +       '· 표기된 보증기간은 공동주택(아파트) 기준입니다. 오피스텔·집합건물·단독주택·상업시설·구축 등은 「집합건물법」 등 관계 법령에 따라 보증기간이 다르게 적용될 수 있습니다.<br>'
         +       '※ 공종 분류·상태 표기·보증기간은 점검 내용을 기반으로 자동 정리된 <b style="color:#8a97a3;">참고 자료</b>이며, 실제 시공사 공종 구분이나 최종 하자 판정과 일부 차이가 있을 수 있습니다. 정확한 하자 여부·보수 범위는 시공사 확인 및 하자심사 절차를 따릅니다.'
         +     '</div>'
 
