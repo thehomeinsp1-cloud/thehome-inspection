@@ -3046,93 +3046,34 @@
                     
                     // 장비점검 표지
                     const equipCoverHTML = `
-                        <div style="width:794px;height:1123px;background:#fff;font-family:'Malgun Gothic',sans-serif;position:relative;box-sizing:border-box;overflow:hidden;">
-                            <div style="position:absolute;left:0;top:0;width:8px;height:100%;background:linear-gradient(180deg,#2563eb 0%,#1d4ed8 100%);"></div>
-                            <div style="position:absolute;left:639px;top:127px;width:18px;height:18px;border-radius:50%;background:#2563eb;opacity:0.9;"></div>
-                            <div style="position:absolute;left:665px;top:147px;width:14px;height:14px;border-radius:50%;background:#1e3a8a;opacity:0.9;"></div>
-                            <div style="position:absolute;left:688px;top:171px;width:20px;height:20px;border-radius:50%;background:#0d9488;opacity:0.9;"></div>
-                            <div style="position:absolute;left:708px;top:198px;width:16px;height:16px;border-radius:50%;background:#64748b;opacity:0.9;"></div>
-                            <div style="position:absolute;left:724px;top:227px;width:18px;height:18px;border-radius:50%;background:#2563eb;opacity:0.9;"></div>
-                            <div style="position:absolute;left:736px;top:258px;width:14px;height:14px;border-radius:50%;background:#1e3a8a;opacity:0.9;"></div>
-                            <div style="position:absolute;left:745px;top:290px;width:16px;height:16px;border-radius:50%;background:#0d9488;opacity:0.9;"></div>
-                            <div style="position:absolute;left:749px;top:323px;width:20px;height:20px;border-radius:50%;background:#64748b;opacity:0.9;"></div>
-                            <div style="position:absolute;left:749px;top:356px;width:14px;height:14px;border-radius:50%;background:#2563eb;opacity:0.9;"></div>
-                            <div style="position:absolute;left:745px;top:389px;width:18px;height:18px;border-radius:50%;background:#1e3a8a;opacity:0.9;"></div>
-                            <div style="position:absolute;left:736px;top:421px;width:16px;height:16px;border-radius:50%;background:#0d9488;opacity:0.9;"></div>
-                            <div style="position:absolute;left:724px;top:452px;width:14px;height:14px;border-radius:50%;background:#64748b;opacity:0.9;"></div>
-                            <div style="position:absolute;left:708px;top:481px;width:20px;height:20px;border-radius:50%;background:#2563eb;opacity:0.9;"></div>
-                            <div style="position:absolute;left:688px;top:508px;width:18px;height:18px;border-radius:50%;background:#1e3a8a;opacity:0.9;"></div>
-                            <div style="position:absolute;left:665px;top:532px;width:16px;height:16px;border-radius:50%;background:#0d9488;opacity:0.9;"></div>
-                            <div style="position:absolute;left:639px;top:552px;width:14px;height:14px;border-radius:50%;background:#64748b;opacity:0.9;"></div>
-                            <div style="position:absolute;left:616px;top:159px;width:14px;height:14px;border-radius:50%;background:#2563eb;opacity:0.9;"></div>
-                            <div style="position:absolute;left:641px;top:180px;width:12px;height:12px;border-radius:50%;background:#1e3a8a;opacity:0.9;"></div>
-                            <div style="position:absolute;left:663px;top:204px;width:16px;height:16px;border-radius:50%;background:#0d9488;opacity:0.9;"></div>
-                            <div style="position:absolute;left:681px;top:231px;width:10px;height:10px;border-radius:50%;background:#64748b;opacity:0.7;"></div>
-                            <div style="position:absolute;left:695px;top:260px;width:14px;height:14px;border-radius:50%;background:#2563eb;opacity:0.9;"></div>
-                            <div style="position:absolute;left:704px;top:291px;width:12px;height:12px;border-radius:50%;background:#1e3a8a;opacity:0.9;"></div>
-                            <div style="position:absolute;left:709px;top:323px;width:16px;height:16px;border-radius:50%;background:#0d9488;opacity:0.9;"></div>
-                            <div style="position:absolute;left:709px;top:356px;width:14px;height:14px;border-radius:50%;background:#64748b;opacity:0.9;"></div>
-                            <div style="position:absolute;left:704px;top:388px;width:10px;height:10px;border-radius:50%;background:#2563eb;opacity:0.7;"></div>
-                            <div style="position:absolute;left:695px;top:419px;width:12px;height:12px;border-radius:50%;background:#1e3a8a;opacity:0.9;"></div>
-                            <div style="position:absolute;left:681px;top:448px;width:16px;height:16px;border-radius:50%;background:#0d9488;opacity:0.9;"></div>
-                            <div style="position:absolute;left:663px;top:475px;width:14px;height:14px;border-radius:50%;background:#64748b;opacity:0.9;"></div>
-                            <div style="position:absolute;left:641px;top:499px;width:12px;height:12px;border-radius:50%;background:#2563eb;opacity:0.7;"></div>
-                            <div style="position:absolute;left:616px;top:520px;width:10px;height:10px;border-radius:50%;background:#1e3a8a;opacity:0.9;"></div>
-                            <div style="position:absolute;left:593px;top:192px;width:12px;height:12px;border-radius:50%;background:#2563eb;opacity:0.7;"></div>
-                            <div style="position:absolute;left:617px;top:212px;width:10px;height:10px;border-radius:50%;background:#1e3a8a;opacity:0.7;"></div>
-                            <div style="position:absolute;left:637px;top:236px;width:14px;height:14px;border-radius:50%;background:#0d9488;opacity:0.9;"></div>
-                            <div style="position:absolute;left:653px;top:263px;width:8px;height:8px;border-radius:50%;background:#64748b;opacity:0.7;"></div>
-                            <div style="position:absolute;left:663px;top:293px;width:12px;height:12px;border-radius:50%;background:#2563eb;opacity:0.9;"></div>
-                            <div style="position:absolute;left:669px;top:324px;width:10px;height:10px;border-radius:50%;background:#1e3a8a;opacity:0.7;"></div>
-                            <div style="position:absolute;left:669px;top:355px;width:14px;height:14px;border-radius:50%;background:#0d9488;opacity:0.7;"></div>
-                            <div style="position:absolute;left:663px;top:386px;width:10px;height:10px;border-radius:50%;background:#64748b;opacity:0.9;"></div>
-                            <div style="position:absolute;left:653px;top:416px;width:8px;height:8px;border-radius:50%;background:#2563eb;opacity:0.7;"></div>
-                            <div style="position:absolute;left:637px;top:443px;width:12px;height:12px;border-radius:50%;background:#1e3a8a;opacity:0.7;"></div>
-                            <div style="position:absolute;left:617px;top:467px;width:10px;height:10px;border-radius:50%;background:#0d9488;opacity:0.7;"></div>
-                            <div style="position:absolute;left:593px;top:487px;width:8px;height:8px;border-radius:50%;background:#64748b;opacity:0.5;"></div>
-                            <div style="position:absolute;left:592px;top:244px;width:10px;height:10px;border-radius:50%;background:#1e3a8a;opacity:0.7;"></div>
-                            <div style="position:absolute;left:610px;top:268px;width:6px;height:6px;border-radius:50%;background:#0d9488;opacity:0.5;"></div>
-                            <div style="position:absolute;left:622px;top:295px;width:10px;height:10px;border-radius:50%;background:#64748b;opacity:0.7;"></div>
-                            <div style="position:absolute;left:629px;top:325px;width:8px;height:8px;border-radius:50%;background:#2563eb;opacity:0.5;"></div>
-                            <div style="position:absolute;left:629px;top:354px;width:6px;height:6px;border-radius:50%;background:#1e3a8a;opacity:0.5;"></div>
-                            <div style="position:absolute;left:622px;top:384px;width:10px;height:10px;border-radius:50%;background:#0d9488;opacity:0.7;"></div>
-                            <div style="position:absolute;left:610px;top:411px;width:8px;height:8px;border-radius:50%;background:#64748b;opacity:0.5;"></div>
-                            <div style="position:absolute;left:592px;top:435px;width:6px;height:6px;border-radius:50%;background:#2563eb;opacity:0.5;"></div>
-                            <div style="position:absolute;left:390px;top:560px;width:1px;height:240px;background:#1e3a8a;opacity:0.06;"></div>
-                            <div style="position:absolute;left:470px;top:576px;width:1px;height:224px;background:#1e3a8a;opacity:0.06;"></div>
-                            <div style="position:absolute;left:550px;top:584px;width:1px;height:216px;background:#2563eb;opacity:0.06;"></div>
-                            <div style="position:absolute;left:630px;top:600px;width:1px;height:200px;background:#1e3a8a;opacity:0.06;"></div>
-                            <div style="position:absolute;left:374px;top:600px;width:280px;height:1px;background:#1e3a8a;opacity:0.06;"></div>
-                            <div style="position:absolute;left:350px;top:640px;width:280px;height:1px;background:#2563eb;opacity:0.06;"></div>
-                            <div style="position:absolute;left:390px;top:680px;width:280px;height:1px;background:#1e3a8a;opacity:0.06;"></div>
-                            <div style="position:relative;z-index:2;padding:95px 50px 50px 75px;height:100%;box-sizing:border-box;display:flex;flex-direction:column;">
-                                <div style="margin-bottom:70px;">
-                                    <div style="display:flex;align-items:center;gap:14px;">
-                                        <img src="data:image/png;base64,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" style="width:48px;height:48px;object-fit:contain;" />
-                                        <div>
-                                            <div style="font-size:28px;font-weight:700;color:#2563eb;letter-spacing:-0.5px;">더홈점검</div>
-                                            <div style="font-size:12px;color:#888;letter-spacing:1px;margin-top:4px;">The Home Inspection</div>
-                                        </div>
-                                    </div>
+                        <div style="width:794px;height:1123px;background:#fff;font-family:'Pretendard','Malgun Gothic',sans-serif;display:flex;flex-direction:row;overflow:hidden;box-sizing:border-box;">
+                            <div style="width:256px;background:#0f1b2e;display:flex;flex-direction:column;padding:96px 38px 54px;box-sizing:border-box;">
+                                <div style="display:flex;align-items:center;gap:11px;">
+                                    <div style="width:56px;height:56px;background-color:#fff;border-radius:14px;background-image:url(${window.THEHOME_LOGO});background-size:40px;background-repeat:no-repeat;background-position:center;"></div>
+                                    <div><div style="font-size:17px;font-weight:800;color:#fff;">더홈점검</div><div style="font-size:7px;letter-spacing:.2em;color:rgba(255,255,255,.55);font-weight:600;">THE HOME INSPECTION</div></div>
                                 </div>
-                                <div style="margin-bottom:100px;">
-                                    <h1 style="font-size:52px;font-weight:900;color:#1A2744;margin:0;line-height:1.2;letter-spacing:-2px;">장비측정 보고서</h1>
-                                    <div style="font-size:16px;color:#666;letter-spacing:2px;margin-top:12px;">EQUIPMENT INSPECTION REPORT</div>
+                                <div style="flex:1;"></div>
+                                <div style="width:36px;height:3px;background:#12a4a4;margin-bottom:20px;"></div>
+                                <div style="font-size:13px;color:#fff;font-weight:700;line-height:1.6;margin-bottom:14px;">정밀 장비<br>측정 전문</div>
+                                <div style="font-size:10px;letter-spacing:.14em;color:rgba(255,255,255,.55);font-weight:700;margin-bottom:9px;">측정 장비</div>
+                                <div style="display:flex;flex-direction:column;gap:7px;font-size:11.5px;color:rgba(255,255,255,.82);line-height:1.4;">
+                                    <div style="display:flex;gap:8px;"><span style="color:#12a4a4;font-weight:800;">·</span><span>열화상 카메라 (FLIR)</span></div>
+                                    <div style="display:flex;gap:8px;"><span style="color:#12a4a4;font-weight:800;">·</span><span>레이저 레벨기</span></div>
+                                    <div style="display:flex;gap:8px;"><span style="color:#12a4a4;font-weight:800;">·</span><span>공기질 측정기</span></div>
                                 </div>
-                                <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
-                                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:35px 50px;max-width:500px;">
-                                        <div><div style="font-size:11px;font-weight:500;color:#2563eb;letter-spacing:2px;margin-bottom:8px;">PROJECT</div><div style="font-size:22px;font-weight:700;color:#1A2744;">${projectData.apartmentName}</div></div>
-                                        <div><div style="font-size:11px;font-weight:500;color:#2563eb;letter-spacing:2px;margin-bottom:8px;">UNIT</div><div style="font-size:22px;font-weight:700;color:#1A2744;">${projectData.dong}동 ${projectData.ho}호</div></div>
-                                        <div><div style="font-size:11px;font-weight:500;color:#2563eb;letter-spacing:2px;margin-bottom:8px;">DATE</div><div style="font-size:18px;font-weight:700;color:#1A2744;">${projectData.inspectionDate || new Date().toLocaleDateString('ko-KR')}</div></div>
-                                        <div><div style="font-size:11px;font-weight:500;color:#2563eb;letter-spacing:2px;margin-bottom:8px;">CLIENT</div><div style="font-size:18px;font-weight:700;color:#1A2744;">${projectData.customerName || '-'}</div></div>
-                                    </div>
-                                </div>
-                                <div style="margin-top:auto;padding-top:40px;border-top:1px solid #eee;display:flex;justify-content:space-between;align-items:center;">
-                                    <div style="font-size:14px;font-weight:500;color:#1A2744;"><b>더홈점검</b> | The Home Inspection</div>
-                                    <div style="text-align:right;">
-                                        <div style="font-size:20px;font-weight:700;color:#2563eb;">1668-5322</div>
-                                        <div style="font-size:13px;color:#888;margin-top:2px;">010-9985-0128</div>
-                                    </div>
+                                <div style="height:1px;background:rgba(255,255,255,.14);margin:24px 0;"></div>
+                                <div style="font-size:16px;font-weight:800;color:#fff;">1668-5322</div>
+                                <div style="font-size:11px;color:rgba(255,255,255,.55);margin-top:4px;">010-9985-0128</div>
+                            </div>
+                            <div style="flex:1;display:flex;flex-direction:column;padding:108px 54px 54px;box-sizing:border-box;">
+                                <div style="font-size:13px;letter-spacing:.24em;color:#12a4a4;font-weight:800;">EQUIPMENT REPORT</div>
+                                <h2 style="font-size:56px;line-height:1.08;font-weight:800;color:#141d2e;margin:18px 0 0;letter-spacing:-.03em;">장비 측정<br>보고서</h2>
+                                <div style="flex:1;"></div>
+                                <div style="border-top:2px solid #12a4a4;padding-top:30px;">
+                                    <div style="display:flex;padding:15px 0;border-bottom:1px solid #eef0f3;"><span style="width:86px;font-size:11px;letter-spacing:.12em;color:#9aa1ad;font-weight:700;padding-top:4px;">PROJECT</span><span style="font-size:20px;font-weight:700;color:#141d2e;">${projectData.apartmentName}</span></div>
+                                    <div style="display:flex;padding:15px 0;border-bottom:1px solid #eef0f3;"><span style="width:86px;font-size:11px;letter-spacing:.12em;color:#9aa1ad;font-weight:700;padding-top:4px;">UNIT</span><span style="font-size:20px;font-weight:700;color:#141d2e;">${projectData.dong}동 ${projectData.ho}호</span></div>
+                                    <div style="display:flex;padding:15px 0;border-bottom:1px solid #eef0f3;"><span style="width:86px;font-size:11px;letter-spacing:.12em;color:#9aa1ad;font-weight:700;padding-top:4px;">DATE</span><span style="font-size:20px;font-weight:700;color:#141d2e;">${projectData.inspectionDate || new Date().toLocaleDateString('ko-KR')}</span></div>
+                                    <div style="display:flex;padding:15px 0;"><span style="width:86px;font-size:11px;letter-spacing:.12em;color:#9aa1ad;font-weight:700;padding-top:4px;">CLIENT</span><span style="font-size:20px;font-weight:700;color:#141d2e;">${projectData.customerName || '-'}</span></div>
                                 </div>
                             </div>
                         </div>
@@ -3457,93 +3398,34 @@
                             
                             // 장비점검 표지
                     const equipCoverHTML = `
-                        <div style="width:794px;height:1123px;background:#fff;font-family:'Malgun Gothic',sans-serif;position:relative;box-sizing:border-box;overflow:hidden;">
-                            <div style="position:absolute;left:0;top:0;width:8px;height:100%;background:linear-gradient(180deg,#2563eb 0%,#1d4ed8 100%);"></div>
-                            <div style="position:absolute;left:639px;top:127px;width:18px;height:18px;border-radius:50%;background:#2563eb;opacity:0.9;"></div>
-                            <div style="position:absolute;left:665px;top:147px;width:14px;height:14px;border-radius:50%;background:#1e3a8a;opacity:0.9;"></div>
-                            <div style="position:absolute;left:688px;top:171px;width:20px;height:20px;border-radius:50%;background:#0d9488;opacity:0.9;"></div>
-                            <div style="position:absolute;left:708px;top:198px;width:16px;height:16px;border-radius:50%;background:#64748b;opacity:0.9;"></div>
-                            <div style="position:absolute;left:724px;top:227px;width:18px;height:18px;border-radius:50%;background:#2563eb;opacity:0.9;"></div>
-                            <div style="position:absolute;left:736px;top:258px;width:14px;height:14px;border-radius:50%;background:#1e3a8a;opacity:0.9;"></div>
-                            <div style="position:absolute;left:745px;top:290px;width:16px;height:16px;border-radius:50%;background:#0d9488;opacity:0.9;"></div>
-                            <div style="position:absolute;left:749px;top:323px;width:20px;height:20px;border-radius:50%;background:#64748b;opacity:0.9;"></div>
-                            <div style="position:absolute;left:749px;top:356px;width:14px;height:14px;border-radius:50%;background:#2563eb;opacity:0.9;"></div>
-                            <div style="position:absolute;left:745px;top:389px;width:18px;height:18px;border-radius:50%;background:#1e3a8a;opacity:0.9;"></div>
-                            <div style="position:absolute;left:736px;top:421px;width:16px;height:16px;border-radius:50%;background:#0d9488;opacity:0.9;"></div>
-                            <div style="position:absolute;left:724px;top:452px;width:14px;height:14px;border-radius:50%;background:#64748b;opacity:0.9;"></div>
-                            <div style="position:absolute;left:708px;top:481px;width:20px;height:20px;border-radius:50%;background:#2563eb;opacity:0.9;"></div>
-                            <div style="position:absolute;left:688px;top:508px;width:18px;height:18px;border-radius:50%;background:#1e3a8a;opacity:0.9;"></div>
-                            <div style="position:absolute;left:665px;top:532px;width:16px;height:16px;border-radius:50%;background:#0d9488;opacity:0.9;"></div>
-                            <div style="position:absolute;left:639px;top:552px;width:14px;height:14px;border-radius:50%;background:#64748b;opacity:0.9;"></div>
-                            <div style="position:absolute;left:616px;top:159px;width:14px;height:14px;border-radius:50%;background:#2563eb;opacity:0.9;"></div>
-                            <div style="position:absolute;left:641px;top:180px;width:12px;height:12px;border-radius:50%;background:#1e3a8a;opacity:0.9;"></div>
-                            <div style="position:absolute;left:663px;top:204px;width:16px;height:16px;border-radius:50%;background:#0d9488;opacity:0.9;"></div>
-                            <div style="position:absolute;left:681px;top:231px;width:10px;height:10px;border-radius:50%;background:#64748b;opacity:0.7;"></div>
-                            <div style="position:absolute;left:695px;top:260px;width:14px;height:14px;border-radius:50%;background:#2563eb;opacity:0.9;"></div>
-                            <div style="position:absolute;left:704px;top:291px;width:12px;height:12px;border-radius:50%;background:#1e3a8a;opacity:0.9;"></div>
-                            <div style="position:absolute;left:709px;top:323px;width:16px;height:16px;border-radius:50%;background:#0d9488;opacity:0.9;"></div>
-                            <div style="position:absolute;left:709px;top:356px;width:14px;height:14px;border-radius:50%;background:#64748b;opacity:0.9;"></div>
-                            <div style="position:absolute;left:704px;top:388px;width:10px;height:10px;border-radius:50%;background:#2563eb;opacity:0.7;"></div>
-                            <div style="position:absolute;left:695px;top:419px;width:12px;height:12px;border-radius:50%;background:#1e3a8a;opacity:0.9;"></div>
-                            <div style="position:absolute;left:681px;top:448px;width:16px;height:16px;border-radius:50%;background:#0d9488;opacity:0.9;"></div>
-                            <div style="position:absolute;left:663px;top:475px;width:14px;height:14px;border-radius:50%;background:#64748b;opacity:0.9;"></div>
-                            <div style="position:absolute;left:641px;top:499px;width:12px;height:12px;border-radius:50%;background:#2563eb;opacity:0.7;"></div>
-                            <div style="position:absolute;left:616px;top:520px;width:10px;height:10px;border-radius:50%;background:#1e3a8a;opacity:0.9;"></div>
-                            <div style="position:absolute;left:593px;top:192px;width:12px;height:12px;border-radius:50%;background:#2563eb;opacity:0.7;"></div>
-                            <div style="position:absolute;left:617px;top:212px;width:10px;height:10px;border-radius:50%;background:#1e3a8a;opacity:0.7;"></div>
-                            <div style="position:absolute;left:637px;top:236px;width:14px;height:14px;border-radius:50%;background:#0d9488;opacity:0.9;"></div>
-                            <div style="position:absolute;left:653px;top:263px;width:8px;height:8px;border-radius:50%;background:#64748b;opacity:0.7;"></div>
-                            <div style="position:absolute;left:663px;top:293px;width:12px;height:12px;border-radius:50%;background:#2563eb;opacity:0.9;"></div>
-                            <div style="position:absolute;left:669px;top:324px;width:10px;height:10px;border-radius:50%;background:#1e3a8a;opacity:0.7;"></div>
-                            <div style="position:absolute;left:669px;top:355px;width:14px;height:14px;border-radius:50%;background:#0d9488;opacity:0.7;"></div>
-                            <div style="position:absolute;left:663px;top:386px;width:10px;height:10px;border-radius:50%;background:#64748b;opacity:0.9;"></div>
-                            <div style="position:absolute;left:653px;top:416px;width:8px;height:8px;border-radius:50%;background:#2563eb;opacity:0.7;"></div>
-                            <div style="position:absolute;left:637px;top:443px;width:12px;height:12px;border-radius:50%;background:#1e3a8a;opacity:0.7;"></div>
-                            <div style="position:absolute;left:617px;top:467px;width:10px;height:10px;border-radius:50%;background:#0d9488;opacity:0.7;"></div>
-                            <div style="position:absolute;left:593px;top:487px;width:8px;height:8px;border-radius:50%;background:#64748b;opacity:0.5;"></div>
-                            <div style="position:absolute;left:592px;top:244px;width:10px;height:10px;border-radius:50%;background:#1e3a8a;opacity:0.7;"></div>
-                            <div style="position:absolute;left:610px;top:268px;width:6px;height:6px;border-radius:50%;background:#0d9488;opacity:0.5;"></div>
-                            <div style="position:absolute;left:622px;top:295px;width:10px;height:10px;border-radius:50%;background:#64748b;opacity:0.7;"></div>
-                            <div style="position:absolute;left:629px;top:325px;width:8px;height:8px;border-radius:50%;background:#2563eb;opacity:0.5;"></div>
-                            <div style="position:absolute;left:629px;top:354px;width:6px;height:6px;border-radius:50%;background:#1e3a8a;opacity:0.5;"></div>
-                            <div style="position:absolute;left:622px;top:384px;width:10px;height:10px;border-radius:50%;background:#0d9488;opacity:0.7;"></div>
-                            <div style="position:absolute;left:610px;top:411px;width:8px;height:8px;border-radius:50%;background:#64748b;opacity:0.5;"></div>
-                            <div style="position:absolute;left:592px;top:435px;width:6px;height:6px;border-radius:50%;background:#2563eb;opacity:0.5;"></div>
-                            <div style="position:absolute;left:390px;top:560px;width:1px;height:240px;background:#1e3a8a;opacity:0.06;"></div>
-                            <div style="position:absolute;left:470px;top:576px;width:1px;height:224px;background:#1e3a8a;opacity:0.06;"></div>
-                            <div style="position:absolute;left:550px;top:584px;width:1px;height:216px;background:#2563eb;opacity:0.06;"></div>
-                            <div style="position:absolute;left:630px;top:600px;width:1px;height:200px;background:#1e3a8a;opacity:0.06;"></div>
-                            <div style="position:absolute;left:374px;top:600px;width:280px;height:1px;background:#1e3a8a;opacity:0.06;"></div>
-                            <div style="position:absolute;left:350px;top:640px;width:280px;height:1px;background:#2563eb;opacity:0.06;"></div>
-                            <div style="position:absolute;left:390px;top:680px;width:280px;height:1px;background:#1e3a8a;opacity:0.06;"></div>
-                            <div style="position:relative;z-index:2;padding:95px 50px 50px 75px;height:100%;box-sizing:border-box;display:flex;flex-direction:column;">
-                                <div style="margin-bottom:70px;">
-                                    <div style="display:flex;align-items:center;gap:14px;">
-                                        <img src="data:image/png;base64,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" style="width:48px;height:48px;object-fit:contain;" />
-                                        <div>
-                                            <div style="font-size:28px;font-weight:700;color:#2563eb;letter-spacing:-0.5px;">더홈점검</div>
-                                            <div style="font-size:12px;color:#888;letter-spacing:1px;margin-top:4px;">The Home Inspection</div>
-                                        </div>
-                                    </div>
+                        <div style="width:794px;height:1123px;background:#fff;font-family:'Pretendard','Malgun Gothic',sans-serif;display:flex;flex-direction:row;overflow:hidden;box-sizing:border-box;">
+                            <div style="width:256px;background:#0f1b2e;display:flex;flex-direction:column;padding:96px 38px 54px;box-sizing:border-box;">
+                                <div style="display:flex;align-items:center;gap:11px;">
+                                    <div style="width:56px;height:56px;background-color:#fff;border-radius:14px;background-image:url(${window.THEHOME_LOGO});background-size:40px;background-repeat:no-repeat;background-position:center;"></div>
+                                    <div><div style="font-size:17px;font-weight:800;color:#fff;">더홈점검</div><div style="font-size:7px;letter-spacing:.2em;color:rgba(255,255,255,.55);font-weight:600;">THE HOME INSPECTION</div></div>
                                 </div>
-                                <div style="margin-bottom:100px;">
-                                    <h1 style="font-size:52px;font-weight:900;color:#1A2744;margin:0;line-height:1.2;letter-spacing:-2px;">장비측정 보고서</h1>
-                                    <div style="font-size:16px;color:#666;letter-spacing:2px;margin-top:12px;">EQUIPMENT INSPECTION REPORT</div>
+                                <div style="flex:1;"></div>
+                                <div style="width:36px;height:3px;background:#12a4a4;margin-bottom:20px;"></div>
+                                <div style="font-size:13px;color:#fff;font-weight:700;line-height:1.6;margin-bottom:14px;">정밀 장비<br>측정 전문</div>
+                                <div style="font-size:10px;letter-spacing:.14em;color:rgba(255,255,255,.55);font-weight:700;margin-bottom:9px;">측정 장비</div>
+                                <div style="display:flex;flex-direction:column;gap:7px;font-size:11.5px;color:rgba(255,255,255,.82);line-height:1.4;">
+                                    <div style="display:flex;gap:8px;"><span style="color:#12a4a4;font-weight:800;">·</span><span>열화상 카메라 (FLIR)</span></div>
+                                    <div style="display:flex;gap:8px;"><span style="color:#12a4a4;font-weight:800;">·</span><span>레이저 레벨기</span></div>
+                                    <div style="display:flex;gap:8px;"><span style="color:#12a4a4;font-weight:800;">·</span><span>공기질 측정기</span></div>
                                 </div>
-                                <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
-                                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:35px 50px;max-width:500px;">
-                                        <div><div style="font-size:11px;font-weight:700;color:#2563eb;letter-spacing:2px;margin-bottom:8px;">PROJECT</div><div style="font-size:22px;font-weight:700;color:#1A2744;">${projectData.apartmentName}</div></div>
-                                        <div><div style="font-size:11px;font-weight:700;color:#2563eb;letter-spacing:2px;margin-bottom:8px;">UNIT</div><div style="font-size:22px;font-weight:700;color:#1A2744;">${projectData.dong}동 ${projectData.ho}호</div></div>
-                                        <div><div style="font-size:11px;font-weight:700;color:#2563eb;letter-spacing:2px;margin-bottom:8px;">DATE</div><div style="font-size:18px;font-weight:700;color:#1A2744;">${projectData.inspectionDate || new Date().toLocaleDateString('ko-KR')}</div></div>
-                                        <div><div style="font-size:11px;font-weight:700;color:#2563eb;letter-spacing:2px;margin-bottom:8px;">CLIENT</div><div style="font-size:18px;font-weight:700;color:#1A2744;">${projectData.customerName || '-'}</div></div>
-                                    </div>
-                                </div>
-                                <div style="margin-top:auto;padding-top:40px;border-top:1px solid #eee;display:flex;justify-content:space-between;align-items:center;">
-                                    <div style="font-size:14px;font-weight:700;color:#1A2744;"><b>더홈점검</b> | The Home Inspection</div>
-                                    <div style="text-align:right;">
-                                        <div style="font-size:20px;font-weight:700;color:#2563eb;">1668-5322</div>
-                                        <div style="font-size:13px;color:#888;margin-top:2px;">010-9985-0128</div>
-                                    </div>
+                                <div style="height:1px;background:rgba(255,255,255,.14);margin:24px 0;"></div>
+                                <div style="font-size:16px;font-weight:800;color:#fff;">1668-5322</div>
+                                <div style="font-size:11px;color:rgba(255,255,255,.55);margin-top:4px;">010-9985-0128</div>
+                            </div>
+                            <div style="flex:1;display:flex;flex-direction:column;padding:108px 54px 54px;box-sizing:border-box;">
+                                <div style="font-size:13px;letter-spacing:.24em;color:#12a4a4;font-weight:800;">EQUIPMENT REPORT</div>
+                                <h2 style="font-size:56px;line-height:1.08;font-weight:800;color:#141d2e;margin:18px 0 0;letter-spacing:-.03em;">장비 측정<br>보고서</h2>
+                                <div style="flex:1;"></div>
+                                <div style="border-top:2px solid #12a4a4;padding-top:30px;">
+                                    <div style="display:flex;padding:15px 0;border-bottom:1px solid #eef0f3;"><span style="width:86px;font-size:11px;letter-spacing:.12em;color:#9aa1ad;font-weight:700;padding-top:4px;">PROJECT</span><span style="font-size:20px;font-weight:700;color:#141d2e;">${projectData.apartmentName}</span></div>
+                                    <div style="display:flex;padding:15px 0;border-bottom:1px solid #eef0f3;"><span style="width:86px;font-size:11px;letter-spacing:.12em;color:#9aa1ad;font-weight:700;padding-top:4px;">UNIT</span><span style="font-size:20px;font-weight:700;color:#141d2e;">${projectData.dong}동 ${projectData.ho}호</span></div>
+                                    <div style="display:flex;padding:15px 0;border-bottom:1px solid #eef0f3;"><span style="width:86px;font-size:11px;letter-spacing:.12em;color:#9aa1ad;font-weight:700;padding-top:4px;">DATE</span><span style="font-size:20px;font-weight:700;color:#141d2e;">${projectData.inspectionDate || new Date().toLocaleDateString('ko-KR')}</span></div>
+                                    <div style="display:flex;padding:15px 0;"><span style="width:86px;font-size:11px;letter-spacing:.12em;color:#9aa1ad;font-weight:700;padding-top:4px;">CLIENT</span><span style="font-size:20px;font-weight:700;color:#141d2e;">${projectData.customerName || '-'}</span></div>
                                 </div>
                             </div>
                         </div>
@@ -7714,97 +7596,38 @@
 
                 // 표지 페이지 (미니멀 모던 블루)
                 const coverHTML = `
-                    <div style="width:794px;height:1123px;background:#fff;font-family:'Malgun Gothic',sans-serif;position:relative;box-sizing:border-box;overflow:hidden;">
-                        <div style="position:absolute;left:0;top:0;width:8px;height:100%;background:linear-gradient(180deg,#2563eb 0%,#1d4ed8 100%);"></div>
-                        <div style="position:absolute;left:639px;top:127px;width:18px;height:18px;border-radius:50%;background:#2563eb;opacity:0.9;"></div>
-                        <div style="position:absolute;left:665px;top:147px;width:14px;height:14px;border-radius:50%;background:#1e3a8a;opacity:0.9;"></div>
-                        <div style="position:absolute;left:688px;top:171px;width:20px;height:20px;border-radius:50%;background:#0d9488;opacity:0.9;"></div>
-                        <div style="position:absolute;left:708px;top:198px;width:16px;height:16px;border-radius:50%;background:#64748b;opacity:0.9;"></div>
-                        <div style="position:absolute;left:724px;top:227px;width:18px;height:18px;border-radius:50%;background:#2563eb;opacity:0.9;"></div>
-                        <div style="position:absolute;left:736px;top:258px;width:14px;height:14px;border-radius:50%;background:#1e3a8a;opacity:0.9;"></div>
-                        <div style="position:absolute;left:745px;top:290px;width:16px;height:16px;border-radius:50%;background:#0d9488;opacity:0.9;"></div>
-                        <div style="position:absolute;left:749px;top:323px;width:20px;height:20px;border-radius:50%;background:#64748b;opacity:0.9;"></div>
-                        <div style="position:absolute;left:749px;top:356px;width:14px;height:14px;border-radius:50%;background:#2563eb;opacity:0.9;"></div>
-                        <div style="position:absolute;left:745px;top:389px;width:18px;height:18px;border-radius:50%;background:#1e3a8a;opacity:0.9;"></div>
-                        <div style="position:absolute;left:736px;top:421px;width:16px;height:16px;border-radius:50%;background:#0d9488;opacity:0.9;"></div>
-                        <div style="position:absolute;left:724px;top:452px;width:14px;height:14px;border-radius:50%;background:#64748b;opacity:0.9;"></div>
-                        <div style="position:absolute;left:708px;top:481px;width:20px;height:20px;border-radius:50%;background:#2563eb;opacity:0.9;"></div>
-                        <div style="position:absolute;left:688px;top:508px;width:18px;height:18px;border-radius:50%;background:#1e3a8a;opacity:0.9;"></div>
-                        <div style="position:absolute;left:665px;top:532px;width:16px;height:16px;border-radius:50%;background:#0d9488;opacity:0.9;"></div>
-                        <div style="position:absolute;left:639px;top:552px;width:14px;height:14px;border-radius:50%;background:#64748b;opacity:0.9;"></div>
-                        <div style="position:absolute;left:616px;top:159px;width:14px;height:14px;border-radius:50%;background:#2563eb;opacity:0.9;"></div>
-                        <div style="position:absolute;left:641px;top:180px;width:12px;height:12px;border-radius:50%;background:#1e3a8a;opacity:0.9;"></div>
-                        <div style="position:absolute;left:663px;top:204px;width:16px;height:16px;border-radius:50%;background:#0d9488;opacity:0.9;"></div>
-                        <div style="position:absolute;left:681px;top:231px;width:10px;height:10px;border-radius:50%;background:#64748b;opacity:0.7;"></div>
-                        <div style="position:absolute;left:695px;top:260px;width:14px;height:14px;border-radius:50%;background:#2563eb;opacity:0.9;"></div>
-                        <div style="position:absolute;left:704px;top:291px;width:12px;height:12px;border-radius:50%;background:#1e3a8a;opacity:0.9;"></div>
-                        <div style="position:absolute;left:709px;top:323px;width:16px;height:16px;border-radius:50%;background:#0d9488;opacity:0.9;"></div>
-                        <div style="position:absolute;left:709px;top:356px;width:14px;height:14px;border-radius:50%;background:#64748b;opacity:0.9;"></div>
-                        <div style="position:absolute;left:704px;top:388px;width:10px;height:10px;border-radius:50%;background:#2563eb;opacity:0.7;"></div>
-                        <div style="position:absolute;left:695px;top:419px;width:12px;height:12px;border-radius:50%;background:#1e3a8a;opacity:0.9;"></div>
-                        <div style="position:absolute;left:681px;top:448px;width:16px;height:16px;border-radius:50%;background:#0d9488;opacity:0.9;"></div>
-                        <div style="position:absolute;left:663px;top:475px;width:14px;height:14px;border-radius:50%;background:#64748b;opacity:0.9;"></div>
-                        <div style="position:absolute;left:641px;top:499px;width:12px;height:12px;border-radius:50%;background:#2563eb;opacity:0.7;"></div>
-                        <div style="position:absolute;left:616px;top:520px;width:10px;height:10px;border-radius:50%;background:#1e3a8a;opacity:0.9;"></div>
-                        <div style="position:absolute;left:593px;top:192px;width:12px;height:12px;border-radius:50%;background:#2563eb;opacity:0.7;"></div>
-                        <div style="position:absolute;left:617px;top:212px;width:10px;height:10px;border-radius:50%;background:#1e3a8a;opacity:0.7;"></div>
-                        <div style="position:absolute;left:637px;top:236px;width:14px;height:14px;border-radius:50%;background:#0d9488;opacity:0.9;"></div>
-                        <div style="position:absolute;left:653px;top:263px;width:8px;height:8px;border-radius:50%;background:#64748b;opacity:0.7;"></div>
-                        <div style="position:absolute;left:663px;top:293px;width:12px;height:12px;border-radius:50%;background:#2563eb;opacity:0.9;"></div>
-                        <div style="position:absolute;left:669px;top:324px;width:10px;height:10px;border-radius:50%;background:#1e3a8a;opacity:0.7;"></div>
-                        <div style="position:absolute;left:669px;top:355px;width:14px;height:14px;border-radius:50%;background:#0d9488;opacity:0.7;"></div>
-                        <div style="position:absolute;left:663px;top:386px;width:10px;height:10px;border-radius:50%;background:#64748b;opacity:0.9;"></div>
-                        <div style="position:absolute;left:653px;top:416px;width:8px;height:8px;border-radius:50%;background:#2563eb;opacity:0.7;"></div>
-                        <div style="position:absolute;left:637px;top:443px;width:12px;height:12px;border-radius:50%;background:#1e3a8a;opacity:0.7;"></div>
-                        <div style="position:absolute;left:617px;top:467px;width:10px;height:10px;border-radius:50%;background:#0d9488;opacity:0.7;"></div>
-                        <div style="position:absolute;left:593px;top:487px;width:8px;height:8px;border-radius:50%;background:#64748b;opacity:0.5;"></div>
-                        <div style="position:absolute;left:592px;top:244px;width:10px;height:10px;border-radius:50%;background:#1e3a8a;opacity:0.7;"></div>
-                        <div style="position:absolute;left:610px;top:268px;width:6px;height:6px;border-radius:50%;background:#0d9488;opacity:0.5;"></div>
-                        <div style="position:absolute;left:622px;top:295px;width:10px;height:10px;border-radius:50%;background:#64748b;opacity:0.7;"></div>
-                        <div style="position:absolute;left:629px;top:325px;width:8px;height:8px;border-radius:50%;background:#2563eb;opacity:0.5;"></div>
-                        <div style="position:absolute;left:629px;top:354px;width:6px;height:6px;border-radius:50%;background:#1e3a8a;opacity:0.5;"></div>
-                        <div style="position:absolute;left:622px;top:384px;width:10px;height:10px;border-radius:50%;background:#0d9488;opacity:0.7;"></div>
-                        <div style="position:absolute;left:610px;top:411px;width:8px;height:8px;border-radius:50%;background:#64748b;opacity:0.5;"></div>
-                        <div style="position:absolute;left:592px;top:435px;width:6px;height:6px;border-radius:50%;background:#2563eb;opacity:0.5;"></div>
-                        <div style="position:absolute;left:390px;top:560px;width:1px;height:240px;background:#1e3a8a;opacity:0.06;"></div>
-                        <div style="position:absolute;left:470px;top:576px;width:1px;height:224px;background:#1e3a8a;opacity:0.06;"></div>
-                        <div style="position:absolute;left:550px;top:584px;width:1px;height:216px;background:#2563eb;opacity:0.06;"></div>
-                        <div style="position:absolute;left:630px;top:600px;width:1px;height:200px;background:#1e3a8a;opacity:0.06;"></div>
-                        <div style="position:absolute;left:374px;top:600px;width:280px;height:1px;background:#1e3a8a;opacity:0.06;"></div>
-                        <div style="position:absolute;left:350px;top:640px;width:280px;height:1px;background:#2563eb;opacity:0.06;"></div>
-                        <div style="position:absolute;left:390px;top:680px;width:280px;height:1px;background:#1e3a8a;opacity:0.06;"></div>
-                        <div style="position:relative;z-index:2;padding:95px 50px 50px 75px;height:100%;box-sizing:border-box;display:flex;flex-direction:column;">
-                            <div style="margin-bottom:70px;">
-                                <div style="display:flex;align-items:center;gap:14px;">
-                                    <img src="data:image/png;base64,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" style="width:48px;height:48px;object-fit:contain;" />
-                                    <div>
-                                        <div style="font-size:28px;font-weight:700;color:#2563eb;letter-spacing:-0.5px;">더홈점검</div>
-                                        <div style="font-size:12px;color:#888;letter-spacing:1px;margin-top:4px;">The Home Inspection</div>
-                                    </div>
+                        <div style="width:794px;height:1123px;background:#fff;font-family:'Pretendard','Malgun Gothic',sans-serif;display:flex;flex-direction:row;overflow:hidden;box-sizing:border-box;">
+                            <div style="width:256px;background:#0f1b2e;display:flex;flex-direction:column;padding:96px 38px 54px;box-sizing:border-box;">
+                                <div style="display:flex;align-items:center;gap:11px;">
+                                    <div style="width:56px;height:56px;background-color:#fff;border-radius:14px;background-image:url(${window.THEHOME_LOGO});background-size:40px;background-repeat:no-repeat;background-position:center;"></div>
+                                    <div><div style="font-size:17px;font-weight:800;color:#fff;">더홈점검</div><div style="font-size:7px;letter-spacing:.2em;color:rgba(255,255,255,.55);font-weight:600;">THE HOME INSPECTION</div></div>
                                 </div>
-                            </div>
-                            <div style="margin-bottom:100px;">
-                                <h1 style="font-size:52px;font-weight:900;color:#1A2744;margin:0;line-height:1.2;letter-spacing:-2px;">장비측정 보고서</h1>
-                                <div style="font-size:16px;color:#666;letter-spacing:2px;margin-top:12px;">EQUIPMENT INSPECTION REPORT</div>
-                            </div>
-                            <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
-                                <div style="display:grid;grid-template-columns:1fr 1fr;gap:35px 50px;max-width:500px;">
-                                    <div><div style="font-size:11px;font-weight:700;color:#2563eb;letter-spacing:2px;margin-bottom:8px;">PROJECT</div><div style="font-size:22px;font-weight:700;color:#1A2744;">${projectData.apartmentName}</div></div>
-                                    <div><div style="font-size:11px;font-weight:700;color:#2563eb;letter-spacing:2px;margin-bottom:8px;">UNIT</div><div style="font-size:22px;font-weight:700;color:#1A2744;">${projectData.dong}동 ${projectData.ho}호</div></div>
-                                    <div><div style="font-size:11px;font-weight:700;color:#2563eb;letter-spacing:2px;margin-bottom:8px;">DATE</div><div style="font-size:18px;font-weight:700;color:#1A2744;">${projectData.inspectionDate || new Date().toLocaleDateString('ko-KR')}</div></div>
-                                    <div><div style="font-size:11px;font-weight:700;color:#2563eb;letter-spacing:2px;margin-bottom:8px;">CLIENT</div><div style="font-size:18px;font-weight:700;color:#1A2744;">${projectData.customerName || '-'}</div></div>
+                                <div style="flex:1;"></div>
+                                <div style="width:36px;height:3px;background:#12a4a4;margin-bottom:20px;"></div>
+                                <div style="font-size:13px;color:#fff;font-weight:700;line-height:1.6;margin-bottom:14px;">정밀 장비<br>측정 전문</div>
+                                <div style="font-size:10px;letter-spacing:.14em;color:rgba(255,255,255,.55);font-weight:700;margin-bottom:9px;">측정 장비</div>
+                                <div style="display:flex;flex-direction:column;gap:7px;font-size:11.5px;color:rgba(255,255,255,.82);line-height:1.4;">
+                                    <div style="display:flex;gap:8px;"><span style="color:#12a4a4;font-weight:800;">·</span><span>열화상 카메라 (FLIR)</span></div>
+                                    <div style="display:flex;gap:8px;"><span style="color:#12a4a4;font-weight:800;">·</span><span>레이저 레벨기</span></div>
+                                    <div style="display:flex;gap:8px;"><span style="color:#12a4a4;font-weight:800;">·</span><span>공기질 측정기</span></div>
                                 </div>
+                                <div style="height:1px;background:rgba(255,255,255,.14);margin:24px 0;"></div>
+                                <div style="font-size:16px;font-weight:800;color:#fff;">1668-5322</div>
+                                <div style="font-size:11px;color:rgba(255,255,255,.55);margin-top:4px;">010-9985-0128</div>
                             </div>
-                            <div style="margin-top:auto;padding-top:40px;border-top:1px solid #eee;display:flex;justify-content:space-between;align-items:center;">
-                                <div style="font-size:14px;font-weight:700;color:#1A2744;"><b>더홈점검</b> | The Home Inspection</div>
-                                <div style="text-align:right;">
-                                    <div style="font-size:20px;font-weight:700;color:#2563eb;">1668-5322</div>
-                                    <div style="font-size:13px;color:#888;margin-top:2px;">010-9985-0128</div>
+                            <div style="flex:1;display:flex;flex-direction:column;padding:108px 54px 54px;box-sizing:border-box;">
+                                <div style="font-size:13px;letter-spacing:.24em;color:#12a4a4;font-weight:800;">EQUIPMENT REPORT</div>
+                                <h2 style="font-size:56px;line-height:1.08;font-weight:800;color:#141d2e;margin:18px 0 0;letter-spacing:-.03em;">장비 측정<br>보고서</h2>
+                                <div style="flex:1;"></div>
+                                <div style="border-top:2px solid #12a4a4;padding-top:30px;">
+                                    <div style="display:flex;padding:15px 0;border-bottom:1px solid #eef0f3;"><span style="width:86px;font-size:11px;letter-spacing:.12em;color:#9aa1ad;font-weight:700;padding-top:4px;">PROJECT</span><span style="font-size:20px;font-weight:700;color:#141d2e;">${projectData.apartmentName}</span></div>
+                                    <div style="display:flex;padding:15px 0;border-bottom:1px solid #eef0f3;"><span style="width:86px;font-size:11px;letter-spacing:.12em;color:#9aa1ad;font-weight:700;padding-top:4px;">UNIT</span><span style="font-size:20px;font-weight:700;color:#141d2e;">${projectData.dong}동 ${projectData.ho}호</span></div>
+                                    <div style="display:flex;padding:15px 0;border-bottom:1px solid #eef0f3;"><span style="width:86px;font-size:11px;letter-spacing:.12em;color:#9aa1ad;font-weight:700;padding-top:4px;">DATE</span><span style="font-size:20px;font-weight:700;color:#141d2e;">${projectData.inspectionDate || new Date().toLocaleDateString('ko-KR')}</span></div>
+                                    <div style="display:flex;padding:15px 0;"><span style="width:86px;font-size:11px;letter-spacing:.12em;color:#9aa1ad;font-weight:700;padding-top:4px;">CLIENT</span><span style="font-size:20px;font-weight:700;color:#141d2e;">${projectData.customerName || '-'}</span></div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                `;
+                    `;
 
                 await window.addHTMLPageToPDF(doc, coverHTML, pageWidth, pageHeight);
 
@@ -8548,7 +8371,7 @@
             document.body.appendChild(tempDiv);
 
             const canvas = await html2canvas(tempDiv, {
-                scale: 2,
+                scale: 3,
                 useCORS: true,
                 backgroundColor: '#ffffff',
                 logging: false
@@ -10124,7 +9947,7 @@
                 photoGridHtml = `
                     <div style="display: flex; justify-content: center;">
                         <div style="flex: 1; background: white; position: relative; max-width: 550px; height: 400px;">
-                            <img src="${photos[0].src}" style="width: 100%; height: 100%; object-fit: contain;" />
+                            <div style="width:100%;height:100%;background-image:url('${photos[0].src}');background-size:contain;background-repeat:no-repeat;background-position:center;"></div>
                             <div style="position: absolute; bottom: 8px; left: 8px; background: rgba(44, 62, 80, 0.85); color: white; font-size: 11px; padding: 3px 8px; border-radius: 4px; font-weight: 700;">${photos[0].label}</div>
                         </div>
                     </div>
@@ -10135,7 +9958,7 @@
                     <div style="display: flex; gap: 2px; background: ${R_THEME.border};">
                         ${photos.map((p, i) => `
                             <div style="flex: 1; background: white; position: relative; height: 350px;">
-                                <img src="${p.src}" style="width: 100%; height: 100%; object-fit: contain;" />
+                                <div style="width:100%;height:100%;background-image:url('${p.src}');background-size:contain;background-repeat:no-repeat;background-position:center;"></div>
                                 <div style="position: absolute; bottom: 8px; left: 8px; background: ${i === 0 ? 'rgba(44, 62, 80, 0.85)' : R_THEME.equipment}; color: white; font-size: 11px; padding: 3px 8px; border-radius: 4px; font-weight: 700;">${p.label}</div>
                             </div>
                         `).join('')}
@@ -10147,7 +9970,7 @@
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2px; background: ${R_THEME.border};">
                         ${photos.map((p, i) => `
                             <div style="background: white; position: relative; height: 280px;">
-                                <img src="${p.src}" style="width: 100%; height: 100%; object-fit: contain;" />
+                                <div style="width:100%;height:100%;background-image:url('${p.src}');background-size:contain;background-repeat:no-repeat;background-position:center;"></div>
                                 <div style="position: absolute; bottom: 6px; left: 6px; background: ${i % 2 === 0 ? 'rgba(44, 62, 80, 0.85)' : R_THEME.equipment}; color: white; font-size: 10px; padding: 2px 6px; border-radius: 3px; font-weight: 700;">${p.label}</div>
                             </div>
                         `).join('')}
@@ -10571,7 +10394,7 @@
         return `
             <div style="width:794px;height:1123px;background:#fff;font-family:'Pretendard','Malgun Gothic',sans-serif;display:flex;flex-direction:row;overflow:hidden;box-sizing:border-box;">
                 <!-- 좌측 네이비 사이드바 -->
-                <div style="width:256px;background:#141d2e;display:flex;flex-direction:column;padding:54px 38px;box-sizing:border-box;">
+                <div style="width:256px;background:#141d2e;display:flex;flex-direction:column;padding:96px 38px 54px;box-sizing:border-box;">
                     <div style="display:flex;align-items:center;gap:11px;">
                         <div style="width:56px;height:56px;background-color:#fff;border-radius:14px;background-image:url(${window.THEHOME_LOGO});background-size:40px;background-repeat:no-repeat;background-position:center;"></div>
                         <div><div style="font-size:17px;font-weight:800;color:#fff;letter-spacing:-.02em;">더홈점검</div><div style="font-size:7px;letter-spacing:.2em;color:#7c86a0;font-weight:600;">THE HOME INSPECTION</div></div>
@@ -10592,7 +10415,7 @@
                     <div style="font-size:11px;color:#7c86a0;margin-top:4px;">010-9985-0128</div>
                 </div>
                 <!-- 우측 본문 -->
-                <div style="flex:1;display:flex;flex-direction:column;padding:64px 54px 54px;box-sizing:border-box;">
+                <div style="flex:1;display:flex;flex-direction:column;padding:108px 54px 54px;box-sizing:border-box;">
                     <div style="font-size:13px;letter-spacing:.28em;color:#E84848;font-weight:800;">PRE-INSPECTION REPORT</div>
                     <h2 style="font-size:60px;line-height:1.06;font-weight:800;color:#141d2e;margin:18px 0 0;letter-spacing:-.03em;">사전점검<br>보고서</h2>
                     <div style="flex:1;"></div>
@@ -10617,7 +10440,8 @@
             const locations = defect.locations ? defect.locations.join(', ') : (defect.location || '-');
             const types = defect.types ? defect.types.join(', ') : (defect.type || '-');
             const description = defect.description || '-';
-            defectRows += `<tr style="border-bottom:1px solid #eef0f3;"><td style="padding:11.5px 8px;text-align:center;font-weight:800;color:#141d2e;">${String(globalIndex).padStart(2,'0')}</td><td style="padding:11.5px 10px;color:#141d2e;font-weight:600;">${spaces}</td><td style="padding:11.5px 10px;color:#5b6472;">${locations}</td><td style="padding:11.5px 10px;color:#5b6472;">${types}</td><td style="padding:11.5px 12px;color:#141d2e;">${description}</td></tr>`;
+            const isCritical = (description||'').includes('누수');
+            defectRows += `<tr style="border-bottom:1px solid #eef0f3;background:${isCritical?'rgba(232,72,72,0.06)':'transparent'};"><td style="padding:11.5px 8px;text-align:center;font-weight:800;color:${isCritical?'#E84848':'#141d2e'};">${String(globalIndex).padStart(2,'0')}</td><td style="padding:11.5px 10px;color:#141d2e;font-weight:600;">${spaces}</td><td style="padding:11.5px 10px;color:#5b6472;">${locations}</td><td style="padding:11.5px 10px;color:#5b6472;">${types}</td><td style="padding:11.5px 12px;color:${isCritical?'#c0392b':'#141d2e'};font-weight:${isCritical?'700':'400'};">${isCritical?`<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#E84848;margin-right:7px;vertical-align:middle;"></span>`:''}${description}</td></tr>`;
         });
         const totalPages = Math.ceil(projectData.defects.length / itemsPerPage);
         const currentPage = Math.floor(startIndex / itemsPerPage) + 1;
@@ -10648,7 +10472,8 @@
             const closePhoto = defect.photos && defect.photos[1] ? await window.addWatermarkToPhoto(defect.photos[1], `${dongHo}_${String(globalIndex).padStart(2, '0')} 근경`, isPdf) : '';
             const spaces = defect.spaces ? defect.spaces.join(', ') : '-';
             const description = defect.description || '-';
-            contentHTML += `<div style="border:1px solid #e2e5ea;border-radius:10px;overflow:hidden;break-inside:avoid;"><div style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid #eef0f3;"><span style="background:#141d2e;color:#fff;font-weight:800;font-size:12px;padding:4px 11px;border-radius:6px;">#${String(globalIndex).padStart(2,'0')}</span><span style="font-size:13px;font-weight:800;color:#141d2e;">${spaces}</span><span style="width:1px;height:14px;background:#d5d9df;"></span><span style="font-size:12.5px;color:#5b6472;flex:1;">${description}</span></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:2px;background:#eef0f3;"><div style="position:relative;height:256px;background:#f4f5f7;">${farPhoto?`<img src="${farPhoto}" style="width:100%;height:100%;object-fit:contain;"/>`:`<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#c9ced6;font-size:12px;">사진 없음</div>`}<div style="position:absolute;bottom:10px;left:10px;background:#141d2e;color:white;font-size:11px;padding:3px 10px;border-radius:5px;font-weight:700;">원경</div></div><div style="position:relative;height:256px;background:#f4f5f7;">${closePhoto?`<img src="${closePhoto}" style="width:100%;height:100%;object-fit:contain;"/>`:`<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#c9ced6;font-size:12px;">사진 없음</div>`}<div style="position:absolute;bottom:10px;left:10px;background:#E84848;color:white;font-size:11px;padding:3px 10px;border-radius:5px;font-weight:700;">근경</div></div></div></div>`;
+            const isCritical = (description||'').includes('누수');
+            contentHTML += `<div style="border:1px solid ${isCritical?'#E84848':'#e2e5ea'};border-radius:10px;overflow:hidden;break-inside:avoid;"><div style="display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid #eef0f3;background:${isCritical?'rgba(232,72,72,0.07)':'#fff'};"><span style="background:#141d2e;color:#fff;font-weight:800;font-size:12px;padding:4px 11px;border-radius:6px;">#${String(globalIndex).padStart(2,'0')}</span><span style="font-size:13px;font-weight:800;color:#141d2e;">${spaces}</span>${isCritical?`<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#E84848;"></span>`:''}<span style="width:1px;height:14px;background:#d5d9df;"></span><span style="font-size:12.5px;color:${isCritical?'#c0392b':'#5b6472'};font-weight:${isCritical?'700':'400'};flex:1;">${description}</span></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:2px;background:#eef0f3;"><div style="position:relative;height:256px;background:#f4f5f7;">${farPhoto?`<div style="width:100%;height:100%;background-image:url('${farPhoto}');background-size:contain;background-repeat:no-repeat;background-position:center;"></div>`:`<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#c9ced6;font-size:12px;">사진 없음</div>`}<div style="position:absolute;bottom:10px;left:10px;background:#141d2e;color:white;font-size:11px;padding:3px 10px;border-radius:5px;font-weight:700;">원경</div></div><div style="position:relative;height:256px;background:#f4f5f7;">${closePhoto?`<div style="width:100%;height:100%;background-image:url('${closePhoto}');background-size:contain;background-repeat:no-repeat;background-position:center;"></div>`:`<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#c9ced6;font-size:12px;">사진 없음</div>`}<div style="position:absolute;bottom:10px;left:10px;background:#E84848;color:white;font-size:11px;padding:3px 10px;border-radius:5px;font-weight:700;">근경</div></div></div></div>`;
         }
         return `<div style="width:794px;height:1123px;background:#fff;font-family:'Pretendard','Malgun Gothic',sans-serif;display:flex;flex-direction:column;overflow:hidden;box-sizing:border-box;"><div style="background:#141d2e;padding:20px 44px;display:flex;justify-content:space-between;align-items:center;"><div style="display:flex;align-items:center;gap:11px;"><div style="width:42px;height:42px;background-color:#fff;border-radius:10px;background-image:url(${window.THEHOME_LOGO});background-size:28px;background-repeat:no-repeat;background-position:center;"></div><div><div style="font-size:9px;letter-spacing:.16em;color:#7c86a0;font-weight:700;">더홈점검 · REPORT</div><div style="font-size:17px;font-weight:800;color:#fff;">하자 상세 리포트 (사진)</div></div></div><div style="font-size:12px;color:#9aa6c2;font-weight:600;">${projectData.apartmentName} ${projectData.dong}동 ${projectData.ho}호</div></div><div style="height:3px;background:#E84848;"></div><div style="flex:1;padding:26px 44px 0;display:flex;flex-direction:column;gap:18px;">${contentHTML}</div><div style="margin-top:auto;padding:14px 44px;border-top:1px solid #e8eaee;display:flex;justify-content:space-between;align-items:center;font-size:11px;color:#9aa1ad;font-weight:700;letter-spacing:.05em;"><span>THE HOME INSPECTION</span><span>1668-5322</span></div></div>`;
     }
