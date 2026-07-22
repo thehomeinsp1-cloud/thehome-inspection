@@ -3912,44 +3912,85 @@
             // 필터 적용: 배지 탭 시 오래된 것만 표시
             const viewProjects = showOnlyOldProjects ? projects.filter(isOld) : projects;
 
+            // ✅ 당일 순번 계산: 프로젝트 생성일(createdAt 없으면 id=timestamp)을 날짜별로 묶어
+            //    각 날짜 안에서 생성 순서대로 1,2,3... 부여. 오늘 날짜 문자열도 준비.
+            const getDateKey = (p) => {
+                const t = p.createdAt ? new Date(p.createdAt) : new Date(p.id || Date.now());
+                return `${t.getFullYear()}-${t.getMonth()+1}-${t.getDate()}`;
+            };
+            const getTime = (p) => (p.createdAt ? new Date(p.createdAt).getTime() : (p.id || 0));
+            const todayKey = (() => { const t = new Date(); return `${t.getFullYear()}-${t.getMonth()+1}-${t.getDate()}`; })();
+            // 날짜별 오름차순 정렬된 순번 맵 생성
+            const seqMap = {};
+            const byDate = {};
+            projects.forEach(p => {
+                const k = getDateKey(p);
+                (byDate[k] = byDate[k] || []).push(p);
+            });
+            Object.values(byDate).forEach(arr => {
+                arr.sort((a,b) => getTime(a) - getTime(b));
+                arr.forEach((p,i) => { seqMap[p.id] = i + 1; });
+            });
+
+            // 필터된 목록이 비면 안내
+            if (viewProjects.length === 0) {
+                listContainer.innerHTML = '<div style="text-align: center; padding: 20px; opacity: 0.7;">해당하는 프로젝트가 없습니다.</div>';
+                return;
+            }
             listContainer.innerHTML = viewProjects.map((project, index) => {
                 const isActive = project.id === currentProjectId;
-                const projectName = project.apartmentName && project.dong && project.ho 
-                    ? `${project.apartmentName} ${project.dong} ${project.ho}`
-                    : `프로젝트 ${index + 1} (정보 미입력)`;
+                const hasInfo = project.apartmentName && project.dong && project.ho;
+                const aptName = hasInfo ? project.apartmentName : `프로젝트 ${index + 1}`;
+                const dongHo = hasInfo ? `${project.dong}동 ${project.ho}호` : '(정보 미입력)';
+                // ✅ 단지명 자동 크기: 동호와 동일한 18px 기본, 길면 단계 축소(하한 13px)
+                const nameLen = aptName.length;
+                let aptFontSize = 18;
+                if (nameLen > 15) aptFontSize = 13;
+                else if (nameLen > 13) aptFontSize = 14.5;
+                else if (nameLen > 11) aptFontSize = 16;
                 
-                const uploadStatus = project.isUploaded 
-                    ? '<span style="color: #10b981;">✅ 업로드 완료</span>' 
-                    : '<span style="color: #fbbf24;">⏳ 작업중</span>';
+                // ✅ C타입 순번 배지: 오늘이면 오렌지 "오늘 N번", 지난 날이면 회색 날짜
+                const seq = seqMap[project.id] || 1;
+                const dKey = getDateKey(project);
+                let seqBadge;
+                if (dKey === todayKey) {
+                    seqBadge = `<div style="background:#FF6B35;color:#fff;font-size:10px;font-weight:800;border-radius:7px;padding:5px 7px;text-align:center;line-height:1.2;white-space:nowrap;flex-shrink:0;">오늘<br>${seq}번</div>`;
+                } else {
+                    const dt = project.createdAt ? new Date(project.createdAt) : new Date(project.id || Date.now());
+                    const md = `${dt.getMonth()+1}/${dt.getDate()}`;
+                    seqBadge = `<div style="background:rgba(255,255,255,0.25);color:rgba(255,255,255,0.9);font-size:11px;font-weight:700;border-radius:7px;padding:7px 8px;text-align:center;white-space:nowrap;flex-shrink:0;">${md}</div>`;
+                }
+                
+                // ✅ 상태 색상: 완료=연두(#4ade80), 작업중=노랑(#fbbf24)
+                const statusColor = project.isUploaded ? '#4ade80' : '#fbbf24';
+                const statusText = project.isUploaded ? '완료' : '작업중';
                 
                 const authorInfo = project.author 
-                    ? `작성자: ${project.author} | ` 
-                    : ''; // ✅ 작성자 정보 추가
+                    ? ` · ${project.author}` 
+                    : '';
 
                 return `
                     <div onclick="switchProject(${project.id})" 
                          style="background: ${isActive ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.1)'}; 
                                 padding: 12px; 
-                                border-radius: 6px; 
+                                border-radius: 8px; 
                                 margin-bottom: 8px; 
                                 cursor: pointer;
                                 border: ${isActive ? '2px solid white' : '2px solid transparent'};
                                 transition: all 0.3s;"
                          onmouseover="if(!${isActive}) this.style.background='rgba(255,255,255,0.2)'"
                          onmouseout="if(!${isActive}) this.style.background='rgba(255,255,255,0.1)'">
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <div style="flex: 1;">
-                                <div style="font-weight: bold; margin-bottom: 4px;">
-                                    ${isActive ? '▶ ' : ''}${projectName}
+                        <div style="display: flex; align-items: center; gap: 11px;">
+                            ${seqBadge}
+                            <div style="flex: 1; min-width: 0;">
+                                <div style="font-size: ${aptFontSize}px; font-weight: 800; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${isActive ? '▶ ' : ''}${aptName}</div>
+                                <div style="display: flex; align-items: baseline; gap: 8px; margin-top: 2px;">
+                                    <span style="font-size: 18px; font-weight: 800; color: #fff; white-space: nowrap;">${dongHo}</span>
+                                    <span style="font-size: 11px; font-weight: 700; color: ${statusColor}; white-space: nowrap;">● ${statusText}</span>
                                 </div>
-                                <div style="font-size: 11px; opacity: 0.8;">
-                                    ${authorInfo}하자: ${project.defects.length}개 | 
-                                    장비: ${project.equipment ? project.equipment.length : 0}개 | 
-                                    공기질: ${project.airQuality.length}개
+                                <div style="font-size: 12px; color: rgba(255,255,255,0.7); margin-top: 4px;">
+                                    하자 ${project.defects.length} · 장비 ${project.equipment ? project.equipment.length : 0} · 공기질 ${project.airQuality.length}${authorInfo}
                                 </div>
-                            </div>
-                            <div style="font-size: 12px;">
-                                ${uploadStatus}
                             </div>
                         </div>
                     </div>
