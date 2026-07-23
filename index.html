@@ -5752,6 +5752,12 @@
                     constraints.video.width = { ideal: 1920 };
                     constraints.video.height = { ideal: 1080 };
                 }
+
+                // 평면도 촬영: 방 번호·치수 글씨 판독을 위해 해상도 상향 (프로젝트당 1장이라 속도 영향 최소)
+                if (currentPhotoTarget === 'floorplan') {
+                    constraints.video.width  = { ideal: deviceInfo.isIOS ? 1920 : 2560 };
+                    constraints.video.height = { ideal: deviceInfo.isIOS ? 1080 : 1440 };
+                }
                 
                 cameraStream = await navigator.mediaDevices.getUserMedia(constraints);
                 
@@ -10200,11 +10206,13 @@
         const maxG = sortedTypes.length ? sortedTypes[0][1] : 0;
         let gongRows = sortedTypes.length
             ? sortedTypes.slice(0,10).map((it,i)=>barRow(it[0], it[1], totForG, maxG, NAVY[i%NAVY.length], 62)).join('')
+                + (sortedTypes.length > 10 ? '<div style="font-size:10.5px;color:#8a919d;margin-top:5px;">외 ' + (sortedTypes.length-10) + '개 공종 ' + sortedTypes.slice(10).reduce((a,b)=>a+b[1],0) + '건</div>' : '')
             : '<div style="text-align:center;color:#8a919d;font-size:12px;padding:24px 0;">등록된 하자가 없습니다</div>';
         const totForS = sortedSpaces.reduce((a,b)=>a+b[1],0);
         const maxS = sortedSpaces.length ? sortedSpaces[0][1] : 0;
         let spaceRows = sortedSpaces.length
             ? sortedSpaces.slice(0,12).map((it,i)=>barRow(it[0], it[1], totForS, maxS, NAVY[i%NAVY.length], 56)).join('')
+                + (sortedSpaces.length > 12 ? '<div style="font-size:10.5px;color:#8a919d;margin-top:5px;">외 ' + (sortedSpaces.length-12) + '개 공간 ' + sortedSpaces.slice(12).reduce((a,b)=>a+b[1],0) + '건</div>' : '')
             : '<div style="text-align:center;color:#8a919d;font-size:12px;padding:16px 0;">등록된 하자가 없습니다</div>';
 
         const floorHTML = projectData.floorplan
