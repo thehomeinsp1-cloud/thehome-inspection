@@ -288,11 +288,16 @@
         }
 
         .floorplan-preview {
-            width: 100%;
-            max-height: 400px;
+            /* 보고서와 동일한 비율(세로 9:16)로 표시 → 앱에서 본 그대로 보고서에 출력 */
+            display: block;
+            height: min(420px, 52vh);
+            aspect-ratio: 9 / 16;
+            width: auto;
+            max-width: 100%;
             object-fit: contain;
+            background: #fafbfc;
             border-radius: 12px;
-            margin: 15px 0;
+            margin: 15px auto;
             border: 2px solid var(--border);
         }
 
@@ -1239,6 +1244,7 @@
                     <p id="floorplanPlaceholder" style="color: var(--text-secondary); padding: 60px 0;">
                         평면도를 추가해주세요
                     </p>
+                    <div style="font-size:12px;color:var(--text-secondary);margin:-6px 0 10px;">※ 위 미리보기가 보고서에 그대로 출력됩니다 (세로 촬영 기준)</div>
                     
                     <div class="photo-actions">
                         <button class="photo-action-btn camera" onclick="openFloorplanCamera()">
@@ -10202,8 +10208,8 @@
             : '<div style="text-align:center;color:#8a919d;font-size:12px;padding:16px 0;">등록된 하자가 없습니다</div>';
 
         const floorHTML = projectData.floorplan
-            ? '<div style="height:196px;border:1px solid #e2e5ea;border-radius:6px;background-color:#fafbfc;background-image:url(\'' + projectData.floorplan + '\');background-size:cover;background-repeat:no-repeat;background-position:center;"></div>'
-            : '<div style="height:196px;border:1px solid #e2e5ea;border-radius:6px;background:#f7f8fa;display:flex;align-items:center;justify-content:center;"><span style="font-size:11px;color:#aeb4bd;letter-spacing:.08em;">FLOOR PLAN · 평면도</span></div>';
+            ? '<div style="height:544px;border:1px solid #e2e5ea;border-radius:6px;background-color:#fafbfc;background-image:url(\'' + projectData.floorplan + '\');background-size:contain;background-repeat:no-repeat;background-position:center;"></div>'
+            : '<div style="height:544px;border:1px solid #e2e5ea;border-radius:6px;background:#f7f8fa;display:flex;align-items:center;justify-content:center;"><span style="font-size:11px;color:#aeb4bd;letter-spacing:.08em;">FLOOR PLAN · 평면도</span></div>';
 
         return `
             <div style="width:794px;height:1123px;background:#fff;font-family:'Pretendard','Malgun Gothic',sans-serif;display:flex;flex-direction:column;overflow:hidden;box-sizing:border-box;">
@@ -10224,7 +10230,7 @@
                         <div style="padding:18px 12px;text-align:center;"><div style="font-size:11.5px;color:#8a919d;margin-bottom:8px;">촬영 사진</div><div style="font-size:33px;font-weight:800;color:#141d2e;">${totalPhotos}</div></div>
                     </div>
 
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:30px;margin-bottom:24px;">
+                    <div style="display:grid;grid-template-columns:306px 1fr;gap:26px;margin-bottom:22px;">
                         <div>
                             <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;"><span style="width:4px;height:15px;background:#E84848;"></span><b style="font-size:14px;font-weight:800;color:#141d2e;">평면도</b></div>
                             ${floorHTML}
@@ -10232,17 +10238,15 @@
                         <div>
                             <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;"><span style="width:4px;height:15px;background:#E84848;"></span><b style="font-size:14px;font-weight:800;color:#141d2e;">공종별 하자 현황</b></div>
                             ${gongRows}
+                            <div style="display:flex;align-items:center;gap:8px;margin:20px 0 14px;"><span style="width:4px;height:15px;background:#E84848;"></span><b style="font-size:14px;font-weight:800;color:#141d2e;">위치별 하자 현황</b></div>
+                            ${spaceRows}
+                            <div style="display:flex;align-items:center;gap:8px;margin:20px 0 12px;"><span style="width:4px;height:15px;background:#E84848;"></span><b style="font-size:14px;font-weight:800;color:#141d2e;">점검 항목</b></div>
+                            <div style="border:1px solid #e2e5ea;border-radius:8px;overflow:hidden;">
+                                <div style="padding:11px 14px;border-bottom:1px solid #eef0f3;"><div style="font-size:11px;color:#E84848;font-weight:700;margin-bottom:3px;">육안 · 기능</div><div style="font-size:12.5px;font-weight:700;color:#141d2e;">마감품질 · 시공상태 <span style="font-size:10.5px;color:#8a919d;font-weight:400;">· 육안 및 기능점검</span></div></div>
+                                <div style="padding:11px 14px;border-bottom:1px solid #eef0f3;"><div style="font-size:11px;color:#E84848;font-weight:700;margin-bottom:3px;">공기질</div><div style="font-size:12.5px;font-weight:700;color:#141d2e;">실내 공기질 측정 <span style="font-size:10.5px;color:#8a919d;font-weight:400;">· 라돈 · 포름알데히드 · VOCs</span></div></div>
+                                <div style="padding:11px 14px;"><div style="font-size:11px;color:#E84848;font-weight:700;margin-bottom:3px;">장비 정밀</div><div style="font-size:12.5px;font-weight:700;color:#141d2e;">장비 정밀 측정 <span style="font-size:10.5px;color:#8a919d;font-weight:400;">· 레이저레벨기 · 열화상</span></div></div>
+                            </div>
                         </div>
-                    </div>
-
-                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;"><span style="width:4px;height:15px;background:#E84848;"></span><b style="font-size:14px;font-weight:800;color:#141d2e;">위치별 하자 현황</b></div>
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:2px 30px;margin-bottom:24px;">${spaceRows}</div>
-
-                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;"><span style="width:4px;height:15px;background:#E84848;"></span><b style="font-size:14px;font-weight:800;color:#141d2e;">점검 항목</b></div>
-                    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;border:1px solid #e2e5ea;border-radius:8px;overflow:hidden;margin-bottom:22px;">
-                        <div style="padding:15px 16px;border-right:1px solid #e2e5ea;"><div style="font-size:11.5px;color:#E84848;font-weight:700;margin-bottom:6px;">육안 · 기능</div><div style="font-size:13.5px;font-weight:700;color:#141d2e;">마감품질 · 시공상태</div><div style="font-size:10.5px;color:#8a919d;margin-top:3px;">육안 및 기능점검</div></div>
-                        <div style="padding:15px 16px;border-right:1px solid #e2e5ea;"><div style="font-size:11.5px;color:#E84848;font-weight:700;margin-bottom:6px;">공기질</div><div style="font-size:13.5px;font-weight:700;color:#141d2e;">실내 공기질 측정</div><div style="font-size:10.5px;color:#8a919d;margin-top:3px;">라돈 · 포름알데히드 · VOCs</div></div>
-                        <div style="padding:15px 16px;"><div style="font-size:11.5px;color:#E84848;font-weight:700;margin-bottom:6px;">장비 정밀</div><div style="font-size:13.5px;font-weight:700;color:#141d2e;">장비 정밀 측정</div><div style="font-size:10.5px;color:#8a919d;margin-top:3px;">레이저레벨기 · 열화상</div></div>
                     </div>
 
                     <div style="border-left:3px solid #E84848;background:#f8f9fb;padding:14px 18px;">
