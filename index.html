@@ -10196,7 +10196,7 @@
         function barRow(name, cnt, total, maxVal, color, nameW){
             const pctInt = total ? Math.round(cnt/total*100) : 0;
             const w = maxVal ? Math.max(cnt/maxVal*100, 4) : 0;
-            return '<div style="display:flex;align-items:center;gap:8px;padding:2px 0;">'
+            return '<div style="display:flex;align-items:center;gap:8px;padding:4px 0;">'
                 + '<span style="width:'+nameW+'px;font-size:11.5px;color:#141d2e;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+name+'</span>'
                 + '<div style="flex:1;height:7px;background:#eef0f3;border-radius:4px;"><div style="width:'+w+'%;height:7px;background:'+color+';border-radius:4px;"></div></div>'
                 + '<span style="width:66px;text-align:right;font-size:11px;color:#141d2e;font-weight:700;">'+cnt+'건 · '+pctInt+'%</span>'
@@ -10231,14 +10231,14 @@
                 <div style="height:3px;background:#E84848;"></div>
                 <div style="flex:1;padding:30px 44px 0;display:flex;flex-direction:column;">
 
-                    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;border:1px solid #e2e5ea;border-radius:10px;overflow:hidden;margin-bottom:26px;">
+                    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;border:1px solid #e2e5ea;border-radius:10px;overflow:hidden;margin-bottom:20px;">
                         <div style="padding:18px 12px;text-align:center;border-right:1px solid #e2e5ea;"><div style="font-size:11.5px;color:#8a919d;margin-bottom:8px;">총 하자</div><div style="font-size:33px;font-weight:800;color:#141d2e;">${totalDefects}</div></div>
                         <div style="padding:18px 12px;text-align:center;border-right:1px solid #e2e5ea;background:#141d2e;"><div style="font-size:11.5px;color:#E84848;margin-bottom:8px;font-weight:700;">중대하자</div><div style="font-size:33px;font-weight:800;color:#fff;">${criticalCount}</div></div>
                         <div style="padding:18px 12px;text-align:center;border-right:1px solid #e2e5ea;"><div style="font-size:11.5px;color:#8a919d;margin-bottom:8px;">일반하자</div><div style="font-size:33px;font-weight:800;color:#141d2e;">${normalCount}</div></div>
                         <div style="padding:18px 12px;text-align:center;"><div style="font-size:11.5px;color:#8a919d;margin-bottom:8px;">촬영 사진</div><div style="font-size:33px;font-weight:800;color:#141d2e;">${totalPhotos}</div></div>
                     </div>
 
-                    <div style="display:grid;grid-template-columns:306px 1fr;gap:26px;margin-bottom:22px;">
+                    <div style="display:grid;grid-template-columns:306px 1fr;gap:26px;margin-bottom:16px;">
                         <div>
                             <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;"><span style="width:4px;height:15px;background:#E84848;"></span><b style="font-size:14px;font-weight:800;color:#141d2e;">평면도</b></div>
                             ${floorHTML}
@@ -10248,13 +10248,18 @@
                             ${gongRows}
                             <div style="display:flex;align-items:center;gap:8px;margin:20px 0 14px;"><span style="width:4px;height:15px;background:#E84848;"></span><b style="font-size:14px;font-weight:800;color:#141d2e;">위치별 하자 현황</b></div>
                             ${spaceRows}
-                            <div style="display:flex;align-items:center;gap:8px;margin:20px 0 12px;"><span style="width:4px;height:15px;background:#E84848;"></span><b style="font-size:14px;font-weight:800;color:#141d2e;">점검 항목</b></div>
-                            <div style="border:1px solid #e2e5ea;border-radius:8px;overflow:hidden;">
-                                <div style="padding:11px 14px;border-bottom:1px solid #eef0f3;"><div style="font-size:11px;color:#E84848;font-weight:700;margin-bottom:3px;">육안 · 기능</div><div style="font-size:12.5px;font-weight:700;color:#141d2e;">마감품질 · 시공상태 <span style="font-size:10.5px;color:#8a919d;font-weight:400;">· 육안 및 기능점검</span></div></div>
-                                <div style="padding:11px 14px;border-bottom:1px solid #eef0f3;"><div style="font-size:11px;color:#E84848;font-weight:700;margin-bottom:3px;">공기질</div><div style="font-size:12.5px;font-weight:700;color:#141d2e;">실내 공기질 측정 <span style="font-size:10.5px;color:#8a919d;font-weight:400;">· 라돈 · 포름알데히드 · VOCs</span></div></div>
-                                <div style="padding:11px 14px;"><div style="font-size:11px;color:#E84848;font-weight:700;margin-bottom:3px;">장비 정밀</div><div style="font-size:12.5px;font-weight:700;color:#141d2e;">장비 정밀 측정 <span style="font-size:10.5px;color:#8a919d;font-weight:400;">· 레이저레벨기 · 열화상</span></div></div>
+                            <div style="margin-top:14px;border-top:1px solid #eef0f3;padding-top:10px;font-size:10.5px;color:#8a919d;line-height:1.6;">
+                                ※ 막대 오른쪽 숫자는 <b style="color:#5b6472;">건수 · 전체 대비 비율</b>입니다.<br>
+                                ※ 공종 분류는 국토교통부 하자판정기준(고시 제2025-58호)에 따릅니다.
                             </div>
                         </div>
+                    </div>
+
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;"><span style="width:4px;height:15px;background:#E84848;"></span><b style="font-size:14px;font-weight:800;color:#141d2e;">점검 항목</b></div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;border:1px solid #e2e5ea;border-radius:8px;overflow:hidden;margin-bottom:14px;">
+                        <div style="padding:13px 16px;border-right:1px solid #e2e5ea;"><div style="font-size:11.5px;color:#E84848;font-weight:700;margin-bottom:5px;">육안 · 기능</div><div style="font-size:13px;font-weight:700;color:#141d2e;">마감품질 · 시공상태</div><div style="font-size:10.5px;color:#8a919d;margin-top:3px;">육안 및 기능점검</div></div>
+                        <div style="padding:13px 16px;border-right:1px solid #e2e5ea;"><div style="font-size:11.5px;color:#E84848;font-weight:700;margin-bottom:5px;">공기질</div><div style="font-size:13px;font-weight:700;color:#141d2e;">실내 공기질 측정</div><div style="font-size:10.5px;color:#8a919d;margin-top:3px;">라돈 · 포름알데히드 · VOCs</div></div>
+                        <div style="padding:13px 16px;"><div style="font-size:11.5px;color:#E84848;font-weight:700;margin-bottom:5px;">장비 정밀</div><div style="font-size:13px;font-weight:700;color:#141d2e;">장비 정밀 측정</div><div style="font-size:10.5px;color:#8a919d;margin-top:3px;">레이저레벨기 · 열화상</div></div>
                     </div>
 
                     <div style="border-left:3px solid #E84848;background:#f8f9fb;padding:14px 18px;">
@@ -10321,11 +10326,15 @@
         (projectData.defects || []).forEach(function(d){ if ((d.description || '').toLowerCase().indexOf('누수') !== -1) criticalCount++; });
         // 공종 수에 따른 적응형 행 밀도 (공종 많아도 1페이지 유지)
         var _n = order.length;
-        var RPAD = _n<=12 ? 7 : (_n<=16 ? 4 : 3);
+        // 공종 수에 따라 행 높이를 자동 조절 → 적으면 넉넉히, 많으면 압축(1페이지 유지)
+        var RPAD = _n<=4 ? 26 : (_n<=5 ? 18 : (_n<=6 ? 14 : (_n<=7 ? 9 : (_n<=9 ? 10 : (_n<=12 ? 11 : (_n<=16 ? 8 : 6))))));
         var RFS  = _n<=12 ? 11 : (_n<=16 ? 10.5 : 10);
         var RDFS = _n<=12 ? 8.5 : 8;
-        var oneLine = _n > 12;   // 공종 13개↑이면 셀 1줄(상태만)로 압축
-        var compact = _n > 12;   // 여백·각주도 함께 압축
+        // 지면 여유에 따라 보조 안내 표시 단계 결정 (하단 여백 자동 채움 · 잘림 방지)
+        var _showFull  = (_n <= 9);                 // 보증기간 카드 표시(지면 여유 있을 때만)
+        var _showSteps = (_n <= 7);                 // 접수 준비사항까지 표시
+        var oneLine = _n > 16;   // 공종 17개↑에서만 셀 1줄(상태만)로 압축
+        var compact = _n > 14;   // 여백·각주 압축 시작
 
         function stateText(types){
             var top = Object.keys(types).sort(function(a,b){ return types[b]-types[a]; });
@@ -10392,7 +10401,25 @@
         +       '<tbody>' + rows + '</tbody>'
         +     '</table>'
 
-        +     '<div style="display:flex;gap:22px;margin:'+(compact?10:16)+'px 0 12px;font-size:11px;color:#5b6472;">'
+        // 공종이 적어 지면이 남을 때만 표시되는 보조 안내 (하단 여백 자동 채움)
+        +     (_showFull ? (
+                '<div style="margin-top:18px;">'
+              +   '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;"><span style="width:4px;height:15px;background:#E84848;"></span><b style="font-size:13.5px;font-weight:800;color:#141d2e;">보증기간 한눈에 보기</b></div>'
+              +   '<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;border:1px solid #e2e5ea;border-radius:8px;overflow:hidden;margin-bottom:14px;">'
+              +     '<div style="padding:11px 12px;border-right:1px solid #e2e5ea;"><div style="font-size:15px;font-weight:800;color:#8a919d;margin-bottom:4px;">2년</div><div style="font-size:10.5px;color:#5b6472;line-height:1.5;">도배 · 도장 · 타일<br>가구 · 수장 마감</div></div>'
+              +     '<div style="padding:11px 12px;border-right:1px solid #e2e5ea;"><div style="font-size:15px;font-weight:800;color:#33415c;margin-bottom:4px;">3년</div><div style="font-size:10.5px;color:#5b6472;line-height:1.5;">창호 · 전기 · 기계설비<br>급배수 · 환기</div></div>'
+              +     '<div style="padding:11px 12px;border-right:1px solid #e2e5ea;"><div style="font-size:15px;font-weight:800;color:#E84848;margin-bottom:4px;">5년</div><div style="font-size:10.5px;color:#5b6472;line-height:1.5;">방수 · 누수<br>철근콘크리트 균열</div></div>'
+              +     '<div style="padding:11px 12px;"><div style="font-size:15px;font-weight:800;color:#141d2e;margin-bottom:4px;">10년</div><div style="font-size:10.5px;color:#5b6472;line-height:1.5;">기둥 · 보 · 내력벽<br>지붕 등 내력구조부</div></div>'
+              +   '</div>'
+              + (_showSteps ? '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;"><span style="width:4px;height:15px;background:#E84848;"></span><b style="font-size:13.5px;font-weight:800;color:#141d2e;">하자보수 접수 시 준비사항</b></div>'
+              +   '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">'
+              +     '<div style="border:1px solid #e2e5ea;border-radius:8px;padding:11px 13px;"><div style="font-size:11px;color:#E84848;font-weight:700;margin-bottom:4px;">01 사진</div><div style="font-size:11px;color:#5b6472;line-height:1.5;">원경(위치) + 근경(하자) 2장</div></div>'
+              +     '<div style="border:1px solid #e2e5ea;border-radius:8px;padding:11px 13px;"><div style="font-size:11px;color:#E84848;font-weight:700;margin-bottom:4px;">02 기록</div><div style="font-size:11px;color:#5b6472;line-height:1.5;">발견 날짜 · 위치 · 현상 메모</div></div>'
+              +     '<div style="border:1px solid #e2e5ea;border-radius:8px;padding:11px 13px;"><div style="font-size:11px;color:#E84848;font-weight:700;margin-bottom:4px;">03 접수</div><div style="font-size:11px;color:#5b6472;line-height:1.5;">관리사무소 또는 시공사 A/S</div></div>'
+              +   '</div>' : '')
+              + '</div>') : '')
+
+        +     '<div style="display:flex;gap:22px;margin:'+(compact?10:16)+'px 0 12px;font-size:11px;color:#5b6472;margin-top:auto;">'
         +       '<div style="display:flex;align-items:center;gap:7px;"><span style="background:#8a919d;color:#fff;font-weight:700;padding:2px 8px;border-radius:10px;">2년</span> 마감(도배·도장·타일·가구 등)</div>'
         +       '<div style="display:flex;align-items:center;gap:7px;"><span style="background:#33415c;color:#fff;font-weight:700;padding:2px 8px;border-radius:10px;">3년</span> 창호·설비·전기</div>'
         +       '<div style="display:flex;align-items:center;gap:7px;"><span style="background:#E84848;color:#fff;font-weight:700;padding:2px 8px;border-radius:10px;">5년</span> 방수·구조</div>'
