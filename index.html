@@ -10193,13 +10193,17 @@
 
         // 디자인 네이비 스케일 미니바
         const NAVY = ['#141d2e','#33415c','#4a5877','#5d6b8a','#7280a0','#8b97b5','#9aa6bf','#a7b1c8','#c0c8da','#dbe0ea'];
+        // 표시 행 수에 따라 막대 간격·글자 자동 조절 (항목 많아도 1페이지 유지 · 하단 잘림 방지)
+        const _rowsShown = Math.min(sortedTypes.length,10) + Math.min(sortedSpaces.length,12);
+        const BPAD = _rowsShown>=21 ? 1 : (_rowsShown>=18 ? 2 : (_rowsShown>=15 ? 3 : 4));
+        const BFS  = _rowsShown>=21 ? 10.5 : 11.5;
         function barRow(name, cnt, total, maxVal, color, nameW){
             const pctInt = total ? Math.round(cnt/total*100) : 0;
             const w = maxVal ? Math.max(cnt/maxVal*100, 4) : 0;
-            return '<div style="display:flex;align-items:center;gap:8px;padding:4px 0;">'
-                + '<span style="width:'+nameW+'px;font-size:11.5px;color:#141d2e;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+name+'</span>'
+            return '<div style="display:flex;align-items:center;gap:8px;padding:'+BPAD+'px 0;">'
+                + '<span style="width:'+nameW+'px;font-size:'+BFS+'px;color:#141d2e;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+name+'</span>'
                 + '<div style="flex:1;height:7px;background:#eef0f3;border-radius:4px;"><div style="width:'+w+'%;height:7px;background:'+color+';border-radius:4px;"></div></div>'
-                + '<span style="width:66px;text-align:right;font-size:11px;color:#141d2e;font-weight:700;">'+cnt+'건 · '+pctInt+'%</span>'
+                + '<span style="width:66px;text-align:right;font-size:'+(BFS-0.5)+'px;color:#141d2e;font-weight:700;">'+cnt+'건 · '+pctInt+'%</span>'
                 + '</div>';
         }
         const totForG = sortedTypes.reduce((a,b)=>a+b[1],0);
