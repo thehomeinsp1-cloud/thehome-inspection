@@ -10331,13 +10331,13 @@
         // 공종 수에 따른 적응형 행 밀도 (공종 많아도 1페이지 유지)
         var _n = order.length;
         // 공종 수에 따라 행 높이를 자동 조절 → 적으면 넉넉히, 많으면 압축(1페이지 유지)
-        var RPAD = _n<=4 ? 26 : (_n<=5 ? 18 : (_n<=6 ? 14 : (_n<=7 ? 9 : (_n<=9 ? 10 : (_n<=12 ? 11 : (_n<=16 ? 8 : 6))))));
+        var RPAD = _n<=4 ? 22 : (_n<=5 ? 15 : (_n<=6 ? 10 : (_n<=7 ? 7 : (_n<=9 ? 8 : (_n<=11 ? 10 : (_n<=13 ? 5 : (_n<=15 ? 11 : (_n<=16 ? 10 : (_n<=18 ? 8 : (_n<=19 ? 7 : 6))))))))));
         var RFS  = _n<=12 ? 11 : (_n<=16 ? 10.5 : 10);
         var RDFS = _n<=12 ? 8.5 : 8;
         // 지면 여유에 따라 보조 안내 표시 단계 결정 (하단 여백 자동 채움 · 잘림 방지)
         var _showFull  = (_n <= 9);                 // 보증기간 카드 표시(지면 여유 있을 때만)
         var _showSteps = (_n <= 7);                 // 접수 준비사항까지 표시
-        var oneLine = _n > 16;   // 공종 17개↑에서만 셀 1줄(상태만)로 압축
+        var briefLaw = _n > 13;  // 공종 14개↑이면 조문을 오른쪽에 한 줄로 (근거는 항상 노출)
         var compact = _n > 14;   // 여백·각주 압축 시작
 
         function stateText(types){
@@ -10365,8 +10365,14 @@
               +   '<td style="padding:'+RPAD+'px 12px;font-weight:700;color:#141d2e;font-size:'+RFS+'px;">' + (g==='방수'?'누수/방수':g) + '</td>'
               +   '<td style="padding:'+RPAD+'px 8px;text-align:center;color:#141d2e;font-weight:700;font-size:'+RFS+'px;" class="num">' + agg[g].cnt + '건</td>'
               +   '<td style="padding:'+RPAD+'px 12px;color:#5b6472;font-size:'+RFS+'px;">'
-              +     '<div style="color:#141d2e;font-weight:600;">' + stateText(agg[g].types) + '</div>'
-              +     (oneLine ? '' : '<div style="font-size:'+RDFS+'px;color:#6b7280;margin-top:2px;">' + m.desc + ' · 근거 ' + m.law + '</div>')
+              +     (briefLaw
+                      // 공종이 많을 때: 상태는 왼쪽, 근거 조문은 오른쪽에 한 줄로 배치
+                      ? '<div style="display:flex;align-items:baseline;gap:12px;">'
+                          + '<span style="color:#141d2e;font-weight:600;flex:1;">' + stateText(agg[g].types) + '</span>'
+                          + '<span style="font-size:'+RDFS+'px;color:#6b7280;white-space:nowrap;flex:none;">근거 ' + m.law + '</span>'
+                        + '</div>'
+                      : '<div style="color:#141d2e;font-weight:600;">' + stateText(agg[g].types) + '</div>'
+                        + '<div style="font-size:'+RDFS+'px;color:#6b7280;margin-top:2px;">' + m.desc + ' · 근거 ' + m.law + '</div>')
               +   '</td>'
               +   '<td style="padding:'+RPAD+'px 10px;text-align:center;">' + badge(m.y, m.blabel) + '</td>'
               + '</tr>';
@@ -10432,6 +10438,8 @@
         +     '<div style="font-size:10px;color:#9aa1ad;line-height:1.7;">'
         +       '· 위 \u2018상태\u2019는 이번 점검에서 실제로 확인된 항목만 모아 표시한 것입니다. 항목별 사진·위치는 뒤쪽 상세 리포트를 참고하세요.<br>'
         +       '· 보증기간은 입주(인도일)부터 시작되며, 기간 내에는 무상보수가 원칙입니다. 방수는 원인 부위에 따라 3~5년으로 다르게 적용됩니다.<br>'
+        +       '· 위 내용은 <b style="color:#5b6472">점검일 기준</b>으로 확인된 사항이며, 결로·균열·수축 등은 계절 변화에 따라 이후 새로 나타날 수 있습니다.<br>'
+        +       '· 이사·인테리어·사용 부주의로 생긴 파손, 보수 중 2차 손상 등 <b style="color:#5b6472">사용자 과실 생활하자</b>는 담보책임기간과 무관하게 제외될 수 있습니다.<br>'
         +       '· 표기된 보증기간은 공동주택(아파트) 기준이며, 오피스텔·집합건물·단독주택·상업시설·구축 등은 「집합건물법」 등 관계 법령에 따라 다를 수 있습니다.<br>'
         +       '※ 공종 분류·보증기간은 점검 내용 기반 자동 정리된 참고 자료이며, 정확한 하자 여부·보수 범위는 시공사 확인 및 하자심사 절차를 따릅니다.'
         +     '</div>'
