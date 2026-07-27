@@ -10331,7 +10331,7 @@
         // 공종 수에 따른 적응형 행 밀도 (공종 많아도 1페이지 유지)
         var _n = order.length;
         // 공종 수에 따라 행 높이를 자동 조절 → 적으면 넉넉히, 많으면 압축(1페이지 유지)
-        var RPAD = _n<=4 ? 22 : (_n<=5 ? 15 : (_n<=6 ? 10 : (_n<=7 ? 7 : (_n<=9 ? 8 : (_n<=11 ? 10 : (_n<=13 ? 5 : (_n<=15 ? 11 : (_n<=16 ? 10 : (_n<=18 ? 8 : (_n<=19 ? 7 : 6))))))))));
+        var RPAD = _n<=4 ? 22 : (_n<=5 ? 15 : (_n<=6 ? 10 : (_n<=7 ? 7 : (_n<=9 ? 8 : (_n<=11 ? 10 : (_n<=13 ? 5 : (_n<=15 ? 10 : (_n<=16 ? 10 : (_n<=18 ? 8 : (_n<=19 ? 7 : 6))))))))));
         var RFS  = _n<=12 ? 11 : (_n<=16 ? 10.5 : 10);
         var RDFS = _n<=12 ? 8.5 : 8;
         // 지면 여유에 따라 보조 안내 표시 단계 결정 (하단 여백 자동 채움 · 잘림 방지)
@@ -10429,13 +10429,13 @@
               +   '</div>' : '')
               + '</div>') : '')
 
-        +     '<div style="display:flex;gap:22px;margin:'+(compact?10:16)+'px 0 12px;font-size:11px;color:#5b6472;margin-top:auto;">'
+        +     '<div style="display:flex;gap:22px;margin:'+(compact?10:16)+'px 0 12px;font-size:11px;color:#5b6472;">'
         +       '<div style="display:flex;align-items:center;gap:7px;"><span style="background:#8a919d;color:#fff;font-weight:700;padding:2px 8px;border-radius:10px;">2년</span> 마감(도배·도장·타일·가구 등)</div>'
         +       '<div style="display:flex;align-items:center;gap:7px;"><span style="background:#33415c;color:#fff;font-weight:700;padding:2px 8px;border-radius:10px;">3년</span> 창호·설비·전기</div>'
         +       '<div style="display:flex;align-items:center;gap:7px;"><span style="background:#E84848;color:#fff;font-weight:700;padding:2px 8px;border-radius:10px;">5년</span> 방수·구조</div>'
         +     '</div>'
 
-        +     '<div style="font-size:10px;color:#9aa1ad;line-height:1.7;">'
+        +     '<div style="font-size:10px;color:#9aa1ad;line-height:1.55;">'
         +       '· 위 \u2018상태\u2019는 이번 점검에서 실제로 확인된 항목만 모아 표시한 것입니다. 항목별 사진·위치는 뒤쪽 상세 리포트를 참고하세요.<br>'
         +       '· 보증기간은 입주(인도일)부터 시작되며, 기간 내에는 무상보수가 원칙입니다. 방수는 원인 부위에 따라 3~5년으로 다르게 적용됩니다.<br>'
         +       '· 위 내용은 <b style="color:#5b6472">점검일 기준</b>으로 확인된 사항이며, 결로·균열·수축 등은 계절 변화에 따라 이후 새로 나타날 수 있습니다.<br>'
