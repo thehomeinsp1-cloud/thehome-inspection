@@ -8381,7 +8381,7 @@
         }
 
 
-        window.addHTMLPageToPDF = async function(doc, htmlContent, pageWidth, pageHeight) {
+        window.addHTMLPageToPDF = async function(doc, htmlContent, pageWidth, pageHeight, scaleOverride) {
             const tempDiv = document.createElement('div');
             tempDiv.style.width = '794px';
             tempDiv.style.position = 'absolute';
@@ -8390,8 +8390,14 @@
             tempDiv.innerHTML = htmlContent;
             document.body.appendChild(tempDiv);
 
+            // 평면도가 들어간 페이지만 고배율(방 번호 판독), 나머지는 배율 2로 생성 시간 단축
+            // (로고는 url(data:...), 평면도는 url('data:...) 형태라 따옴표로 구분)
+            const _html = (typeof htmlContent === 'string') ? htmlContent : '';
+            const _hasFloorplan = _html.indexOf("url('data:image") !== -1 || _html.indexOf('url("data:image') !== -1;
+            const _scale = scaleOverride || (_hasFloorplan ? 3 : 2);
+
             const canvas = await html2canvas(tempDiv, {
-                scale: 3,
+                scale: _scale,
                 useCORS: true,
                 backgroundColor: '#ffffff',
                 logging: false
