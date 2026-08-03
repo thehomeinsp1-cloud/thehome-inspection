@@ -2577,6 +2577,15 @@
         }
 
         // 일반 파일 업로드 (PDF, 엑셀 등)
+        // base64 → 바이너리 변환 (ZIP 투입 시 디코딩 부담 제거)
+        function b64ToBytes(b64) {
+            const bin = atob(b64);
+            const len = bin.length;
+            const bytes = new Uint8Array(len);
+            for (let i = 0; i < len; i++) bytes[i] = bin.charCodeAt(i);
+            return bytes;
+        }
+
         async function uploadFileToDrive(folderId, blob, fileName, mimeType) {
             try {
                 const form = new FormData();
@@ -3137,7 +3146,7 @@
                             for (const task of equipPhotoTasks) {
                                 try {
                                     const base64Data = task.photo.split(',')[1];
-                                    zip.file(task.fileName, base64Data, { base64: true });
+                                    zip.file(task.fileName, b64ToBytes(base64Data));
                                 } catch (e) {
                                     console.error(`ZIP 추가 실패: ${task.fileName}`, e);
                                 }
@@ -3145,8 +3154,7 @@
                             
                             const zipBlob = await zip.generateAsync({ 
                                 type: 'blob',
-                                compression: 'DEFLATE',
-                                compressionOptions: { level: 6 }
+                                compression: 'STORE'
                             });
                             
                             showToast('📤 사진 ZIP 업로드 중...');
@@ -3547,7 +3555,7 @@
                         for (const task of photoTasks) {
                             try {
                                 const base64Data = task.photo.split(',')[1];
-                                zip.file(task.fileName, base64Data, { base64: true });
+                                zip.file(task.fileName, b64ToBytes(base64Data));
                             } catch (e) {
                                 console.error(`ZIP 추가 실패: ${task.fileName}`, e);
                             }
@@ -3555,8 +3563,7 @@
                         
                         const zipBlob = await zip.generateAsync({ 
                             type: 'blob',
-                            compression: 'DEFLATE',
-                            compressionOptions: { level: 6 }
+                            compression: 'STORE'
                         });
                         
                         showToast('📤 사진 ZIP 업로드 중...');
@@ -7215,7 +7222,7 @@
                 // 평면도
                 if (projectData.floorplan) {
                     const floorplanData = projectData.floorplan.split(',')[1];
-                    zip.file('평면도.jpg', floorplanData, { base64: true });
+                    zip.file('평면도.jpg', b64ToBytes(floorplanData));
                     photoCount++;
                 }
                 
@@ -7250,7 +7257,7 @@
                         const results = await Promise.all(batch.map(t => window.addWatermarkToPhoto(t.photo, t.wmText)));
                         for (let j = 0; j < batch.length; j++) {
                             const photoData = results[j].split(',')[1];
-                            defectFolder.file(batch[j].fileName, photoData, { base64: true });
+                            defectFolder.file(batch[j].fileName, b64ToBytes(photoData));
                             photoCount++;
                         }
                     }
@@ -7270,14 +7277,14 @@
                                 if (photo) {
                                     const photoData = photo.split(',')[1];
                                     const fileName = `${equipNum}_${spaceName}_${equipName}_${location}.jpg`.replace(/\//g, '-');
-                                    equipFolder.file(fileName, photoData, { base64: true });
+                                    equipFolder.file(fileName, b64ToBytes(photoData));
                                     photoCount++;
                                 }
                             });
                         } else if (equip.photo) {
                             const photoData = equip.photo.split(',')[1];
                             const fileName = `${equipNum}_${spaceName}_${equipName}.jpg`.replace(/\//g, '-');
-                            equipFolder.file(fileName, photoData, { base64: true });
+                            equipFolder.file(fileName, b64ToBytes(photoData));
                             photoCount++;
                         }
                     });
@@ -7288,8 +7295,7 @@
                 
                 const content = await zip.generateAsync({ 
                     type: 'blob',
-                    compression: 'DEFLATE',
-                    compressionOptions: { level: 6 }
+                    compression: 'STORE'
                 });
                 
                 const url = URL.createObjectURL(content);
@@ -7462,7 +7468,7 @@
                 // 1. 평면도
                 if (projectData.floorplan) {
                     const floorplanData = projectData.floorplan.split(',')[1];
-                    zip.file('평면도.jpg', floorplanData, { base64: true });
+                    zip.file('평면도.jpg', b64ToBytes(floorplanData));
                     photoCount++;
                 }
                 
@@ -7495,7 +7501,7 @@
                         const results = await Promise.all(batch.map(t => window.addWatermarkToPhoto(t.photo, t.wmText)));
                         for (let j = 0; j < batch.length; j++) {
                             const photoData = results[j].split(',')[1];
-                            defectFolder.file(batch[j].fileName, photoData, { base64: true });
+                            defectFolder.file(batch[j].fileName, b64ToBytes(photoData));
                             photoCount++;
                         }
                     }
@@ -7516,7 +7522,7 @@
                                 if (photo) {
                                     const photoData = photo.split(',')[1];
                                     const fileName = `${equipNum}_${spaceName}_${equipName}_${location}.jpg`.replace(/\//g, '-');
-                                    equipFolder.file(fileName, photoData, { base64: true });
+                                    equipFolder.file(fileName, b64ToBytes(photoData));
                                     photoCount++;
                                 }
                             });
@@ -7524,7 +7530,7 @@
                             // 구 버전 단일 사진
                             const photoData = equip.photo.split(',')[1];
                             const fileName = `${equipNum}_${spaceName}_${equipName}.jpg`.replace(/\//g, '-');
-                            equipFolder.file(fileName, photoData, { base64: true });
+                            equipFolder.file(fileName, b64ToBytes(photoData));
                             photoCount++;
                         }
                     });
@@ -8391,7 +8397,7 @@
 
             document.body.removeChild(tempDiv);
 
-            const imgData = canvas.toDataURL('image/jpeg', 0.95);
+            const imgData = canvas.toDataURL('image/jpeg', 0.85); // 용량 약 38% 감소, 육안 차이 없음
             const imgWidth = pageWidth;
             const imgHeight = (canvas.height * pageWidth) / canvas.width;
             
@@ -10221,7 +10227,8 @@
 
         const floorHTML = projectData.floorplan
             ? '<div style="height:544px;border:1px solid #e2e5ea;border-radius:6px;background-color:#fafbfc;background-image:url(\'' + projectData.floorplan + '\');background-size:contain;background-repeat:no-repeat;background-position:center;"></div>'
-            : '<div style="height:544px;border:1px solid #e2e5ea;border-radius:6px;background:#f7f8fa;display:flex;align-items:center;justify-content:center;"><span style="font-size:11px;color:#aeb4bd;letter-spacing:.08em;">FLOOR PLAN · 평면도</span></div>';
+            : '';
+        const hasFloor = !!projectData.floorplan;
 
         return `
             <div style="width:794px;height:1123px;background:#fff;font-family:'Pretendard','Malgun Gothic',sans-serif;display:flex;flex-direction:column;overflow:hidden;box-sizing:border-box;">
@@ -10242,15 +10249,18 @@
                         <div style="padding:18px 12px;text-align:center;"><div style="font-size:11.5px;color:#8a919d;margin-bottom:8px;">촬영 사진</div><div style="font-size:33px;font-weight:800;color:#141d2e;">${totalPhotos}</div></div>
                     </div>
 
-                    <div style="display:grid;grid-template-columns:306px 1fr;gap:26px;margin-bottom:16px;">
-                        <div>
+                    <div style="display:grid;grid-template-columns:${hasFloor ? '306px 1fr' : '1fr 1fr'};gap:26px;margin-bottom:16px;">
+                        ${hasFloor ? `<div>
                             <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;"><span style="width:4px;height:15px;background:#E84848;"></span><b style="font-size:14px;font-weight:800;color:#141d2e;">평면도</b></div>
                             ${floorHTML}
-                        </div>
-                        <div>
+                        </div>` : `<div>
                             <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;"><span style="width:4px;height:15px;background:#E84848;"></span><b style="font-size:14px;font-weight:800;color:#141d2e;">공종별 하자 현황</b></div>
                             ${gongRows}
-                            <div style="display:flex;align-items:center;gap:8px;margin:20px 0 14px;"><span style="width:4px;height:15px;background:#E84848;"></span><b style="font-size:14px;font-weight:800;color:#141d2e;">위치별 하자 현황</b></div>
+                        </div>`}
+                        <div>
+                            ${hasFloor ? `<div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;"><span style="width:4px;height:15px;background:#E84848;"></span><b style="font-size:14px;font-weight:800;color:#141d2e;">공종별 하자 현황</b></div>
+                            ${gongRows}
+                            <div style="display:flex;align-items:center;gap:8px;margin:20px 0 14px;"><span style="width:4px;height:15px;background:#E84848;"></span><b style="font-size:14px;font-weight:800;color:#141d2e;">위치별 하자 현황</b></div>` : `<div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;"><span style="width:4px;height:15px;background:#E84848;"></span><b style="font-size:14px;font-weight:800;color:#141d2e;">위치별 하자 현황</b></div>`}
                             ${spaceRows}
                             <div style="margin-top:14px;border-top:1px solid #eef0f3;padding-top:10px;font-size:10.5px;color:#8a919d;line-height:1.6;">
                                 ※ 막대 오른쪽 숫자는 <b style="color:#5b6472;">건수 · 전체 대비 비율</b>입니다.<br>
