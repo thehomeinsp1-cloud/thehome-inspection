@@ -321,11 +321,16 @@
         }
 
         .floorplan-preview {
-            width: 100%;
-            max-height: 400px;
+            /* 보고서와 동일한 비율(세로 9:16)로 표시 → 앱에서 본 그대로 보고서에 출력 */
+            display: block;
+            height: min(420px, 52vh);
+            aspect-ratio: 9 / 16;
+            width: auto;
+            max-width: 100%;
             object-fit: contain;
+            background: #fafbfc;
             border-radius: 12px;
-            margin: 15px 0;
+            margin: 15px auto;
             border: 2px solid var(--border);
         }
 
@@ -1277,6 +1282,7 @@
                     <p id="floorplanPlaceholder" style="color: var(--text-secondary); padding: 60px 0;">
                         평면도를 추가해주세요
                     </p>
+                    <div style="font-size:12px;color:var(--text-secondary);margin:-6px 0 10px;">※ 위 미리보기가 보고서에 그대로 출력됩니다 (세로 촬영 기준)</div>
                     
                     <div class="photo-actions">
                         <button class="photo-action-btn camera" onclick="openFloorplanCamera()">
@@ -3235,10 +3241,10 @@
 
                 // 하자 목록 페이지
                 if (projectData.defects.length > 0) {
-                    const itemsPerPage = 16;
-                    for (let i = 0; i < projectData.defects.length; i += itemsPerPage) {
+                    const _defectPlan = window.planDefectPages();
+                    for (let _pi = 0; _pi < _defectPlan.length; _pi++) {
                         doc.addPage();
-                        const listPageHTML = window.createDefectListPage(i, itemsPerPage);
+                        const listPageHTML = window.createDefectListPage(_defectPlan[_pi].start, _defectPlan[_pi].count, _pi + 1, _defectPlan.length);
                         await window.addHTMLPageToPDF(doc, listPageHTML, pageWidth, pageHeight);
                     }
                 }
@@ -7086,10 +7092,10 @@
 
                 // 2페이지~: 하자 목록 (18개씩, 0번부터 시작)
                 if (projectData.defects.length > 0) {
-                    const itemsPerPage = 16;
-                    for (let i = 0; i < projectData.defects.length; i += itemsPerPage) {
+                    const _defectPlan = window.planDefectPages();
+                    for (let _pi = 0; _pi < _defectPlan.length; _pi++) {
                         doc.addPage();
-                        const listPageHTML = window.createDefectListPage(i, itemsPerPage);
+                        const listPageHTML = window.createDefectListPage(_defectPlan[_pi].start, _defectPlan[_pi].count, _pi + 1, _defectPlan.length);
                         await window.addHTMLPageToPDF(doc, listPageHTML, pageWidth, pageHeight);
                     }
                 }
@@ -10372,10 +10378,10 @@
 
             // 2. 하자 목록 (18개씩, 0번부터)
             if (projectData.defects.length > 0) {
-                const itemsPerPage = 16;
-                for (let i = 0; i < projectData.defects.length; i += itemsPerPage) {
+                const _defectPlan = window.planDefectPages();
+                for (let _pi = 0; _pi < _defectPlan.length; _pi++) {
                     doc.addPage();
-                    await window.addHTMLPageToPDF(doc, window.createDefectListPage(i, itemsPerPage), W, H);
+                    await window.addHTMLPageToPDF(doc, window.createDefectListPage(_defectPlan[_pi].start, _defectPlan[_pi].count, _pi + 1, _defectPlan.length), W, H);
                 }
             }
 
@@ -10470,29 +10476,35 @@
 
         // 디자인 네이비 스케일 미니바
         const NAVY = ['#141d2e','#33415c','#4a5877','#5d6b8a','#7280a0','#8b97b5','#9aa6bf','#a7b1c8','#c0c8da','#dbe0ea'];
+        // 표시 행 수에 따라 막대 간격·글자 자동 조절 (항목 많아도 1페이지 유지 · 하단 잘림 방지)
+        const _rowsShown = Math.min(sortedTypes.length,10) + Math.min(sortedSpaces.length,12);
+        const BPAD = _rowsShown>=21 ? 1 : (_rowsShown>=18 ? 2 : (_rowsShown>=15 ? 3 : 4));
+        const BFS  = _rowsShown>=21 ? 10.5 : 11.5;
         function barRow(name, cnt, total, maxVal, color, nameW){
             const pctInt = total ? Math.round(cnt/total*100) : 0;
             const w = maxVal ? Math.max(cnt/maxVal*100, 4) : 0;
-            return '<div style="display:flex;align-items:center;gap:8px;padding:2px 0;">'
-                + '<span style="width:'+nameW+'px;font-size:11.5px;color:#141d2e;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+name+'</span>'
+            return '<div style="display:flex;align-items:center;gap:8px;padding:'+BPAD+'px 0;">'
+                + '<span style="width:'+nameW+'px;font-size:'+BFS+'px;color:#141d2e;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+name+'</span>'
                 + '<div style="flex:1;height:7px;background:#eef0f3;border-radius:4px;"><div style="width:'+w+'%;height:7px;background:'+color+';border-radius:4px;"></div></div>'
-                + '<span style="width:66px;text-align:right;font-size:11px;color:#141d2e;font-weight:700;">'+cnt+'건 · '+pctInt+'%</span>'
+                + '<span style="width:66px;text-align:right;font-size:'+(BFS-0.5)+'px;color:#141d2e;font-weight:700;">'+cnt+'건 · '+pctInt+'%</span>'
                 + '</div>';
         }
         const totForG = sortedTypes.reduce((a,b)=>a+b[1],0);
         const maxG = sortedTypes.length ? sortedTypes[0][1] : 0;
         let gongRows = sortedTypes.length
             ? sortedTypes.slice(0,10).map((it,i)=>barRow(it[0], it[1], totForG, maxG, NAVY[i%NAVY.length], 62)).join('')
+                + (sortedTypes.length > 10 ? '<div style="font-size:10.5px;color:#8a919d;margin-top:5px;">외 ' + (sortedTypes.length-10) + '개 공종 ' + sortedTypes.slice(10).reduce((a,b)=>a+b[1],0) + '건</div>' : '')
             : '<div style="text-align:center;color:#8a919d;font-size:12px;padding:24px 0;">등록된 하자가 없습니다</div>';
         const totForS = sortedSpaces.reduce((a,b)=>a+b[1],0);
         const maxS = sortedSpaces.length ? sortedSpaces[0][1] : 0;
         let spaceRows = sortedSpaces.length
             ? sortedSpaces.slice(0,12).map((it,i)=>barRow(it[0], it[1], totForS, maxS, NAVY[i%NAVY.length], 56)).join('')
+                + (sortedSpaces.length > 12 ? '<div style="font-size:10.5px;color:#8a919d;margin-top:5px;">외 ' + (sortedSpaces.length-12) + '개 공간 ' + sortedSpaces.slice(12).reduce((a,b)=>a+b[1],0) + '건</div>' : '')
             : '<div style="text-align:center;color:#8a919d;font-size:12px;padding:16px 0;">등록된 하자가 없습니다</div>';
 
         const floorHTML = projectData.floorplan
-            ? '<div style="height:196px;border:1px solid #e2e5ea;border-radius:6px;background-color:#fafbfc;background-image:url(\'' + projectData.floorplan + '\');background-size:cover;background-repeat:no-repeat;background-position:center;"></div>'
-            : '<div style="height:196px;border:1px solid #e2e5ea;border-radius:6px;background:#f7f8fa;display:flex;align-items:center;justify-content:center;"><span style="font-size:11px;color:#aeb4bd;letter-spacing:.08em;">FLOOR PLAN · 평면도</span></div>';
+            ? '<div style="height:544px;border:1px solid #e2e5ea;border-radius:6px;background-color:#fafbfc;background-image:url(\'' + projectData.floorplan + '\');background-size:contain;background-repeat:no-repeat;background-position:center;"></div>'
+            : '<div style="height:544px;border:1px solid #e2e5ea;border-radius:6px;background:#f7f8fa;display:flex;align-items:center;justify-content:center;"><span style="font-size:11px;color:#aeb4bd;letter-spacing:.08em;">FLOOR PLAN · 평면도</span></div>';
 
         return `
             <div style="width:794px;height:1123px;background:#fff;font-family:'Pretendard','Malgun Gothic',sans-serif;display:flex;flex-direction:column;overflow:hidden;box-sizing:border-box;">
@@ -10506,14 +10518,14 @@
                 <div style="height:3px;background:#E84848;"></div>
                 <div style="flex:1;padding:30px 44px 0;display:flex;flex-direction:column;">
 
-                    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;border:1px solid #e2e5ea;border-radius:10px;overflow:hidden;margin-bottom:26px;">
+                    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;border:1px solid #e2e5ea;border-radius:10px;overflow:hidden;margin-bottom:20px;">
                         <div style="padding:18px 12px;text-align:center;border-right:1px solid #e2e5ea;"><div style="font-size:11.5px;color:#8a919d;margin-bottom:8px;">총 하자</div><div style="font-size:33px;font-weight:800;color:#141d2e;">${totalDefects}</div></div>
                         <div style="padding:18px 12px;text-align:center;border-right:1px solid #e2e5ea;background:#141d2e;"><div style="font-size:11.5px;color:#E84848;margin-bottom:8px;font-weight:700;">중대하자</div><div style="font-size:33px;font-weight:800;color:#fff;">${criticalCount}</div></div>
                         <div style="padding:18px 12px;text-align:center;border-right:1px solid #e2e5ea;"><div style="font-size:11.5px;color:#8a919d;margin-bottom:8px;">일반하자</div><div style="font-size:33px;font-weight:800;color:#141d2e;">${normalCount}</div></div>
                         <div style="padding:18px 12px;text-align:center;"><div style="font-size:11.5px;color:#8a919d;margin-bottom:8px;">촬영 사진</div><div style="font-size:33px;font-weight:800;color:#141d2e;">${totalPhotos}</div></div>
                     </div>
 
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:30px;margin-bottom:24px;">
+                    <div style="display:grid;grid-template-columns:306px 1fr;gap:26px;margin-bottom:16px;">
                         <div>
                             <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;"><span style="width:4px;height:15px;background:#E84848;"></span><b style="font-size:14px;font-weight:800;color:#141d2e;">평면도</b></div>
                             ${floorHTML}
@@ -10521,17 +10533,20 @@
                         <div>
                             <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;"><span style="width:4px;height:15px;background:#E84848;"></span><b style="font-size:14px;font-weight:800;color:#141d2e;">공종별 하자 현황</b></div>
                             ${gongRows}
+                            <div style="display:flex;align-items:center;gap:8px;margin:20px 0 14px;"><span style="width:4px;height:15px;background:#E84848;"></span><b style="font-size:14px;font-weight:800;color:#141d2e;">위치별 하자 현황</b></div>
+                            ${spaceRows}
+                            <div style="margin-top:14px;border-top:1px solid #eef0f3;padding-top:10px;font-size:10.5px;color:#8a919d;line-height:1.6;">
+                                ※ 막대 오른쪽 숫자는 <b style="color:#5b6472;">건수 · 전체 대비 비율</b>입니다.<br>
+                                ※ 공종 분류는 국토교통부 하자판정기준(고시 제2025-58호)에 따릅니다.
+                            </div>
                         </div>
                     </div>
 
-                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;"><span style="width:4px;height:15px;background:#E84848;"></span><b style="font-size:14px;font-weight:800;color:#141d2e;">위치별 하자 현황</b></div>
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:2px 30px;margin-bottom:24px;">${spaceRows}</div>
-
-                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;"><span style="width:4px;height:15px;background:#E84848;"></span><b style="font-size:14px;font-weight:800;color:#141d2e;">점검 항목</b></div>
-                    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;border:1px solid #e2e5ea;border-radius:8px;overflow:hidden;margin-bottom:22px;">
-                        <div style="padding:15px 16px;border-right:1px solid #e2e5ea;"><div style="font-size:11.5px;color:#E84848;font-weight:700;margin-bottom:6px;">육안 · 기능</div><div style="font-size:13.5px;font-weight:700;color:#141d2e;">마감품질 · 시공상태</div><div style="font-size:10.5px;color:#8a919d;margin-top:3px;">육안 및 기능점검</div></div>
-                        <div style="padding:15px 16px;border-right:1px solid #e2e5ea;"><div style="font-size:11.5px;color:#E84848;font-weight:700;margin-bottom:6px;">공기질</div><div style="font-size:13.5px;font-weight:700;color:#141d2e;">실내 공기질 측정</div><div style="font-size:10.5px;color:#8a919d;margin-top:3px;">라돈 · 포름알데히드 · VOCs</div></div>
-                        <div style="padding:15px 16px;"><div style="font-size:11.5px;color:#E84848;font-weight:700;margin-bottom:6px;">장비 정밀</div><div style="font-size:13.5px;font-weight:700;color:#141d2e;">장비 정밀 측정</div><div style="font-size:10.5px;color:#8a919d;margin-top:3px;">레이저레벨기 · 열화상</div></div>
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;"><span style="width:4px;height:15px;background:#E84848;"></span><b style="font-size:14px;font-weight:800;color:#141d2e;">점검 항목</b></div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;border:1px solid #e2e5ea;border-radius:8px;overflow:hidden;margin-bottom:14px;">
+                        <div style="padding:13px 16px;border-right:1px solid #e2e5ea;"><div style="font-size:11.5px;color:#E84848;font-weight:700;margin-bottom:5px;">육안 · 기능</div><div style="font-size:13px;font-weight:700;color:#141d2e;">마감품질 · 시공상태</div><div style="font-size:10.5px;color:#8a919d;margin-top:3px;">육안 및 기능점검</div></div>
+                        <div style="padding:13px 16px;border-right:1px solid #e2e5ea;"><div style="font-size:11.5px;color:#E84848;font-weight:700;margin-bottom:5px;">공기질</div><div style="font-size:13px;font-weight:700;color:#141d2e;">실내 공기질 측정</div><div style="font-size:10.5px;color:#8a919d;margin-top:3px;">라돈 · 포름알데히드 · VOCs</div></div>
+                        <div style="padding:13px 16px;"><div style="font-size:11.5px;color:#E84848;font-weight:700;margin-bottom:5px;">장비 정밀</div><div style="font-size:13px;font-weight:700;color:#141d2e;">장비 정밀 측정</div><div style="font-size:10.5px;color:#8a919d;margin-top:3px;">레이저레벨기 · 열화상</div></div>
                     </div>
 
                     <div style="border-left:3px solid #E84848;background:#f8f9fb;padding:14px 18px;">
@@ -10760,20 +10775,57 @@
     }
 
 
-    window.createDefectListPage = function(startIndex, itemsPerPage=16) {
+        // 하자목록: 실제 높이 기반 동적 페이지네이션 (전체 내용 표시·잘림 없음·하단여백 최소)
+window.fitDefectRows = function(startIndex) {
+        var defects = projectData.defects || [];
+        var budget = 1123 - 82 /*헤더*/ - 3 /*레드룰*/ - 26 /*상단여백*/ - 40 /*thead*/ - 48 /*푸터*/ - 8 /*여유*/;
+        var used = 0, count = 0;
+        for (var i = startIndex; i < defects.length; i++) {
+            var d = defects[i];
+            var desc = (d.description || '-');
+            var loc = (d.locations ? d.locations.join(', ') : (d.location || '-'));
+            var typ = (d.types ? d.types.join(', ') : (d.type || '-'));
+            var spc = (d.spaces ? d.spaces.join(', ') : (d.space || '-'));
+            // 열 폭 기준 예상 줄수(글자수/줄) 중 최댓값 → 행 높이 추정
+            var lines = Math.max(
+                Math.ceil(desc.length / 22),
+                Math.ceil(loc.length / 6),
+                Math.ceil(typ.length / 8),
+                Math.ceil(spc.length / 6),
+                1
+            );
+            var h = 23 + lines * 19; // 상하패딩+테두리 + 줄수×줄높이
+            if (used + h > budget && count >= 1) break;
+            used += h; count++;
+        }
+        return Math.max(1, count);
+    };
+window.planDefectPages = function() {
+        var plan = [], i = 0, len = (projectData.defects || []).length;
+        while (i < len) { var n = window.fitDefectRows(i); plan.push({ start: i, count: n }); i += n; }
+        if (plan.length === 0) plan.push({ start: 0, count: 0 });
+        return plan;
+    };
+
+window.createDefectListPage = function(startIndex, count, pageNum, totalPages) {
+        if (!count) count = window.fitDefectRows(startIndex);
         let defectRows = '';
-        const defectsToDisplay = projectData.defects.slice(startIndex, startIndex + itemsPerPage);
+        const defectsToDisplay = projectData.defects.slice(startIndex, startIndex + count);
         defectsToDisplay.forEach((defect, index) => {
             const globalIndex = startIndex + index + 1;
             const spaces = defect.spaces ? defect.spaces.join(', ') : (defect.space || '-');
             const locations = defect.locations ? defect.locations.join(', ') : (defect.location || '-');
             const types = defect.types ? defect.types.join(', ') : (defect.type || '-');
             const description = defect.description || '-';
-            const isCritical = (description||'').includes('누수');
-            defectRows += `<tr style="border-bottom:1px solid #eef0f3;background:${isCritical?'rgba(232,72,72,0.06)':'transparent'};"><td style="padding:14px 8px;text-align:center;font-weight:800;color:${isCritical?'#E84848':'#141d2e'};">${String(globalIndex).padStart(2,'0')}</td><td style="padding:14px 10px;color:#141d2e;font-weight:600;">${spaces}</td><td style="padding:14px 10px;color:#5b6472;">${locations}</td><td style="padding:14px 10px;color:#5b6472;">${types}</td><td style="padding:14px 12px;color:${isCritical?'#c0392b':'#141d2e'};font-weight:${isCritical?'700':'400'};">${isCritical?`<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#E84848;margin-right:7px;vertical-align:middle;"></span>`:''}${description}</td></tr>`;
+            const isCritical = description.includes('누수');
+            defectRows += `<tr style="border-bottom:1px solid #eef0f3;background:${isCritical?'rgba(232,72,72,0.06)':'transparent'};"><td style="padding:11px 8px;text-align:center;vertical-align:top;font-weight:800;color:${isCritical?'#E84848':'#141d2e'};">${String(globalIndex).padStart(2,'0')}</td><td style="padding:11px 10px;vertical-align:top;color:#141d2e;font-weight:600;word-break:break-word;">${spaces}</td><td style="padding:11px 10px;vertical-align:top;color:#5b6472;word-break:break-word;">${locations}</td><td style="padding:11px 10px;vertical-align:top;color:#5b6472;word-break:break-word;">${types}</td><td style="padding:11px 12px;vertical-align:top;line-height:1.45;color:${isCritical?'#c0392b':'#141d2e'};font-weight:${isCritical?'700':'400'};word-break:break-word;">${isCritical?`<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#E84848;margin-right:7px;vertical-align:middle;"></span>`:''}${description}</td></tr>`;
         });
-        const totalPages = Math.ceil(projectData.defects.length / itemsPerPage);
-        const currentPage = Math.floor(startIndex / itemsPerPage) + 1;
+        if (!pageNum || !totalPages) {
+            var _plan = window.planDefectPages();
+            totalPages = _plan.length; pageNum = 1;
+            for (var _pi = 0; _pi < _plan.length; _pi++) { if (_plan[_pi].start === startIndex) { pageNum = _pi + 1; break; } }
+        }
+        const currentPage = pageNum;
         return `<div style="width:794px;height:1123px;background:#fff;font-family:'Pretendard','Malgun Gothic',sans-serif;display:flex;flex-direction:column;overflow:hidden;box-sizing:border-box;">
             <div style="background:#141d2e;padding:20px 44px;display:flex;justify-content:space-between;align-items:center;">
                 <div style="display:flex;align-items:center;gap:11px;"><div style="width:42px;height:42px;background-color:#fff;border-radius:10px;background-image:url(${window.THEHOME_LOGO});background-size:28px;background-repeat:no-repeat;background-position:center;"></div><div><div style="font-size:9px;letter-spacing:.16em;color:#7c86a0;font-weight:700;">더홈점검 · REPORT</div><div style="font-size:17px;font-weight:800;color:#fff;">하자 점검 내역 상세</div></div></div>
