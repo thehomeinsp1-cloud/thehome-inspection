@@ -3009,7 +3009,7 @@
             // confirm 메시지 분기
             let confirmMsg = '';
             if (hasDefects && hasEquipmentPhotos) {
-                confirmMsg = `"${project.apartmentName} ${project.dong} ${project.ho}"를 Google Drive에 업로드하시겠습니까?\n\n📄 PDF 보고서 (하자 + 장비)\n📊 엑셀 파일\n📷 하자 사진\n🔧 장비점검 보고서\n📷 장비 사진\n\n모든 자료가 업로드됩니다.`;
+                confirmMsg = `"${project.apartmentName} ${project.dong} ${project.ho}"를 Google Drive에 업로드하시겠습니까?\n\n📄 PDF 보고서 (하자 + 장비점검 포함)\n📊 엑셀 파일\n📷 하자 사진\n📷 장비 사진\n\n모든 자료가 업로드됩니다.`;
             } else if (hasDefects) {
                 confirmMsg = `"${project.apartmentName} ${project.dong} ${project.ho}"를 Google Drive에 업로드하시겠습니까?\n\n📄 PDF 보고서\n📊 엑셀 파일\n📷 하자 사진\n\n하자 점검 자료가 업로드됩니다.`;
             } else {
@@ -3388,11 +3388,13 @@
                 const excelBlob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
                 const excelFileName = `${projectName}_하자목록.xlsx`;
                 
-                // ========== 4. 장비점검 보고서 PDF 생성 (장비 데이터가 있을 때만) ==========
+                // ========== 4. 장비점검 보고서 PDF ==========
+                // 하자 보고서에 장비점검 페이지가 이미 포함되므로 별도 보고서는 만들지 않음
+                // (장비만 점검한 경우는 위쪽 '장비점검만 있는 경우' 분기에서 별도 생성)
                 let equipmentPdfBlob = null;
                 let equipmentPdfFileName = null;
                 
-                if (projectData.equipment && projectData.equipment.length > 0) {
+                if (!hasDefects && projectData.equipment && projectData.equipment.length > 0) {
                     const equipmentWithPhotos = projectData.equipment.filter(e => {
                         if (e.photos && typeof e.photos === 'object') {
                             return Object.values(e.photos).some(photo => photo !== null);
