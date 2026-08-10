@@ -288,11 +288,16 @@
         }
 
         .floorplan-preview {
-            width: 100%;
-            max-height: 400px;
+            /* 보고서와 동일한 비율(세로 9:16)로 표시 → 앱에서 본 그대로 보고서에 출력 */
+            display: block;
+            height: min(420px, 52vh);
+            aspect-ratio: 9 / 16;
+            width: auto;
+            max-width: 100%;
             object-fit: contain;
+            background: #fafbfc;
             border-radius: 12px;
-            margin: 15px 0;
+            margin: 15px auto;
             border: 2px solid var(--border);
         }
 
@@ -1188,6 +1193,20 @@
             <div class="card">
                 <h2 style="color: var(--primary); margin-bottom: 20px;">📝 프로젝트 정보</h2>
                 
+                <!-- ==================== 점검 유형 선택 ==================== -->
+                <div class="form-field">
+                    <label class="form-label">점검 유형</label>
+                    <select class="form-input" id="inspectionType" onchange="autoSaveProjectData(); updateInspectionTypeBadge();">
+                        <option value="사전점검">사전점검</option>
+                        <option value="사후점검">사후점검</option>
+                        <option value="입주점검">입주점검</option>
+                        <option value="인테리어점검">인테리어점검</option>
+                    </select>
+                    <div id="inspectionTypeBadge" style="margin-top:10px;">
+                        <span style="display:inline-block;padding:5px 12px;border-radius:20px;background:rgba(16,185,129,0.15);border:1px solid var(--primary);color:var(--primary);font-size:12px;font-weight:700;">표지: 사전점검 보고서</span>
+                    </div>
+                </div>
+
                 <div class="form-field">
                     <label class="form-label">아파트명</label>
                     <input type="text" class="form-input" id="apartmentName" placeholder="예: 래미안 아파트" oninput="autoSaveProjectData()">
@@ -1239,6 +1258,7 @@
                     <p id="floorplanPlaceholder" style="color: var(--text-secondary); padding: 60px 0;">
                         평면도를 추가해주세요
                     </p>
+                    <div style="font-size:12px;color:var(--text-secondary);margin:-6px 0 10px;">※ 위 미리보기가 보고서에 그대로 출력됩니다 (세로 촬영 기준)</div>
                     
                     <div class="photo-actions">
                         <button class="photo-action-btn camera" onclick="openFloorplanCamera()">
@@ -2571,6 +2591,15 @@
         }
 
         // 일반 파일 업로드 (PDF, 엑셀 등)
+        // base64 → 바이너리 변환 (ZIP 투입 시 디코딩 부담 제거)
+        function b64ToBytes(b64) {
+            const bin = atob(b64);
+            const len = bin.length;
+            const bytes = new Uint8Array(len);
+            for (let i = 0; i < len; i++) bytes[i] = bin.charCodeAt(i);
+            return bytes;
+        }
+
         async function uploadFileToDrive(folderId, blob, fileName, mimeType) {
             try {
                 const form = new FormData();
@@ -2994,7 +3023,7 @@
             // confirm 메시지 분기
             let confirmMsg = '';
             if (hasDefects && hasEquipmentPhotos) {
-                confirmMsg = `"${project.apartmentName} ${project.dong} ${project.ho}"를 Google Drive에 업로드하시겠습니까?\n\n📄 PDF 보고서 (하자 + 장비)\n📊 엑셀 파일\n📷 하자 사진\n🔧 장비점검 보고서\n📷 장비 사진\n\n모든 자료가 업로드됩니다.`;
+                confirmMsg = `"${project.apartmentName} ${project.dong} ${project.ho}"를 Google Drive에 업로드하시겠습니까?\n\n📄 PDF 보고서 (하자 + 장비점검 포함)\n📊 엑셀 파일\n📷 하자 사진\n📷 장비 사진\n\n모든 자료가 업로드됩니다.`;
             } else if (hasDefects) {
                 confirmMsg = `"${project.apartmentName} ${project.dong} ${project.ho}"를 Google Drive에 업로드하시겠습니까?\n\n📄 PDF 보고서\n📊 엑셀 파일\n📷 하자 사진\n\n하자 점검 자료가 업로드됩니다.`;
             } else {
@@ -3131,7 +3160,7 @@
                             for (const task of equipPhotoTasks) {
                                 try {
                                     const base64Data = task.photo.split(',')[1];
-                                    zip.file(task.fileName, base64Data, { base64: true });
+                                    zip.file(task.fileName, b64ToBytes(base64Data));
                                 } catch (e) {
                                     console.error(`ZIP 추가 실패: ${task.fileName}`, e);
                                 }
@@ -3139,8 +3168,7 @@
                             
                             const zipBlob = await zip.generateAsync({ 
                                 type: 'blob',
-                                compression: 'DEFLATE',
-                                compressionOptions: { level: 6 }
+                                compression: 'STORE'
                             });
                             
                             showToast('📤 사진 ZIP 업로드 중...');
@@ -3202,10 +3230,10 @@
 
                 // 하자 목록 페이지
                 if (projectData.defects.length > 0) {
-                    const itemsPerPage = 18;
-                    for (let i = 0; i < projectData.defects.length; i += itemsPerPage) {
+                    const _defectPlan = window.planDefectPages();
+                    for (let _pi = 0; _pi < _defectPlan.length; _pi++) {
                         doc.addPage();
-                        const listPageHTML = window.createDefectListPage(i, itemsPerPage);
+                        const listPageHTML = window.createDefectListPage(_defectPlan[_pi].start, _defectPlan[_pi].count, _pi + 1, _defectPlan.length);
                         await window.addHTMLPageToPDF(doc, listPageHTML, pageWidth, pageHeight);
                     }
                 }
@@ -3374,11 +3402,13 @@
                 const excelBlob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
                 const excelFileName = `${projectName}_하자목록.xlsx`;
                 
-                // ========== 4. 장비점검 보고서 PDF 생성 (장비 데이터가 있을 때만) ==========
+                // ========== 4. 장비점검 보고서 PDF ==========
+                // 하자 보고서에 장비점검 페이지가 이미 포함되므로 별도 보고서는 만들지 않음
+                // (장비만 점검한 경우는 위쪽 '장비점검만 있는 경우' 분기에서 별도 생성)
                 let equipmentPdfBlob = null;
                 let equipmentPdfFileName = null;
                 
-                if (projectData.equipment && projectData.equipment.length > 0) {
+                if (!hasDefects && projectData.equipment && projectData.equipment.length > 0) {
                     const equipmentWithPhotos = projectData.equipment.filter(e => {
                         if (e.photos && typeof e.photos === 'object') {
                             return Object.values(e.photos).some(photo => photo !== null);
@@ -3541,7 +3571,7 @@
                         for (const task of photoTasks) {
                             try {
                                 const base64Data = task.photo.split(',')[1];
-                                zip.file(task.fileName, base64Data, { base64: true });
+                                zip.file(task.fileName, b64ToBytes(base64Data));
                             } catch (e) {
                                 console.error(`ZIP 추가 실패: ${task.fileName}`, e);
                             }
@@ -3549,8 +3579,7 @@
                         
                         const zipBlob = await zip.generateAsync({ 
                             type: 'blob',
-                            compression: 'DEFLATE',
-                            compressionOptions: { level: 6 }
+                            compression: 'STORE'
                         });
                         
                         showToast('📤 사진 ZIP 업로드 중...');
@@ -4102,6 +4131,7 @@
             document.getElementById('customerName').value = project.customerName || '';
             document.getElementById('customerPhone').value = project.customerPhone || '';
             document.getElementById('author').value = project.author || ''; // ✅ 작성자 로드
+            setInspectionTypeUI(project.inspectionType);
             
             // ==================== 최근 아파트명 버튼 렌더링 ====================
             renderRecentApartmentBtn();
@@ -4347,6 +4377,7 @@
                         document.getElementById('customerName').value = currentProject.customerName || '';
                         document.getElementById('customerPhone').value = currentProject.customerPhone || '';
                         document.getElementById('author').value = currentProject.author || '';
+                        setInspectionTypeUI(currentProject.inspectionType);
                         
                         // ✅ ID 카운터 초기화 제거 (이제 프로젝트별로 관리됨)
                         // 기존 코드 제거됨 - 프로젝트별 lastDefectId, lastEquipmentId, lastAirQualityId 사용
@@ -5746,6 +5777,12 @@
                     constraints.video.width = { ideal: 1920 };
                     constraints.video.height = { ideal: 1080 };
                 }
+
+                // 평면도 촬영: 방 번호·치수 글씨 판독을 위해 해상도 상향 (프로젝트당 1장이라 속도 영향 최소)
+                if (currentPhotoTarget === 'floorplan') {
+                    constraints.video.width  = { ideal: deviceInfo.isIOS ? 1920 : 2560 };
+                    constraints.video.height = { ideal: deviceInfo.isIOS ? 1080 : 1440 };
+                }
                 
                 cameraStream = await navigator.mediaDevices.getUserMedia(constraints);
                 
@@ -7010,10 +7047,10 @@
 
                 // 2페이지~: 하자 목록 (18개씩, 0번부터 시작)
                 if (projectData.defects.length > 0) {
-                    const itemsPerPage = 18;
-                    for (let i = 0; i < projectData.defects.length; i += itemsPerPage) {
+                    const _defectPlan = window.planDefectPages();
+                    for (let _pi = 0; _pi < _defectPlan.length; _pi++) {
                         doc.addPage();
-                        const listPageHTML = window.createDefectListPage(i, itemsPerPage);
+                        const listPageHTML = window.createDefectListPage(_defectPlan[_pi].start, _defectPlan[_pi].count, _pi + 1, _defectPlan.length);
                         await window.addHTMLPageToPDF(doc, listPageHTML, pageWidth, pageHeight);
                     }
                 }
@@ -7203,7 +7240,7 @@
                 // 평면도
                 if (projectData.floorplan) {
                     const floorplanData = projectData.floorplan.split(',')[1];
-                    zip.file('평면도.jpg', floorplanData, { base64: true });
+                    zip.file('평면도.jpg', b64ToBytes(floorplanData));
                     photoCount++;
                 }
                 
@@ -7238,7 +7275,7 @@
                         const results = await Promise.all(batch.map(t => window.addWatermarkToPhoto(t.photo, t.wmText)));
                         for (let j = 0; j < batch.length; j++) {
                             const photoData = results[j].split(',')[1];
-                            defectFolder.file(batch[j].fileName, photoData, { base64: true });
+                            defectFolder.file(batch[j].fileName, b64ToBytes(photoData));
                             photoCount++;
                         }
                     }
@@ -7258,14 +7295,14 @@
                                 if (photo) {
                                     const photoData = photo.split(',')[1];
                                     const fileName = `${equipNum}_${spaceName}_${equipName}_${location}.jpg`.replace(/\//g, '-');
-                                    equipFolder.file(fileName, photoData, { base64: true });
+                                    equipFolder.file(fileName, b64ToBytes(photoData));
                                     photoCount++;
                                 }
                             });
                         } else if (equip.photo) {
                             const photoData = equip.photo.split(',')[1];
                             const fileName = `${equipNum}_${spaceName}_${equipName}.jpg`.replace(/\//g, '-');
-                            equipFolder.file(fileName, photoData, { base64: true });
+                            equipFolder.file(fileName, b64ToBytes(photoData));
                             photoCount++;
                         }
                     });
@@ -7276,8 +7313,7 @@
                 
                 const content = await zip.generateAsync({ 
                     type: 'blob',
-                    compression: 'DEFLATE',
-                    compressionOptions: { level: 6 }
+                    compression: 'STORE'
                 });
                 
                 const url = URL.createObjectURL(content);
@@ -7450,7 +7486,7 @@
                 // 1. 평면도
                 if (projectData.floorplan) {
                     const floorplanData = projectData.floorplan.split(',')[1];
-                    zip.file('평면도.jpg', floorplanData, { base64: true });
+                    zip.file('평면도.jpg', b64ToBytes(floorplanData));
                     photoCount++;
                 }
                 
@@ -7483,7 +7519,7 @@
                         const results = await Promise.all(batch.map(t => window.addWatermarkToPhoto(t.photo, t.wmText)));
                         for (let j = 0; j < batch.length; j++) {
                             const photoData = results[j].split(',')[1];
-                            defectFolder.file(batch[j].fileName, photoData, { base64: true });
+                            defectFolder.file(batch[j].fileName, b64ToBytes(photoData));
                             photoCount++;
                         }
                     }
@@ -7504,7 +7540,7 @@
                                 if (photo) {
                                     const photoData = photo.split(',')[1];
                                     const fileName = `${equipNum}_${spaceName}_${equipName}_${location}.jpg`.replace(/\//g, '-');
-                                    equipFolder.file(fileName, photoData, { base64: true });
+                                    equipFolder.file(fileName, b64ToBytes(photoData));
                                     photoCount++;
                                 }
                             });
@@ -7512,7 +7548,7 @@
                             // 구 버전 단일 사진
                             const photoData = equip.photo.split(',')[1];
                             const fileName = `${equipNum}_${spaceName}_${equipName}.jpg`.replace(/\//g, '-');
-                            equipFolder.file(fileName, photoData, { base64: true });
+                            equipFolder.file(fileName, b64ToBytes(photoData));
                             photoCount++;
                         }
                     });
@@ -8361,7 +8397,7 @@
         }
 
 
-        window.addHTMLPageToPDF = async function(doc, htmlContent, pageWidth, pageHeight) {
+        window.addHTMLPageToPDF = async function(doc, htmlContent, pageWidth, pageHeight, scaleOverride) {
             const tempDiv = document.createElement('div');
             tempDiv.style.width = '794px';
             tempDiv.style.position = 'absolute';
@@ -8370,8 +8406,14 @@
             tempDiv.innerHTML = htmlContent;
             document.body.appendChild(tempDiv);
 
+            // 평면도가 들어간 페이지만 고배율(방 번호 판독), 나머지는 배율 2로 생성 시간 단축
+            // (로고는 url(data:...), 평면도는 url('data:...) 형태라 따옴표로 구분)
+            const _html = (typeof htmlContent === 'string') ? htmlContent : '';
+            const _hasFloorplan = _html.indexOf("url('data:image") !== -1 || _html.indexOf('url("data:image') !== -1;
+            const _scale = scaleOverride || (_hasFloorplan ? 3 : 2);
+
             const canvas = await html2canvas(tempDiv, {
-                scale: 3,
+                scale: _scale,
                 useCORS: true,
                 backgroundColor: '#ffffff',
                 logging: false
@@ -8379,7 +8421,7 @@
 
             document.body.removeChild(tempDiv);
 
-            const imgData = canvas.toDataURL('image/jpeg', 0.95);
+            const imgData = canvas.toDataURL('image/jpeg', 0.85); // 용량 약 38% 감소, 육안 차이 없음
             const imgWidth = pageWidth;
             const imgHeight = (canvas.height * pageWidth) / canvas.width;
             
@@ -9609,6 +9651,33 @@
             }
         }
         
+        // ==================== 점검 유형 ====================
+        // 유형별 표지 제목 (국문/영문)
+        window.INSPECTION_TYPES = {
+            '사전점검':     { ko: '사전점검<br>보고서',     en: 'PRE-INSPECTION REPORT' },
+            '사후점검':     { ko: '사후점검<br>보고서',     en: 'POST-INSPECTION REPORT' },
+            '입주점검':     { ko: '입주점검<br>보고서',     en: 'MOVE-IN INSPECTION REPORT' },
+            '인테리어점검': { ko: '인테리어점검<br>보고서', en: 'INTERIOR INSPECTION REPORT' }
+        };
+        window.getInspectionTitle = function(type, key) {
+            const t = window.INSPECTION_TYPES[type] || window.INSPECTION_TYPES['사전점검'];
+            return t[key];
+        };
+        // 선택값을 UI에 반영 (기존 프로젝트는 사전점검 기본)
+        window.setInspectionTypeUI = function(value) {
+            const el = document.getElementById('inspectionType');
+            if (!el) return;
+            el.value = (value && window.INSPECTION_TYPES[value]) ? value : '사전점검';
+            updateInspectionTypeBadge();
+        };
+        window.updateInspectionTypeBadge = function() {
+            const el = document.getElementById('inspectionType');
+            const badge = document.getElementById('inspectionTypeBadge');
+            if (!el || !badge) return;
+            const t = el.value || '사전점검';
+            badge.innerHTML = '<span style="display:inline-block;padding:5px 12px;border-radius:20px;background:rgba(16,185,129,0.15);border:1px solid var(--primary);color:var(--primary);font-size:12px;font-weight:700;">표지: ' + t + ' 보고서</span>';
+        };
+
         function autoSaveProjectData() {
             // projectData 업데이트
             projectData.apartmentName = document.getElementById('apartmentName').value;
@@ -9618,6 +9687,9 @@
             projectData.customerName = document.getElementById('customerName').value;
             projectData.customerPhone = document.getElementById('customerPhone').value;
             projectData.author = document.getElementById('author').value; // ✅ 작성자 추가
+            // 점검 유형 (미선택 시 사전점검)
+            const _typeEl = document.getElementById('inspectionType');
+            projectData.inspectionType = (_typeEl && _typeEl.value) ? _typeEl.value : '사전점검';
             
             // 작성자를 localStorage에 저장 (다음 프로젝트에서도 유지)
             if (projectData.author && projectData.author.trim()) {
@@ -9654,6 +9726,7 @@
                     document.getElementById('customerName').value = projectData.customerName || '';
                     document.getElementById('customerPhone').value = projectData.customerPhone || '';
                     document.getElementById('author').value = projectData.author || ''; // ✅ 작성자 로드
+                    setInspectionTypeUI(projectData.inspectionType);
                     
                     displayFloorplan();
                     renderDefects();
@@ -9748,6 +9821,7 @@
                     document.getElementById('inspectionDate').value = projectData.inspectionDate || '';
                     document.getElementById('customerName').value = projectData.customerName || '';
                     document.getElementById('customerPhone').value = projectData.customerPhone || '';
+                    setInspectionTypeUI(projectData.inspectionType);
                     
                     displayFloorplan();
                     renderDefects();
@@ -9809,6 +9883,7 @@
                         document.getElementById('inspectionDate').valueAsDate = new Date();
                         document.getElementById('customerName').value = '';
                         document.getElementById('customerPhone').value = '';
+                        setInspectionTypeUI('사전점검');
                         
                         displayFloorplan();
                         renderDefects();
@@ -10083,10 +10158,10 @@
 
             // 2. 하자 목록 (18개씩, 0번부터)
             if (projectData.defects.length > 0) {
-                const itemsPerPage = 18;
-                for (let i = 0; i < projectData.defects.length; i += itemsPerPage) {
+                const _defectPlan = window.planDefectPages();
+                for (let _pi = 0; _pi < _defectPlan.length; _pi++) {
                     doc.addPage();
-                    await window.addHTMLPageToPDF(doc, window.createDefectListPage(i, itemsPerPage), W, H);
+                    await window.addHTMLPageToPDF(doc, window.createDefectListPage(_defectPlan[_pi].start, _defectPlan[_pi].count, _pi + 1, _defectPlan.length), W, H);
                 }
             }
 
@@ -10181,29 +10256,36 @@
 
         // 디자인 네이비 스케일 미니바
         const NAVY = ['#141d2e','#33415c','#4a5877','#5d6b8a','#7280a0','#8b97b5','#9aa6bf','#a7b1c8','#c0c8da','#dbe0ea'];
+        // 표시 행 수에 따라 막대 간격·글자 자동 조절 (항목 많아도 1페이지 유지 · 하단 잘림 방지)
+        const _rowsShown = Math.min(sortedTypes.length,10) + Math.min(sortedSpaces.length,12);
+        const BPAD = _rowsShown>=21 ? 1 : (_rowsShown>=18 ? 2 : (_rowsShown>=15 ? 3 : 4));
+        const BFS  = _rowsShown>=21 ? 10.5 : 11.5;
         function barRow(name, cnt, total, maxVal, color, nameW){
             const pctInt = total ? Math.round(cnt/total*100) : 0;
             const w = maxVal ? Math.max(cnt/maxVal*100, 4) : 0;
-            return '<div style="display:flex;align-items:center;gap:8px;padding:2px 0;">'
-                + '<span style="width:'+nameW+'px;font-size:11.5px;color:#141d2e;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+name+'</span>'
+            return '<div style="display:flex;align-items:center;gap:8px;padding:'+BPAD+'px 0;">'
+                + '<span style="width:'+nameW+'px;font-size:'+BFS+'px;color:#141d2e;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+name+'</span>'
                 + '<div style="flex:1;height:7px;background:#eef0f3;border-radius:4px;"><div style="width:'+w+'%;height:7px;background:'+color+';border-radius:4px;"></div></div>'
-                + '<span style="width:66px;text-align:right;font-size:11px;color:#141d2e;font-weight:700;">'+cnt+'건 · '+pctInt+'%</span>'
+                + '<span style="width:66px;text-align:right;font-size:'+(BFS-0.5)+'px;color:#141d2e;font-weight:700;">'+cnt+'건 · '+pctInt+'%</span>'
                 + '</div>';
         }
         const totForG = sortedTypes.reduce((a,b)=>a+b[1],0);
         const maxG = sortedTypes.length ? sortedTypes[0][1] : 0;
         let gongRows = sortedTypes.length
             ? sortedTypes.slice(0,10).map((it,i)=>barRow(it[0], it[1], totForG, maxG, NAVY[i%NAVY.length], 62)).join('')
+                + (sortedTypes.length > 10 ? '<div style="font-size:10.5px;color:#8a919d;margin-top:5px;">외 ' + (sortedTypes.length-10) + '개 공종 ' + sortedTypes.slice(10).reduce((a,b)=>a+b[1],0) + '건</div>' : '')
             : '<div style="text-align:center;color:#8a919d;font-size:12px;padding:24px 0;">등록된 하자가 없습니다</div>';
         const totForS = sortedSpaces.reduce((a,b)=>a+b[1],0);
         const maxS = sortedSpaces.length ? sortedSpaces[0][1] : 0;
         let spaceRows = sortedSpaces.length
             ? sortedSpaces.slice(0,12).map((it,i)=>barRow(it[0], it[1], totForS, maxS, NAVY[i%NAVY.length], 56)).join('')
+                + (sortedSpaces.length > 12 ? '<div style="font-size:10.5px;color:#8a919d;margin-top:5px;">외 ' + (sortedSpaces.length-12) + '개 공간 ' + sortedSpaces.slice(12).reduce((a,b)=>a+b[1],0) + '건</div>' : '')
             : '<div style="text-align:center;color:#8a919d;font-size:12px;padding:16px 0;">등록된 하자가 없습니다</div>';
 
         const floorHTML = projectData.floorplan
-            ? '<div style="height:196px;border:1px solid #e2e5ea;border-radius:6px;background-color:#fafbfc;background-image:url(\'' + projectData.floorplan + '\');background-size:contain;background-repeat:no-repeat;background-position:center;"></div>'
-            : '<div style="height:196px;border:1px solid #e2e5ea;border-radius:6px;background:#f7f8fa;display:flex;align-items:center;justify-content:center;"><span style="font-size:11px;color:#aeb4bd;letter-spacing:.08em;">FLOOR PLAN · 평면도</span></div>';
+            ? '<div style="height:544px;border:1px solid #e2e5ea;border-radius:6px;background-color:#fafbfc;background-image:url(\'' + projectData.floorplan + '\');background-size:contain;background-repeat:no-repeat;background-position:center;"></div>'
+            : '';
+        const hasFloor = !!projectData.floorplan;
 
         return `
             <div style="width:794px;height:1123px;background:#fff;font-family:'Pretendard','Malgun Gothic',sans-serif;display:flex;flex-direction:column;overflow:hidden;box-sizing:border-box;">
@@ -10217,32 +10299,38 @@
                 <div style="height:3px;background:#E84848;"></div>
                 <div style="flex:1;padding:30px 44px 0;display:flex;flex-direction:column;">
 
-                    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;border:1px solid #e2e5ea;border-radius:10px;overflow:hidden;margin-bottom:26px;">
+                    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;border:1px solid #e2e5ea;border-radius:10px;overflow:hidden;margin-bottom:20px;">
                         <div style="padding:18px 12px;text-align:center;border-right:1px solid #e2e5ea;"><div style="font-size:11.5px;color:#8a919d;margin-bottom:8px;">총 하자</div><div style="font-size:33px;font-weight:800;color:#141d2e;">${totalDefects}</div></div>
                         <div style="padding:18px 12px;text-align:center;border-right:1px solid #e2e5ea;background:#141d2e;"><div style="font-size:11.5px;color:#E84848;margin-bottom:8px;font-weight:700;">중대하자</div><div style="font-size:33px;font-weight:800;color:#fff;">${criticalCount}</div></div>
                         <div style="padding:18px 12px;text-align:center;border-right:1px solid #e2e5ea;"><div style="font-size:11.5px;color:#8a919d;margin-bottom:8px;">일반하자</div><div style="font-size:33px;font-weight:800;color:#141d2e;">${normalCount}</div></div>
                         <div style="padding:18px 12px;text-align:center;"><div style="font-size:11.5px;color:#8a919d;margin-bottom:8px;">촬영 사진</div><div style="font-size:33px;font-weight:800;color:#141d2e;">${totalPhotos}</div></div>
                     </div>
 
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:30px;margin-bottom:24px;">
-                        <div>
+                    <div style="display:grid;grid-template-columns:${hasFloor ? '306px 1fr' : '1fr 1fr'};gap:26px;margin-bottom:16px;">
+                        ${hasFloor ? `<div>
                             <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;"><span style="width:4px;height:15px;background:#E84848;"></span><b style="font-size:14px;font-weight:800;color:#141d2e;">평면도</b></div>
                             ${floorHTML}
-                        </div>
-                        <div>
+                        </div>` : `<div>
                             <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;"><span style="width:4px;height:15px;background:#E84848;"></span><b style="font-size:14px;font-weight:800;color:#141d2e;">공종별 하자 현황</b></div>
                             ${gongRows}
+                        </div>`}
+                        <div>
+                            ${hasFloor ? `<div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;"><span style="width:4px;height:15px;background:#E84848;"></span><b style="font-size:14px;font-weight:800;color:#141d2e;">공종별 하자 현황</b></div>
+                            ${gongRows}
+                            <div style="display:flex;align-items:center;gap:8px;margin:20px 0 14px;"><span style="width:4px;height:15px;background:#E84848;"></span><b style="font-size:14px;font-weight:800;color:#141d2e;">위치별 하자 현황</b></div>` : `<div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;"><span style="width:4px;height:15px;background:#E84848;"></span><b style="font-size:14px;font-weight:800;color:#141d2e;">위치별 하자 현황</b></div>`}
+                            ${spaceRows}
+                            <div style="margin-top:14px;border-top:1px solid #eef0f3;padding-top:10px;font-size:10.5px;color:#8a919d;line-height:1.6;">
+                                ※ 막대 오른쪽 숫자는 <b style="color:#5b6472;">건수 · 전체 대비 비율</b>입니다.<br>
+                                ※ 공종 분류는 국토교통부 하자판정기준(고시 제2025-58호)에 따릅니다.
+                            </div>
                         </div>
                     </div>
 
-                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;"><span style="width:4px;height:15px;background:#E84848;"></span><b style="font-size:14px;font-weight:800;color:#141d2e;">위치별 하자 현황</b></div>
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:2px 30px;margin-bottom:24px;">${spaceRows}</div>
-
-                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;"><span style="width:4px;height:15px;background:#E84848;"></span><b style="font-size:14px;font-weight:800;color:#141d2e;">점검 항목</b></div>
-                    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;border:1px solid #e2e5ea;border-radius:8px;overflow:hidden;margin-bottom:22px;">
-                        <div style="padding:15px 16px;border-right:1px solid #e2e5ea;"><div style="font-size:11.5px;color:#E84848;font-weight:700;margin-bottom:6px;">육안 · 기능</div><div style="font-size:13.5px;font-weight:700;color:#141d2e;">마감품질 · 시공상태</div><div style="font-size:10.5px;color:#8a919d;margin-top:3px;">육안 및 기능점검</div></div>
-                        <div style="padding:15px 16px;border-right:1px solid #e2e5ea;"><div style="font-size:11.5px;color:#E84848;font-weight:700;margin-bottom:6px;">공기질</div><div style="font-size:13.5px;font-weight:700;color:#141d2e;">실내 공기질 측정</div><div style="font-size:10.5px;color:#8a919d;margin-top:3px;">라돈 · 포름알데히드 · VOCs</div></div>
-                        <div style="padding:15px 16px;"><div style="font-size:11.5px;color:#E84848;font-weight:700;margin-bottom:6px;">장비 정밀</div><div style="font-size:13.5px;font-weight:700;color:#141d2e;">장비 정밀 측정</div><div style="font-size:10.5px;color:#8a919d;margin-top:3px;">레이저레벨기 · 열화상</div></div>
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;"><span style="width:4px;height:15px;background:#E84848;"></span><b style="font-size:14px;font-weight:800;color:#141d2e;">점검 항목</b></div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;border:1px solid #e2e5ea;border-radius:8px;overflow:hidden;margin-bottom:14px;">
+                        <div style="padding:13px 16px;border-right:1px solid #e2e5ea;"><div style="font-size:11.5px;color:#E84848;font-weight:700;margin-bottom:5px;">육안 · 기능</div><div style="font-size:13px;font-weight:700;color:#141d2e;">마감품질 · 시공상태</div><div style="font-size:10.5px;color:#8a919d;margin-top:3px;">육안 및 기능점검</div></div>
+                        <div style="padding:13px 16px;border-right:1px solid #e2e5ea;"><div style="font-size:11.5px;color:#E84848;font-weight:700;margin-bottom:5px;">공기질</div><div style="font-size:13px;font-weight:700;color:#141d2e;">실내 공기질 측정</div><div style="font-size:10.5px;color:#8a919d;margin-top:3px;">라돈 · 포름알데히드 · VOCs</div></div>
+                        <div style="padding:13px 16px;"><div style="font-size:11.5px;color:#E84848;font-weight:700;margin-bottom:5px;">장비 정밀</div><div style="font-size:13px;font-weight:700;color:#141d2e;">장비 정밀 측정</div><div style="font-size:10.5px;color:#8a919d;margin-top:3px;">레이저레벨기 · 열화상</div></div>
                     </div>
 
                     <div style="border-left:3px solid #E84848;background:#f8f9fb;padding:14px 18px;">
@@ -10309,11 +10397,15 @@
         (projectData.defects || []).forEach(function(d){ if ((d.description || '').toLowerCase().indexOf('누수') !== -1) criticalCount++; });
         // 공종 수에 따른 적응형 행 밀도 (공종 많아도 1페이지 유지)
         var _n = order.length;
-        var RPAD = _n<=12 ? 7 : (_n<=16 ? 4 : 3);
+        // 공종 수에 따라 행 높이를 자동 조절 → 적으면 넉넉히, 많으면 압축(1페이지 유지)
+        var RPAD = _n<=4 ? 22 : (_n<=5 ? 15 : (_n<=6 ? 10 : (_n<=7 ? 7 : (_n<=9 ? 8 : (_n<=11 ? 10 : (_n<=13 ? 5 : (_n<=15 ? 10 : (_n<=16 ? 10 : (_n<=18 ? 8 : (_n<=19 ? 7 : 6))))))))));
         var RFS  = _n<=12 ? 11 : (_n<=16 ? 10.5 : 10);
         var RDFS = _n<=12 ? 8.5 : 8;
-        var oneLine = _n > 12;   // 공종 13개↑이면 셀 1줄(상태만)로 압축
-        var compact = _n > 12;   // 여백·각주도 함께 압축
+        // 지면 여유에 따라 보조 안내 표시 단계 결정 (하단 여백 자동 채움 · 잘림 방지)
+        var _showFull  = (_n <= 9);                 // 보증기간 카드 표시(지면 여유 있을 때만)
+        var _showSteps = (_n <= 7);                 // 접수 준비사항까지 표시
+        var briefLaw = _n > 13;  // 공종 14개↑이면 조문을 오른쪽에 한 줄로 (근거는 항상 노출)
+        var compact = _n > 14;   // 여백·각주 압축 시작
 
         function stateText(types){
             var top = Object.keys(types).sort(function(a,b){ return types[b]-types[a]; });
@@ -10340,8 +10432,14 @@
               +   '<td style="padding:'+RPAD+'px 12px;font-weight:700;color:#141d2e;font-size:'+RFS+'px;">' + (g==='방수'?'누수/방수':g) + '</td>'
               +   '<td style="padding:'+RPAD+'px 8px;text-align:center;color:#141d2e;font-weight:700;font-size:'+RFS+'px;" class="num">' + agg[g].cnt + '건</td>'
               +   '<td style="padding:'+RPAD+'px 12px;color:#5b6472;font-size:'+RFS+'px;">'
-              +     '<div style="color:#141d2e;font-weight:600;">' + stateText(agg[g].types) + '</div>'
-              +     (oneLine ? '' : '<div style="font-size:'+RDFS+'px;color:#6b7280;margin-top:2px;">' + m.desc + ' · 근거 ' + m.law + '</div>')
+              +     (briefLaw
+                      // 공종이 많을 때: 상태는 왼쪽, 근거 조문은 오른쪽에 한 줄로 배치
+                      ? '<div style="display:flex;align-items:baseline;gap:12px;">'
+                          + '<span style="color:#141d2e;font-weight:600;flex:1;">' + stateText(agg[g].types) + '</span>'
+                          + '<span style="font-size:'+RDFS+'px;color:#6b7280;white-space:nowrap;flex:none;">근거 ' + m.law + '</span>'
+                        + '</div>'
+                      : '<div style="color:#141d2e;font-weight:600;">' + stateText(agg[g].types) + '</div>'
+                        + '<div style="font-size:'+RDFS+'px;color:#6b7280;margin-top:2px;">' + m.desc + ' · 근거 ' + m.law + '</div>')
               +   '</td>'
               +   '<td style="padding:'+RPAD+'px 10px;text-align:center;">' + badge(m.y, m.blabel) + '</td>'
               + '</tr>';
@@ -10380,15 +10478,35 @@
         +       '<tbody>' + rows + '</tbody>'
         +     '</table>'
 
+        // 공종이 적어 지면이 남을 때만 표시되는 보조 안내 (하단 여백 자동 채움)
+        +     (_showFull ? (
+                '<div style="margin-top:18px;">'
+              +   '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;"><span style="width:4px;height:15px;background:#E84848;"></span><b style="font-size:13.5px;font-weight:800;color:#141d2e;">보증기간 한눈에 보기</b></div>'
+              +   '<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;border:1px solid #e2e5ea;border-radius:8px;overflow:hidden;margin-bottom:14px;">'
+              +     '<div style="padding:11px 12px;border-right:1px solid #e2e5ea;"><div style="font-size:15px;font-weight:800;color:#8a919d;margin-bottom:4px;">2년</div><div style="font-size:10.5px;color:#5b6472;line-height:1.5;">도배 · 도장 · 타일<br>가구 · 수장 마감</div></div>'
+              +     '<div style="padding:11px 12px;border-right:1px solid #e2e5ea;"><div style="font-size:15px;font-weight:800;color:#33415c;margin-bottom:4px;">3년</div><div style="font-size:10.5px;color:#5b6472;line-height:1.5;">창호 · 전기 · 기계설비<br>급배수 · 환기</div></div>'
+              +     '<div style="padding:11px 12px;border-right:1px solid #e2e5ea;"><div style="font-size:15px;font-weight:800;color:#E84848;margin-bottom:4px;">5년</div><div style="font-size:10.5px;color:#5b6472;line-height:1.5;">방수 · 누수<br>철근콘크리트 균열</div></div>'
+              +     '<div style="padding:11px 12px;"><div style="font-size:15px;font-weight:800;color:#141d2e;margin-bottom:4px;">10년</div><div style="font-size:10.5px;color:#5b6472;line-height:1.5;">기둥 · 보 · 내력벽<br>지붕 등 내력구조부</div></div>'
+              +   '</div>'
+              + (_showSteps ? '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;"><span style="width:4px;height:15px;background:#E84848;"></span><b style="font-size:13.5px;font-weight:800;color:#141d2e;">하자보수 접수 시 준비사항</b></div>'
+              +   '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">'
+              +     '<div style="border:1px solid #e2e5ea;border-radius:8px;padding:11px 13px;"><div style="font-size:11px;color:#E84848;font-weight:700;margin-bottom:4px;">01 사진</div><div style="font-size:11px;color:#5b6472;line-height:1.5;">원경(위치) + 근경(하자) 2장</div></div>'
+              +     '<div style="border:1px solid #e2e5ea;border-radius:8px;padding:11px 13px;"><div style="font-size:11px;color:#E84848;font-weight:700;margin-bottom:4px;">02 기록</div><div style="font-size:11px;color:#5b6472;line-height:1.5;">발견 날짜 · 위치 · 현상 메모</div></div>'
+              +     '<div style="border:1px solid #e2e5ea;border-radius:8px;padding:11px 13px;"><div style="font-size:11px;color:#E84848;font-weight:700;margin-bottom:4px;">03 접수</div><div style="font-size:11px;color:#5b6472;line-height:1.5;">관리사무소 또는 시공사 A/S</div></div>'
+              +   '</div>' : '')
+              + '</div>') : '')
+
         +     '<div style="display:flex;gap:22px;margin:'+(compact?10:16)+'px 0 12px;font-size:11px;color:#5b6472;">'
         +       '<div style="display:flex;align-items:center;gap:7px;"><span style="background:#8a919d;color:#fff;font-weight:700;padding:2px 8px;border-radius:10px;">2년</span> 마감(도배·도장·타일·가구 등)</div>'
         +       '<div style="display:flex;align-items:center;gap:7px;"><span style="background:#33415c;color:#fff;font-weight:700;padding:2px 8px;border-radius:10px;">3년</span> 창호·설비·전기</div>'
         +       '<div style="display:flex;align-items:center;gap:7px;"><span style="background:#E84848;color:#fff;font-weight:700;padding:2px 8px;border-radius:10px;">5년</span> 방수·구조</div>'
         +     '</div>'
 
-        +     '<div style="font-size:10px;color:#9aa1ad;line-height:1.7;">'
+        +     '<div style="font-size:10px;color:#9aa1ad;line-height:1.55;">'
         +       '· 위 \u2018상태\u2019는 이번 점검에서 실제로 확인된 항목만 모아 표시한 것입니다. 항목별 사진·위치는 뒤쪽 상세 리포트를 참고하세요.<br>'
         +       '· 보증기간은 입주(인도일)부터 시작되며, 기간 내에는 무상보수가 원칙입니다. 방수는 원인 부위에 따라 3~5년으로 다르게 적용됩니다.<br>'
+        +       '· 위 내용은 <b style="color:#5b6472">점검일 기준</b>으로 확인된 사항이며, 결로·균열·수축 등은 계절 변화에 따라 이후 새로 나타날 수 있습니다.<br>'
+        +       '· 이사·인테리어·사용 부주의로 생긴 파손, 보수 중 2차 손상 등 <b style="color:#5b6472">사용자 과실 생활하자</b>는 담보책임기간과 무관하게 제외될 수 있습니다.<br>'
         +       '· 표기된 보증기간은 공동주택(아파트) 기준이며, 오피스텔·집합건물·단독주택·상업시설·구축 등은 「집합건물법」 등 관계 법령에 따라 다를 수 있습니다.<br>'
         +       '※ 공종 분류·보증기간은 점검 내용 기반 자동 정리된 참고 자료이며, 정확한 하자 여부·보수 범위는 시공사 확인 및 하자심사 절차를 따릅니다.'
         +     '</div>'
@@ -10426,8 +10544,8 @@
                 </div>
                 <!-- 우측 본문 -->
                 <div style="flex:1;display:flex;flex-direction:column;padding:108px 54px 54px;box-sizing:border-box;">
-                    <div style="font-size:13px;letter-spacing:.28em;color:#E84848;font-weight:800;">PRE-INSPECTION REPORT</div>
-                    <h2 style="font-size:60px;line-height:1.06;font-weight:800;color:#141d2e;margin:18px 0 0;letter-spacing:-.03em;">사전점검<br>보고서</h2>
+                    <div style="font-size:13px;letter-spacing:.28em;color:#E84848;font-weight:800;">${window.getInspectionTitle(projectData.inspectionType, 'en')}</div>
+                    <h2 style="font-size:60px;line-height:1.06;font-weight:800;color:#141d2e;margin:18px 0 0;letter-spacing:-.03em;">${window.getInspectionTitle(projectData.inspectionType, 'ko')}</h2>
                     <div style="flex:1;"></div>
                     <div style="border-top:2px solid #141d2e;padding-top:30px;">
                         <div style="display:flex;padding:15px 0;border-bottom:1px solid #eef0f3;"><span style="width:86px;font-size:11px;letter-spacing:.12em;color:#9aa1ad;font-weight:700;padding-top:4px;">PROJECT</span><span style="font-size:21px;font-weight:700;color:#141d2e;">${projectData.apartmentName}</span></div>
@@ -10441,20 +10559,57 @@
     }
 
 
-    window.createDefectListPage = function(startIndex, itemsPerPage=18) {
+    // 하자목록: 실제 높이 기반 동적 페이지네이션 (전체 내용 표시·잘림 없음·하단여백 최소)
+    window.fitDefectRows = function(startIndex) {
+        var defects = projectData.defects || [];
+        var budget = 1123 - 82 /*헤더*/ - 3 /*레드룰*/ - 26 /*상단여백*/ - 40 /*thead*/ - 48 /*푸터*/ - 8 /*여유*/;
+        var used = 0, count = 0;
+        for (var i = startIndex; i < defects.length; i++) {
+            var d = defects[i];
+            var desc = (d.description || '-');
+            var loc = (d.locations ? d.locations.join(', ') : (d.location || '-'));
+            var typ = (d.types ? d.types.join(', ') : (d.type || '-'));
+            var spc = (d.spaces ? d.spaces.join(', ') : (d.space || '-'));
+            // 열 폭 기준 예상 줄수(글자수/줄) 중 최댓값 → 행 높이 추정
+            var lines = Math.max(
+                Math.ceil(desc.length / 22),
+                Math.ceil(loc.length / 6),
+                Math.ceil(typ.length / 8),
+                Math.ceil(spc.length / 6),
+                1
+            );
+            var h = 23 + lines * 19; // 상하패딩+테두리 + 줄수×줄높이
+            if (used + h > budget && count >= 1) break;
+            used += h; count++;
+        }
+        return Math.max(1, count);
+    };
+    window.planDefectPages = function() {
+        var plan = [], i = 0, len = (projectData.defects || []).length;
+        while (i < len) { var n = window.fitDefectRows(i); plan.push({ start: i, count: n }); i += n; }
+        if (plan.length === 0) plan.push({ start: 0, count: 0 });
+        return plan;
+    };
+
+    window.createDefectListPage = function(startIndex, count, pageNum, totalPages) {
+        if (!count) count = window.fitDefectRows(startIndex);
         let defectRows = '';
-        const defectsToDisplay = projectData.defects.slice(startIndex, startIndex + itemsPerPage);
+        const defectsToDisplay = projectData.defects.slice(startIndex, startIndex + count);
         defectsToDisplay.forEach((defect, index) => {
             const globalIndex = startIndex + index + 1;
             const spaces = defect.spaces ? defect.spaces.join(', ') : (defect.space || '-');
             const locations = defect.locations ? defect.locations.join(', ') : (defect.location || '-');
             const types = defect.types ? defect.types.join(', ') : (defect.type || '-');
             const description = defect.description || '-';
-            const isCritical = (description||'').includes('누수');
-            defectRows += `<tr style="border-bottom:1px solid #eef0f3;background:${isCritical?'rgba(232,72,72,0.06)':'transparent'};"><td style="padding:11.5px 8px;text-align:center;font-weight:800;color:${isCritical?'#E84848':'#141d2e'};">${String(globalIndex).padStart(2,'0')}</td><td style="padding:11.5px 10px;color:#141d2e;font-weight:600;">${spaces}</td><td style="padding:11.5px 10px;color:#5b6472;">${locations}</td><td style="padding:11.5px 10px;color:#5b6472;">${types}</td><td style="padding:11.5px 12px;color:${isCritical?'#c0392b':'#141d2e'};font-weight:${isCritical?'700':'400'};">${isCritical?`<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#E84848;margin-right:7px;vertical-align:middle;"></span>`:''}${description}</td></tr>`;
+            const isCritical = description.includes('누수');
+            defectRows += `<tr style="border-bottom:1px solid #eef0f3;background:${isCritical?'rgba(232,72,72,0.06)':'transparent'};"><td style="padding:11px 8px;text-align:center;vertical-align:top;font-weight:800;color:${isCritical?'#E84848':'#141d2e'};">${String(globalIndex).padStart(2,'0')}</td><td style="padding:11px 10px;vertical-align:top;color:#141d2e;font-weight:600;word-break:break-word;">${spaces}</td><td style="padding:11px 10px;vertical-align:top;color:#5b6472;word-break:break-word;">${locations}</td><td style="padding:11px 10px;vertical-align:top;color:#5b6472;word-break:break-word;">${types}</td><td style="padding:11px 12px;vertical-align:top;line-height:1.45;color:${isCritical?'#c0392b':'#141d2e'};font-weight:${isCritical?'700':'400'};word-break:break-word;">${isCritical?`<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#E84848;margin-right:7px;vertical-align:middle;"></span>`:''}${description}</td></tr>`;
         });
-        const totalPages = Math.ceil(projectData.defects.length / itemsPerPage);
-        const currentPage = Math.floor(startIndex / itemsPerPage) + 1;
+        if (!pageNum || !totalPages) {
+            var _plan = window.planDefectPages();
+            totalPages = _plan.length; pageNum = 1;
+            for (var _pi = 0; _pi < _plan.length; _pi++) { if (_plan[_pi].start === startIndex) { pageNum = _pi + 1; break; } }
+        }
+        const currentPage = pageNum;
         return `<div style="width:794px;height:1123px;background:#fff;font-family:'Pretendard','Malgun Gothic',sans-serif;display:flex;flex-direction:column;overflow:hidden;box-sizing:border-box;">
             <div style="background:#141d2e;padding:20px 44px;display:flex;justify-content:space-between;align-items:center;">
                 <div style="display:flex;align-items:center;gap:11px;"><div style="width:42px;height:42px;background-color:#fff;border-radius:10px;background-image:url(${window.THEHOME_LOGO});background-size:28px;background-repeat:no-repeat;background-position:center;"></div><div><div style="font-size:9px;letter-spacing:.16em;color:#7c86a0;font-weight:700;">더홈점검 · REPORT</div><div style="font-size:17px;font-weight:800;color:#fff;">하자 점검 내역 상세</div></div></div>
@@ -10483,7 +10638,7 @@
             const spaces = defect.spaces ? defect.spaces.join(', ') : '-';
             const description = defect.description || '-';
             const isCritical = (description||'').includes('누수');
-            contentHTML += `<div style="border:1px solid ${isCritical?'#E84848':'#e2e5ea'};border-radius:10px;overflow:hidden;break-inside:avoid;"><div style="display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid #eef0f3;background:${isCritical?'rgba(232,72,72,0.07)':'#fff'};"><span style="background:#141d2e;color:#fff;font-weight:800;font-size:12px;padding:4px 11px;border-radius:6px;">#${String(globalIndex).padStart(2,'0')}</span><span style="font-size:13px;font-weight:800;color:#141d2e;">${spaces}</span>${isCritical?`<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#E84848;"></span>`:''}<span style="width:1px;height:14px;background:#d5d9df;"></span><span style="font-size:12.5px;color:${isCritical?'#c0392b':'#5b6472'};font-weight:${isCritical?'700':'400'};flex:1;">${description}</span></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:2px;background:#eef0f3;"><div style="position:relative;height:256px;background:#f4f5f7;">${farPhoto?`<img src="${farPhoto}" style="width:100%;height:100%;object-fit:contain;"/>`:`<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#c9ced6;font-size:12px;">사진 없음</div>`}<div style="position:absolute;bottom:10px;left:10px;background:#141d2e;color:white;font-size:11px;padding:3px 10px;border-radius:5px;font-weight:700;">원경</div></div><div style="position:relative;height:256px;background:#f4f5f7;">${closePhoto?`<img src="${closePhoto}" style="width:100%;height:100%;object-fit:contain;"/>`:`<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#c9ced6;font-size:12px;">사진 없음</div>`}<div style="position:absolute;bottom:10px;left:10px;background:#E84848;color:white;font-size:11px;padding:3px 10px;border-radius:5px;font-weight:700;">근경</div></div></div></div>`;
+            contentHTML += `<div style="border:1px solid ${isCritical?'#E84848':'#e2e5ea'};border-radius:10px;overflow:hidden;break-inside:avoid;"><div style="display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid #eef0f3;background:${isCritical?'rgba(232,72,72,0.07)':'#fff'};"><span style="background:#141d2e;color:#fff;font-weight:800;font-size:12px;padding:4px 11px;border-radius:6px;">#${String(globalIndex).padStart(2,'0')}</span><span style="font-size:13px;font-weight:800;color:#141d2e;">${spaces}</span>${isCritical?`<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#E84848;"></span>`:''}<span style="width:1px;height:14px;background:#d5d9df;"></span><span style="font-size:13px;color:${isCritical?'#b3261e':'#111827'};font-weight:${isCritical?'800':'700'};flex:1;">${description}</span></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:2px;background:#eef0f3;"><div style="position:relative;height:256px;background:#f4f5f7;">${farPhoto?`<img src="${farPhoto}" style="width:100%;height:100%;object-fit:contain;"/>`:`<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#c9ced6;font-size:12px;">사진 없음</div>`}<div style="position:absolute;bottom:10px;left:10px;background:#141d2e;color:white;font-size:11px;padding:3px 10px;border-radius:5px;font-weight:700;">원경</div></div><div style="position:relative;height:256px;background:#f4f5f7;">${closePhoto?`<img src="${closePhoto}" style="width:100%;height:100%;object-fit:contain;"/>`:`<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#c9ced6;font-size:12px;">사진 없음</div>`}<div style="position:absolute;bottom:10px;left:10px;background:#E84848;color:white;font-size:11px;padding:3px 10px;border-radius:5px;font-weight:700;">근경</div></div></div></div>`;
         }
         return `<div style="width:794px;height:1123px;background:#fff;font-family:'Pretendard','Malgun Gothic',sans-serif;display:flex;flex-direction:column;overflow:hidden;box-sizing:border-box;"><div style="background:#141d2e;padding:20px 44px;display:flex;justify-content:space-between;align-items:center;"><div style="display:flex;align-items:center;gap:11px;"><div style="width:42px;height:42px;background-color:#fff;border-radius:10px;background-image:url(${window.THEHOME_LOGO});background-size:28px;background-repeat:no-repeat;background-position:center;"></div><div><div style="font-size:9px;letter-spacing:.16em;color:#7c86a0;font-weight:700;">더홈점검 · REPORT</div><div style="font-size:17px;font-weight:800;color:#fff;">하자 상세 리포트 (사진)</div></div></div><div style="font-size:12px;color:#9aa6c2;font-weight:600;">${projectData.apartmentName} ${projectData.dong}동 ${projectData.ho}호</div></div><div style="height:3px;background:#E84848;"></div><div style="flex:1;padding:26px 44px 0;display:flex;flex-direction:column;gap:18px;">${contentHTML}</div><div style="margin-top:auto;padding:14px 44px;border-top:1px solid #e8eaee;display:flex;justify-content:space-between;align-items:center;font-size:11px;color:#9aa1ad;font-weight:700;letter-spacing:.05em;"><span>THE HOME INSPECTION</span><span>1668-5322</span></div></div>`;
     }
