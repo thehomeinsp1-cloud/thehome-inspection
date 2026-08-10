@@ -1193,6 +1193,20 @@
             <div class="card">
                 <h2 style="color: var(--primary); margin-bottom: 20px;">📝 프로젝트 정보</h2>
                 
+                <!-- ==================== 점검 유형 선택 ==================== -->
+                <div class="form-field">
+                    <label class="form-label">점검 유형</label>
+                    <select class="form-input" id="inspectionType" onchange="autoSaveProjectData(); updateInspectionTypeBadge();">
+                        <option value="사전점검">사전점검</option>
+                        <option value="사후점검">사후점검</option>
+                        <option value="입주점검">입주점검</option>
+                        <option value="인테리어점검">인테리어점검</option>
+                    </select>
+                    <div id="inspectionTypeBadge" style="margin-top:10px;">
+                        <span style="display:inline-block;padding:5px 12px;border-radius:20px;background:rgba(16,185,129,0.15);border:1px solid var(--primary);color:var(--primary);font-size:12px;font-weight:700;">표지: 사전점검 보고서</span>
+                    </div>
+                </div>
+
                 <div class="form-field">
                     <label class="form-label">아파트명</label>
                     <input type="text" class="form-input" id="apartmentName" placeholder="예: 래미안 아파트" oninput="autoSaveProjectData()">
@@ -4117,6 +4131,7 @@
             document.getElementById('customerName').value = project.customerName || '';
             document.getElementById('customerPhone').value = project.customerPhone || '';
             document.getElementById('author').value = project.author || ''; // ✅ 작성자 로드
+            setInspectionTypeUI(project.inspectionType);
             
             // ==================== 최근 아파트명 버튼 렌더링 ====================
             renderRecentApartmentBtn();
@@ -4362,6 +4377,7 @@
                         document.getElementById('customerName').value = currentProject.customerName || '';
                         document.getElementById('customerPhone').value = currentProject.customerPhone || '';
                         document.getElementById('author').value = currentProject.author || '';
+                        setInspectionTypeUI(currentProject.inspectionType);
                         
                         // ✅ ID 카운터 초기화 제거 (이제 프로젝트별로 관리됨)
                         // 기존 코드 제거됨 - 프로젝트별 lastDefectId, lastEquipmentId, lastAirQualityId 사용
@@ -9635,6 +9651,33 @@
             }
         }
         
+        // ==================== 점검 유형 ====================
+        // 유형별 표지 제목 (국문/영문)
+        window.INSPECTION_TYPES = {
+            '사전점검':     { ko: '사전점검<br>보고서',     en: 'PRE-INSPECTION REPORT' },
+            '사후점검':     { ko: '사후점검<br>보고서',     en: 'POST-INSPECTION REPORT' },
+            '입주점검':     { ko: '입주점검<br>보고서',     en: 'MOVE-IN INSPECTION REPORT' },
+            '인테리어점검': { ko: '인테리어점검<br>보고서', en: 'INTERIOR INSPECTION REPORT' }
+        };
+        window.getInspectionTitle = function(type, key) {
+            const t = window.INSPECTION_TYPES[type] || window.INSPECTION_TYPES['사전점검'];
+            return t[key];
+        };
+        // 선택값을 UI에 반영 (기존 프로젝트는 사전점검 기본)
+        window.setInspectionTypeUI = function(value) {
+            const el = document.getElementById('inspectionType');
+            if (!el) return;
+            el.value = (value && window.INSPECTION_TYPES[value]) ? value : '사전점검';
+            updateInspectionTypeBadge();
+        };
+        window.updateInspectionTypeBadge = function() {
+            const el = document.getElementById('inspectionType');
+            const badge = document.getElementById('inspectionTypeBadge');
+            if (!el || !badge) return;
+            const t = el.value || '사전점검';
+            badge.innerHTML = '<span style="display:inline-block;padding:5px 12px;border-radius:20px;background:rgba(16,185,129,0.15);border:1px solid var(--primary);color:var(--primary);font-size:12px;font-weight:700;">표지: ' + t + ' 보고서</span>';
+        };
+
         function autoSaveProjectData() {
             // projectData 업데이트
             projectData.apartmentName = document.getElementById('apartmentName').value;
@@ -9644,6 +9687,9 @@
             projectData.customerName = document.getElementById('customerName').value;
             projectData.customerPhone = document.getElementById('customerPhone').value;
             projectData.author = document.getElementById('author').value; // ✅ 작성자 추가
+            // 점검 유형 (미선택 시 사전점검)
+            const _typeEl = document.getElementById('inspectionType');
+            projectData.inspectionType = (_typeEl && _typeEl.value) ? _typeEl.value : '사전점검';
             
             // 작성자를 localStorage에 저장 (다음 프로젝트에서도 유지)
             if (projectData.author && projectData.author.trim()) {
@@ -9680,6 +9726,7 @@
                     document.getElementById('customerName').value = projectData.customerName || '';
                     document.getElementById('customerPhone').value = projectData.customerPhone || '';
                     document.getElementById('author').value = projectData.author || ''; // ✅ 작성자 로드
+                    setInspectionTypeUI(projectData.inspectionType);
                     
                     displayFloorplan();
                     renderDefects();
@@ -9774,6 +9821,7 @@
                     document.getElementById('inspectionDate').value = projectData.inspectionDate || '';
                     document.getElementById('customerName').value = projectData.customerName || '';
                     document.getElementById('customerPhone').value = projectData.customerPhone || '';
+                    setInspectionTypeUI(projectData.inspectionType);
                     
                     displayFloorplan();
                     renderDefects();
@@ -9835,6 +9883,7 @@
                         document.getElementById('inspectionDate').valueAsDate = new Date();
                         document.getElementById('customerName').value = '';
                         document.getElementById('customerPhone').value = '';
+                        setInspectionTypeUI('사전점검');
                         
                         displayFloorplan();
                         renderDefects();
@@ -10495,8 +10544,8 @@
                 </div>
                 <!-- 우측 본문 -->
                 <div style="flex:1;display:flex;flex-direction:column;padding:108px 54px 54px;box-sizing:border-box;">
-                    <div style="font-size:13px;letter-spacing:.28em;color:#E84848;font-weight:800;">PRE-INSPECTION REPORT</div>
-                    <h2 style="font-size:60px;line-height:1.06;font-weight:800;color:#141d2e;margin:18px 0 0;letter-spacing:-.03em;">사전점검<br>보고서</h2>
+                    <div style="font-size:13px;letter-spacing:.28em;color:#E84848;font-weight:800;">${window.getInspectionTitle(projectData.inspectionType, 'en')}</div>
+                    <h2 style="font-size:60px;line-height:1.06;font-weight:800;color:#141d2e;margin:18px 0 0;letter-spacing:-.03em;">${window.getInspectionTitle(projectData.inspectionType, 'ko')}</h2>
                     <div style="flex:1;"></div>
                     <div style="border-top:2px solid #141d2e;padding-top:30px;">
                         <div style="display:flex;padding:15px 0;border-bottom:1px solid #eef0f3;"><span style="width:86px;font-size:11px;letter-spacing:.12em;color:#9aa1ad;font-weight:700;padding-top:4px;">PROJECT</span><span style="font-size:21px;font-weight:700;color:#141d2e;">${projectData.apartmentName}</span></div>
