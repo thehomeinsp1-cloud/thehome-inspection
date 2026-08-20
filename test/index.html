@@ -864,6 +864,13 @@
             opacity: 0.8;
         }
 
+        .touch-btn.carried {
+            background: rgba(16, 185, 129, 0.12);
+            border: 2px dashed var(--primary);
+            color: var(--primary);
+            box-shadow: none;
+        }
+
         .touch-btn.selected {
             background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
             border-color: var(--primary);
@@ -4800,9 +4807,15 @@
             ) + 1;
             
             // ✅ 모든 검증 통과 → 새 하자 추가
+            // 직전 하자의 공간을 이어받되, 자동 입력임을 표시(점선) — 직접 누르면 확정됨
+            const _prev = projectData.defects[projectData.defects.length - 1];
+            const _carriedSpaces = (_prev && Array.isArray(_prev.spaces) && _prev.spaces.length > 0)
+                ? _prev.spaces.slice() : [];
+
             const newDefect = {
                 id: project.lastDefectId,
-                spaces: [],      // 배열로 변경
+                spaces: _carriedSpaces,   // 직전 공간 이어받기
+                spacesAuto: _carriedSpaces.length > 0,  // 자동 입력 여부(표시용)
                 locations: [],   // 배열로 변경
                 types: [],       // 배열로 변경
                 detailLocation: '',
@@ -4977,7 +4990,7 @@
                         <div class="selected-count">${defect.spaces.length}/4 선택됨</div>
                         <div class="touch-button-grid">
                             ${getSpaceButtons().map(space => `
-                                <button type="button" class="touch-btn ${defect.spaces.includes(space) ? 'selected' : ''}" 
+                                <button type="button" class="touch-btn ${defect.spaces.includes(space) ? (defect.spacesAuto ? 'carried' : 'selected') : ''}" 
                                         ${defect.spaces.length >= 4 && !defect.spaces.includes(space) ? 'disabled' : ''}
                                         onclick="toggleDefectSelection(${defect.id}, 'spaces', '${space}')">
                                     ${space}
@@ -6733,6 +6746,9 @@
             // 배열이 없으면 초기화
             if (!defect[field]) defect[field] = [];
             
+            // 공간을 직접 누르면 '자동 입력' 표시 해제(확정)
+            if (field === 'spaces') defect.spacesAuto = false;
+
             const index = defect[field].indexOf(value);
             if (index > -1) {
                 // 이미 선택되어 있으면 제거
