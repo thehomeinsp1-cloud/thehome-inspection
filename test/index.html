@@ -6747,7 +6747,18 @@
             if (!defect[field]) defect[field] = [];
             
             // 공간을 직접 누르면 '자동 입력' 표시 해제(확정)
-            if (field === 'spaces') defect.spacesAuto = false;
+            if (field === 'spaces' && defect.spacesAuto) {
+                defect.spacesAuto = false;
+                // 이어받은 값과 다른 공간을 누르면 → 이어받은 값 모두 지우고 새로 선택
+                if (!defect.spaces.includes(value)) {
+                    defect.spaces = [value];
+                }
+                // 같은 공간을 누르면 → 해제하지 않고 그대로 확정(실선)
+                generateAutoDescription(id);
+                renderDefects();
+                saveWithDebounce();
+                return;
+            }
 
             const index = defect[field].indexOf(value);
             if (index > -1) {
