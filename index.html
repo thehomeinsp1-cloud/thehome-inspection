@@ -6900,7 +6900,7 @@
                 
                 // 1. 공간 (어디?)
                 if (defect.spaces.length > 0) {
-                    description += defect.spaces.join(', ');
+                    description += sortSpacesForKorean(defect.spaces).join(', ');
                 }
                 
                 // 2. 위치 (무엇?) - 한글 문법에 맞게 정렬
@@ -6926,6 +6926,19 @@
         }
         
         // 한글 문법에 맞게 위치를 정렬하는 함수
+        // 공간 정렬: 부속 공간(발코니·팬트리 등)을 뒤로 보내 자연스러운 표현으로
+        // 예) 발코니 → 주방 순으로 눌러도 "주방, 발코니"
+        function sortSpacesForKorean(spaces) {
+            const sub = ['발코니', '팬트리', '드레스룸', '파우더룸', '실외기실', '대피공간', '알파룸', '복도', '외부'];
+            return [...spaces].sort((a, b) => {
+                const ai = sub.indexOf(a), bi = sub.indexOf(b);
+                const aSub = ai > -1, bSub = bi > -1;
+                if (aSub !== bSub) return aSub ? 1 : -1;   // 부속 공간은 뒤로
+                if (aSub && bSub) return ai - bi;          // 부속끼리는 정의 순서
+                return 0;                                  // 주 공간끼리는 누른 순서 유지
+            });
+        }
+
         function sortLocationsForKorean(locations) {
             // 우선순위 정의 (한글 문법에 자연스러운 순서)
             const priority = {
