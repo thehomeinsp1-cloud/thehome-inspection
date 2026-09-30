@@ -1,12 +1,15 @@
-/* ==================== 더홈점검 Service Worker v1 ====================
+/* ==================== 더홈점검 Service Worker v2 ====================
  * 전략:
- *  - index.html(내비게이션): 네트워크 우선 → 배포 즉시 반영, 오프라인 시 캐시 사용
+ *  - 페이지(내비게이션): 네트워크 우선 → 배포 즉시 반영.
+ *    각 페이지를 자기 주소로 캐시하고, 오프라인 시 그 페이지의 캐시를 보여줌
+ *    (캐시가 없을 때 첫 화면 주소만 index.html로 대체)
  *  - CDN 라이브러리(버전 고정): 캐시 우선 → 오프라인에서도 PDF/엑셀 생성 가능
  *  - Google 시트/로그인/Apps Script: 캐시하지 않음 (항상 실시간)
  * 업데이트: 이 파일이 1바이트라도 바뀌면 브라우저가 새 SW로 교체함.
  *           캐시 구조 변경 시 CACHE_VERSION 숫자를 올릴 것.
  * =================================================================== */
-const CACHE_VERSION = 'ths-cache-v1';
+// v2: v1이 모든 페이지를 './index.html'에 덮어써 오염된 캐시를 activate에서 지우기 위해 올림
+const CACHE_VERSION = 'ths-cache-v2';
 
 const LIB_URLS = [
   'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',
@@ -25,6 +28,10 @@ const BYPASS_HOSTS = [
   'www.googleapis.com',
   'apis.google.com'
 ];
+
+// 앱 첫 화면 주소 (오프라인인데 그 주소의 캐시가 없을 때만 index.html로 대체)
+const SCOPE_PATH = new URL('./', self.location).pathname;
+const APP_SHELL_PATHS = [SCOPE_PATH, SCOPE_PATH + 'index.html'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil((async () => {
@@ -55,17 +62,23 @@ self.addEventListener('fetch', (event) => {
   // 실시간 데이터/인증은 SW 개입 없이 통과
   if (BYPASS_HOSTS.some(h => url.hostname === h || url.hostname.endsWith('.' + h))) return;
 
-  // 1) 페이지 진입(내비게이션): 네트워크 우선, 오프라인 시 캐시된 index.html
+  // 1) 페이지 진입(내비게이션): 네트워크 우선, 오프라인 시 그 페이지의 캐시
   if (req.mode === 'navigate') {
+    const key = url.origin + url.pathname; // ?code= 같은 쿼리는 캐시 키에서 뺌 (oauth-callback 등)
     event.respondWith((async () => {
+      const cache = await caches.open(CACHE_VERSION);
       try {
         const fresh = await fetch(req);
-        const cache = await caches.open(CACHE_VERSION);
-        cache.put('./index.html', fresh.clone());
+        if (fresh.ok) cache.put(key, fresh.clone());
         return fresh;
       } catch (e) {
-        const cached = await caches.match('./index.html');
-        return cached || Response.error();
+        const cached = await cache.match(key);
+        if (cached) return cached;
+        if (APP_SHELL_PATHS.includes(url.pathname)) {
+          const shell = await cache.match('./index.html');
+          if (shell) return shell;
+        }
+        return Response.error();
       }
     })());
     return;
