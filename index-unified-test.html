@@ -13,10 +13,13 @@
     <meta name="theme-color" content="#141d2e">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="더홈점검">
+    <meta name="apple-mobile-web-app-title" content="더홈 테스트">
     
     <!-- PWA Manifest -->
-    <!-- manifest.json 제거 (CORS 에러 방지) -->
+    <!-- 앱 설치 정보 + 홈 화면 아이콘(더홈점검 로고). 같은 주소의 파일이라 CORS 문제 없음 -->
+    <link rel="manifest" href="manifest-test.webmanifest">
+    <link rel="apple-touch-icon" href="app-icons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" href="app-icons/favicon-48.png">
     
     <!-- jsPDF + html2canvas Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" integrity="sha384-JcnsjUPPylna1s1fvi1u12X5qjY5OL56iySh75FdtrwhO/SWXgMjoVqcKyIIWOLk" crossorigin="anonymous"></script>
@@ -2030,6 +2033,30 @@ body.light-mode .card.reference-info {
                 setTimeout(showPwaInstallGuide, 1000);
             };
             
+            // ✅ 안드로이드 크롬: 브라우저가 '설치 가능'을 알려주면 버튼 한 번으로 설치
+            window._installPrompt = null;
+            window.addEventListener('beforeinstallprompt', function(e) {
+                e.preventDefault();
+                window._installPrompt = e;
+                const btn = document.getElementById('pwaInstallNowBtn');
+                if (btn) btn.style.display = 'block';
+            });
+            window.addEventListener('appinstalled', function() {
+                window._installPrompt = null;
+                try { document.getElementById('pwaInstallModal').style.display = 'none'; } catch (e) {}
+                try { showToast('✅ 홈 화면에 더홈점검 앱이 설치되었습니다'); } catch (e) {}
+            });
+            window.installPwaNow = async function() {
+                const p = window._installPrompt;
+                if (!p) { alert('브라우저 오른쪽 위 ⋮ 메뉴에서 "앱 설치" 또는 "홈 화면에 추가"를 눌러주세요'); return; }
+                try {
+                    p.prompt();
+                    const r = await p.userChoice;
+                    if (r && r.outcome === 'accepted') closePwaInstallModal(false);
+                } catch (e) { console.warn('앱 설치 창 오류:', e); }
+                window._installPrompt = null;
+            };
+
             // PWA 설치 모달 닫기
             window.closePwaInstallModal = function(neverShow) {
                 document.getElementById('pwaInstallModal').style.display = 'none';
@@ -2064,11 +2091,12 @@ body.light-mode .card.reference-info {
                     `;
                 } else if (os === 'android') {
                     guideHTML = `
+                        <button id="pwaInstallNowBtn" onclick="installPwaNow()" style="display: ${window._installPrompt ? 'block' : 'none'}; width: 100%; padding: 14px; margin-bottom: 12px; background: #141d2e; color: #fff; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer;">📲 지금 앱으로 설치하기</button>
                         <div style="font-weight: bold; color: #1d4ed8; margin-bottom: 10px;">📍 Android (Chrome)</div>
                         <div style="font-size: 13px; color: #374151; line-height: 1.8;">
                             1. 우측 상단 <strong>⋮ 메뉴</strong> 클릭<br>
-                            2. <strong>"홈 화면에 추가"</strong> 선택<br>
-                            3. <strong>"추가"</strong> 클릭
+                            2. <strong>"앱 설치"</strong> 또는 <strong>"홈 화면에 추가"</strong> 선택<br>
+                            3. <strong>"설치"</strong> 클릭
                         </div>
                     `;
                 } else {
