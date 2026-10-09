@@ -12226,260 +12226,148 @@ body.light-mode .card.reference-info {
     
     // ==================== 튜토리얼 시스템 ====================
     let currentTutorialStep = 0;
+    // 가이드 화면 조각 (디자인 A 톤: 네이비 #141d2e · 빨강 #D23B3B · 회색 카드). 글자색은 모두 직접 지정(앱 테마 영향 없음)
+    const _gd = {
+        chip: (r) => '<span style="display:inline-block;min-width:46px;text-align:center;padding:3px 7px;border-radius:6px;font-size:11.5px;font-weight:800;color:#fff;background:' + (r === '소장' ? '#141d2e' : r === '매니저' ? '#D23B3B' : '#5b6472') + ';margin-right:9px;flex-shrink:0;line-height:1.5;">' + r + '</span>',
+        row: (r, html) => '<div style="display:flex;align-items:flex-start;padding:10px 12px;background:#f4f5f7;border-radius:10px;margin-bottom:7px;font-size:13.5px;line-height:1.6;color:#1f2733;">' + _gd.chip(r) + '<div>' + html + '</div></div>',
+        step: (n, when, title) => '<div style="display:flex;align-items:center;gap:10px;margin:14px 0 8px;"><span style="width:28px;height:28px;border-radius:50%;background:#141d2e;color:#fff;font-weight:800;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">' + n + '</span><div><div style="font-size:11.5px;color:#5b6472;font-weight:600;">' + when + '</div><div style="font-size:16px;font-weight:800;color:#141d2e;">' + title + '</div></div></div>',
+        warn: (html) => '<div style="margin:10px 0;padding:11px 13px;background:#fdeeee;border-left:4px solid #D23B3B;border-radius:8px;font-size:13px;line-height:1.6;color:#7a1f1f;">' + html + '</div>',
+        tip: (html) => '<div style="margin:10px 0;padding:11px 13px;background:#eef1f6;border-left:4px solid #141d2e;border-radius:8px;font-size:13px;line-height:1.6;color:#1f2733;">' + html + '</div>',
+        lead: (html) => '<p style="margin:0 0 12px;font-size:14px;line-height:1.65;color:#3a4352;">' + html + '</p>',
+        h: (html) => '<div style="font-size:14px;font-weight:800;color:#141d2e;margin:14px 0 8px;padding-left:9px;border-left:3px solid #D23B3B;">' + html + '</div>',
+        pills: (arr) => '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;">' + arr.map(t => '<span style="padding:6px 10px;border-radius:8px;background:#fff;border:1px solid #d5dae2;font-size:12.5px;color:#1f2733;line-height:1.4;">' + t + '</span>').join('') + '</div>',
+        check: (r, html) => '<div style="display:flex;align-items:flex-start;gap:8px;padding:9px 11px;border-bottom:1px solid #e6e9ee;font-size:13.5px;line-height:1.55;color:#1f2733;"><span style="color:#D23B3B;font-weight:800;">☐</span>' + _gd.chip(r) + '<div>' + html + '</div></div>'
+    };
+
     const tutorialSteps = [
         {
-            title: '👋 더홈점검 앱 사용 가이드',
-            content: `
-                <div style="text-align: center; margin-bottom: 20px;">
-                    <div style="font-size: 60px; margin-bottom: 15px;">🏠</div>
-                    <p style="font-size: 16px; color: #1a1a1a; line-height: 1.6;">
-                        신축 아파트 하자점검을 위한<br/>
-                        <strong>더홈점검 앱</strong> 사용법을 안내합니다.
-                    </p>
-                </div>
-                <div style="background: #f0fdf4; padding: 15px; border-radius: 10px; border-left: 4px solid #10b981;">
-                    <div style="font-weight: bold; color: #059669; margin-bottom: 8px;">📋 점검 흐름</div>
-                    <div style="font-size: 14px; color: #1a1a1a; line-height: 1.8;">
-                        1️⃣ 프로젝트 정보 입력<br/>
-                        2️⃣ 하자점검 (사진 2장 필수)<br/>
-                        3️⃣ 장비점검 (4구역 촬영)<br/>
-                        4️⃣ 공기질 측정<br/>
-                        5️⃣ 공유드라이브 저장
-                    </div>
-                </div>
-            `
+            title: '더홈점검 앱 사용 가이드',
+            content: '<div style="font-size:11.5px;letter-spacing:.14em;color:#5b6472;font-weight:700;margin-bottom:6px;">신규 소장님 · 매니저용</div>'
+                + '<div style="font-size:27px;line-height:1.25;font-weight:800;color:#141d2e;margin-bottom:12px;">처음 오셨어도<br><span style="color:#D23B3B;">오늘</span> 바로 합니다</div>'
+                + _gd.lead('하루 업무 순서와 앱 쓰는 법을 짧게 정리했습니다. 이 가이드는 <b>데이터 탭 → 📖 앱 사용 가이드 보기</b>에서 언제든 다시 볼 수 있습니다.')
+                + '<div style="border-top:2px solid #141d2e;padding-top:10px;">'
+                + ['현장에서 꼭 지킬 3가지', '첫 현장 가기 전에 · 앱 준비', '소장님과 매니저, 누가 뭘 하나', '하루 흐름 9단계 (앱 화면 순서)', '스티커와 사진 쓰는 법', '하자 보는 법 (요약)', '퇴근 전 체크리스트']
+                    .map((t, i) => '<div style="display:flex;gap:10px;padding:6px 0;font-size:13.5px;color:#1f2733;"><b style="color:#D23B3B;min-width:16px;">' + (i + 1) + '</b>' + t + '</div>').join('')
+                + '</div>'
         },
         {
-            title: '👔 소장님 vs 매니저 역할',
-            content: `
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                    <div style="background: #fef3c7; padding: 15px; border-radius: 10px;">
-                        <div style="font-weight: bold; color: #d97706; margin-bottom: 10px; font-size: 15px;">👔 소장님 (현장 총괄)</div>
-                        <div style="font-size: 13px; color: #1a1a1a; line-height: 1.7;">
-                            • 고객 연락 & 세대 동행<br/>
-                            • <strong>육안 하자점검</strong><br/>
-                            • 스티커 부착 (위치 명시)<br/>
-                            • <strong>장비점검</strong> 앱 등록<br/>
-                            • 물고임 확인 사진
-                        </div>
-                    </div>
-                    <div style="background: #dbeafe; padding: 15px; border-radius: 10px;">
-                        <div style="font-weight: bold; color: #2563eb; margin-bottom: 10px; font-size: 15px;">📱 매니저 (기록 및 관리)</div>
-                        <div style="font-size: 13px; color: #1a1a1a; line-height: 1.7;">
-                            • 프로젝트 정보 입력<br/>
-                            • <strong>하자 사진 촬영</strong> (2장)<br/>
-                            • 하자 정보 터치 입력<br/>
-                            • <strong>공기질 측정</strong> 입력<br/>
-                            • 드라이브 저장
-                        </div>
-                    </div>
-                </div>
-                <div style="margin-top: 15px; padding: 12px; background: #fef2f2; border-radius: 8px; font-size: 13px; color: #dc2626;">
-                    ⚠️ <strong>주의:</strong> 스티커는 발코니/페인트 도장면에 부착 자제!
-                </div>
-            `
+            title: '현장에서 꼭 지킬 3가지',
+            content: _gd.lead('점검 실력보다 먼저, 고객이 보는 태도입니다.')
+                + _gd.h('! 스티커는 적당히') + _gd.lead('너무 많이 붙이지 않습니다. 같은 자리 비슷한 하자는 여러 장으로 쪼개지 않고 <b>한 장에 묶습니다.</b> 발코니처럼 페인트 칠한 벽은 떼다가 칠이 벗겨지니 약하게 붙이거나 붙이지 않습니다.')
+                + _gd.h('! 사적인 대화는 하지 않기') + _gd.lead('점검 중에는 업무 이야기만 합니다. 고객님이 녹음하고 계실 수 있습니다. 바쁘고 급한 모습도 보이지 않습니다.')
+                + _gd.h('? 모르면 혼자 판단하지 않기') + _gd.lead('애매하면 <b>사진부터 찍고</b> 현장 소장님께 먼저 묻습니다. 그다음은 업무 단톡방이나 팀장님께 묻습니다.')
+                + _gd.tip('📞 김기홍 팀장 <b>010-9985-0128</b>')
         },
         {
-            title: '📁 STEP 1: 프로젝트 정보',
-            content: `
-                <div style="background: #f8fafc; padding: 20px; border-radius: 12px; margin-bottom: 15px;">
-                    <div style="font-size: 40px; text-align: center; margin-bottom: 15px;">📁</div>
-                    <div style="font-size: 14px; color: #1a1a1a; line-height: 1.8;">
-                        <strong>프로젝트 탭</strong>에서 기본 정보를 입력합니다:
-                    </div>
-                </div>
-                <div style="display: grid; gap: 10px;">
-                    <div style="display: flex; align-items: center; gap: 10px; padding: 12px; background: #f0fdf4; border-radius: 8px;">
-                        <span style="font-size: 20px;">🏢</span>
-                        <div><strong>아파트명</strong> - 단지명 입력</div>
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 10px; padding: 12px; background: #f0fdf4; border-radius: 8px;">
-                        <span style="font-size: 20px;">🔢</span>
-                        <div><strong>동/호수</strong> - 예: 101동, 1502호</div>
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 10px; padding: 12px; background: #f0fdf4; border-radius: 8px;">
-                        <span style="font-size: 20px;">📅</span>
-                        <div><strong>점검일자</strong> - 오늘 날짜</div>
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 10px; padding: 12px; background: #fef3c7; border-radius: 8px;">
-                        <span style="font-size: 20px;">✍️</span>
-                        <div><strong>작성자</strong> - 본인 이름 (리포트에 표시)</div>
-                    </div>
-                </div>
-            `
+            title: '첫 현장 가기 전에 · 앱 준비',
+            content: _gd.warn('<b>앱은 꼭 홈 화면 아이콘으로 실행합니다.</b> 브라우저 주소창으로 열면 자료가 저장되지 않을 수 있습니다.')
+                + _gd.h('홈 화면에 설치')
+                + _gd.row('공통', '<b>아이폰</b> · Safari로 주소 열기 → 아래 공유(□↑) → <b>홈 화면에 추가</b> → 추가')
+                + _gd.row('공통', '<b>안드로이드</b> · Chrome으로 열기 → 안내창의 <b>📲 지금 앱으로 설치하기</b> (또는 오른쪽 위 ⋮ → 앱 설치)')
+                + _gd.h('로그인')
+                + _gd.lead('본인 <b>이름 + 4자리 PIN</b>. 첫 로그인만 인터넷이 필요하니 전날 집에서 미리 해 두세요. 한 번 하면 <b>90일</b> 유지됩니다.')
+                + _gd.tip('점검 가방은 점검소장님 또는 회사에서 챙겨 드립니다. 본인은 <b>충전된 휴대폰</b>만 챙기면 됩니다(보조배터리 있으면 좋음). 도착하면 가방 안을 한 번 확인하고, 끝나면 빠짐없이 다시 넣습니다.')
         },
         {
-            title: '📸 STEP 2: 하자 사진 촬영',
-            content: `
-                <div style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); padding: 15px; border-radius: 12px; margin-bottom: 15px; text-align: center;">
-                    <div style="font-size: 24px; font-weight: bold; color: #d97706;">⭐ 필수 2장 ⭐</div>
-                    <div style="font-size: 14px; color: #92400e; margin-top: 5px;">원경 1장 + 근경 1장</div>
-                </div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
-                    <div style="background: #dbeafe; padding: 15px; border-radius: 10px; text-align: center;">
-                        <div style="font-size: 30px; margin-bottom: 8px;">🔭</div>
-                        <div style="font-weight: bold; color: #2563eb;">원경 사진</div>
-                        <div style="font-size: 12px; color: #1a1a1a; margin-top: 5px;">
-                            하자 위치 + 스티커가<br/>함께 보이도록
-                        </div>
-                    </div>
-                    <div style="background: #fce7f3; padding: 15px; border-radius: 10px; text-align: center;">
-                        <div style="font-size: 30px; margin-bottom: 8px;">🔍</div>
-                        <div style="font-weight: bold; color: #db2777;">근경 사진</div>
-                        <div style="font-size: 12px; color: #1a1a1a; margin-top: 5px;">
-                            하자 상세 상태를<br/>가까이서 촬영
-                        </div>
-                    </div>
-                </div>
-                <div style="background: #ecfdf5; padding: 12px; border-radius: 8px; font-size: 13px;">
-                    💡 <strong>터치 마커:</strong> 원경 촬영 시 화면을 터치하면 녹색 마커가 표시됩니다!
-                </div>
-            `
+            title: '소장님은 보고, 매니저는 남깁니다',
+            content: _gd.lead('3세대 이상은 둘이 한 팀(1~2세대는 소장님 혼자 진행). 소장님이 하자를 찾아 스티커를 붙이면, 매니저가 <b>스티커 순서대로</b> 앱에 사진과 내용을 남깁니다.')
+                + _gd.h(_gd.chip('소장') + '현장 총괄 · 하자를 찾고, 고객과 이야기')
+                + _gd.pills(['고객 연락 (전날·당일 아침, 도착 30분 전)', '첫 세대는 고객과 함께 입실', '하자 찾고 스티커 (위치 구체적으로)', '장비점검 (보일러 먼저)', '욕실·발코니 물고임 사진', '고객 브리핑 · 잔금·모바일 접수 안내', '장비 보고서 → 매니저 전달'])
+                + _gd.h(_gd.chip('매니저') + '기록·관리 · 앱에 남기고 자료 마감')
+                + _gd.pills(['단톡방 입실톡 → 종료톡', '세대 정보·평면도 입력', '스티커마다 사진 2장 (원경+근경)', '공기질 수치 입력', '욕실·발코니 물 충분히 뿌리기', '하자+장비 보고서 2개 고객 전송', '오후 6시 전 드라이브 업로드'])
         },
         {
-            title: '✏️ STEP 3: 하자 정보 입력',
-            content: `
-                <div style="background: #f8fafc; padding: 15px; border-radius: 12px; margin-bottom: 15px;">
-                    <div style="font-size: 14px; color: #1a1a1a; line-height: 1.8;">
-                        사진 촬영 후, 소장님이 붙인 <strong>스티커를 확인</strong>하여<br/>
-                        터치로 간편하게 입력합니다.
-                    </div>
-                </div>
-                <div style="display: grid; gap: 10px;">
-                    <div style="padding: 12px; background: #dbeafe; border-radius: 8px;">
-                        <strong>1️⃣ 공간 선택</strong> (최대 4개)<br/>
-                        <span style="font-size: 13px; color: #1a1a1a;">현관, 안방, 침실1, 거실, 주방...</span>
-                    </div>
-                    <div style="padding: 12px; background: #fce7f3; border-radius: 8px;">
-                        <strong>2️⃣ 위치 선택</strong> (최대 4개)<br/>
-                        <span style="font-size: 13px; color: #1a1a1a;">벽, 바닥, 천장, 문, 창...</span>
-                    </div>
-                    <div style="padding: 12px; background: #fef3c7; border-radius: 8px;">
-                        <strong>3️⃣ 하자내용 선택</strong> (최대 4개)<br/>
-                        <span style="font-size: 13px; color: #1a1a1a;">유격, 틈새, 단차, 파손, 오염...</span>
-                    </div>
-                </div>
-                <div style="margin-top: 15px; padding: 12px; background: #f0fdf4; border-radius: 8px; font-size: 13px;">
-                    💡 목록에 없는 공간은 <strong>'+' 버튼</strong>으로 직접 입력 가능!
-                </div>
-            `
+            title: '하루 흐름 ① 도착 · 세대 정보',
+            content: _gd.step(1, '전날 · 당일 아침', '고객님께 연락')
+                + _gd.row('소장', '전날이나 당일 아침에 연락하고, <b>도착 30분 전</b>에 다시 연락합니다. 약속 시간은 꼭 지키고, 늦으면 미리 알립니다.')
+                + _gd.row('소장', '첫 세대는 고객님과 함께 들어가도록 안내합니다.')
+                + _gd.step(2, '세대 도착', '입실톡 보내고 앱 켜기')
+                + _gd.row('매니저', '세대에 들어가면 업무 단톡방에 <b>입실톡</b>을 보냅니다.')
+                + _gd.row('공통', '앱은 홈 화면 아이콘으로 실행. 한 번 로그인하면 이후에는 인터넷 없이도 됩니다.')
+                + _gd.step(3, '시작 5분', '세대 정보와 평면도 넣기')
+                + _gd.row('매니저', '<b>프로젝트 탭 → 새 프로젝트.</b> 아파트명·동·호수는 보고서 제목이 되니 정확히 씁니다. 점검일·고객명·작성자(본인)까지 넣습니다.')
+                + _gd.row('매니저', '평면도는 종이 평면도를 빛 반사 없이 찍거나, 고객님께 받은 파일을 갤러리에서 올립니다. 나중에 바꿔도 됩니다.')
         },
         {
-            title: '📷 STEP 4: 장비점검 (소장님)',
-            content: `
-                <div style="background: #f8fafc; padding: 15px; border-radius: 12px; margin-bottom: 15px;">
-                    <div style="font-size: 14px; color: #1a1a1a; line-height: 1.6;">
-                        <strong>장비점검 탭</strong>에서 4개 구역별로<br/>측정 사진을 등록합니다.
-                    </div>
-                </div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
-                    <div style="padding: 12px; background: #fef3c7; border-radius: 8px; text-align: center;">
-                        <div style="font-size: 24px;">🔥</div>
-                        <div style="font-size: 13px; font-weight: bold; margin-top: 5px;">열화상 (단열/난방)</div>
-                    </div>
-                    <div style="padding: 12px; background: #dbeafe; border-radius: 8px; text-align: center;">
-                        <div style="font-size: 24px;">📐</div>
-                        <div style="font-size: 13px; font-weight: bold; margin-top: 5px;">수평계 (벽체/바닥)</div>
-                    </div>
-                    <div style="padding: 12px; background: #e0e7ff; border-radius: 8px; text-align: center;">
-                        <div style="font-size: 24px;">💧</div>
-                        <div style="font-size: 13px; font-weight: bold; margin-top: 5px;">물고임 (욕실/발코니)</div>
-                    </div>
-                    <div style="padding: 12px; background: #fce7f3; border-radius: 8px; text-align: center;">
-                        <div style="font-size: 24px;">🔧</div>
-                        <div style="font-size: 13px; font-weight: bold; margin-top: 5px;">기타 측정</div>
-                    </div>
-                </div>
-                <div style="background: #fef2f2; padding: 12px; border-radius: 8px; font-size: 13px; color: #dc2626;">
-                    ⚠️ <strong>[필수]</strong> 보일러 작동 확인! 난방 미작동 시 열화상 검사 불가 안내
-                </div>
-            `
+            title: '하루 흐름 ② 메인 점검 · 하자 기록',
+            content: _gd.step(4, '메인 점검', '소장님은 스티커, 매니저는 기록')
+                + _gd.row('소장', '현관부터 동선을 따라 눈으로 보며 하자 자리에 <b>번호 순서대로</b> 스티커를 붙입니다.')
+                + _gd.row('매니저', '<b>하자점검 탭 → 오른쪽 아래 + 버튼</b> → 스티커 순서대로 기록합니다.')
+                + _gd.row('매니저', '<b>사진 2장 필수.</b> 원경은 화면에서 <b>하자 자리를 먼저 터치</b>(빨간 원 표시)하고 찍습니다. 그다음 근경 버튼이 켜지면 가까이서 한 장.')
+                + _gd.row('매니저', '스티커에 동그라미 친 대로 <b>공간 · 위치 · 하자내용</b>을 터치하면(각 최대 4개) 설명이 자동으로 만들어집니다. 목록에 없는 공간은 <b>+ 버튼</b>으로 직접 입력.')
+                + _gd.tip('다음 하자를 추가하면 직전 공간이 <b>점선</b>으로 미리 들어갑니다. 같은 공간이면 그대로 두고, 다르면 새 공간을 누르세요.')
         },
         {
-            title: '🌬️ STEP 5: 공기질 측정 (매니저)',
-            content: `
-                <div style="background: #f8fafc; padding: 15px; border-radius: 12px; margin-bottom: 15px;">
-                    <div style="font-size: 14px; color: #1a1a1a; line-height: 1.6;">
-                        <strong>공기질 탭</strong>에서 5개 구역의<br/>라돈, 포름알데히드, VOCs를 입력합니다.
-                    </div>
-                </div>
-                <div style="display: grid; gap: 10px; margin-bottom: 15px;">
-                    <div style="display: flex; justify-content: space-between; padding: 12px; background: #ecfdf5; border-radius: 8px;">
-                        <span><strong>거실</strong></span>
-                        <span style="color: #059669;">라돈 + 포름알데히드 + VOCs</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; padding: 12px; background: #ecfdf5; border-radius: 8px;">
-                        <span><strong>침실 (3~4개)</strong></span>
-                        <span style="color: #059669;">라돈 + 포름알데히드 + VOCs</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; padding: 12px; background: #fef3c7; border-radius: 8px;">
-                        <span><strong>욕실</strong></span>
-                        <span style="color: #d97706;">라돈만 체크</span>
-                    </div>
-                </div>
-                <div style="background: #dbeafe; padding: 12px; border-radius: 8px; font-size: 13px;">
-                    💧 <strong>구배 점검:</strong> 욕실/발코니에 물 뿌리기 → 소장님이 물고임 확인
-                </div>
-            `
+            title: '하루 흐름 ③ 공기질 · 물 · 장비점검',
+            content: _gd.step(5, '메인 점검과 동시에', '공기질 재고, 물 뿌리기')
+                + _gd.row('매니저', '<b>공기질 탭</b>에 거실·침실 등 5구역 수치를 넣습니다. 욕실은 <b>라돈만</b>.')
+                + _gd.row('매니저', '콘센트는 접지테스터를 전부 꽂아 확인합니다.')
+                + _gd.row('매니저', '욕실 하자 사진을 다 찍은 다음에 욕실·발코니 바닥에 물을 충분히 뿌려 둡니다. 소장님이 물 고인 곳을 봅니다.')
+                + _gd.step(6, '육안점검 후', '장비점검')
+                + _gd.row('소장', '<b>보일러부터</b> 켜 봅니다. 난방이 안 되면 열화상 점검을 할 수 없으니 고객님께 안내합니다(사후점검 유료 안내 또는 회사 문의).')
+                + _gd.row('소장', '열화상(창·벽 단열, 바닥 난방), 레이저 수평계(벽·바닥), 욕실·발코니 물고임 사진을 <b>장비점검 탭</b>에 <b>좌 / 우 / 바닥1 / 바닥2</b> 4구역으로 올립니다. 열화상은 계절에 따라 진행 여부를 협의합니다.')
         },
         {
-            title: '☁️ STEP 6: 공유드라이브 저장',
-            content: `
-                <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 20px; border-radius: 12px; margin-bottom: 15px; text-align: center; color: white;">
-                    <div style="font-size: 40px; margin-bottom: 10px;">☁️</div>
-                    <div style="font-size: 18px; font-weight: bold;">점검완료 → 공유드라이브 저장</div>
-                </div>
-                <div style="background: #f0fdf4; padding: 15px; border-radius: 10px; margin-bottom: 15px;">
-                    <div style="font-weight: bold; color: #059669; margin-bottom: 10px;">📦 저장되는 파일:</div>
-                    <div style="font-size: 14px; line-height: 1.8;">
-                        📄 하자점검 보고서 (PDF)<br/>
-                        🔧 장비점검 보고서 (PDF)<br/>
-                        📊 하자목록 (엑셀)<br/>
-                        📷 모든 하자 사진
-                    </div>
-                </div>
-                <div style="background: #fef3c7; padding: 12px; border-radius: 8px; font-size: 13px; color: #92400e;">
-                    ⏰ <strong>마감:</strong> 오후 6시 전까지 드라이브 업로드 완료!
-                </div>
-            `
+            title: '하루 흐름 ④ 브리핑 · 보고서 2개',
+            content: _gd.step(7, '10~15분', '고객 브리핑')
+                + _gd.row('소장', '밝은 표정으로 결과를 설명합니다. 급한 모습은 보이지 않습니다.')
+                + _gd.row('소장', '모바일 하자접수 대행 안내: 접수비 5만원(무상 고객 제외). 신청하면 매니저가 고객 ID·비번을 받아 적습니다.')
+                + _gd.row('소장', '잔금은 당일 입금 기준. 예약 안내 카톡의 잔금 내역으로 입금을 부탁드립니다.')
+                + _gd.step(8, '점검 끝', '보고서 2개 만들어 보내기')
+                + _gd.row('소장', '<b>데이터 탭 → 장비점검 전용 PDF</b> 만들기 → 매니저에게 카톡으로 전달.')
+                + _gd.row('매니저', '<b>데이터 탭 → PDF 보고서 생성</b>(하자 보고서). 소장님께 받은 장비 보고서와 함께 <b>파일 2개</b>를 고객님께 카톡·문자·메일로 보냅니다.')
         },
         {
-            title: '✅ 최종 체크리스트',
-            content: `
-                <div style="font-size: 14px; margin-bottom: 10px; color: #1a1a1a;">점검 완료 전 확인하세요!</div>
-                <div style="display: grid; gap: 8px;">
-                    <div style="display: flex; align-items: center; gap: 10px; padding: 12px; background: #f0fdf4; border-radius: 8px;">
-                        <span style="font-size: 18px;">📸</span>
-                        <div style="font-size: 13px;">모든 하자에 <strong>사진 2장</strong> (원경+근경) 등록?</div>
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 10px; padding: 12px; background: #f0fdf4; border-radius: 8px;">
-                        <span style="font-size: 18px;">🔧</span>
-                        <div style="font-size: 13px;"><strong>장비점검</strong> 4구역 사진 등록?</div>
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 10px; padding: 12px; background: #f0fdf4; border-radius: 8px;">
-                        <span style="font-size: 18px;">🌬️</span>
-                        <div style="font-size: 13px;"><strong>공기질</strong> 수치 입력?</div>
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 10px; padding: 12px; background: #dbeafe; border-radius: 8px;">
-                        <span style="font-size: 18px;">📤</span>
-                        <div style="font-size: 13px;"><strong>고객에게</strong> 하자+장비 보고서 전송?</div>
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 10px; padding: 12px; background: #fef3c7; border-radius: 8px;">
-                        <span style="font-size: 18px;">☁️</span>
-                        <div style="font-size: 13px;"><strong>6시 전</strong> 공유드라이브 업로드?</div>
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 10px; padding: 12px; background: #fce7f3; border-radius: 8px;">
-                        <span style="font-size: 18px;">💬</span>
-                        <div style="font-size: 13px;">단톡방에 <strong>"종료톡"</strong> 전송?</div>
-                    </div>
-                </div>
-                <div style="margin-top: 15px; padding: 12px; background: #fef2f2; border-radius: 8px; font-size: 13px; color: #dc2626; text-align: center;">
-                    🎒 장비 분실 금지! 점검 후 장비 회수 철저!
-                </div>
-            `
+            title: '하루 흐름 ⑤ 오후 6시 전 마감',
+            content: _gd.step(9, '오후 6시 전', '자료 올리고 종료톡')
+                + _gd.row('매니저', '데이터 탭에서 <b>회사 구글 계정으로 로그인 → 공유드라이브에 저장하기.</b> 드라이브 폴더에 <b>PDF·엑셀·사진ZIP·백업</b> 4가지가 올라갔는지 확인하고, 1주일 뒤 앱에서 프로젝트를 삭제합니다.')
+                + _gd.row('매니저', '다 올렸으면 단톡방에 <b>종료톡</b>.')
+                + _gd.row('공통', '퇴실 전 보일러·에어컨 끄기, 불 끄기, 창문·발코니문·수도 잠그기, 현관문 잠그기. 장비 챙기기.')
+                + _gd.warn('업로드가 일부라도 실패하면 목록에 <b>완료</b>로 표시되지 않습니다. 안내에 따라 다시 올린 뒤에 삭제하세요.')
+                + _gd.tip('신호가 없는 곳에서는 자료가 휴대폰에 안전하게 저장됩니다. 신호가 잡히면 다시 <b>공유드라이브에 저장하기</b>를 누르세요.')
+        },
+        {
+            title: '스티커와 사진, 이렇게',
+            content: _gd.lead('스티커만 보고 매니저가 바로 앱에 입력할 수 있어야 하고, 시공사도 스티커만 보고 어디를 고칠지 알아야 합니다.')
+                + _gd.h('스티커 = 공간 + 위치 + 하자내용')
+                + _gd.lead('표에서 해당 칸에 동그라미, 아래 칸에 번호와 상세 위치를 알아보게 적습니다. 스티커 끝을 살짝 접어 붙이면 뗄 때 벽이 안 상합니다.')
+                + _gd.pills(['침실2 벽 도배 문좌측 오염', '현관 바닥타일 신발장하단 마감 불량', '안방 욕실 세면대 옆 맨 윗줄 타일 빈 소리', '주방 상부장 3·4번 문짝 사이 틈'])
+                + _gd.warn('"방수 불량 같음"처럼 <b>원인을 추측해 쓰지 않습니다.</b> 보이는 증상만 씁니다.')
+                + _gd.h('사진 2장')
+                + _gd.row('매니저', '<b>① 원경</b> · 문·조명·콘센트처럼 어딘지 알 수 있는 것과 스티커가 함께 나오게 멀리서. 하자 자리를 먼저 터치하고 찍습니다.')
+                + _gd.row('매니저', '<b>② 근경</b> · 가까이서 하자가 선명하게. 틈·단차는 줄자를 같이 대고 찍으면 더 좋습니다.')
+        },
+        {
+            title: '하자 보는 법 (요약)',
+            content: _gd.h('하자는 이 5가지 모양')
+                + _gd.pills(['<b>깨짐</b> · 찍힘·긁힘·파손', '<b>벌어짐</b> · 틈·갈라짐·단차', '<b>떠 있음</b> · 빈 소리·꿀렁·들뜸', '<b>빠짐·안 됨</b> · 피스커버·실리콘·안 닫힘', '<b>더러움·다름</b> · 오염·색 다름·M/H와 다름'])
+                + _gd.h('찾는 방법은 이 5가지 동작')
+                + _gd.row('공통', '<b>비춘다</b> · 손전등을 벽·바닥에 거의 붙이듯 비스듬히. 천장등만 켜면 절반은 놓칩니다.')
+                + _gd.row('공통', '<b>두드린다</b> · 벽타일은 점검봉, 바닥 마루·타일은 타진봉. "통통" 빈 소리면 하자.')
+                + _gd.row('공통', '<b>밟는다</b> · 방 전체를 천천히, 특히 창가·문 앞. 뿌직·꿀렁이면 바로 스티커.')
+                + _gd.row('공통', '<b>열고 닫는다</b> · 문·창·서랍·수납장을 끝까지. 열어야 보이는 안쪽 모서리도.')
+                + _gd.row('공통', '<b>물 뿌린다</b> · 욕실·발코니 바닥 전체, 2~3분 뒤 구석·배수구 반대편에 물이 남으면 하자.')
+                + _gd.tip('방에 들어가면 <b>문 둘레와 창 둘레부터.</b> 헷갈리면 ① 5가지 모양인가 → ② 하자 아닌 목록(LH 안내문)에 있나 → ③ 그래도 애매하면 사진 찍고 소장님께.')
+        },
+        {
+            title: '퇴근 전 체크리스트',
+            content: _gd.lead('세대마다 퇴실 전에 한 줄씩 확인합니다.')
+                + '<div style="background:#fff;border:1px solid #e1e5eb;border-radius:10px;overflow:hidden;">'
+                + _gd.check('매니저', '단톡방에 <b>입실톡과 종료톡</b>을 보냈다')
+                + _gd.check('매니저', '모든 하자에 <b>사진 2장</b>(원경+근경)이 들어갔다')
+                + _gd.check('매니저', '하자 보고서 + 장비 보고서, <b>파일 2개</b>를 고객님께 보냈다')
+                + _gd.check('매니저', '<b>오후 6시 전</b>에 공유드라이브에 자료를 올렸다')
+                + _gd.check('소장', '고객 브리핑을 밝고 여유 있게 했다')
+                + _gd.check('소장', '장비점검 사진을 빠짐없이 찍었다 (욕실·발코니 물고임 포함)')
+                + _gd.check('매니저', '콘센트 접지테스트를 빠짐없이 했다')
+                + _gd.check('공통', '모바일 접수 건은 동·호수와 오타를 다시 확인했다')
+                + _gd.check('공통', '보일러·에어컨 끄고, 불 끄고, 창문·수도·현관문 잠갔다')
+                + _gd.check('공통', '장비를 모두 챙겼다')
+                + '</div>'
+                + _gd.tip('모르는 게 생기면 현장 소장님께 먼저, 그다음 업무 단톡방 또는 김기홍 팀장 <b>010-9985-0128</b>')
         }
     ];
-    
+
     function showTutorial(startStep = 0) {
         currentTutorialStep = startStep;
         const modal = document.getElementById('tutorialModal');
@@ -12630,25 +12518,28 @@ body.light-mode .card.reference-info {
     }
     </script>
     
-    <!-- 튜토리얼 모달 -->
-    <div id="tutorialModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 100000; justify-content: center; align-items: center; padding: 20px;">
-        <div style="background: white; border-radius: 20px; max-width: 420px; width: 100%; max-height: 85vh; overflow: hidden; display: flex; flex-direction: column; color: #1a1a1a;">
+    <!-- 튜토리얼 모달 (앱 사용 가이드 · 디자인 A) -->
+    <div id="tutorialModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(13,20,32,0.82); z-index: 100000; justify-content: center; align-items: center; padding: 16px;">
+        <div style="background: #ffffff; border-radius: 18px; max-width: 440px; width: 100%; max-height: 88vh; overflow: hidden; display: flex; flex-direction: column; color: #1f2733; box-shadow: 0 18px 50px rgba(0,0,0,0.35);">
             <!-- 헤더 -->
-            <div style="padding: 20px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; display: flex; justify-content: space-between; align-items: center;">
-                <h3 id="tutorialTitle" style="margin: 0; font-size: 18px;">튜토리얼</h3>
-                <button onclick="closeTutorial()" style="background: rgba(255,255,255,0.2); border: none; color: white; width: 32px; height: 32px; border-radius: 50%; font-size: 18px; cursor: pointer;">✕</button>
+            <div style="padding: 16px 18px 14px; background: #141d2e; color: #ffffff; display: flex; justify-content: space-between; align-items: center; gap: 12px; border-bottom: 3px solid #E84848;">
+                <div style="min-width: 0;">
+                    <div style="font-size: 10.5px; letter-spacing: .16em; color: #8e98b2; font-weight: 700; margin-bottom: 3px;">THE HOME INSPECTION · 사용 가이드</div>
+                    <h3 id="tutorialTitle" style="margin: 0; font-size: 18px; font-weight: 800; color: #ffffff; line-height: 1.35;">튜토리얼</h3>
+                </div>
+                <button onclick="closeTutorial()" aria-label="가이드 닫기" style="background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.25); color: #ffffff; width: 40px; height: 40px; border-radius: 50%; font-size: 18px; cursor: pointer; flex-shrink: 0;">✕</button>
             </div>
-            
+
             <!-- 컨텐츠 -->
-            <div id="tutorialContent" style="padding: 20px; overflow-y: auto; flex: 1;">
+            <div id="tutorialContent" style="padding: 18px; overflow-y: auto; flex: 1; background: #ffffff; color: #1f2733; -webkit-overflow-scrolling: touch;">
                 <!-- 동적 컨텐츠 -->
             </div>
-            
+
             <!-- 푸터 -->
-            <div style="padding: 15px 20px; border-top: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center; background: #f9fafb; color: #1a1a1a;">
-                <button id="tutorialPrevBtn" onclick="tutorialPrev()" style="padding: 10px 20px; border: 1px solid #d1d5db; background: white; border-radius: 8px; cursor: pointer; font-size: 14px; color: #1a1a1a;">← 이전</button>
-                <span id="tutorialProgress" style="color: #1a1a1a; font-size: 14px;">1 / 9</span>
-                <button id="tutorialNextBtn" onclick="tutorialNext()" style="padding: 10px 20px; border: none; background: #10b981; color: white; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: bold;">다음 →</button>
+            <div style="padding: 12px 16px; border-top: 1px solid #e1e5eb; display: flex; justify-content: space-between; align-items: center; gap: 10px; background: #f4f5f7; color: #1f2733;">
+                <button id="tutorialPrevBtn" onclick="tutorialPrev()" style="min-height: 44px; padding: 10px 18px; border: 1px solid #c9d0da; background: #ffffff; border-radius: 10px; cursor: pointer; font-size: 14px; font-weight: 700; color: #141d2e;">← 이전</button>
+                <span id="tutorialProgress" style="color: #5b6472; font-size: 13px; font-weight: 700;">1 / 12</span>
+                <button id="tutorialNextBtn" onclick="tutorialNext()" style="min-height: 44px; padding: 10px 20px; border: none; background: #141d2e; color: #ffffff; border-radius: 10px; cursor: pointer; font-size: 14px; font-weight: 800;">다음 →</button>
             </div>
         </div>
     </div>
