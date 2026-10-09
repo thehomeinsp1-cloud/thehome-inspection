@@ -1,0 +1,32 @@
+{
+  "id": "./index-unified-test.html",
+  "name": "더홈점검 (테스트)",
+  "short_name": "더홈 테스트",
+  "description": "더홈점검 하자관리 시스템 - 테스트판",
+  "start_url": "./index-unified-test.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#141d2e",
+  "lang": "ko",
+  "icons": [
+    {
+      "src": "app-icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "app-icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "app-icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
