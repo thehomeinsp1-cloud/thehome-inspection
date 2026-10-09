@@ -1784,6 +1784,14 @@ body.light-mode .card.reference-info {
                 </p>
             </div>
 
+            <!-- ✅ 하자 번호로 바로 가기 · 빠진 것만 보기 (하자가 있을 때만 표시) -->
+            <div id="missingTools" style="display: none; gap: 8px; align-items: center; margin-bottom: 12px;">
+                <input type="text" id="jumpDefectNo" class="form-input" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" placeholder="번호" aria-label="이동할 하자 번호"
+                       style="width: 76px; flex: none; padding: 10px; text-align: center;"
+                       onkeydown="if(event.key==='Enter' && !event.isComposing){event.preventDefault();jumpToDefect();}">
+                <button type="button" class="btn btn-secondary" onclick="jumpToDefect()" style="width: auto; flex: none; padding: 10px 14px; font-size: 14px;">이동</button>
+                <button type="button" id="missingOnlyBtn" class="btn btn-secondary" aria-pressed="false" onclick="toggleMissingOnly()" style="width: auto; flex: 1; min-width: 0; padding: 10px 12px; font-size: 14px;">빠진 것만 보기 (0)</button>
+            </div>
             <div id="defectsList"></div>
         </div>
 
@@ -1866,6 +1874,14 @@ body.light-mode .card.reference-info {
                 </div>
             </div>
             
+            <!-- 💬 종료톡 문구 복사 (신규기능 5) -->
+            <div class="card" style="margin-bottom: 20px;">
+                <button type="button" onclick="copyEndTalk()" class="btn" style="width: 100%; min-height: 48px; font-weight: bold; font-size: 16px;">
+                    💬 종료톡 문구 복사
+                </button>
+                <div style="font-size: 12.5px; opacity: 0.75; margin-top: 8px; text-align: center;">하자·사진 누락·업로드 완료 여부가 자동으로 들어갑니다. 단톡방에 붙여넣으세요.</div>
+            </div>
+
             <!-- 📖 사용 가이드 버튼 -->
             <div class="card" style="margin-bottom: 20px; background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); color: white;">
                 <button onclick="showTutorial()" class="btn" style="width: 100%; background: white; color: #1d4ed8; font-weight: bold; font-size: 16px; padding: 15px;">
@@ -1937,6 +1953,8 @@ body.light-mode .card.reference-info {
             
             <!-- 촬영 정보 라벨 (하자번호 + 원경/근경) -->
             <div id="cameraInfoLabel" style="display: none; position: absolute; top: 12px; left: 12px; background: rgba(0,0,0,0.7); color: #fff; font-size: 14px; font-weight: 700; padding: 6px 14px; border-radius: 8px; z-index: 20; pointer-events: none;"></div>
+            <!-- 18: 원경 저장 후 근경 이어서 촬영 안내 (2초 표시) -->
+            <div id="nearShotHint" style="display: none; position: absolute; left: 12px; right: 12px; bottom: 12px; text-align: center; z-index: 20; pointer-events: none;"><span style="display: inline-block; background: rgba(20,29,46,0.92); color: #fff; font-size: 14px; font-weight: 700; padding: 8px 14px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.16);">원경 저장 ✓ 이어서 근경을 찍으세요</span></div>
         </div>
         
         <!-- 줌 레벨 표시 -->
@@ -2121,6 +2139,32 @@ body.light-mode .card.reference-info {
         // Google Sheets 공개 URL (CSV 형식)
         // 사용 방법: Google Sheets → 파일 → 공유 → 웹에 게시 → CSV 형식 선택
         const GOOGLE_SHEETS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS4Tz0-NgXyWR36c9hkZ4ko0ll4g-oj5YGHZysuH0c1Mngr4Ev9-VgiryTHHcMd2Zq5NuOmOI6dMZeh/pub?output=csv';
+
+        // ✅ 로그인 서버(구글 Apps Script 웹앱) 주소. 비어 있으면 기존처럼 위 시트(CSV)로 확인합니다.
+        //    서버를 쓰면 PIN 목록이 밖으로 나가지 않고, 퇴사자 즉시 차단·5회 실패 잠금·로그인 기록이 됩니다.
+        const LOGIN_API_URL = '';
+        // 서버 응답: { status: 'ok'|'invalid'|'inactive'|'locked', name, team }. 연결 실패·이상 응답은 'error' → 기존 시트 방식으로 확인
+        async function staffApi(action, code, pin) {
+            if (!LOGIN_API_URL) return { status: 'error' };
+            try {
+                const ctl = (typeof AbortController === 'function') ? new AbortController() : null;
+                const timer = ctl ? setTimeout(() => ctl.abort(), 12000) : 0;
+                const res = await fetch(LOGIN_API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // 단순 요청(사전 확인 없음)
+                    body: JSON.stringify({ action: action, code: code, pin: pin, ua: navigator.userAgent }),
+                    cache: 'no-store',
+                    signal: ctl ? ctl.signal : undefined
+                });
+                clearTimeout(timer);
+                if (!res.ok) return { status: 'error' };
+                const j = await res.json();
+                if (!j || ['ok', 'invalid', 'inactive', 'locked'].indexOf(j.status) === -1) return { status: 'error' };
+                return j;
+            } catch (e) {
+                return { status: 'error' };
+            }
+        }
         
         // 로그인 확인
         function checkLoginStatus() {
@@ -2241,6 +2285,25 @@ body.light-mode .card.reference-info {
                 if (!saved) return;
                 const data = JSON.parse(saved);
                 if (!data.code || !data.pin) return;
+
+                // 로그인 서버 확인 (서버 미설정·연결 실패면 아래 기존 시트 방식으로)
+                const _api = await staffApi('check', data.code, data.pin);
+                if (_api.status === 'ok') {
+                    try {
+                        if (localStorage.getItem('dhLoginData') === saved) {
+                            data.loginTime = Date.now(); // 90일 자동로그인 기간 연장
+                            localStorage.setItem('dhLoginData', JSON.stringify(data));
+                        }
+                    } catch (e) {}
+                    return;
+                }
+                if (_api.status === 'invalid' || _api.status === 'inactive') {
+                    localStorage.removeItem('dhLoginData');
+                    alert('계정 상태가 변경되어 다시 로그인이 필요합니다.');
+                    location.reload();
+                    return;
+                }
+                if (_api.status === 'locked') return;
 
                 const response = await fetch(GOOGLE_SHEETS_CSV_URL, { cache: 'no-store' });
                 if (!response.ok) return; // 서버 응답 이상 시 기존 동작 유지
@@ -2403,6 +2466,21 @@ body.light-mode .card.reference-info {
             try {
                 const data = JSON.parse(loginData);
                 
+                // 로그인 서버 확인 (서버 미설정·연결 실패면 아래 기존 시트 방식으로)
+                const _api = await staffApi('check', data.code, data.pin);
+                if (_api.status === 'ok' || _api.status === 'locked') return;
+                if (_api.status === 'invalid' || _api.status === 'inactive') {
+                    localStorage.removeItem('dhLoginData');
+                    showLoginScreen();
+                    showToast('⚠️ 계정이 비활성화되어 로그아웃되었습니다', 'warning');
+                    const _loginErr = document.getElementById('loginError');
+                    if (_loginErr) {
+                        _loginErr.textContent = '⚠️ 계정이 비활성화되어 로그아웃되었습니다';
+                        _loginErr.classList.add('show');
+                    }
+                    return;
+                }
+
                 // Google Sheets에서 직원 상태 확인
                 const response = await fetch(GOOGLE_SHEETS_CSV_URL);
                 if (!response.ok) return;
@@ -3722,6 +3800,9 @@ body.light-mode .card.reference-info {
                 return;
             }
             
+            // ✅ 빠진 것 확인 (없으면 창 없음, 동기화 호출은 기존 확인창처럼 생략)
+            if (!projectToUpload && !confirmMissingItems(project)) return;
+
             // confirm 메시지 분기
             let confirmMsg = '';
             if (hasDefects && hasEquipmentPhotos) {
@@ -5503,6 +5584,125 @@ body.light-mode .card.reference-info {
             if (_progressBar) _progressBar.style.width = progress + '%';
         }
 
+        // ==================== 보고서 보내기 · 종료톡 (신규기능 5) ====================
+        // 동·호 표기: 값에 '동'/'호'가 이미 붙어 있으면 그대로
+        function _dongHoText(p) {
+            const d = String(p.dong || '').trim(), h = String(p.ho || '').trim();
+            return (d ? (/동$/.test(d) ? d : d + '동') : '') + (h ? ' ' + (/호$/.test(h) ? h : h + '호') : '');
+        }
+        // 고객 안내 문구 (대표님 보고서 전송 안내문 요약)
+        function buildReportMessage(p) {
+            const where = [String(p.apartmentName || '').trim(), _dongHoText(p)].filter(Boolean).join(' ');
+            return '📋 [더홈점검] 점검 결과 보고서 안내\n'
+                + '안녕하세요, 금일 사전점검을 진행한 더홈점검입니다.\n'
+                + (where ? where + ' ' : '') + '점검 결과 보고서를 첨부해 드립니다.\n'
+                + '(PDF가 열리지 않으면 연락 주세요. 기한 내 다운로드 부탁드립니다.)\n\n'
+                + '🔍 보고서 활용\n'
+                + '1. 입주 시 하자 보수 검토 자료\n'
+                + '2. 시공사 미보수 시 증빙 자료\n'
+                + '3. 부동산 거래 시 참고 자료\n\n'
+                + '⚠️ 하자는 준공 후에도 생길 수 있어, 하자담보책임기간 내 정기 점검을 권장드립니다.\n\n'
+                + '이용해 주셔서 감사합니다. 문의: 010-9985-0128 (카톡·문자)';
+        }
+        // 클립보드 복사 (지원 안 하면 길게 눌러 복사할 수 있게 창으로 보여줌)
+        async function copyTextSafe(text, okMsg) {
+            try {
+                if (navigator.clipboard && window.isSecureContext) {
+                    await navigator.clipboard.writeText(text);
+                    showToast(okMsg || '📋 복사되었습니다');
+                    return true;
+                }
+            } catch (e) {}
+            try {
+                const ta = document.createElement('textarea');
+                ta.value = text; ta.setAttribute('readonly', '');
+                ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0;';
+                document.body.appendChild(ta); ta.select(); ta.setSelectionRange(0, text.length);
+                const ok = document.execCommand('copy');
+                document.body.removeChild(ta);
+                if (ok) { showToast(okMsg || '📋 복사되었습니다'); return true; }
+            } catch (e) {}
+            window.prompt('아래 내용을 길게 눌러 복사하세요', text);
+            return false;
+        }
+        // 보고서 저장 직후 아래쪽 '보내기' 창 (기존 저장 동작은 그대로, 이 창은 추가 안내)
+        window.offerReportShare = function(blob, filename, kind) {
+            try {
+                if (!blob || !filename) return;
+                const project = getCurrentProject();
+                const text = buildReportMessage(project);
+                const mb = blob.size / 1048576;
+                let file = null, canShareFile = false;
+                try {
+                    file = new File([blob], filename, { type: 'application/pdf' });
+                    canShareFile = !!(navigator.share && navigator.canShare && navigator.canShare({ files: [file] }));
+                } catch (e) { canShareFile = false; }
+                const old = document.getElementById('reportShareSheet');
+                if (old) old.remove();
+                const wrap = document.createElement('div');
+                wrap.id = 'reportShareSheet';
+                wrap.style.cssText = 'position:fixed;left:0;right:0;bottom:0;z-index:99990;padding:12px 12px calc(12px + env(safe-area-inset-bottom, 0px));background:rgba(13,20,32,0.35);';
+                wrap.innerHTML = '<div style="max-width:480px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 -6px 30px rgba(0,0,0,0.3);overflow:hidden;color:#1f2733;">'
+                    + '<div style="background:#141d2e;color:#fff;padding:12px 16px;border-bottom:3px solid #E84848;display:flex;justify-content:space-between;align-items:center;gap:10px;">'
+                    + '<div><div style="font-size:11px;color:#8e98b2;font-weight:700;letter-spacing:.08em;">보고서 보내기</div><div style="font-size:15px;font-weight:800;">📄 ' + escapeHtml(kind || '보고서') + ' 저장 완료</div></div>'
+                    + '<button type="button" data-act="close" aria-label="닫기" style="background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.25);color:#fff;width:40px;height:40px;border-radius:50%;font-size:17px;cursor:pointer;">✕</button></div>'
+                    + '<div style="padding:12px 16px 14px;">'
+                    + '<div style="font-size:12.5px;color:#5b6472;margin-bottom:8px;word-break:break-all;">' + escapeHtml(filename) + ' · ' + mb.toFixed(1) + 'MB</div>'
+                    + (mb > 1 ? '<div style="font-size:12.5px;line-height:1.5;padding:8px 10px;border-radius:8px;background:#fdf3e1;color:#7a4b00;margin-bottom:10px;">문자(MMS)로 보내기엔 큰 파일입니다. <b>카카오톡이나 메일</b>을 권장합니다.</div>' : '')
+                    + (canShareFile
+                        ? '<button type="button" data-act="share" style="width:100%;min-height:48px;margin-bottom:8px;border:none;border-radius:12px;background:#141d2e;color:#fff;font-size:16px;font-weight:800;cursor:pointer;">📤 고객에게 보내기 (카톡·문자·메일)</button>'
+                        : '<div style="font-size:12.5px;line-height:1.5;color:#5b6472;margin-bottom:8px;">이 화면에서는 바로 보내기를 쓸 수 없습니다. 저장된 PDF를 첨부하고, 아래 안내 문구를 복사해 붙여넣으세요.</div>')
+                    + '<button type="button" data-act="copy" style="width:100%;min-height:44px;border:1px solid #c9d0da;border-radius:12px;background:#fff;color:#141d2e;font-size:14.5px;font-weight:700;cursor:pointer;">📋 안내 문구 복사</button>'
+                    + '</div></div>';
+                const close = () => { try { wrap.remove(); } catch (e) {} };
+                wrap.addEventListener('click', async (e) => {
+                    const btn = e.target.closest && e.target.closest('[data-act]');
+                    if (!btn) { if (e.target === wrap) close(); return; }
+                    const act = btn.getAttribute('data-act');
+                    if (act === 'close') return close();
+                    if (act === 'copy') { const ok = await copyTextSafe(text, '📋 안내 문구가 복사되었습니다'); if (ok) { const t0 = btn.textContent; btn.textContent = '✅ 복사됨 — 카톡·문자에 붙여넣으세요'; setTimeout(() => { try { btn.textContent = t0; } catch (e) {} }, 2500); } return; }
+                    if (act === 'share') {
+                        try {
+                            await navigator.share({ files: [file], title: filename, text: text });
+                            close();
+                        } catch (err) {
+                            if (err && err.name === 'AbortError') return; // 사용자가 공유창을 닫음
+                            showToast('보내기를 열 수 없습니다. 저장된 파일을 직접 첨부해 주세요', 'warning');
+                        }
+                    }
+                });
+                document.body.appendChild(wrap);
+            } catch (e) {
+                console.warn('보내기 창 표시 실패:', e);
+            }
+        };
+        // 종료톡 문구 (단톡방 붙여넣기용)
+        window.copyEndTalk = function() {
+            try {
+                const p = getCurrentProject();
+                const defects = p.defects || [];
+                const noPhoto = defects.filter(d => !(d.photos && d.photos[0] && d.photos[1])).length;
+                const equip = (p.equipment || []).filter(eq => (eq.photos && typeof eq.photos === 'object' && Object.values(eq.photos).some(Boolean)) || eq.photo).length;
+                const air = (p.airQuality || []).filter(r => r.radon || r.formaldehyde || r.vocs).length;
+                let up = '업로드 전 ⚠️';
+                if (typeof isUploadUpToDate === 'function' && isUploadUpToDate(p)) {
+                    let t = '';
+                    try { const d = new Date(p.uploadedAt); if (!isNaN(d)) t = ' (' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0') + ')'; } catch (e) {}
+                    up = '완료 ✅' + t;
+                }
+                const where = [String(p.apartmentName || '').trim(), _dongHoText(p)].filter(Boolean).join(' ') || '(세대 정보 미입력)';
+                const text = '[종료톡] ' + where + '\n'
+                    + '· 하자 ' + defects.length + '건 (사진 누락 ' + noPhoto + ')\n'
+                    + '· 장비점검 ' + equip + '건 · 공기질 ' + air + '곳\n'
+                    + '· 드라이브 업로드: ' + up + '\n'
+                    + '· 작성: ' + (String(p.author || '').trim() || '-');
+                copyTextSafe(text, '💬 종료톡 문구가 복사되었습니다. 단톡방에 붙여넣으세요');
+            } catch (e) {
+                console.error('종료톡 문구 오류:', e);
+                showToast('종료톡 문구를 만들지 못했습니다', 'error');
+            }
+        };
+
         // Toast 메시지
         // ✅ 타입별 색상 지원: 'success'(초록), 'error'(빨강), 'warning'(주황), 'info'(파랑)
         function showToast(message, type = 'success') {
@@ -5810,11 +6010,104 @@ body.light-mode .card.reference-info {
             }, 100);
         }
 
+        // ==================== ✅ 빠진 것 검사 (보고서·업로드 전 확인 + 하자점검 '빠진 것만 보기') ====================
+        // 사진은 '있는지'만 봄 (디코딩·복사 없음). 하자 번호 = 하자 카드의 '하자 N' 과 같은 목록 순서 번호
+        // 반환: [{ no: 하자번호(하자 외 항목은 0), text: '하자 12번: 근경 없음' }, ...]
+        function getMissingItems(project, defectsOnly) {
+            const items = [];
+            if (!project) return items;
+            (Array.isArray(project.defects) ? project.defects : []).forEach((d, i) => {
+                if (!d) return;
+                const ph = d.photos || [];
+                const m = [];
+                if (!ph[0]) m.push('원경 없음');
+                if (!ph[1]) m.push('근경 없음');
+                if (!d.spaces || !d.spaces.length) m.push('공간 미선택');
+                if (!d.types || !d.types.length) m.push('하자내용 미선택');
+                if (m.length) items.push({ no: i + 1, text: `하자 ${i + 1}번: ${m.join(', ')}` });
+            });
+            if (defectsOnly) return items; // 현장출력(시공사 제출용)은 하자 항목만
+            if (!project.floorplan) items.push({ no: 0, text: '평면도 없음' });
+            (Array.isArray(project.equipment) ? project.equipment : []).forEach((e, i) => {
+                if (!e) return;
+                const hasPhoto = (e.photos && typeof e.photos === 'object' && Object.values(e.photos).some(p => p)) || e.photo;
+                if (!hasPhoto) items.push({ no: 0, text: `장비 NO ${i + 1}: 사진 없음` });
+            });
+            return items;
+        }
+
+        // 빠진 것이 있으면 목록(최대 8줄)을 보여 주고 진행 여부 확인. 없으면 창 없이 true
+        function confirmMissingItems(project, defectsOnly) {
+            let items;
+            try { items = getMissingItems(project, defectsOnly); } catch (e) { console.error('빠진 것 검사 오류:', e); return true; } // 검사 오류로 작업을 막지 않음
+            if (!items.length) return true;
+            const lines = items.slice(0, 8).map(x => '· ' + x.text);
+            if (items.length > 8) lines.push(`· 외 ${items.length - 8}건`);
+            return confirm(`⚠️ 빠진 것이 있습니다 (${items.length}건)\n\n${lines.join('\n')}\n\n그래도 진행할까요?`);
+        }
+
+        // 하자 카드가 다시 그려진 뒤 가벼운 후처리: 도구줄 표시·(N) 갱신·'빠진 것만 보기' 유지 (카드는 표시/숨김만)
+        var _missingOnly = false; // var: 스크립트 앞부분에서 먼저 불려도 오류 없게
+        var _missingKeep = null, _missingPid = null; // 필터 켠 동안 보인 하자 id (다 채워도 바로 숨기지 않음: 화면이 밀려 다음 터치가 다른 하자에 눌리는 것 방지)
+        function applyMissingTools() {
+            try {
+                const bar = document.getElementById('missingTools');
+                const list = document.getElementById('defectsList');
+                const btn = document.getElementById('missingOnlyBtn');
+                if (!bar || !list || !btn) return;
+                const defects = projectData.defects || [];
+                const bad = new Set(getMissingItems(getCurrentProject()).filter(x => x.no).map(x => x.no));
+                if (_missingOnly && _missingPid !== currentProjectId) _missingOnly = false; // 다른 세대로 바뀌면 필터 해제
+                if (!_missingOnly) _missingKeep = null;
+                else { if (!_missingKeep) _missingKeep = new Set(); bad.forEach(no => { const d = defects[no - 1]; if (d) _missingKeep.add(d.id); }); }
+                bar.style.display = defects.length ? 'flex' : 'none';
+                btn.textContent = (_missingOnly ? '✓ ' : '') + `빠진 것만 보기 (${bad.size})`;
+                btn.className = 'btn ' + (_missingOnly ? 'btn-primary' : 'btn-secondary');
+                btn.setAttribute('aria-pressed', _missingOnly ? 'true' : 'false');
+                const cards = list.children;
+                if (cards.length !== defects.length) return; // 카드 = 하자 목록 순서 (다르면 건드리지 않음)
+                for (let i = 0; i < cards.length; i++) {
+                    const v = (_missingOnly && !(defects[i] && _missingKeep.has(defects[i].id))) ? 'none' : '';
+                    if (cards[i].style.display !== v) cards[i].style.display = v;
+                }
+            } catch (e) {
+                console.error('빠진 것 표시 오류:', e); // 하자 화면·저장 흐름을 막지 않음
+            }
+        }
+
+        window.toggleMissingOnly = function() {
+            _missingOnly = !_missingOnly; _missingKeep = null; _missingPid = currentProjectId;
+            if (_missingOnly && !getMissingItems(getCurrentProject()).some(x => x.no)) { _missingOnly = false; showToast('✅ 빠진 것이 없습니다'); }
+            applyMissingTools();
+        };
+
+        window.jumpToDefect = function() {
+            const input = document.getElementById('jumpDefectNo');
+            const list = document.getElementById('defectsList');
+            const len = (projectData.defects || []).length;
+            const raw = input ? String(input.value).trim() : '';
+            if (!raw) { showToast('이동할 하자 번호를 입력해주세요', 'warning'); return; }
+            const n = /^[0-9]+$/.test(raw) ? parseInt(raw, 10) : 0;
+            if (n < 1 || n > len || !list || list.children.length !== len) {
+                showToast(`하자 ${raw}번은 없습니다 (1~${len}번)`, 'warning');
+                return;
+            }
+            const card = list.children[n - 1];
+            if (card.style.display === 'none') { _missingOnly = false; applyMissingTools(); } // 숨겨진 카드면 전체 보기로
+            if (input) input.blur(); // 휴대폰 키보드 닫기
+            const tabs = document.querySelector('.tabs');
+            card.style.scrollMarginTop = ((tabs ? (parseFloat(getComputedStyle(tabs).top) || 0) + tabs.offsetHeight : 0) + 10) + 'px'; // 상단 고정 탭에 가리지 않게
+            card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            card.style.boxShadow = '0 0 0 3px #D23B3B'; // 잠깐 강조 테두리
+            setTimeout(() => { card.style.boxShadow = ''; }, 3000); // 긴 목록은 스크롤이 1~2초 걸려 넉넉히
+        };
+
         function renderDefects() {
             const container = document.getElementById('defectsList');
             
             if (projectData.defects.length === 0) {
                 container.innerHTML = '<div class="card" style="text-align: center; color: var(--text-secondary);">등록된 하자가 없습니다</div>';
+                applyMissingTools();
                 return;
             }
 
@@ -6073,6 +6366,7 @@ body.light-mode .card.reference-info {
                 </div>
             `;
             }).join('');
+            applyMissingTools(); // ✅ 빠진 것 (N) 갱신·'빠진 것만 보기' 유지
         }
 
         window.startDefectPhotoSequence = function(defectId) {
@@ -7299,6 +7593,8 @@ body.light-mode .card.reference-info {
 
         // ✅ 사진 촬영 중복 실행 방지 플래그
         let isCapturing = false;
+        // 18: 원경→근경 이어서 촬영 중 미뤄 둔 하자 카드 다시 그리기 / 근경으로 넘어간 시각(두 번 누름 방지)
+        let deferDefectRender = false, nearShotReadyAt = 0;
 
         window.closeCameraModal = function() {
             // ✅ 이벤트 전파 방지 (iOS 터치 이슈)
@@ -7361,6 +7657,11 @@ body.light-mode .card.reference-info {
             
             // ✅ 촬영 플래그도 초기화 (안전장치)
             isCapturing = false;
+            // 18: 이어서 촬영 중 미뤄 둔 카드 다시 그리기 (원경만 찍고 닫은 경우 포함), 두 번 누름 방지 해제
+            nearShotReadyAt = 0;
+            const nearHint = document.getElementById('nearShotHint');
+            if (nearHint) nearHint.style.display = 'none';
+            if (deferDefectRender) { deferDefectRender = false; renderDefects(); }
         }
 
         // ==================== 이미지 압축 함수 (통합) ====================
@@ -7544,6 +7845,8 @@ body.light-mode .card.reference-info {
         }
 
         window.capturePhoto = async function() {
+            // 18: 원경 저장 직후 0.7초 안의 탭(두 번 누름)은 무시 → 근경 칸에 같은 장면이 저장되는 것 방지
+            if (performance.now() - nearShotReadyAt < 700) return;
             // ✅ 중복 실행 방지
             if (isCapturing) {
                 console.log('⚠️ 이미 촬영 중입니다');
@@ -7640,6 +7943,7 @@ body.light-mode .card.reference-info {
             
             // 원본 이미지
             const originalImage = canvas.toDataURL('image/jpeg', 0.95);
+            canvas.width = 0; canvas.height = 0; // 18: 아이폰 메모리 해제 (이미지는 위에서 이미 추출)
             
             // 이미지 압축 (평면도는 더 높은 해상도 사용)
             let imageData;
@@ -7653,6 +7957,7 @@ body.light-mode .card.reference-info {
                 imageData = await compressImage(originalImage, 1920, 0.85);
             }
             
+            let goNearShot = false; // 18: 원경 저장 후 근경으로 이어서 촬영할지
             if (currentPhotoTarget === 'floorplan') {
                 const project = getCurrentProject(); // ✅ 현재 프로젝트 가져오기
                 project.floorplan = imageData; // ✅ 현재 프로젝트에 저장
@@ -7672,12 +7977,16 @@ body.light-mode .card.reference-info {
                             // 원경=0번, 근경=1번 칸에 저장 (삭제로 생긴 빈칸 채움)
                             if (!Array.isArray(defect.photos)) defect.photos = [];
                             defect.photos[currentPhotoTarget.step === 'close' ? 1 : 0] = imageData;
+                            // 18: 원경을 찍었고 근경 칸이 비어 있으면 카메라를 닫지 않고 근경으로 이어서 촬영
+                            if (currentPhotoTarget.step === 'far' && !defect.photos[1] && cameraStream) goNearShot = true;
                         } else {
                             // 일반 촬영 (새로 추가)
                             defect.photos.push(imageData);
                         }
                         
-                        renderDefects();
+                        // 18: 이어서 촬영 중에는 카드 전체 다시 그리기를 카메라를 닫을 때로 미룸 (저장은 아래에서 즉시)
+                        deferDefectRender = goNearShot;
+                        if (!goNearShot) renderDefects();
                     }
                 } else if (currentPhotoTarget.equipmentId) {
                     // 장비점검 사진
@@ -7711,6 +8020,26 @@ body.light-mode .card.reference-info {
                 window.resetZoom();
             }
             
+            // 18: 원경 저장 후 카메라를 연 채 같은 하자의 근경으로 전환
+            if (goNearShot) {
+                currentPhotoTarget = { defectId: currentPhotoTarget.defectId, step: 'close' };
+                if (window.clearMarkers) window.clearMarkers();
+                const nearLabel = document.getElementById('cameraInfoLabel');
+                if (nearLabel) {
+                    const n = projectData.defects.findIndex(d => d.id === currentPhotoTarget.defectId) + 1;
+                    nearLabel.textContent = `하자 ${n || '?'}번 · 근경`;
+                    nearLabel.style.display = 'block';
+                }
+                nearShotReadyAt = performance.now();
+                const nearHint = document.getElementById('nearShotHint');
+                if (nearHint) {
+                    nearHint.style.display = 'block';
+                    clearTimeout(nearHint._hideTimer);
+                    nearHint._hideTimer = setTimeout(() => { nearHint.style.display = 'none'; }, 2000);
+                }
+                return;
+            }
+
             closeCameraModal();
             } catch (err) {
                 console.error('사진 촬영 오류:', err);
@@ -8857,10 +9186,12 @@ body.light-mode .card.reference-info {
                     
                     hideLoading();
                     showToast('🔧 장비점검 보고서가 다운로드 폴더에 저장되었습니다!');
+                    try { window.offerReportShare(pdfBlob, filename, '장비점검 보고서'); } catch (shareErr) { console.warn('보내기 창 오류:', shareErr); }
                 } else {
                     doc.save(filename);
                     hideLoading();
                     showToast('🔧 장비점검 보고서가 생성되었습니다');
+                    try { window.offerReportShare(doc.output('blob'), filename, '장비점검 보고서'); } catch (shareErr) { console.warn('보내기 창 오류:', shareErr); }
                 }
 
             } catch (error) {
@@ -9281,6 +9612,8 @@ body.light-mode .card.reference-info {
                 alert('⚠️ 등록된 하자가 없습니다');
                 return;
             }
+
+            if (!confirmMissingItems(getCurrentProject(), true)) return; // ✅ 빠진 것 확인 (없으면 창 없음)
 
             showLoading('현장출력보고서 생성 중...');
 
@@ -11190,6 +11523,11 @@ body.light-mode .card.reference-info {
     const FIXED_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS4Tz0-NgXyWR36c9hkZ4ko0ll4g-oj5YGHZysuH0c1Mngr4Ev9-VgiryTHHcMd2Zq5NuOmOI6dMZeh/pub?output=csv';
 
     window.verifyAccessCode = async function(code, pin) {
+        // 로그인 서버 확인 (서버 미설정·연결 실패면 아래 기존 시트 방식으로)
+        const _api = await staffApi('login', code, pin);
+        if (_api.status === 'ok') return { success: true, name: _api.name, team: _api.team };
+        if (_api.status === 'invalid' || _api.status === 'inactive') return { success: false, message: '정보가 올바르지 않거나 비활성 계정입니다.' };
+        if (_api.status === 'locked') return { success: false, message: 'PIN을 5번 틀려 10분간 로그인이 잠겼습니다. 잠시 후 다시 시도하세요.' };
         try {
             const response = await fetch(FIXED_CSV_URL);
             if (!response.ok) throw new Error('Network response was not ok');
@@ -11390,6 +11728,7 @@ body.light-mode .card.reference-info {
             } catch (e) {}
         }
         if (!projectData.inspectionDate) return alert('⚠️ 점검일자를 입력해주세요');
+        if (!confirmMissingItems(getCurrentProject())) return; // ✅ 빠진 것 확인 (없으면 창 없음)
         document.getElementById('loading').classList.add('active');
 
         try {
@@ -11473,6 +11812,7 @@ body.light-mode .card.reference-info {
 
             const filename = `더홈점검_${projectData.apartmentName}_${projectData.dong}${projectData.ho}.pdf`;
             doc.save(filename);
+            try { window.offerReportShare(doc.output('blob'), filename, '하자 점검 보고서'); } catch (shareErr) { console.warn('보내기 창 오류:', shareErr); }
             
         } catch (e) {
             alert('PDF 생성 오류: ' + e.message);
