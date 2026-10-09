@@ -1653,9 +1653,6 @@ body.light-mode .card.reference-info {
         
         <h1>🏠 더홈점검</h1>
         <p id="appVersionTag" style="color:#fde68a;font-weight:700;">🧪 테스트판 · 업데이트 2026.10.09</p>
-        <div class="progress-bar">
-            <div class="progress-fill" id="progressBar"></div>
-        </div>
     </div>
 
     <div class="container">
@@ -5502,7 +5499,8 @@ body.light-mode .card.reference-info {
                 progress += weights.airquality;
             }
 
-            document.getElementById('progressBar').style.width = progress + '%';
+            const _progressBar = document.getElementById('progressBar'); // 상단 진행률 바는 제거됨 - 있을 때만 갱신
+            if (_progressBar) _progressBar.style.width = progress + '%';
         }
 
         // Toast 메시지
