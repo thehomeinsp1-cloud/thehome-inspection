@@ -10,7 +10,7 @@
     <meta name="google" content="nositelinkssearchbox">
     
     <!-- PWA Meta Tags -->
-    <meta name="theme-color" content="#10b981">
+    <meta name="theme-color" content="#141d2e">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="더홈점검">
@@ -1087,6 +1087,451 @@
         html.ios #updateBanner { padding-top: calc(12px + env(safe-area-inset-top, 0px)) !important; }
     </style>
 
+<style id="designA">
+/* =====================================================================
+   더홈점검 앱 디자인 샘플 A — "보고서 톤 통일 (Clean Pro)"
+   ---------------------------------------------------------------------
+   콘셉트
+   - PDF 보고서와 같은 얼굴: 네이비 헤더 띠 + 아래 빨간 3px 선, 흰/연회색 카드.
+   - 빨강은 '포인트'로만: 주요 실행 버튼(저장·촬영·PDF), 하자 번호, 선택 표시 밑줄,
+     입력칸 포커스. 나머지는 네이비·회색 위계(굵기·크기·여백·선)로 정리.
+   - 선택 상태(탭·칩)는 '반전'(다크=흰 바탕/라이트=네이비 바탕) + 빨간 밑줄.
+   - 비활성 탭 이모지는 흑백 처리해 화면이 덜 시끄럽게.
+   - 카드·탭의 배경 흐림(backdrop-filter) 제거 → 저사양 안드로이드 스크롤이 가벼워짐.
+   - 삭제 버튼은 회색 테두리 + 빨간 글씨(채움 없음) → '빨간 채움 = 실행'과 구분.
+   - 카메라: 셔터 흰색, 닫기 빨강(기존 '빨강 = 닫기' 습관 유지).
+   - 폰 폭(≤480px)에서 탭은 '아이콘 위 / 글자 아래' 5칸 → 옆으로 밀지 않아도 전부 보임.
+
+   팔레트
+   브랜드  네이비 #141D2E · 레드 #E84848(선·표시) · 레드 채움 #D23B3B(흰 글씨 4.7:1)
+   다크    배경 #0D1420 · 카드 #182133 · 입력칸 #0F1726 · 칩 #212C42
+           글자 #F1F4F9 / 보조 #A9B4C8(7.7:1) · 빨강 글자 #FF8080(6.6:1) · 근경 #8FB0E8
+   라이트  배경 #F2F3F5 · 카드 #FFFFFF · 입력칸 #F6F7F9 · 칩 #F2F4F7
+           글자 #141D2E / 보조 #555F70(6.4:1) · 빨강 글자 #C62F2F(5.5:1) · 근경 #2C5AA0
+   글꼴    Pretendard(설치돼 있으면) → 애플 SD 고딕 / 맑은 고딕 / 시스템. 웹폰트 미사용(오프라인·속도).
+   토스트  성공 네이비 · 오류 #D23B3B · 경고 #9A6400 · 안내 #2C5AA0 (흰 글씨 모두 4.5:1 이상)
+
+   적용: index-unified.html 의 <style> 뒤에 <link rel="stylesheet" href="design-samples/A-report.css">
+         + HTML 한 줄: <meta name="theme-color" content="#10b981"> → "#141d2e" (안드로이드 상태바; CSS로 못 바꿈)
+   ===================================================================== */
+
+/* ---------- 1. 색 토큰 (기존 변수 이름 재정의 → 인라인 var() 들도 함께 바뀜) ---------- */
+:root {
+    --a-navy: #141D2E;
+    --a-red: #E84848;
+    --a-red-fill: #D23B3B;
+    --a-red-text: #FF8080;
+    --a-bg: #0D1420;
+    --a-surface: #182133;
+    --a-sunken: #0F1726;
+    --a-raised: #212C42;
+    --a-line: #2A3550;
+    --a-line-strong: #62708C;   /* 입력칸·칩 테두리 3:1 */
+    --a-ink: #F1F4F9;           /* 선택 반전 배경 */
+    --a-on-ink: #141D2E;
+    --a-carried-bg: rgba(232, 72, 72, 0.10);   /* 이어받은 칩 = '연한 선택' */
+    --a-carried-line: var(--a-red);
+
+    --primary: var(--a-ink);    /* 제목·원경 표시 = 잉크색 */
+    --primary-dark: var(--a-red-fill);
+    --secondary: #8FB0E8;       /* 근경 표시 = 스틸 블루 */
+    --danger: var(--a-red);
+    --bg-dark: var(--a-surface);
+    --card-bg: var(--a-surface);
+    --border: var(--a-line);
+    --text-primary: #F1F4F9;
+    --text-secondary: #A9B4C8;
+}
+
+body.light-mode {
+    --a-red-text: #C62F2F;
+    --a-bg: #F2F3F5;
+    --a-surface: #FFFFFF;
+    --a-sunken: #F6F7F9;
+    --a-raised: #F2F4F7;
+    --a-line: #E2E5EA;
+    --a-line-strong: #8A94A6;
+    --a-ink: #141D2E;
+    --a-on-ink: #FFFFFF;
+    --a-carried-bg: rgba(20, 29, 46, 0.12);   /* 회색 미선택 칩(#F2F4F7)보다 확실히 진하게 */
+    --a-carried-line: var(--a-ink);
+
+    /* var() 는 선언된 곳에서 값이 굳으므로 라이트에서 다시 선언해야 함 */
+    --primary: var(--a-ink);
+    --secondary: #2C5AA0;
+    --card-bg: var(--a-surface);
+    --border: var(--a-line);
+    --text-primary: #141D2E;
+    --text-secondary: #555F70;
+}
+
+/* ---------- 2. 바탕·글꼴 ---------- */
+body,
+body.light-mode {
+    background: var(--a-bg);
+    font-family: 'Pretendard', 'Pretendard Variable', -apple-system, BlinkMacSystemFont,
+                 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Segoe UI', sans-serif;
+    -webkit-font-smoothing: antialiased;
+}
+button, input, select, textarea { font-family: inherit; }
+
+/* ---------- 3. 헤더: 보고서 표지 띠 ---------- */
+.header {
+    background: var(--a-navy);
+    color: #FFFFFF;
+    padding-bottom: 18px;               /* padding-top 은 html.ios 규칙 유지 */
+    box-shadow: inset 0 -3px 0 var(--a-red);
+}
+.header::before {
+    content: "THE HOME INSPECTION";
+    display: block;
+    font-size: 9.5px;                   /* 360px 폭에서도 좌우 버튼 사이에 들어가게 */
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    color: #8E98B2;                     /* 5.9:1 */
+    margin-bottom: 6px;
+}
+.header h1 { color: #FFFFFF; font-weight: 800; letter-spacing: -0.03em; }
+.header p { color: #9AA6C2; opacity: 1; font-size: 12.5px; font-weight: 500; }
+.progress-bar { height: 6px; background: rgba(255, 255, 255, 0.14); border-radius: 999px; }
+.progress-fill { background: #FFFFFF; border-radius: 999px; }
+
+.theme-toggle,
+body.light-mode .theme-toggle {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    backdrop-filter: none;
+    box-shadow: none;
+}
+.logout-btn,
+body.light-mode .logout-btn {
+    min-height: 44px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #E8ECF3;
+    backdrop-filter: none;
+    box-shadow: none;
+}
+
+/* ---------- 4. 탭 바: 세그먼트 + 빨간 밑줄 ---------- */
+.tabs {
+    background: var(--a-surface);
+    border: 1px solid var(--a-line);
+    border-radius: 14px;
+    padding: 4px;
+    gap: 4px;
+    backdrop-filter: none;
+    box-shadow: 0 6px 16px rgba(13, 20, 32, 0.18);
+}
+.tab {
+    min-height: 44px;
+    border-radius: 10px;
+    color: var(--text-secondary);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+.tab:not(.active) { filter: grayscale(1); }
+.tab.active {
+    background: var(--a-ink);
+    color: var(--a-on-ink);
+    box-shadow: inset 0 -3px 0 var(--a-red);
+}
+/* 폰 폭: 탭 바를 화면 끝까지 붙이고(기존 -20px 여백이 15px 컨테이너보다 커서 모서리가 잘리던 문제),
+   탭 5개가 옆으로 밀지 않아도 다 보이게 '아이콘 위 / 글자 아래' 2줄로 */
+@media (max-width: 480px) {
+    .tabs {
+        margin-left: -15px;
+        margin-right: -15px;
+        border-radius: 0;
+        border-left: 0;
+        border-right: 0;
+        padding: 4px 3px;
+        gap: 2px;
+    }
+    .tab {
+        flex: 1 1 0;
+        min-width: 0;                   /* 원본 min-width: fit-content 해제 → 5칸 같은 폭 */
+        padding: 6px 2px;
+        font-size: 12.5px;
+        line-height: 1.25;
+        white-space: normal;
+        word-break: keep-all;           /* '프로젝트' 같은 낱말은 안 쪼갬 */
+        word-spacing: 100vw;            /* 공백(이모지 뒤)마다 줄바꿈 = 이모지만 윗줄로 */
+    }
+}
+
+/* ---------- 5. 카드 ---------- */
+.card,
+.defect-card,
+.air-quality-card {
+    border-radius: 16px;
+    backdrop-filter: none;              /* 스크롤 성능 */
+}
+.card { border-color: var(--a-line); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25); }
+.card > h2 {
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.3;
+    padding-left: 10px;
+    border-left: 3px solid var(--a-red);
+    word-break: keep-all;               /* 한 글자만 다음 줄로 넘어가지 않게 */
+    overflow-wrap: break-word;
+}
+
+/* 색 그라데이션 카드(프로젝트 목록·공유드라이브·가이드) → 보고서 표지 네이비 */
+.card[style*="linear-gradient"] {
+    background: var(--a-navy) !important;
+    border-color: rgba(255, 255, 255, 0.08);
+    box-shadow: inset 0 3px 0 var(--a-red), 0 8px 24px rgba(13, 20, 32, 0.22);
+}
+body.light-mode .card[style*="linear-gradient"] {   /* 원본 body.light-mode .card 그림자보다 우선 */
+    border-color: var(--a-navy);
+    box-shadow: inset 0 3px 0 var(--a-red), 0 8px 24px rgba(13, 20, 32, 0.22);
+}
+.card[style*="linear-gradient"] .btn[style*="background: white"] { color: var(--a-navy) !important; }
+#projectList [style*="#FF6B35"] { background: var(--a-red-fill) !important; }   /* '오늘 N번' 배지 */
+/* 선택된 세대 줄: 밝은 회색 바탕 → 진하게(상태 글자 AA). 선택 표시는 흰 2px 테두리·▶ 로 유지 */
+#projectList > div[style*="rgba(255,255,255,0.3)"] { background: rgba(255, 255, 255, 0.12) !important; }
+#inspectionTypeBadge > span { background: transparent !important; }
+
+/* ---------- 6. 입력칸 ---------- */
+.form-label {
+    color: var(--text-secondary);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+}
+.form-label span[style*="#ef4444"] { color: var(--a-red-text) !important; }  /* *필수 */
+.form-input,
+.air-room-name-input,
+.air-input-group input,
+.login-input {
+    background-color: var(--a-sunken);
+    border: 1px solid var(--a-line-strong);
+    border-radius: 10px;
+    color-scheme: dark;                 /* 달력·숫자 아이콘이 어두운 바탕에서 보이게 */
+}
+.form-input:focus,
+.login-input:focus,
+.air-room-name-input:focus,
+.air-input-group input:focus {
+    outline: none;
+    border-color: var(--a-red);
+    box-shadow: 0 0 0 3px rgba(232, 72, 72, 0.22);
+}
+select.form-input {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23A9B4C8' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+}
+body.light-mode .form-input,
+body.light-mode .login-input,
+body.light-mode .air-room-name-input,
+body.light-mode .air-input-group input {
+    background-color: #FFFFFF;
+    border-color: var(--a-line-strong);
+    color-scheme: light;
+}
+body.light-mode select.form-input {
+    background-color: #FFFFFF;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23141D2E' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+}
+.air-room-name-input, .air-input-group input { min-height: 44px; }
+
+/* ---------- 7. 버튼 ---------- */
+.btn {
+    min-height: 44px;
+    border-radius: 12px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    word-break: keep-all;               /* '새 프로젝' / '트' 처럼 한 글자만 넘어가지 않게 */
+    transition: transform 0.12s ease, background-color 0.15s ease, box-shadow 0.15s ease;
+}
+.btn-primary,
+.login-btn {
+    background: var(--a-red-fill);
+    color: #FFFFFF;
+    box-shadow: 0 4px 14px rgba(210, 59, 59, 0.28);
+}
+.btn-primary:active { box-shadow: 0 2px 6px rgba(210, 59, 59, 0.35); }
+.btn-secondary {
+    background: transparent;
+    border: 1px solid var(--a-line-strong);
+    color: var(--text-primary);
+}
+/* 삭제 = 회색 테두리 + 빨간 글씨만. 빨간 '채움'은 실행(저장·촬영·PDF) 전용으로 남겨 둘을 헷갈리지 않게 */
+.btn-danger {
+    background: transparent;
+    border: 1px solid var(--a-line-strong);
+    color: var(--a-red-text);
+}
+.btn:focus-visible, .tab:focus-visible, .touch-btn:focus-visible {
+    outline: 2px solid var(--a-red);
+    outline-offset: 2px;
+}
+
+/* 다운로드 카드의 색색 버튼 → 네이비 계열로 통일 (PDF 만 빨강 주요 버튼) */
+#data .btn[style*="#3b82f6"],
+#data .btn[style*="#6366f1"],
+#data .btn[style*="#f59e0b"],
+#data .btn[style*="#059669 0%"] {
+    background: #26324A !important;
+    box-shadow: none;
+}
+body.light-mode #data .btn[style*="#3b82f6"],
+body.light-mode #data .btn[style*="#6366f1"],
+body.light-mode #data .btn[style*="#f59e0b"],
+body.light-mode #data .btn[style*="#059669 0%"] {
+    background: #FFFFFF !important;
+    color: var(--a-navy) !important;
+    border: 1px solid var(--a-line-strong);
+}
+#data button[onclick^="importProjectFromBackup"] { color: var(--text-secondary) !important; min-height: 44px; }
+#data details p[style*="#333"] { color: var(--text-primary) !important; }   /* 다크 모드에서 안 보이던 경고문 */
+#data details > summary[style*="#ef4444"] { color: var(--a-red-text) !important; }   /* '프로젝트 삭제' 제목 AA */
+
+/* 평면도 촬영/갤러리 */
+.photo-action-btn {
+    min-height: 48px;
+    background: var(--a-raised);
+    border: 1px solid var(--a-line-strong);
+}
+.photo-action-btn.camera {
+    background: var(--a-red-fill);
+    border-color: var(--a-red-fill);
+    color: #FFFFFF;
+}
+
+/* 플로팅 추가 버튼 (위치는 기존 규칙 그대로) */
+.floating-btn {
+    background: var(--a-red-fill);
+    box-shadow: 0 6px 18px rgba(210, 59, 59, 0.4);
+    border: 2px solid rgba(255, 255, 255, 0.9);
+}
+.floating-btn:hover { box-shadow: 0 8px 22px rgba(210, 59, 59, 0.5); }
+
+/* ---------- 8. 선택 칩 (공간·위치·하자내용) ---------- */
+.touch-btn {
+    min-height: 44px;
+    padding: 11px 8px;
+    background: var(--a-raised);
+    border: 1px solid var(--a-line-strong);
+    color: var(--text-primary);
+    border-radius: 10px;
+}
+.touch-btn.carried {               /* 이전 하자에서 이어받은 공간(선택된 상태): 연한 채움 + 점선 */
+    background: var(--a-carried-bg);
+    border: 1px dashed var(--a-carried-line);
+    color: var(--text-primary);
+    box-shadow: none;
+}
+.touch-btn.selected {              /* .carried 뒤에 둬서 둘 다 붙으면 '선택'이 이김 */
+    background: var(--a-ink);
+    border-color: var(--a-ink);
+    color: var(--a-on-ink);
+    box-shadow: inset 0 -3px 0 var(--a-red);
+}
+.touch-btn.selected:active { box-shadow: inset 0 -3px 0 var(--a-red); }
+.selected-count { font-variant-numeric: tabular-nums; }
+
+/* ---------- 9. 하자·장비 카드 ---------- */
+.defect-card,
+.air-quality-card { padding: 16px; }
+.defect-header { border-bottom-color: var(--a-line); }
+.defect-number {
+    background: var(--a-red-fill);
+    color: #FFFFFF;
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 14px;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+}
+
+/* 사진 칸: 밝은 고정색 바탕 → 테마 바탕 (다크에서 글자 안 보이던 문제 해결) */
+.defect-card div[style*="background: #f8f9fa"],
+.defect-card div[style*="background: #fef3c7"],
+.defect-card div[style*="rgba(16, 185, 129, 0.1)"],
+.defect-card div[style*="rgba(251, 191, 36, 0.1)"] {
+    background: var(--a-sunken) !important;
+}
+/* 사진 위 라벨: 원경=네이비, 근경=블루 (노랑 위 흰 글씨 대비 부족 해결) */
+.defect-card div[style*="rgba(16, 185, 129, 0.95)"] { background: rgba(20, 29, 46, 0.9) !important; }
+.defect-card div[style*="rgba(251, 191, 36, 0.95)"] { background: #2C5AA0 !important; }
+/* 사진 아래 재촬영/재첨부/삭제 줄 */
+.defect-card .btn[style*="#f3f4f6"],
+.defect-card .btn[style*="#fef3c7"] {
+    background: var(--a-raised) !important;
+    color: var(--text-primary) !important;
+}
+.defect-card .btn[style*="#fee2e2"] {
+    background: rgba(232, 72, 72, 0.12) !important;
+    color: var(--a-red-text) !important;
+}
+/* 장비점검 위치 색(좌/우/바닥): 흰 글씨 AA 통과 색으로 */
+.defect-card [style^="background: #3498db"] { background: #2C5AA0 !important; }
+.defect-card [style^="border: 2px solid #3498db"] { border-color: #2C5AA0 !important; }
+.defect-card [style^="background: #e74c3c"] { background: var(--a-red-fill) !important; }
+.defect-card [style^="border: 2px solid #e74c3c"] { border-color: var(--a-red-fill) !important; }
+.defect-card [style^="background: #f39c12"] { background: #9A6400 !important; }
+.defect-card [style^="border: 2px solid #f39c12"] { border-color: #9A6400 !important; }
+/* 장비 빈 사진 칸의 촬영/첨부: 좁은 폰에서 '첨부'가 잘리던 것 → 넘치면 아래 줄로 */
+.defect-card div[style*="padding: 0 12px"] { flex-wrap: wrap; }
+
+/* ---------- 10. 공기질·데이터 ---------- */
+.air-add-btn {
+    min-height: 48px;
+    background: transparent;
+    border: 1px dashed var(--a-line-strong);
+    color: var(--text-primary);
+}
+.air-room-delete {
+    width: 44px;
+    height: 44px;
+    background: rgba(232, 72, 72, 0.1);
+    border-color: rgba(232, 72, 72, 0.55);
+    color: var(--a-red-text);
+}
+.card.reference-info,
+body.light-mode .card.reference-info {
+    background: var(--a-sunken);
+    border: 1px solid var(--a-line);
+    border-left: 3px solid var(--a-red);
+    color: var(--text-secondary);
+}
+.saved-item { background: var(--a-sunken); border-color: var(--a-line); }
+.icon-btn { width: 44px; height: 44px; }
+.icon-btn.load { background: var(--a-raised); }
+.icon-btn.delete { background: rgba(232, 72, 72, 0.12); }
+
+/* ---------- 11. 로그인 ---------- */
+.login-overlay { background: var(--a-navy); }
+.login-box {
+    background: var(--a-surface);
+    border-radius: 16px;
+    backdrop-filter: none;
+    box-shadow: inset 0 3px 0 var(--a-red), 0 20px 50px rgba(0, 0, 0, 0.4);
+}
+.login-title { letter-spacing: -0.03em; font-weight: 800; }
+.login-input { border-radius: 12px; color: var(--text-primary); }
+.login-error { color: var(--a-red-text); }
+
+/* ---------- 12. 카메라·로딩·토스트 (색만, 위치·크기·z-index 그대로) ---------- */
+/* 셔터 = 흰색(중립), 닫기 = 빨강 유지 → 직원들이 익힌 '빨강 = 닫기' 그대로 */
+.camera-btn { background: #FFFFFF; color: #141D2E; }
+.camera-btn.close { background: var(--a-red-fill); color: #FFFFFF; }
+/* 토스트: JS가 넣는 초록·빨강·주황·파랑 바탕 → 흰 글씨 AA 통과 색 (종류 구분은 유지) */
+.toast { border: 1px solid rgba(255, 255, 255, 0.16); }
+.toast[style*="16, 185, 129"] { background: rgba(20, 29, 46, 0.96) !important; }  /* 성공 */
+.toast[style*="239, 68, 68"]  { background: var(--a-red-fill) !important; }       /* 오류 */
+.toast[style*="245, 158, 11"] { background: #9A6400 !important; }                 /* 경고 */
+.toast[style*="59, 130, 246"] { background: #2C5AA0 !important; }                 /* 안내 */
+.zoom-level { background: rgba(20, 29, 46, 0.88); }
+.spinner { border-top-color: var(--a-red); }
+
+</style>
 </head>
 <body>
     <!-- ==================== 업데이트 알림 배너 ==================== -->
@@ -3279,6 +3724,15 @@
             let zipAddedCount = 0; // ✅ 사진 ZIP에 실제로 들어간 사진 수
             const uploadSigAtStart = getUploadSig(project); // ✅ 업로드 시작 시점 내용 (이후 수정 여부 비교용)
 
+            // ✅ 드라이브 전송 대기열: 전송은 지금처럼 한 번에 하나씩·같은 순서로 하되, 다음 보고서·사진을 만드는 동안 뒤에서 진행
+            // (한 전송이 실패로 throw 하면 뒤 전송은 건너뛰고, await uploadQueue 에서 그 오류가 아래 catch 로 감 = 기존 await 순서와 같은 결과)
+            let uploadQueue = Promise.resolve();
+            let uploadQueueErr = null;
+            const enqueueUpload = (task) => {
+                uploadQueue = uploadQueue.then(task);
+                uploadQueue.catch(e => { uploadQueueErr = e; }); // '처리 안 된 Promise' 경고 방지 (오류는 await uploadQueue 에서 그대로 던져짐)
+            };
+
             try {
                 // 1. 프로젝트 폴더 생성 (공유드라이브 루트에 바로 생성)
                 showToast('📁 폴더 생성 중...');
@@ -3289,9 +3743,13 @@
                 try {
                     const backupZip = new JSZip();
                     backupZip.file(getBackupFileName(project), createProjectBackup(project));
-                    const backupBlob = await backupZip.generateAsync({ type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 6 } });
+                    // 압축 수준 1: base64 사진 데이터에서는 수준 6 대비 크기 +1.6%뿐이고 압축 시간은 매번 더 짧음 (zip 안 json 내용·복원 결과 동일)
+                    const backupBlob = await backupZip.generateAsync({ type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 1 } });
                     const backupZipName = getBackupFileName(project).replace('.json', '.zip');
-                    await uploadFileToDrive(projectFolderId, backupBlob, backupZipName, 'application/zip');
+                    enqueueUpload(() => uploadFileToDrive(projectFolderId, backupBlob, backupZipName, 'application/zip').catch(err => {
+                        console.error('백업 파일 업로드 실패 (나머지 업로드는 계속):', err);
+                        failedParts.push('복원용 백업');
+                    }));
                 } catch (backupErr) {
                     console.error('백업 파일 업로드 실패 (나머지 업로드는 계속):', backupErr);
                     failedParts.push('복원용 백업');
@@ -3380,9 +3838,10 @@
                     const equipmentPdfFileName = `${projectName}_장비점검보고서.pdf`;
                     
                     // 장비점검 보고서 업로드
+                    await uploadQueue; // ✅ 뒤에서 진행 중인 백업 전송 마무리 (순서 유지: 백업 → 장비 보고서 → 사진 ZIP)
                     showToast('📤 장비점검 보고서 업로드 중...');
                     await uploadFileToDrive(projectFolderId, equipmentPdfBlob, equipmentPdfFileName, 'application/pdf');
-                    
+
                     // 장비 사진 ZIP 생성 및 업로드
                     const equipPhotoTasks = [];
                     
@@ -3578,7 +4037,8 @@
                 // PDF Blob 생성
                 const pdfBlob = doc.output('blob');
                 const pdfFileName = `${projectName}_하자점검보고서.pdf`;
-                
+                enqueueUpload(() => { showToast('📤 PDF 업로드 중...'); return uploadFileToDrive(projectFolderId, pdfBlob, pdfFileName, 'application/pdf'); });
+
                 // ========== 3. 엑셀 파일 생성 ==========
                 showToast('📊 엑셀 파일 생성 중...');
                 
@@ -3746,20 +4206,16 @@
                     }
                 }
                 
-                // ========== 5. 파일들 업로드 ==========
-                showToast('📤 PDF 업로드 중...');
-                await uploadFileToDrive(projectFolderId, pdfBlob, pdfFileName, 'application/pdf');
-                
+                // ========== 5. 파일들 업로드 ========== (PDF 는 위에서 이미 전송 대기열에 넣음)
                 // 장비점검 보고서 업로드 (있을 때만)
                 if (equipmentPdfBlob) {
-                    showToast('📤 장비점검 보고서 업로드 중...');
-                    await uploadFileToDrive(projectFolderId, equipmentPdfBlob, equipmentPdfFileName, 'application/pdf');
+                    enqueueUpload(() => { showToast('📤 장비점검 보고서 업로드 중...'); return uploadFileToDrive(projectFolderId, equipmentPdfBlob, equipmentPdfFileName, 'application/pdf'); });
                 }
-                
-                showToast('📤 엑셀 업로드 중...');
-                await uploadFileToDrive(projectFolderId, excelBlob, excelFileName, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+
+                enqueueUpload(() => { showToast('📤 엑셀 업로드 중...'); return uploadFileToDrive(projectFolderId, excelBlob, excelFileName, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'); });
                 
                 // ========== 6. 사진 ZIP 파일 생성 및 업로드 ==========
+                if (uploadQueueErr) throw uploadQueueErr; // ✅ 앞 보고서 전송이 실패했으면 기존처럼 여기서 중단
                 // 업로드할 하자 사진 목록 준비 (워터마크 텍스트 포함)
                 const photoTasks = [];
                 for (let defectIndex = 0; defectIndex < project.defects.length; defectIndex++) {
@@ -3787,6 +4243,7 @@
                 const BATCH = window.IS_IOS_DEVICE ? 5 : 10; // 아이폰 메모리 보호
                 for (let i = 0; i < photoTasks.length; i += BATCH) {
                     const batch = photoTasks.slice(i, i + BATCH);
+                    if (uploadQueueErr) throw uploadQueueErr; // 보고서 전송이 이미 실패했으면 바로 안내
                     const results = await Promise.all(batch.map(t => window.addWatermarkToPhoto(t.photo, t.wmText)));
                     for (let j = 0; j < batch.length; j++) {
                         batch[j].photo = results[j];
@@ -3821,6 +4278,8 @@
                 
                 const totalPhotos = photoTasks.length;
                 
+                await uploadQueue; // ✅ 워터마크 처리 동안 뒤에서 진행한 PDF·엑셀 전송 마무리 (실패하면 기존처럼 아래 catch 로)
+
                 // ZIP 생성 및 업로드
                 if (photoTasks.length > 0) {
                     try {
@@ -3879,6 +4338,7 @@
                 }
                 
             } catch (error) {
+                await uploadQueue.catch(() => {}); // ✅ 뒤에서 진행 중인 전송이 끝난 뒤 안내 (작업 중 잠금이 전송 도중 풀리지 않게)
                 console.error('업로드 오류:', error);
                 hideLoading();
                 
@@ -9072,6 +9532,7 @@
             tempDiv.style.position = 'absolute';
             tempDiv.style.left = '-9999px';
             tempDiv.style.background = '#ffffff';
+            tempDiv.style.color = '#000'; // 색 미지정 글자가 앱 테마 글자색(다크 모드=연회색)을 물려받지 않게
             tempDiv.innerHTML = htmlContent;
             document.body.appendChild(tempDiv);
 
@@ -9085,7 +9546,10 @@
                 scale: scale,
                 useCORS: true,
                 backgroundColor: '#ffffff',
-                logging: false
+                logging: false,
+                // 복제 문서에 PDF 페이지(tempDiv)만 넣음: 앱 화면(구글 로그인 iframe·사진 목록 등)·디자인 CSS 는 복제 안 함
+                // → 페이지마다 구글 iframe 재로딩·사진 재해독 생략(속도·아이폰 메모리), 결과가 화면 상태·테마·디자인과 무관
+                ignoreElements: (el) => (el.parentNode === document.body && el !== tempDiv) || el.id === 'designA'
             });
 
             let canvas, imgData;
