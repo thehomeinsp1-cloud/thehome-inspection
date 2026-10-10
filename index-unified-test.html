@@ -1790,7 +1790,7 @@ body.light-mode .card.reference-info {
                        style="width: 76px; flex: none; padding: 10px; text-align: center;"
                        onkeydown="if(event.key==='Enter' && !event.isComposing){event.preventDefault();jumpToDefect();}">
                 <button type="button" class="btn btn-secondary" onclick="jumpToDefect()" style="width: auto; flex: none; padding: 10px 14px; font-size: 14px;">이동</button>
-                <button type="button" id="missingOnlyBtn" class="btn btn-secondary" aria-pressed="false" onclick="toggleMissingOnly()" style="width: auto; flex: 1; min-width: 0; padding: 10px 12px; font-size: 14px;">빠진 것만 보기 (0)</button>
+                <button type="button" id="missingOnlyBtn" class="btn btn-secondary" aria-pressed="false" onclick="toggleMissingOnly()" style="width: auto; flex: 1; min-width: 0; padding: 10px 12px; font-size: 14px;">검토 필요만 보기 (0)</button>
             </div>
             <div id="defectsList"></div>
         </div>
@@ -5978,9 +5978,40 @@ body.light-mode .card.reference-info {
         // ==================== ✅ 빠진 것 검사 (보고서·업로드 전 확인 + 하자점검 '빠진 것만 보기') ====================
         // 사진은 '있는지'만 봄 (디코딩·복사 없음). 하자 번호 = 하자 카드의 '하자 N' 과 같은 목록 순서 번호
         // 반환: [{ no: 하자번호(하자 외 항목은 0), text: '하자 12번: 근경 없음' }, ...]
+        // ✅ 오타 의심 단어 목록 (가벼운 글자 검사만 — 사진 데이터는 보지 않음)
+        function _typoWords(text) {
+            try { return detectInvalidInput(text).map(e => e.word); } catch (e) { return []; }
+        }
+        function _typoLabel(words, where) {
+            const w = words.slice(0, 2).map(x => '"' + x + '"').join(', ') + (words.length > 2 ? ' 등' : '');
+            return '오타 의심 ' + w + ' (' + where + ')';
+        }
+        // 세대 정보 형식 확인 (동·호에 영문 O·I·l 섞임, 연락처 자리수 등)
+        function _projectInfoIssues(project) {
+            const out = [];
+            const chk = (label, v) => { const w = _typoWords(v); if (w.length) out.push({ no: 0, text: label + ': ' + _typoLabel(w, label) }); };
+            chk('단지명', project.apartmentName);
+            chk('작성자', project.author);
+            const dh = (label, v) => {
+                v = String(v || '').trim();
+                if (!v) return;
+                if (/[ㄱ-ㅎㅏ-ㅣ]/.test(v)) out.push({ no: 0, text: label + ' 확인: "' + v + '" (완성되지 않은 글자)' });
+                else if (/[0-9][OoIl]|[OoIl][0-9]/.test(v)) out.push({ no: 0, text: label + ' 확인: "' + v + '" (숫자 0·1 대신 영문 O·I·l 의심)' });
+                else if (/[^0-9A-Za-z가-힣-]/.test(v)) out.push({ no: 0, text: label + ' 확인: "' + v + '" (공백·기호 섞임)' });
+            };
+            dh('동', project.dong);
+            dh('호', project.ho);
+            const ph = String(project.customerPhone || '').trim();
+            if (ph) {
+                const digits = ph.replace(/[^0-9]/g, '');
+                if (/[^0-9 ().+-]/.test(ph) || !/^0[0-9]{8,10}$/.test(digits)) out.push({ no: 0, text: '연락처 확인: "' + ph + '" (형식·자리수)' });
+            }
+            return out;
+        }
         function getMissingItems(project, defectsOnly) {
             const items = [];
             if (!project) return items;
+            items.push(..._projectInfoIssues(project)); // 세대 정보(보고서 제목·표지에 들어감) — 현장출력도 확인
             (Array.isArray(project.defects) ? project.defects : []).forEach((d, i) => {
                 if (!d) return;
                 const ph = d.photos || [];
@@ -5989,6 +6020,10 @@ body.light-mode .card.reference-info {
                 if (!ph[1]) m.push('근경 없음');
                 if (!d.spaces || !d.spaces.length) m.push('공간 미선택');
                 if (!d.types || !d.types.length) m.push('하자내용 미선택');
+                const tl = _typoWords(d.detailLocation);
+                if (tl.length) m.push(_typoLabel(tl, '상세위치'));
+                const td = _typoWords(d.description);
+                if (td.length && td.join() !== tl.join()) m.push(_typoLabel(td, '하자설명'));
                 if (m.length) items.push({ no: i + 1, text: `하자 ${i + 1}번: ${m.join(', ')}` });
             });
             if (defectsOnly) return items; // 현장출력(시공사 제출용)은 하자 항목만
@@ -6008,7 +6043,7 @@ body.light-mode .card.reference-info {
             if (!items.length) return true;
             const lines = items.slice(0, 8).map(x => '· ' + x.text);
             if (items.length > 8) lines.push(`· 외 ${items.length - 8}건`);
-            return confirm(`⚠️ 빠진 것이 있습니다 (${items.length}건)\n\n${lines.join('\n')}\n\n그래도 진행할까요?`);
+            return confirm(`⚠️ 검토가 필요한 항목이 있습니다 (${items.length}건)\n\n${lines.join('\n')}\n\n그래도 진행할까요?`);
         }
 
         // 하자 카드가 다시 그려진 뒤 가벼운 후처리: 도구줄 표시·(N) 갱신·'빠진 것만 보기' 유지 (카드는 표시/숨김만)
@@ -6026,7 +6061,7 @@ body.light-mode .card.reference-info {
                 if (!_missingOnly) _missingKeep = null;
                 else { if (!_missingKeep) _missingKeep = new Set(); bad.forEach(no => { const d = defects[no - 1]; if (d) _missingKeep.add(d.id); }); }
                 bar.style.display = defects.length ? 'flex' : 'none';
-                btn.textContent = (_missingOnly ? '✓ ' : '') + `빠진 것만 보기 (${bad.size})`;
+                btn.textContent = (_missingOnly ? '✓ ' : '') + `검토 필요만 보기 (${bad.size})`;
                 btn.className = 'btn ' + (_missingOnly ? 'btn-primary' : 'btn-secondary');
                 btn.setAttribute('aria-pressed', _missingOnly ? 'true' : 'false');
                 const cards = list.children;
@@ -6042,7 +6077,7 @@ body.light-mode .card.reference-info {
 
         window.toggleMissingOnly = function() {
             _missingOnly = !_missingOnly; _missingKeep = null; _missingPid = currentProjectId;
-            if (_missingOnly && !getMissingItems(getCurrentProject()).some(x => x.no)) { _missingOnly = false; showToast('✅ 빠진 것이 없습니다'); }
+            if (_missingOnly && !getMissingItems(getCurrentProject()).some(x => x.no)) { _missingOnly = false; showToast('✅ 검토가 필요한 하자가 없습니다'); }
             applyMissingTools();
         };
 
@@ -8046,68 +8081,40 @@ body.light-mode .card.reference-info {
             }
         }
         
-        // 말도 안 되는 입력만 체크
+        // 말도 안 되는 입력만 체크 (명백한 입력 실수만 — 현장 용어·치수는 정상으로 봄)
+        const TYPO_OK_WORDS = ['MC', 'SP', 'LED', 'PVC', 'CCTV', 'MDF', 'HDF', 'PB', 'PL', 'UV', 'AD', 'LH', 'SUS', 'IOT', 'TV', 'PC', 'USB', 'LAN', 'LPG', 'ABS', 'EPS', 'ALC', 'MH', 'BIS', 'ASA', 'AL', 'PE', 'PP', 'PET', 'CO', 'VOCS', 'MM', 'CM', 'KG', 'SMC', 'FRP', 'BMC', 'EGI', 'OSB', 'WPC', 'PIR', 'XPS', 'ACS', 'ATS', 'TS', 'WC'];
         function detectInvalidInput(value) {
-            if (!value || !value.trim()) return [];
-            
-            const words = value.trim().split(/\s+/);
+            if (!value || !String(value).trim()) return [];
+
+            const words = String(value).trim().split(/\s+/);
             const errors = [];
-            
-            for (const word of words) {
-                if (word.length < 2) continue;
-                
+
+            for (const raw of words) {
+                // 앞뒤 문장부호·괄호는 떼고 검사 (예: "ㅁㄴㅇ," / "(좌측)")
+                const word = raw.replace(/^[\s.,!?;:'"()\[\]{}<>·…~\-_/]+|[\s.,!?;:'"()\[\]{}<>·…~\-_/]+$/g, '');
+                if (word.length < 2) {
+                    if (raw.length >= 3 && /^[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~`]+$/.test(raw)) errors.push({ word: raw, reason: '특수문자만 입력됨' });
+                    continue;
+                }
+
                 // 1. 자음만 (ㅁㄴㅇㄹ, ㄱㄱㄱ)
-                if (/^[ㄱ-ㅎ]+$/.test(word)) {
-                    errors.push({ word, reason: '자음만 입력됨' });
-                    continue;
-                }
-                
+                if (/^[ㄱ-ㅎ]+$/.test(word)) { errors.push({ word, reason: '자음만 입력됨' }); continue; }
                 // 2. 모음만 (ㅏㅓㅗㅜ)
-                if (/^[ㅏ-ㅣ]+$/.test(word)) {
-                    errors.push({ word, reason: '모음만 입력됨' });
-                    continue;
+                if (/^[ㅏ-ㅣ]+$/.test(word)) { errors.push({ word, reason: '모음만 입력됨' }); continue; }
+                // 'ㄱ자·ㄷ자·ㅁ자'(모양 표현)는 정상
+                if (/^[ㄱ-ㅎ]자$/.test(word)) continue;
+                // 3. 완성되지 않은 글자가 섞임 (벽ㅈ, ㅂ벽지)
+                if (/[ㄱ-ㅎㅏ-ㅣ]/.test(word)) { errors.push({ word, reason: '완성되지 않은 글자' }); continue; }
+                // 4. 같은 글자 3번 이상 반복 (아아아, ㅋㅋㅋ) — 숫자 반복(1000)은 치수라 제외
+                if (/([가-힣a-zA-Z])\1{2,}/.test(word)) { errors.push({ word, reason: '반복 입력됨' }); continue; }
+                // 5. 뜻 없는 영문 (asdf 등) — 현장 약어(CCTV·MDF·LED·PL…)는 허용
+                if (/^[a-zA-Z]+$/.test(word) && word.length > 2 && TYPO_OK_WORDS.indexOf(word.toUpperCase()) === -1) {
+                    if (/[bcdfghjklmnpqrstvwxz]{4,}/i.test(word) || /(qwer|asdf|zxcv|wasd)/i.test(word)) { errors.push({ word, reason: '의미없는 영문' }); continue; }
                 }
-                
-                // 3. 자음+모음 혼합 (완성되지 않은 글자)
-                if (/^[ㄱ-ㅎㅏ-ㅣ]+$/.test(word)) {
-                    errors.push({ word, reason: '완성되지 않은 글자' });
-                    continue;
-                }
-                
-                // 4. 같은 글자 3번 이상 반복 (아아아, ㅋㅋㅋ)
-                if (/(.)\1{2,}/.test(word)) {
-                    errors.push({ word, reason: '반복 입력됨' });
-                    continue;
-                }
-                
-                // 5. 영문만 (asdf, qwer) - MC, SP 등 허용
-                if (/^[a-zA-Z]+$/.test(word) && word.length > 2) {
-                    if (!['MC', 'SP', 'LED', 'PVC'].includes(word.toUpperCase())) {
-                        errors.push({ word, reason: '영문만 입력됨' });
-                        continue;
-                    }
-                }
-                
-                // 6. 숫자만 3자리 이상 (123, 1234)
-                if (/^[0-9]+$/.test(word) && word.length > 2) {
-                    errors.push({ word, reason: '숫자만 입력됨' });
-                    continue;
-                }
-                
-                // 7. 특수문자만 (!!!, ???)
-                if (/^[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~`]+$/.test(word)) {
-                    errors.push({ word, reason: '특수문자만 입력됨' });
-                    continue;
-                }
-                
-                // 8. 키보드 연속 입력 패턴
-                const keyboardPatterns = ['ㅂㅈㄷㄱ', 'ㅁㄴㅇㄹ', 'ㅋㅌㅊㅍ', 'qwer', 'asdf', 'zxcv', '1234'];
-                if (keyboardPatterns.some(p => word.toLowerCase().includes(p))) {
-                    errors.push({ word, reason: '의미없는 입력' });
-                    continue;
-                }
+                // 6. 키보드 연속 입력 패턴
+                if (['ㅂㅈㄷㄱ', 'ㅁㄴㅇㄹ', 'ㅋㅌㅊㅍ', 'qwer', 'asdf', 'zxcv'].some(p => word.toLowerCase().includes(p))) { errors.push({ word, reason: '의미없는 입력' }); continue; }
             }
-            
+
             return errors;
         }
 
