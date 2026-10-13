@@ -1652,7 +1652,7 @@ body.light-mode .card.reference-info {
         </button>
         
         <h1>🏠 더홈점검</h1>
-        <p id="appVersionTag" style="color:#fde68a;font-weight:700;">🧪 테스트판 · 업데이트 2026.10.10</p>
+        <p id="appVersionTag" style="color:#fde68a;font-weight:700;">🧪 테스트판 · 업데이트 2026.10.13</p>
     </div>
 
     <div class="container">
@@ -5623,6 +5623,9 @@ body.light-mode .card.reference-info {
                 if (!blob || !filename) return;
                 const project = getCurrentProject();
                 const text = buildReportMessage(project);
+                // 고객 연락처가 휴대폰·유선 번호 형식이면 '문자로 보내기' 버튼 표시
+                const _pd = String(project.customerPhone || '').replace(/[^0-9]/g, '');
+                const smsNum = /^0[0-9]{8,10}$/.test(_pd) ? _pd : '';
                 const mb = blob.size / 1048576;
                 let file = null, canShareFile = false;
                 try {
@@ -5644,6 +5647,7 @@ body.light-mode .card.reference-info {
                     + (canShareFile
                         ? '<button type="button" data-act="share" style="width:100%;min-height:48px;margin-bottom:8px;border:none;border-radius:12px;background:#141d2e;color:#fff;font-size:16px;font-weight:800;cursor:pointer;">📤 고객에게 보내기 (카톡·문자·메일)</button>'
                         : '<div style="font-size:12.5px;line-height:1.5;color:#5b6472;margin-bottom:8px;">이 화면에서는 바로 보내기를 쓸 수 없습니다. 저장된 PDF를 첨부하고, 아래 안내 문구를 복사해 붙여넣으세요.</div>')
+                    + (smsNum ? '<button type="button" data-act="sms" style="width:100%;min-height:44px;margin-bottom:8px;border:none;border-radius:12px;background:#D23B3B;color:#fff;font-size:14.5px;font-weight:800;cursor:pointer;">📩 고객 문자로 안내 문구 보내기 (' + escapeHtml(String(project.customerPhone || '').trim()) + ')</button>' : '')
                     + '<button type="button" data-act="copy" style="width:100%;min-height:44px;border:1px solid #c9d0da;border-radius:12px;background:#fff;color:#141d2e;font-size:14.5px;font-weight:700;cursor:pointer;">📋 안내 문구 복사</button>'
                     + '</div></div>';
                 const close = () => { try { wrap.remove(); } catch (e) {} };
@@ -5652,6 +5656,12 @@ body.light-mode .card.reference-info {
                     if (!btn) { if (e.target === wrap) close(); return; }
                     const act = btn.getAttribute('data-act');
                     if (act === 'close') return close();
+                    if (act === 'sms') {
+                        // 문자앱을 열고 고객 번호·안내 문구를 채움 (PDF 첨부는 문자앱 구조상 불가 → 보내기 버튼으로)
+                        const body = encodeURIComponent(text);
+                        window.location.href = 'sms:' + smsNum + (window.IS_IOS_DEVICE ? '&' : '?') + 'body=' + body;
+                        return;
+                    }
                     if (act === 'copy') { const ok = await copyTextSafe(text, '📋 안내 문구가 복사되었습니다'); if (ok) { const t0 = btn.textContent; btn.textContent = '✅ 복사됨 — 카톡·문자에 붙여넣으세요'; setTimeout(() => { try { btn.textContent = t0; } catch (e) {} }, 2500); } return; }
                     if (act === 'share') {
                         try {
