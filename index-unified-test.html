@@ -1424,11 +1424,11 @@ body.light-mode #data .btn[style*="#059669 0%"] {
     color: var(--text-primary);
     border-radius: 10px;
 }
-.touch-btn.carried {               /* 이전 하자에서 이어받은 공간(선택된 상태): 연한 채움 + 점선 */
-    background: var(--a-carried-bg);
-    border: 1px dashed var(--a-carried-line);
-    color: var(--text-primary);
-    box-shadow: none;
+.touch-btn.carried {               /* 이전 하자에서 이어받은 공간: '선택'과 같은 채움으로 적용된 느낌 (직원 요청 2026-10-13) — 안내는 위 선택 개수 줄에 */
+    background: var(--a-ink);
+    border: 1px solid var(--a-ink);
+    color: var(--a-on-ink);
+    box-shadow: inset 0 -3px 0 var(--a-red);
 }
 .touch-btn.selected {              /* .carried 뒤에 둬서 둘 다 붙으면 '선택'이 이김 */
     background: var(--a-ink);
@@ -6314,7 +6314,7 @@ body.light-mode .card.reference-info {
 
                     <div class="form-field">
                         <label class="form-label">공간 선택 (최대 4개)</label>
-                        <div class="selected-count">${defect.spaces.length}/4 선택됨</div>
+                        <div class="selected-count">${defect.spaces.length}/4 선택됨${defect.spacesAuto ? ' · <b style="color:var(--a-red-text, var(--danger));">✓ 이전 하자 공간 자동 적용</b> (다른 공간을 누르면 바뀝니다)' : ''}</div>
                         <div class="touch-button-grid">
                             ${getSpaceButtons().map(space => `
                                 <button type="button" class="touch-btn ${defect.spaces.includes(space) ? (defect.spacesAuto ? 'carried' : 'selected') : ''}" 
