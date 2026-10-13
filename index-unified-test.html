@@ -9178,8 +9178,6 @@ body.light-mode .card.reference-info {
                 return;
             }
             
-            if (!window.requireCustomerPhone(projectData)) return; // ✅ 고객 연락처 필수
-
             // 2. 장비측정 데이터 확인
             if (!projectData.equipment || projectData.equipment.length === 0) {
                 alert('⚠️ 장비측정 데이터가 없습니다.\n장비점검 탭에서 측정을 진행해주세요.');
