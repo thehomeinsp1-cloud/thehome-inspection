@@ -1088,6 +1088,7 @@
         html.ios .zoom-level { top: calc(30px + env(safe-area-inset-top, 0px)); right: calc(20px + env(safe-area-inset-right, 0px)); }
         html.ios .floating-btn { right: calc(30px + env(safe-area-inset-right, 0px)); bottom: calc(30px + env(safe-area-inset-bottom, 0px)); }
         html.ios #updateBanner { padding-top: calc(12px + env(safe-area-inset-top, 0px)) !important; }
+        html.ios #saveFailBanner { padding-top: calc(8px + env(safe-area-inset-top, 0px)) !important; }
     </style>
 
 <style id="designA">
@@ -1537,6 +1538,12 @@ body.light-mode .card.reference-info {
 </style>
 </head>
 <body>
+    <!-- ==================== 저장 실패 띠 (setSaveFail로 표시, 누르면 해결 방법) ==================== -->
+    <div id="saveFailBanner" onclick="alert(this.dataset.msg || '')" style="display: none; position: fixed; top: 0; left: 0; right: 0; background: #dc2626; color: white; padding: 8px 14px; z-index: 999; text-align: center; font-size: 13px; line-height: 1.35; box-shadow: 0 4px 12px rgba(0,0,0,0.3); cursor: pointer;">
+        <b></b>
+        <div style="font-size: 12px; opacity: 0.9;">눌러서 해결 방법 보기</div>
+    </div>
+
     <!-- ==================== 업데이트 알림 배너 ==================== -->
     <div id="updateBanner" style="display: none; position: fixed; top: 0; left: 0; right: 0; background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); color: white; padding: 12px 20px; z-index: 99999; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
         <div style="display: flex; justify-content: space-between; align-items: center; max-width: 600px; margin: 0 auto;">
@@ -1669,7 +1676,7 @@ body.light-mode .card.reference-info {
         <div id="project" class="section active">
             <!-- 프로젝트 목록 카드 -->
             <div class="card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; margin-bottom: 20px;">
-                <h2 style="color: white; margin-bottom: 15px;">📋 프로젝트 목록 <span id="oldProjectBadge" onclick="toggleOldFilter()" style="display:none; cursor:pointer; background:#ef4444; color:#fff; font-size:13px; font-weight:800; border-radius:20px; padding:3px 11px; margin-left:6px; vertical-align:middle;"></span></h2>
+                <h2 style="color: white; margin-bottom: 15px;">📋 프로젝트 목록 <span id="oldProjectBadge" onclick="cleanupUploadedProjects()" style="display:none; cursor:pointer; background:#ef4444; color:#fff; font-size:13px; font-weight:800; border-radius:20px; padding:3px 11px; margin-left:6px; vertical-align:middle;"></span></h2>
                 
                 <div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
                     <button onclick="addNewProject()" class="btn" style="background: white; color: #667eea; flex: 1; min-width: 120px;">
@@ -1684,9 +1691,7 @@ body.light-mode .card.reference-info {
                     <!-- 프로젝트 목록이 여기 표시됩니다 -->
                 </div>
 
-                <div style="margin-top: 10px; font-size: 13px; opacity: 0.9;">
-                    💡 팁: 하루에 여러 프로젝트를 작업할 수 있습니다. 프로젝트를 클릭하면 전환됩니다.
-                </div>
+                <div id="storageLine" style="margin-top: 10px; font-size: 13px; opacity: 0.9;"></div>
             </div>
 
             <div class="card">
@@ -1924,6 +1929,9 @@ body.light-mode .card.reference-info {
                         </p>
                         <div id="savedList" class="saved-list"></div>
                         <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #ddd;">
+                            <button class="btn" onclick="cleanupUploadedProjects()" style="width: 100%; margin-bottom: 10px; background: linear-gradient(135deg, #059669 0%, #10b981 100%); color: white;">
+                                🧹 업로드 완료 세대 정리
+                            </button>
                             <button class="btn btn-danger" onclick="clearAllData()" style="width: 100%;">
                                 🗑️ 모든 데이터 삭제
                             </button>
@@ -2095,6 +2103,7 @@ body.light-mode .card.reference-info {
                             2. <strong>"홈 화면에 추가"</strong> 선택<br>
                             3. <strong>"추가"</strong> 클릭
                         </div>
+                        <div style="margin-top: 10px; font-size: 12.5px; color: #b91c1c; line-height: 1.6;">⚠️ Safari에서 하던 세대는 홈 화면 앱으로 옮겨지지 않습니다. 모두 업로드한 뒤 앱으로 바꾸세요.</div>
                     `;
                 } else if (os === 'android') {
                     guideHTML = `
@@ -2541,10 +2550,13 @@ body.light-mode .card.reference-info {
                 
                 // 메모리 오류 (iOS에서 흔함)
                 if (errorMsg.includes('memory') || errorMsg.includes('quota')) {
-                    showToast('⚠️ 메모리 부족. 사진을 압축하여 재시도합니다.', 'warning');
+                    if (Date.now() - (window._memToastAt || 0) > 60000) { // 1분에 1번만
+                        window._memToastAt = Date.now();
+                        showToast('⚠️ 휴대폰 메모리가 부족합니다. 방금 동작이 완료되지 않았을 수 있습니다. 🧹 업로드 완료 세대를 정리한 뒤 앱을 완전히 종료하고 다시 열어주세요.', 'error');
+                    }
                 }
                 // 네트워크 오류
-                else if (errorMsg.includes('network') || errorMsg.includes('fetch')) {
+                else if (errorMsg.includes('network') || errorMsg.includes('fetch') || errorMsg.includes('load failed')) {
                     showToast('📶 네트워크 오류. 연결 상태를 확인해주세요.', 'error');
                 }
             }
@@ -2566,7 +2578,7 @@ body.light-mode .card.reference-info {
             
             // 네트워크 관련 에러는 조용히 처리
             if (event.reason && event.reason.message && 
-                event.reason.message.includes('NetworkError')) {
+                /networkerror|load failed/i.test(event.reason.message)) {
                 event.preventDefault();
                 showToast('📶 일시적인 네트워크 오류입니다.', 'warning');
             }
@@ -4527,7 +4539,7 @@ body.light-mode .card.reference-info {
                     }
                 };
             });
-            ['switchProject', 'addNewProject', 'deleteCurrentProject', 'importProjectFromBackup', 'clearAllData', 'loadSavedData'].forEach(function(name) {
+            ['switchProject', 'addNewProject', 'deleteCurrentProject', 'importProjectFromBackup', 'clearAllData', 'loadSavedData', 'cleanupUploadedProjects'].forEach(function(name) {
                 const orig = window[name];
                 if (typeof orig !== 'function') return;
                 window[name] = function() {
@@ -4744,12 +4756,27 @@ body.light-mode .card.reference-info {
         // ==================== 프로젝트 목록 관리 함수 ====================
         
         // 프로젝트 목록 렌더링
-        // 오래된 프로젝트 필터 상태 (배지 탭 시 토글)
-        let showOnlyOldProjects = false;
-        window.toggleOldFilter = function() {
-            showOnlyOldProjects = !showOnlyOldProjects;
-            renderProjectList();
-        };
+        // ✅ 🧹 정리 기준: 업로드 완료 후 7일 지난 세대 (가이드의 1주일 규칙과 같음)
+        const CLEANUP_DAYS = 7;
+        const MANY_UNITS = 8; // 이 세대 수부터 '느려집니다' 안내 + 새 프로젝트 때 정리 권유
+        // 정리 대상: 지금 연 세대 아님 + uploadSig 있음 + 업로드 후 CLEANUP_DAYS일 지남 + 업로드 뒤 수정 없음
+        // upToDate: 목록 그리기에서 이미 계산한 isUploadUpToDate 값 (없으면 여기서 계산 — 가장 무거워서 맨 마지막)
+        function isCleanupTarget(p, upToDate) {
+            return p.id !== currentProjectId && !!p.uploadSig
+                && new Date(p.uploadedAt || 0).getTime() < Date.now() - CLEANUP_DAYS * 86400000
+                && (upToDate === undefined ? isUploadUpToDate(p) : upToDate);
+        }
+        function cleanupTargets() {
+            return projects.filter(p => isCleanupTarget(p));
+        }
+        // 세대 데이터 대략 크기: 글자(사진 포함) 길이 합. 복사본을 만들지 않음
+        function dataLen(v, depth) {
+            if (typeof v === 'string') return v.length;
+            if (!v || typeof v !== 'object' || depth > 8) return 0;
+            let n = 0;
+            for (const k in v) n += dataLen(v[k], depth + 1);
+            return n;
+        }
 
         function renderProjectList() {
             const listContainer = document.getElementById('projectList');
@@ -4761,27 +4788,8 @@ body.light-mode .card.reference-info {
                 return;
             }
 
-            // ✅ 14일 넘은 오래된 프로젝트 계산 + 제목 옆 배지 갱신
-            const DAYS_OLD = 14;
-            const nowMs = Date.now();
-            const isOld = (p) => {
-                const t = p.createdAt ? new Date(p.createdAt).getTime() : (p.id || nowMs);
-                return (nowMs - t) > DAYS_OLD * 86400000;
-            };
-            const oldCount = projects.filter(isOld).length;
-            const badgeEl = document.getElementById('oldProjectBadge');
-            if (badgeEl) {
-                if (oldCount > 0) {
-                    badgeEl.style.display = 'inline-block';
-                    badgeEl.textContent = showOnlyOldProjects ? `전체 보기` : `🔴 오래됨 ${oldCount}`;
-                    badgeEl.style.background = showOnlyOldProjects ? 'rgba(255,255,255,0.3)' : '#ef4444';
-                } else {
-                    badgeEl.style.display = 'none';
-                    showOnlyOldProjects = false;
-                }
-            }
-            // 필터 적용: 배지 탭 시 오래된 것만 표시
-            const viewProjects = showOnlyOldProjects ? projects.filter(isOld) : projects;
+            // ✅ 🧹 정리 배지·보관 현황 집계 (아래 목록 반복문 안에서 한 번에 계산)
+            let cleanN = 0, doneN = 0, needN = 0, totalLen = 0;
 
             // ✅ 당일 순번 계산: 프로젝트 생성일(createdAt 없으면 id=timestamp)을 날짜별로 묶어
             //    각 날짜 안에서 생성 순서대로 1,2,3... 부여. 오늘 날짜 문자열도 준비.
@@ -4803,12 +4811,7 @@ body.light-mode .card.reference-info {
                 arr.forEach((p,i) => { seqMap[p.id] = i + 1; });
             });
 
-            // 필터된 목록이 비면 안내
-            if (viewProjects.length === 0) {
-                listContainer.innerHTML = '<div style="text-align: center; padding: 20px; opacity: 0.7;">해당하는 프로젝트가 없습니다.</div>';
-                return;
-            }
-            listContainer.innerHTML = viewProjects.map((project, index) => {
+            listContainer.innerHTML = projects.map((project, index) => {
                 const isActive = project.id === currentProjectId;
                 const hasInfo = project.apartmentName && project.dong && project.ho;
                 const aptName = hasInfo ? project.apartmentName : `프로젝트 ${index + 1}`;
@@ -4836,7 +4839,13 @@ body.light-mode .card.reference-info {
                 // ✅ 업로드 이후 하자·사진을 추가/수정했으면 다시 '작업중' (재업로드 필요)
                 const uploadedOk = isUploadUpToDate(project);
                 const statusColor = uploadedOk ? '#4ade80' : '#fbbf24';
-                const statusText = uploadedOk ? '완료' : '작업중';
+                const upAt = project.uploadedAt ? new Date(project.uploadedAt) : null;
+                const statusText = uploadedOk ? '완료' + (upAt && !isNaN(upAt) ? ' ' + (upAt.getMonth() + 1) + '/' + upAt.getDate() : '') : '작업중';
+                // 보관 현황·정리 대상 집계
+                if (uploadedOk) doneN++;
+                else if ((project.defects || []).length || (project.equipment || []).length) needN++;
+                if (isCleanupTarget(project, uploadedOk)) cleanN++;
+                totalLen += dataLen(project, 0);
                 
                 const authorInfo = project.author 
                     ? ` · ${escapeHtml(project.author)}` 
@@ -4869,10 +4878,36 @@ body.light-mode .card.reference-info {
                     </div>
                 `;
             }).join('');
+
+            // ✅ 🧹 정리 배지: 정리할 세대 수 (누르면 정리)
+            const badgeEl = document.getElementById('oldProjectBadge');
+            if (badgeEl) {
+                badgeEl.style.display = cleanN ? 'inline-block' : 'none';
+                badgeEl.textContent = '🧹 정리 ' + cleanN;
+            }
+            // ✅ 보관 현황 줄 (세대가 많으면 느려진다는 안내)
+            const lineEl = document.getElementById('storageLine');
+            if (lineEl) {
+                const mb = totalLen / 1048576;
+                lineEl.innerHTML = '📱 휴대폰 보관 ' + projects.length + '세대(약 ' + (mb < 10 ? mb.toFixed(1) : Math.round(mb)) + ' MB) · 완료 ' + doneN + ' · 업로드 필요 ' + needN
+                    + (projects.length >= MANY_UNITS ? ' · 세대가 많으면 느려집니다' : '')
+                    + ' → <span onclick="cleanupUploadedProjects()" style="cursor: pointer; text-decoration: underline; font-weight: 800;">🧹 정리</span>';
+            }
         }
 
         // 새 프로젝트 추가
-        window.addNewProject = function() {
+        let _cleanupAsked = false; // 새 프로젝트 때 정리 권유는 앱을 켤 때마다 한 번만
+        window.addNewProject = async function() {
+            // ✅ 세대가 많고 정리할 세대가 있으면 정리할지 물어봄 (취소·실패해도 새 프로젝트는 그대로 만듦)
+            if (!_cleanupAsked && projects.length >= MANY_UNITS) {
+                try {
+                    const t = cleanupTargets();
+                    if (t.length) {
+                        _cleanupAsked = true;
+                        if (confirm('휴대폰에 ' + projects.length + '세대가 있어 앱이 느려질 수 있습니다.\n업로드 완료 후 ' + CLEANUP_DAYS + '일 지난 ' + t.length + '세대를 먼저 정리할까요?\n\n(취소해도 새 프로젝트는 만들어집니다)')) window.cleanupUploadedProjects(); // 기다리지 않음: 목록 정리는 즉시, 저장은 대기열 순서대로
+                    }
+                } catch (e) { console.warn('정리 권유 실패:', e); }
+            }
             const newProject = createNewProject();
             projects.push(newProject);
             currentProjectId = newProject.id;
@@ -4964,19 +4999,31 @@ body.light-mode .card.reference-info {
             // 프로젝트 삭제
             projects = projects.filter(p => p.id !== currentProjectId);
             
-            // 첫 번째 프로젝트로 전환
-            currentProjectId = projects[0].id;
-            
+            // 가장 최근 세대로 전환 (오래된 세대를 열어 무거운 화면을 다시 그리지 않도록)
+            currentProjectId = projects[projects.length - 1].id;
+
             // UI 업데이트
             loadProjectToUI();
             renderProjectList();
             updateProgress();
-            
-            showToast('🗑️ 프로젝트가 삭제되었습니다');
-            
-            // 로컬 스토리지 저장
-            saveProjectsToLocalStorage();
+
+            // 로컬 스토리지 저장 → 결과에 맞는 안내 (저장 실패를 '삭제됨'으로 보여주지 않음)
+            saveProjectsToLocalStorage().then(ok => showToast(ok === false ? '⚠️ 삭제가 휴대폰에 저장되지 않았습니다. 앱을 다시 열면 다시 보일 수 있습니다' : '🗑️ 프로젝트가 삭제되었습니다', ok === false ? 'error' : 'success'));
         }
+
+        // ✅ 🧹 업로드 완료 후 CLEANUP_DAYS일 지난 세대를 한 번에 정리 (저장 1번)
+        // 지우지 않음: 지금 연 세대, 작업중, 업로드 뒤 수정한 세대, uploadSig 없는 예전 업로드(직접 삭제만)
+        window.cleanupUploadedProjects = async function() {
+            const t = cleanupTargets();
+            if (!t.length) { alert('정리할 세대가 없습니다.\n(업로드 ● 완료 후 ' + CLEANUP_DAYS + '일 지난 세대만 정리됩니다)'); return; }
+            if (!confirm('업로드 완료 후 ' + CLEANUP_DAYS + '일 지난 ' + t.length + '세대를 휴대폰에서 지웁니다.\n드라이브 백업(♻️ 프로젝트 가져오기)으로 언제든 복원됩니다.\n\n'
+                + t.map(p => (p.apartmentName || '') + ' ' + (p.dong || '') + '동 ' + (p.ho || '') + '호').join('\n'))) return;
+            const ids = new Set(t.map(p => p.id));
+            projects = projects.filter(p => !ids.has(p.id));
+            renderProjectList();
+            const ok = await saveProjectsToLocalStorage();
+            showToast(ok === false ? '⚠️ 정리 내용이 저장되지 않았습니다. 앱을 완전히 종료 후 다시 해주세요' : '🧹 ' + t.length + '세대 정리 완료', ok === false ? 'error' : 'success');
+        };
 
         // UI에서 현재 프로젝트로 데이터 저장
         function saveCurrentProjectFromUI() {
@@ -4992,7 +5039,7 @@ body.light-mode .card.reference-info {
             
             // 작성자를 localStorage에 저장 (다음 프로젝트에서도 유지)
             if (project.author && project.author.trim()) {
-                localStorage.setItem('lastAuthor', project.author.trim());
+                try { localStorage.setItem('lastAuthor', project.author.trim()); } catch (e) {} // 가득 차도 세대 전환·저장은 계속
             }
             
             // floorplan, defects, equipment, airQuality는 이미 projectData 참조로 실시간 업데이트됨
@@ -5176,6 +5223,27 @@ body.light-mode .card.reference-info {
         });
         
         // 프로젝트 목록을 로컬 스토리지에 저장 (기존 함수 수정)
+        // ✅ 저장 실패 안내 문구 (용량 부족 / 그 밖의 실패 / 불러오기 실패로 저장 차단)
+        const SAVE_MSG_QUOTA = '⚠️ 휴대폰 저장공간이 가득 차 방금 사진이 저장되지 않았습니다.\n앱을 끄지 마세요(끄면 사진이 사라집니다).\n① 프로젝트 탭 → 🧹 정리 (업로드 완료 세대)\n② 지금 세대로 돌아오면 자동 저장됩니다.\n사진은 지우지 마세요.\n정리할 세대가 없으면 [공유드라이브에 저장하기]로 이 세대를 올린 뒤 관리자 010-9985-0128.';
+        const SAVE_MSG_FAIL = '⚠️ 저장이 안 되고 있습니다. 앱을 끄거나 새로고침하지 마세요.\n먼저 [공유드라이브에 저장하기]로 이 세대를 올린 뒤, 앱을 완전히 종료(화면 아래에서 위로 쓸어 올려 더홈점검 카드를 위로 밀기)하고 다시 여세요.\n계속되면 휴대폰 재시동 → 관리자 010-9985-0128.';
+        const SAVE_MSG_BLOCKED = '⛔ 저장 안 됨 — 지금 입력하는 내용은 저장되지 않습니다.\n앱을 완전히 종료(아래에서 위로 쓸어 올려 카드 밀기) 후 다시 여세요.\n이미 저장된 세대는 그대로 있습니다 (앱을 지우지 마세요).\n계속되면 관리자 010-9985-0128.';
+        // ✅ 저장 실패 띠: msg가 있으면 표시(다음 저장 성공까지 유지), 없으면 숨김 + 경고창 1회 제한 초기화
+        function setSaveFail(msg) {
+            window._saveFailOn = !!msg;
+            if (!msg) window._saveFailAlerted = false;
+            const b = document.getElementById('saveFailBanner');
+            if (!b) return;
+            if (msg) { b.dataset.msg = msg; b.firstElementChild.textContent = msg.split('\n')[0]; }
+            b.style.display = msg ? 'block' : 'none';
+            // 상단 고정 탭·화면 위쪽이 띠에 가리지 않게 띠 높이만큼 내림
+            const h = msg ? b.offsetHeight : 0;
+            const tabs = document.querySelector('.tabs');
+            if (tabs) tabs.style.top = h ? h + 'px' : '';
+            const ub = document.getElementById('updateBanner');
+            document.body.style.paddingTop = h ? h + 'px' : (ub && ub.style.display !== 'none' ? '70px' : '');
+        }
+        window.setSaveFail = setSaveFail;
+
         async function saveProjectsToLocalStorage() {
             // ✅ 시작 시 저장 데이터를 불러오지 못한 상태면 저장하지 않음 (빈/사진 없는 데이터로 기존 데이터 덮어쓰기 방지)
             if (window._projectsLoaded === false) {
@@ -5185,8 +5253,9 @@ body.light-mode .card.reference-info {
             }
             if (window._dbLoadFailed) {
                 console.warn('⛔ 데이터 로드 실패 상태 - 저장하지 않음');
-                showToast('⚠️ 저장 데이터를 불러오지 못해 저장이 멈춘 상태입니다. 앱을 완전히 종료 후 다시 열어주세요', 'error');
-                return;
+                setSaveFail(SAVE_MSG_BLOCKED);
+                showToast('⛔ 저장 안 됨 — 위 빨간 띠를 눌러 해결 방법 보기', 'error');
+                return false;
             }
 
             // 중복 저장 방지 - ✅ 저장 중 들어온 요청은 버리지 않고, 끝난 뒤 최신 데이터로 1회 다시 저장
@@ -5217,13 +5286,8 @@ body.light-mode .card.reference-info {
                 // 프로젝트 목록 저장
                 await saveToIndexedDB('projects_list', { projects, currentProjectId });
                 
-                // ✅ 현재 작업 중인 프로젝트도 별도로 저장 (새로고침 시 복구용)
-                const currentProject = projects.find(p => p.id === currentProjectId);
-                if (currentProject) {
-                    await saveToIndexedDB('thehomein_current', currentProject);
-                    console.log('✅ 현재 프로젝트 저장 완료');
-                }
-                
+                if (window._saveFailOn) setSaveFail(null); // 저장 성공 → 실패 띠 숨김
+                // (현재 세대 별도 사본 'thehomein_current'는 읽는 곳이 없어 더 이상 저장하지 않음)
                 console.log('✅ 프로젝트 목록 저장 완료');
 
                 // ✅ 저장공간 모니터링 (용량 부족 사전 경고) - 저장 흐름을 막지 않음
@@ -5237,39 +5301,29 @@ body.light-mode .card.reference-info {
                         }
                     }).catch(() => {});
                 }
+                return true;
             } catch (e) {
                 console.error('프로젝트 목록 저장 실패:', e);
                 
-                // ✅ 사용자 알림 추가
+                // ✅ 사용자 알림: 띠(다음 저장 성공까지 표시) + 경고창(연속 실패 중 1번) — catch 끝에서
+                let failMsg = SAVE_MSG_FAIL;
                 if (e.name === 'QuotaExceededError') {
-                    // 저장 공간 부족
-                    showToast('⚠️ 저장 공간이 부족합니다! 불필요한 사진을 삭제해주세요', 'error');
-                    
-                    // 공간 사용량 체크 (가능한 경우)
+                    failMsg = SAVE_MSG_QUOTA;
+                    // 공간 사용량 기록 (가능한 경우)
                     if (navigator.storage && navigator.storage.estimate) {
-                        const estimate = await navigator.storage.estimate();
-                        const usedMB = Math.round(estimate.usage / 1024 / 1024);
-                        const quotaMB = Math.round(estimate.quota / 1024 / 1024);
-                        console.log(`📊 저장공간: ${usedMB}MB / ${quotaMB}MB 사용 중`);
+                        navigator.storage.estimate().then(est => console.log('📊 저장공간: ' + Math.round(est.usage / 1048576) + 'MB / ' + Math.round(est.quota / 1048576) + 'MB 사용 중')).catch(() => {});
                     }
-                } else if (e.name === 'InvalidStateError' || e.name === 'TransactionInactiveError') {
-                    // 트랜잭션 오류
+                } else if (!window._saveRetrying) {
+                    // 용량 외 오류(트랜잭션·연결 끊김 등, 앱 전환 직후 흔함) → 1초 후 1번 재시도 (저장 잠금을 거침, 재시도도 실패하면 띠·경고창)
+                    failMsg = null;
                     showToast('⚠️ 저장 중 오류 발생! 자동으로 다시 시도합니다', 'warning');
-                    
-                    // 1초 후 재시도
-                    setTimeout(async () => {
-                        try {
-                            await saveToIndexedDB('projects_list', { projects, currentProjectId });
-                            showToast('✅ 재시도 성공! 데이터가 저장되었습니다', 'success');
-                        } catch (retryError) {
-                            showToast('❌ 저장 실패! 앱을 새로고침 해주세요', 'error');
-                        }
-                    }, 1000);
-                } else {
-                    // 기타 오류
-                    showToast('⚠️ 저장 실패! 잠시 후 다시 시도해주세요', 'error');
+                    window._saveRetrying = true;
+                    setTimeout(() => saveProjectsToLocalStorage().then(ok => {
+                        window._saveRetrying = false;
+                        if (ok) showToast('✅ 재시도 성공! 데이터가 저장되었습니다', 'success');
+                    }, () => { window._saveRetrying = false; }), 1000);
                 }
-                
+
                 // 임시 백업 (세션 스토리지 - 사진 제외 경량 백업)
                 try {
                     const lightBackup = {
@@ -5297,6 +5351,11 @@ body.light-mode .card.reference-info {
                 } catch (backupError) {
                     console.error('임시 백업도 실패:', backupError);
                 }
+                if (failMsg) {
+                    setSaveFail(failMsg);
+                    if (!window._saveFailAlerted) { window._saveFailAlerted = true; setTimeout(() => alert(failMsg), 0); }
+                }
+                return false;
             } finally {
                 isSaving = false;
                 // ✅ 저장 중에 들어온 요청이 있으면 최신 데이터로 1회 더 저장
@@ -5317,6 +5376,7 @@ body.light-mode .card.reference-info {
                 
                 if (saved && saved.projects) {
                     projects = saved.projects;
+                    window._listLoadedFromDB = true;
                     currentProjectId = saved.currentProjectId;
                     
                     console.log('✅ 프로젝트 목록 불러오기 완료:', projects.length + '개');
@@ -5457,7 +5517,7 @@ body.light-mode .card.reference-info {
                 }
 
                 // ✅ 읽기 실패 안내 (저장은 멈춘 상태)
-                if (window._dbLoadFailed) alert('⚠️ 저장된 데이터를 불러오지 못했습니다.\n\n기존 데이터를 보호하기 위해 지금은 저장되지 않습니다.\n앱을 완전히 종료한 뒤 다시 열어주세요.\n\n(계속 반복되면 관리자에게 문의해주세요)');
+                if (window._dbLoadFailed) { setSaveFail(SAVE_MSG_BLOCKED); alert(SAVE_MSG_BLOCKED); }
                 renderProjectList();
             }
         }
@@ -5484,6 +5544,8 @@ body.light-mode .card.reference-info {
         try {
             await initDB();
             console.log('IndexedDB 초기화 완료');
+            // 저장공간이 빠듯할 때 브라우저가 데이터를 지우지 않도록 요청 (화면 변화 없음)
+            try { navigator.storage && navigator.storage.persist && navigator.storage.persist().catch(() => {}); } catch (e) {}
         } catch (e) {
             console.error('IndexedDB 초기화 실패:', e);
         }
@@ -5496,6 +5558,8 @@ body.light-mode .card.reference-info {
         window._projectsLoaded = false;
         try {
             await loadProjectsFromLocalStorage();
+            // 예전에 따로 저장하던 현재 세대 사본 삭제 (이제 저장 안 함)
+            if (!window._dbLoadFailed && window._listLoadedFromDB && projects.length) deleteFromIndexedDB('thehomein_current').catch(() => {});
         } finally {
             window._projectsLoaded = true;
             // 불러오는 동안 보류된 저장은 불러온 데이터 기준으로 1회 실행 (불러오기 중 복구된 내용 보존)
@@ -7454,6 +7518,7 @@ body.light-mode .card.reference-info {
                 
                 // 초기 캔버스 크기 설정 (iOS: 비디오 로드 대기)
                 const initMarkerCanvas = () => {
+                    if (cameraAbortController.signal.aborted) return; // 카메라 닫혔으면 중단
                     const rect = video.getBoundingClientRect();
                     if (rect.width > 0 && rect.height > 0) {
                         resizeMarkerCanvas();
@@ -7464,12 +7529,12 @@ body.light-mode .card.reference-info {
                 };
                 
                 // iOS: loadedmetadata 이벤트 활용
-                video.addEventListener('loadedmetadata', resizeMarkerCanvas);
-                video.addEventListener('playing', resizeMarkerCanvas);
+                video.addEventListener('loadedmetadata', resizeMarkerCanvas, eventSignal);
+                video.addEventListener('playing', resizeMarkerCanvas, eventSignal);
                 setTimeout(initMarkerCanvas, 100);
                 
                 // 화면 회전/크기 변경 시 캔버스 크기 재조정
-                window.addEventListener('resize', resizeMarkerCanvas);
+                window.addEventListener('resize', resizeMarkerCanvas, eventSignal);
                 // ==================== 터치 포인트 마커 기능 끝 ====================
                 
                 // ==================== 핀치줌 throttling 변수 ====================
@@ -7647,6 +7712,9 @@ body.light-mode .card.reference-info {
                 
                 // 디바이스별 상세 에러 메시지
                 let errorMessage = '카메라를 사용할 수 없습니다.\n\n';
+                // 홈 화면 앱이면 '새로고침·Safari 재시작' 대신 앱 완전 종료 안내
+                const _appMode = window.navigator.standalone === true || (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
+                const _appRestart = '앱 완전 종료 후 다시 열기\n   (' + (deviceInfo.isIOS ? '화면 아래에서 위로 쓸어 올려 더홈점검 카드를 위로 밀기' : '최근 앱 화면에서 더홈점검을 위로 밀기') + ')';
                 
                 if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
                     errorMessage += '📱 카메라 권한이 필요합니다.\n\n';
@@ -7655,7 +7723,7 @@ body.light-mode .card.reference-info {
                         errorMessage += '[iOS 설정 방법]\n';
                         errorMessage += '1. 설정 > Safari > 카메라\n';
                         errorMessage += '2. "허용" 선택\n';
-                        errorMessage += '3. Safari 재시작\n\n';
+                        errorMessage += _appMode ? '3. ' + _appRestart + '\n\n' : '3. Safari 재시작\n\n';
                         errorMessage += '또는 "📎 갤러리"로 사진 업로드';
                     } else if (deviceInfo.isAndroid) {
                         errorMessage += '[Android 설정 방법]\n';
@@ -7677,7 +7745,7 @@ body.light-mode .card.reference-info {
                     errorMessage += '카메라가 다른 앱에서 사용 중입니다.\n\n';
                     errorMessage += '[해결 방법]\n';
                     errorMessage += '1. 다른 카메라 앱 종료\n';
-                    errorMessage += '2. 페이지 새로고침 (당겨서 새로고침)\n';
+                    errorMessage += _appMode ? '2. ' + _appRestart + '\n' : '2. 페이지 새로고침 (당겨서 새로고침)\n';
                     errorMessage += '3. "📎 갤러리" 버튼 사용';
                     
                 } else if (error.name === 'OverconstrainedError') {
@@ -7870,6 +7938,7 @@ body.light-mode .card.reference-info {
                                     canvas.width = 0;
                                     canvas.height = 0;
                                     
+                                    if (!result || result.length < 1000) { reject(new Error('MEMORY')); return; } // 아이폰 메모리 부족 시 빈 이미지
                                     resolve(result);
                                 } catch (err) {
                                     console.error('Canvas 처리 실패:', err);
@@ -7931,6 +8000,7 @@ body.light-mode .card.reference-info {
                                 canvas.width = 0;
                                 canvas.height = 0;
                                 
+                                if (!result || result.length < 1000) { reject(new Error('MEMORY')); return; } // 아이폰 메모리 부족 시 빈 이미지
                                 resolve(result);
                             } catch (err) {
                                 console.error('Canvas 처리 실패:', err);
@@ -8181,7 +8251,7 @@ body.light-mode .card.reference-info {
             closeCameraModal();
             } catch (err) {
                 console.error('사진 촬영 오류:', err);
-                showToast('사진 촬영 중 오류가 발생했습니다', 'error');
+                showToast('⚠️ 사진이 저장되지 않았습니다. 다시 찍어주세요. 계속되면 업로드 끝난 세대를 정리하고 앱을 완전히 종료 후 다시 여세요.', 'error');
             } finally {
                 // ✅ 촬영 완료 - 플래그 해제
                 isCapturing = false;
@@ -10136,7 +10206,7 @@ body.light-mode .card.reference-info {
                             // 메모리 해제 (아이폰 튕김 방지)
                             canvas.width = 0;
                             canvas.height = 0;
-                            resolve(wmResult);
+                            resolve(wmResult && wmResult.length > 1000 ? wmResult : imageDataUrl); // 빈 이미지면 원본
                         } catch(e) {
                             console.error('워터마크 렌더링 실패:', e);
                             resolve(imageDataUrl);
@@ -11256,15 +11326,15 @@ body.light-mode .card.reference-info {
             throw lastError || new Error('IndexedDB 불러오기 실패');
         }
 
-        // IndexedDB에서 모든 프로젝트 가져오기
-        async function getAllFromIndexedDB() {
+        // IndexedDB 키 목록만 가져오기 (값·사진은 읽지 않음)
+        async function getAllKeysFromIndexedDB() {
             try {
                 if (!db) await initDB();
                 
                 return new Promise((resolve, reject) => {
                     const transaction = db.transaction([STORE_NAME], 'readonly');
                     const objectStore = transaction.objectStore(STORE_NAME);
-                    const request = objectStore.getAll();
+                    const request = objectStore.getAllKeys();
                     
                     request.onsuccess = () => resolve(request.result);
                     request.onerror = () => reject(request.error);
@@ -11358,7 +11428,7 @@ body.light-mode .card.reference-info {
             
             // 작성자를 localStorage에 저장 (다음 프로젝트에서도 유지)
             if (projectData.author && projectData.author.trim()) {
-                localStorage.setItem('lastAuthor', projectData.author.trim());
+                try { localStorage.setItem('lastAuthor', projectData.author.trim()); } catch (e) {} // 가득 차도 자동저장은 계속
             }
             
             // 저장 (이미 debounce 적용)
@@ -11433,11 +11503,13 @@ body.light-mode .card.reference-info {
             const container = document.getElementById('savedList');
             
             try {
-                const saved = await getAllFromIndexedDB();
-                const filtered = saved.filter(item => item && item.id !== 'thehomein_current' && item.id !== 'projects_list'); // ✅ 내부 저장 레코드(전체 목록·현재 프로젝트)는 삭제 목록에서 제외
+                // ✅ 키만 읽어 거른 뒤 그 기록만 읽음 (모든 세대·사진을 한꺼번에 메모리로 읽지 않음)
+                const keys = (await getAllKeysFromIndexedDB()).filter(k => typeof k === 'string' && k.startsWith('thehomein_') && k !== 'thehomein_current');
+                const filtered = [];
+                for (const k of keys) filtered.push({ ...(await loadFromIndexedDB(k)), id: k });
                 
                 if (filtered.length === 0) {
-                    container.innerHTML = '<p style="color: var(--text-secondary); text-align: center;">저장된 프로젝트가 없습니다</p>';
+                    container.innerHTML = '<p style="color: var(--text-secondary); text-align: center;">세대 삭제는 📋 프로젝트 목록의 🧹 정리(업로드 완료 세대) 또는 세대를 열고 [🗑️ 현재 삭제]를 누르세요.</p>';
                     return;
                 }
                 
@@ -11447,7 +11519,7 @@ body.light-mode .card.reference-info {
                 container.innerHTML = filtered.map(item => `
                     <div class="saved-item">
                         <div class="saved-info">
-                            <h3>${item.apartmentName || '제목 없음'} ${item.dong} ${item.ho}</h3>
+                            <h3>${escapeHtml(item.apartmentName || '제목 없음')} ${escapeHtml(item.dong || '')} ${escapeHtml(item.ho || '')}</h3>
                             <p>${new Date(item.savedAt).toLocaleString('ko-KR')}</p>
                         </div>
                         <div class="saved-actions">
@@ -11516,6 +11588,8 @@ body.light-mode .card.reference-info {
         }
 
         window.clearAllData = async function() {
+            // ✅ 저장된 세대를 못 불러온 상태에서 지우면 화면에 없는 세대까지 사라짐 → 거부
+            if (window._dbLoadFailed) { alert('⚠️ 저장된 세대를 아직 불러오지 못해 삭제할 수 없습니다.\n앱을 완전히 종료 후 다시 열어주세요.\n계속되면 관리자 010-9985-0128'); return; }
             try {
                 const _notUploaded = projects.filter(p => !isUploadUpToDate(p) && (((p.defects || []).length) || ((p.equipment || []).length))).length;
                 if (_notUploaded && !confirm(`⚠️ 업로드(백업) 안 된 세대 ${_notUploaded}개도 함께 삭제되어 복구할 수 없습니다.\n\n계속할까요?`)) return;
@@ -11529,12 +11603,22 @@ body.light-mode .card.reference-info {
                             saveTimer = null;
                         }
 
-                        let allData = [];
-                        try { allData = await getAllFromIndexedDB(); } catch (readErr) { console.warn('전체 목록 읽기 실패 - 내부 레코드 직접 삭제:', readErr); }
-                        if (!allData || !allData.length) allData = [{ id: 'projects_list' }, { id: 'thehomein_current' }];
-
-                        for (const item of allData) {
-                            await deleteFromIndexedDB(item.id);
+                        // ✅ 저장소를 한 번에 비움 (사진을 메모리로 읽지 않음). 실패하면 전처럼 키를 하나씩 삭제
+                        try {
+                            if (!db) await initDB();
+                            await new Promise((resolve, reject) => {
+                                const tx = db.transaction([STORE_NAME], 'readwrite');
+                                tx.objectStore(STORE_NAME).clear();
+                                tx.oncomplete = () => resolve();
+                                tx.onerror = () => reject(tx.error);
+                                tx.onabort = () => reject(tx.error || new Error('Transaction aborted'));
+                            });
+                        } catch (clearErr) {
+                            console.warn('한 번에 비우기 실패 - 키를 하나씩 삭제:', clearErr);
+                            let keys = [];
+                            try { keys = await getAllKeysFromIndexedDB(); } catch (readErr) { console.warn('키 목록 읽기 실패 - 내부 레코드 직접 삭제:', readErr); }
+                            if (!keys || !keys.length) keys = ['projects_list', 'thehomein_current'];
+                            for (const k of keys) await deleteFromIndexedDB(k);
                         }
                         try { pendingSyncProjects = []; localStorage.removeItem('pendingSyncProjects_unifiedtest'); updateSyncBadge(); } catch (e) {}
 
@@ -12705,7 +12789,7 @@ body.light-mode .card.reference-info {
                 + '<div style="font-size:27px;line-height:1.25;font-weight:800;color:#141d2e;margin-bottom:12px;">처음 오셨어도<br><span style="color:#D23B3B;">오늘</span> 바로 합니다</div>'
                 + _gd.lead('하루 업무 순서와 앱 쓰는 법을 짧게 정리했습니다. 이 가이드는 <b>데이터 탭 → 📖 앱 사용 가이드 보기</b>에서 언제든 다시 볼 수 있습니다.')
                 + '<div style="border-top:2px solid #141d2e;padding-top:10px;">'
-                + ['현장에서 꼭 지킬 3가지', '첫 현장 가기 전에 · 앱 준비', '소장님과 매니저, 누가 뭘 하나', '하루 흐름 9단계 (앱 화면 순서)', '스티커와 사진 쓰는 법', '하자 보는 법 (요약)', '퇴근 전 체크리스트']
+                + ['현장에서 꼭 지킬 3가지', '첫 현장 가기 전에 · 앱 준비', '소장님과 매니저, 누가 뭘 하나', '하루 흐름 9단계 (앱 화면 순서)', '스티커와 사진 쓰는 법', '하자 보는 법 (요약)', '느려지거나 경고가 뜰 때', '퇴근 전 체크리스트']
                     .map((t, i) => '<div style="display:flex;gap:10px;padding:6px 0;font-size:13.5px;color:#1f2733;"><b style="color:#D23B3B;min-width:16px;">' + (i + 1) + '</b>' + t + '</div>').join('')
                 + '</div>'
         },
@@ -12779,12 +12863,12 @@ body.light-mode .card.reference-info {
         {
             title: '하루 흐름 ⑤ 오후 6시 전 마감',
             content: _gd.step(9, '오후 6시 전', '자료 올리고 종료톡')
-                + _gd.row('매니저', '데이터 탭에서 <b>회사 구글 계정으로 로그인 → 공유드라이브에 저장하기.</b> 드라이브 폴더에 <b>PDF·엑셀·사진ZIP·백업</b> 4가지가 올라갔는지 확인하고, 1주일 뒤 앱에서 프로젝트를 삭제합니다.')
+                + _gd.row('매니저', '데이터 탭에서 <b>회사 구글 계정으로 로그인 → 공유드라이브에 저장하기.</b> 목록에 <b>● 완료(초록)</b>가 뜨면 <b>PDF·엑셀·사진ZIP·백업</b> 4가지가 모두 올라간 것입니다. 7일 지나면 <b>📋 프로젝트 목록의 🧹 정리</b>를 누릅니다.')
                 + _gd.row('매니저', '<b>고객 연락처</b>를 넣어 두었으면 업로드가 끝난 뒤 뜨는 창에서 <b>📩 고객에게 보고서 문자 보내기</b>. 번호·안내 문구·보고서 링크가 자동으로 채워지니 전송만 누릅니다.')
                 + _gd.warn('드라이브의 보고서 PDF는 <b>이동·이름 변경은 괜찮지만, 사본 만들기·다시 올리기·삭제는 하지 않습니다.</b> 고객에게 보낸 링크가 끊깁니다. 링크를 못 여는 고객은 카톡으로 PDF를 보냅니다.')
                 + _gd.row('매니저', '다 올렸으면 단톡방에 <b>종료톡</b>.')
                 + _gd.row('공통', '퇴실 전 보일러·에어컨 끄기, 불 끄기, 창문·발코니문·수도 잠그기, 현관문 잠그기. 장비 챙기기.')
-                + _gd.warn('업로드가 일부라도 실패하면 목록에 <b>완료</b>로 표시되지 않습니다. 안내에 따라 다시 올린 뒤에 삭제하세요.')
+                + _gd.warn('업로드가 일부라도 실패하면 목록에 <b>완료</b>로 표시되지 않습니다. 안내에 따라 다시 올려 <b>● 완료</b>가 뜨게 하세요.')
                 + _gd.tip('신호가 없는 곳에서는 자료가 휴대폰에 안전하게 저장됩니다. 신호가 잡히면 다시 <b>공유드라이브에 저장하기</b>를 누르세요.')
         },
         {
@@ -12811,6 +12895,14 @@ body.light-mode .card.reference-info {
                 + _gd.tip('방에 들어가면 <b>문 둘레와 창 둘레부터.</b> 헷갈리면 ① 5가지 모양인가 → ② 하자 아닌 목록(LH 안내문)에 있나 → ③ 그래도 애매하면 사진 찍고 소장님께.')
         },
         {
+            title: '느려지거나 경고가 뜰 때',
+            content: _gd.lead('휴대폰에 세대가 쌓일수록 앱이 느려지고 <b>저장공간 경고</b>가 뜹니다. 다 올리고 7일 지난 세대는 <b>🧹 정리</b>로 지웁니다.')
+                + _gd.row('매니저', '<b>📋 프로젝트 목록의 🧹 정리</b>는 <b>● 완료(초록)</b>이면서 <b>7일 지난</b> 세대만 지웁니다. 지운 세대는 <b>데이터 탭 → ♻️ 프로젝트 가져오기</b>로 다시 불러올 수 있습니다.')
+                + _gd.row('매니저', '<b>● 작업중(노랑)</b> 세대는 지우지 않습니다. 먼저 <b>공유드라이브에 저장하기</b>로 올립니다.')
+                + _gd.warn('화면 위에 빨간 <b>저장 안 됨</b> 띠가 뜨면 앱을 바로 끄지 말고 ① 이 세대를 <b>공유드라이브에 저장하기</b>로 올려 <b>● 완료</b>를 확인하고 ② <b>🧹 정리</b>를 누릅니다. 띠가 사라지면 끄지 말고 그대로 계속합니다. ③ 띠가 남아 있고 ①이 ● 완료일 때만 앱을 완전히 종료(화면 아래에서 위로 쓸어 올려 더홈점검 카드를 위로 밀기)한 뒤 다시 엽니다. <b>올리지 못했으면 앱을 끄지 말고 바로 관리자에게 연락합니다.</b>')
+                + _gd.tip('그래도 안 되면 바로 연락: 관리자 <b>010-9985-0128</b>')
+        },
+        {
             title: '퇴근 전 체크리스트',
             content: _gd.lead('세대마다 퇴실 전에 한 줄씩 확인합니다.')
                 + '<div style="background:#fff;border:1px solid #e1e5eb;border-radius:10px;overflow:hidden;">'
@@ -12818,6 +12910,7 @@ body.light-mode .card.reference-info {
                 + _gd.check('매니저', '모든 하자에 <b>사진 2장</b>(원경+근경)이 들어갔다')
                 + _gd.check('매니저', '하자 보고서 + 장비 보고서, <b>파일 2개</b>를 고객님께 보냈다')
                 + _gd.check('매니저', '<b>오후 6시 전</b>에 공유드라이브에 자료를 올렸다')
+                + _gd.check('매니저', '<b>🧹 정리</b>로 7일 지난 완료 세대를 확인했다(있으면 정리)')
                 + _gd.check('소장', '고객 브리핑을 밝고 여유 있게 했다')
                 + _gd.check('소장', '장비점검 사진을 빠짐없이 찍었다 (욕실·발코니 물고임 포함)')
                 + _gd.check('매니저', '콘센트 접지테스트를 빠짐없이 했다')
@@ -12930,16 +13023,19 @@ body.light-mode .card.reference-info {
 
         // ✅ 새로고침 전 대기 중/진행 중인 저장 먼저 완료 (최대 10초 대기)
         try {
-            if (saveTimer || isSaving) {
+            if (saveTimer || isSaving || window._saveFailOn || window._saveRetrying) { // 저장 실패 중이면 업데이트 전에 한 번 더 저장 시도
                 if (saveTimer) {
                     clearTimeout(saveTimer);
                     saveTimer = null;
                 }
                 showToast('💾 저장 후 업데이트합니다...', 'info');
-                await Promise.race([
-                    saveProjectsToLocalStorage(),
-                    new Promise(r => setTimeout(r, 10000))
+                const r = await Promise.race([
+                    saveProjectsToLocalStorage().then(ok => ok === false ? 'fail' : 'ok'),
+                    new Promise(res => setTimeout(() => res('timeout'), 10000))
                 ]);
+                // 저장이 끝나기 전에 새로고침하면 마지막 사진을 잃음 → 업데이트 미룸 (저장 차단 상태는 다시 여는 게 해결책이라 진행)
+                if (r === 'timeout') { showToast('💾 아직 저장 중입니다. 잠시 후 다시 눌러주세요', 'warning'); return; }
+                if (r === 'fail' && !window._dbLoadFailed) { showToast('⚠️ 저장이 안 되어 업데이트를 미뤘습니다. 잠시 후 다시 눌러주세요', 'error'); return; }
             }
         } catch (e) {
             console.error('업데이트 전 저장 실패:', e);
