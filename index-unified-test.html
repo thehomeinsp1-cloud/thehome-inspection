@@ -8099,6 +8099,37 @@ body.light-mode .card.reference-info {
                     clearTimeout(nearHint._hideTimer);
                     nearHint._hideTimer = setTimeout(() => { nearHint.style.display = 'none'; }, 2000);
                 }
+                // ✅ 찍혔다는 표시: 화면 살짝 번쩍 + 짧은 진동(안드로이드) + 방금 찍은 원경 작은 사진 (터치 막지 않음)
+                try {
+                    const box = document.getElementById('cameraWrapper');
+                    if (box) {
+                        let fx = document.getElementById('shotFlash');
+                        if (!fx) {
+                            fx = document.createElement('div');
+                            fx.id = 'shotFlash';
+                            fx.style.cssText = 'position:absolute;top:0;left:0;right:0;bottom:0;background:#fff;opacity:0;pointer-events:none;z-index:21;';
+                            box.appendChild(fx);
+                        }
+                        fx.style.transition = 'none';
+                        fx.style.opacity = '0.55';
+                        void fx.offsetWidth;
+                        fx.style.transition = 'opacity 0.2s ease-out';
+                        fx.style.opacity = '0';
+                        let th = document.getElementById('shotThumb');
+                        if (!th) {
+                            th = document.createElement('div');
+                            th.id = 'shotThumb';
+                            th.style.cssText = 'display:none;position:absolute;top:12px;right:12px;width:72px;height:54px;border:2px solid #22c55e;border-radius:8px;background:#000 center/cover no-repeat;box-shadow:0 2px 8px rgba(0,0,0,0.5);pointer-events:none;z-index:21;';
+                            th.innerHTML = '<span style="position:absolute;left:-9px;top:-9px;width:22px;height:22px;border-radius:50%;background:#22c55e;color:#fff;font-size:13px;font-weight:800;line-height:22px;text-align:center;">✓</span>';
+                            box.appendChild(th);
+                        }
+                        th.style.backgroundImage = 'url(' + imageData + ')';
+                        th.style.display = 'block';
+                        clearTimeout(th._hideTimer);
+                        th._hideTimer = setTimeout(() => { th.style.display = 'none'; th.style.backgroundImage = ''; }, 1500);
+                    }
+                    if (navigator.vibrate) navigator.vibrate(30);
+                } catch (e) {}
                 return;
             }
 
