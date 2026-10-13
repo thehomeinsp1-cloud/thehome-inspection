@@ -1741,8 +1741,8 @@ body.light-mode .card.reference-info {
                 </div>
 
                 <div class="form-field">
-                    <label class="form-label">고객 연락처 <span style="font-size:12px;font-weight:500;opacity:.75;">(보고서 안내 문자용)</span></label>
-                    <input type="tel" class="form-input" id="customerPhone" placeholder="010-0000-0000" oninput="autoSaveProjectData()">
+                    <label class="form-label">고객 연락처 <span style="color: #ef4444;">*필수</span> <span style="font-size:12px;font-weight:500;opacity:.75;">(보고서 안내 문자용)</span></label>
+                    <input type="tel" class="form-input" id="customerPhone" placeholder="숫자만 입력 (필수)" oninput="formatPhoneInput(this); autoSaveProjectData()" onblur="formatPhoneInput(this, true); autoSaveProjectData()">
                 </div>
 
                 <button class="btn btn-primary" onclick="saveProject()">✅ 프로젝트 정보 저장</button>
@@ -3770,6 +3770,9 @@ body.light-mode .card.reference-info {
                 return;
             }
             
+            // 고객 연락처 필수 확인 (예약 때 받은 번호 — 업로드 뒤 고객 보고서 문자에 사용)
+            if (!window.requireCustomerPhone(project)) return;
+
             // 점검자명 필수 확인
             if (!project.author || project.author.trim() === '') {
                 alert('⚠️ 점검 작성자를 입력해주세요.\n\n프로젝트 탭에서 작성자 이름을 입력해주세요.');
@@ -5636,7 +5639,7 @@ body.light-mode .card.reference-info {
                 const text = buildReportMessage(project, link);
                 // 고객 연락처가 휴대폰·유선 번호 형식이면 '문자로 보내기' 버튼 표시
                 const _pd = String(project.customerPhone || '').replace(/[^0-9]/g, '');
-                const smsNum = /^0[0-9]{8,10}$/.test(_pd) ? _pd : '';
+                const smsNum = /^0[0-9]{8,11}$/.test(_pd) ? _pd : '';
                 const mb = blob.size / 1048576;
                 let file = null, canShareFile = false;
                 try {
@@ -5694,11 +5697,49 @@ body.light-mode .card.reference-info {
             }
         };
         // 공유드라이브에 올린 보고서 PDF를 '링크 있는 사람 보기'로 열고 링크 포함 보내기 창 (고객 연락처 있을 때만)
+        // ✅ 고객 연락처 필수 확인: 비었거나 자리수가 틀리면 안내 후 false (업로드·PDF 공통)
+        window.requireCustomerPhone = function(project) {
+            const raw = String((project && project.customerPhone) || '').trim();
+            if (/^0[0-9]{8,11}$/.test(raw.replace(/[^0-9]/g, ''))) return true; // 12자리 = 0507 등 안심번호
+            alert(raw
+                ? '⚠️ 고객 연락처 형식을 확인해주세요.\n\n"' + raw + '"\n\n프로젝트 탭에서 010-0000-0000 형식으로 입력해주세요.'
+                : '⚠️ 고객 연락처를 입력해주세요.\n\n프로젝트 탭에서 고객 연락처(예약 때 받은 번호)를 입력해주세요.');
+            return false;
+        };
+        // ✅ 연락처 자동 하이픈: 01012345678 → 010-1234-5678, 0212345678 → 02-1234-5678 (+82·0505 등 모양이 다르면 그대로 둠)
+        window.formatPhoneNumber = function(v) {
+            const raw = String(v || '');
+            let d = raw.replace(/[^0-9]/g, '');
+            if (raw.trim().indexOf('+82') === 0) d = '0' + d.slice(2); // +82 10-… → 010-…
+            else if (/[^0-9 ().-]/.test(raw)) return raw;
+            if (!d || d[0] !== '0' || d.length > 12) return raw;
+            if (/^050[0-9]/.test(d) && d.length >= 11) return d.slice(0, 4) + '-' + d.slice(4, d.length - 4) + '-' + d.slice(-4); // 0507-1234-5678 안심번호
+            if (d.length > 11) return raw;
+            if (d.indexOf('02') === 0) {
+                if (d.length <= 2) return d;
+                if (d.length <= 5) return '02-' + d.slice(2);
+                if (d.length <= 9) return '02-' + d.slice(2, 5) + '-' + d.slice(5);
+                return '02-' + d.slice(2, 6) + '-' + d.slice(6);
+            }
+            if (d.length <= 3) return d;
+            if (d.length <= 7) return d.slice(0, 3) + '-' + d.slice(3);
+            if (d.length <= 10) return d.slice(0, 3) + '-' + d.slice(3, 6) + '-' + d.slice(6);
+            return d.slice(0, 3) + '-' + d.slice(3, 7) + '-' + d.slice(7);
+        };
+        // 입력 중에는 맨 끝에서 칠 때만 바꿈 (중간 수정 시 커서 튐 방지), 칸을 벗어나면 항상 정리
+        window.formatPhoneInput = function(el, force) {
+            try {
+                if (!el) return;
+                if (!force && el.selectionStart !== el.value.length) return;
+                const f = window.formatPhoneNumber(el.value);
+                if (f !== el.value) el.value = f;
+            } catch (e) {}
+        };
         window.offerReportLinkSms = async function(project, pdf, kind) {
             try {
                 if (!project || !pdf || !pdf.id || !pdf.blob) return;
                 const digits = String(project.customerPhone || '').replace(/[^0-9]/g, '');
-                if (!/^0[0-9]{8,10}$/.test(digits)) return; // 연락처 없으면 기존과 같음 (창 없음)
+                if (!/^0[0-9]{8,11}$/.test(digits)) return; // 연락처 없으면 기존과 같음 (창 없음)
                 let link = '';
                 try {
                     showToast('🔗 고객용 보고서 링크 만드는 중...');
@@ -6068,7 +6109,7 @@ body.light-mode .card.reference-info {
             const ph = String(project.customerPhone || '').trim();
             if (ph) {
                 const digits = ph.replace(/[^0-9]/g, '');
-                if (/[^0-9 ().+-]/.test(ph) || !/^0[0-9]{8,10}$/.test(digits)) out.push({ no: 0, text: '연락처 확인: "' + ph + '" (형식·자리수)' });
+                if (/[^0-9 ().+-]/.test(ph) || !/^0[0-9]{8,11}$/.test(digits)) out.push({ no: 0, text: '연락처 확인: "' + ph + '" (형식·자리수)' });
             }
             return out;
         }
@@ -9137,6 +9178,8 @@ body.light-mode .card.reference-info {
                 return;
             }
             
+            if (!window.requireCustomerPhone(projectData)) return; // ✅ 고객 연락처 필수
+
             // 2. 장비측정 데이터 확인
             if (!projectData.equipment || projectData.equipment.length === 0) {
                 alert('⚠️ 장비측정 데이터가 없습니다.\n장비점검 탭에서 측정을 진행해주세요.');
@@ -9676,6 +9719,8 @@ body.light-mode .card.reference-info {
                 return;
             }
             
+            if (!window.requireCustomerPhone(projectData)) return; // ✅ 고객 연락처 필수
+
             // ✅ 2. 하자 데이터 확인
             if (!projectData.defects || projectData.defects.length === 0) {
                 alert('⚠️ 등록된 하자가 없습니다');
@@ -11797,6 +11842,7 @@ body.light-mode .card.reference-info {
             } catch (e) {}
         }
         if (!projectData.inspectionDate) return alert('⚠️ 점검일자를 입력해주세요');
+        if (!window.requireCustomerPhone(projectData)) return; // ✅ 고객 연락처 필수
         if (!confirmMissingItems(getCurrentProject())) return; // ✅ 빠진 것 확인 (없으면 창 없음)
         document.getElementById('loading').classList.add('active');
 
