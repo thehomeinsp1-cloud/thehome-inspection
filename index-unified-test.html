@@ -5962,17 +5962,19 @@ body.light-mode .card.reference-info {
             }
         }
 
+        // ✅ 첫 등록 전 세대 확인 (다른 세대에 잘못 등록하는 것 방지) — what: '하자' / '장비점검'
+        function confirmUnitStart(what) {
+            const _apt = String(projectData.apartmentName || '').trim();
+            const _dh = _dongHoText(projectData).trim();
+            const _msg = (_dh
+                ? '🏠 이 세대에 ' + what + ' 등록을 시작합니다.\n\n' + (_apt ? _apt + '\n' : '') + _dh + '\n\n맞는 세대인가요?'
+                : '⚠️ 동·호수가 아직 입력되지 않았습니다.' + (_apt ? '\n(' + _apt + ')' : '') + '\n\n그대로 ' + what + ' 등록을 시작할까요?')
+                + '\n\n아니면 [취소]를 누르고 프로젝트 탭에서 세대를 확인해주세요.';
+            return confirm(_msg);
+        }
         function addDefect() {
-            // ✅ 첫 하자 등록 전 세대 확인 (다른 세대에 잘못 등록하는 것 방지 — 하자 0건일 때 한 번만)
-            if (projectData.defects.length === 0) {
-                const _apt = String(projectData.apartmentName || '').trim();
-                const _dh = _dongHoText(projectData).trim();
-                const _msg = (_dh
-                    ? '🏠 이 세대에 하자 등록을 시작합니다.\n\n' + (_apt ? _apt + '\n' : '') + _dh + '\n\n맞는 세대인가요?'
-                    : '⚠️ 동·호수가 아직 입력되지 않았습니다.' + (_apt ? '\n(' + _apt + ')' : '') + '\n\n그대로 하자 등록을 시작할까요?')
-                    + '\n\n아니면 [취소]를 누르고 프로젝트 탭에서 세대를 확인해주세요.';
-                if (!confirm(_msg)) return;
-            }
+            // ✅ 첫 하자 등록 전 세대 확인 (하자 0건일 때 한 번만)
+            if (projectData.defects.length === 0 && !confirmUnitStart('하자')) return;
             // ✅ 기존 하자 중 사진이 2장 미만인 것이 있는지 확인
             if (projectData.defects.length > 0) {
                 const lastDefect = projectData.defects[projectData.defects.length - 1];
@@ -6543,6 +6545,8 @@ body.light-mode .card.reference-info {
         function addEquipment() {
             // ✅ 프로젝트별 ID 카운터 사용
             const project = getCurrentProject();
+            // ✅ 첫 장비점검 등록 전 세대 확인 (장비 0건일 때 한 번만)
+            if ((!project.equipment || project.equipment.length === 0) && !confirmUnitStart('장비점검')) return;
             
             // ==================== 유효성 검사: 이전 항목 완료 여부 체크 ====================
             if (project.equipment && project.equipment.length > 0) {
