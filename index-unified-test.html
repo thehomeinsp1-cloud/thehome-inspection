@@ -3819,6 +3819,7 @@ body.light-mode .card.reference-info {
             showLoading();
             const projectData = project; // 호환성을 위해
             const failedParts = []; // ✅ 실패한 업로드 항목 (하나라도 있으면 '완료'로 표시하지 않음)
+            let reportPdf = null; // ✅ 고객 문자용: 올린 보고서 PDF { id, blob, name }
             let zipAddedCount = 0; // ✅ 사진 ZIP에 실제로 들어간 사진 수
             const uploadSigAtStart = getUploadSig(project); // ✅ 업로드 시작 시점 내용 (이후 수정 여부 비교용)
 
@@ -3938,7 +3939,8 @@ body.light-mode .card.reference-info {
                     // 장비점검 보고서 업로드
                     await uploadQueue; // ✅ 뒤에서 진행 중인 백업 전송 마무리 (순서 유지: 백업 → 장비 보고서 → 사진 ZIP)
                     showToast('📤 장비점검 보고서 업로드 중...');
-                    await uploadFileToDrive(projectFolderId, equipmentPdfBlob, equipmentPdfFileName, 'application/pdf');
+                    const _equipPdfId = await uploadFileToDrive(projectFolderId, equipmentPdfBlob, equipmentPdfFileName, 'application/pdf');
+                    reportPdf = { id: _equipPdfId, blob: equipmentPdfBlob, name: equipmentPdfFileName };
 
                     // 장비 사진 ZIP 생성 및 업로드
                     const equipPhotoTasks = [];
@@ -4010,6 +4012,7 @@ body.light-mode .card.reference-info {
                     if (!projectToUpload) {
                         const zipMsg = totalPhotos > 0 ? `\n🗜️ 사진 ZIP (${totalPhotos}장)` : '';
                         alert(`✅ 장비점검 업로드 완료!\n\n프로젝트: ${projectName}\n🔧 장비점검 보고서${zipMsg}`);
+                        await window.offerReportLinkSms(project, reportPdf, '장비점검 보고서');
                     }
                     return; // 장비만 업로드 후 종료
                 }
@@ -4135,7 +4138,7 @@ body.light-mode .card.reference-info {
                 // PDF Blob 생성
                 const pdfBlob = doc.output('blob');
                 const pdfFileName = `${projectName}_하자점검보고서.pdf`;
-                enqueueUpload(() => { showToast('📤 PDF 업로드 중...'); return uploadFileToDrive(projectFolderId, pdfBlob, pdfFileName, 'application/pdf'); });
+                enqueueUpload(() => { showToast('📤 PDF 업로드 중...'); return uploadFileToDrive(projectFolderId, pdfBlob, pdfFileName, 'application/pdf').then(id => { reportPdf = { id, blob: pdfBlob, name: pdfFileName }; }); });
 
                 // ========== 3. 엑셀 파일 생성 ==========
                 showToast('📊 엑셀 파일 생성 중...');
@@ -4433,6 +4436,7 @@ body.light-mode .card.reference-info {
                     const equipmentMsg = equipmentPdfBlob ? '\n🔧 장비점검 보고서' : '';
                     const zipMsg = totalPhotos > 0 ? `\n🗜️ 사진 ZIP (${totalPhotos}장)` : '';
                     alert(`✅ 업로드 완료!\n\n프로젝트: ${projectName}\n📄 PDF 보고서${equipmentMsg}\n📊 엑셀 파일${zipMsg}`);
+                    await window.offerReportLinkSms(project, reportPdf, '하자 점검 보고서');
                 }
                 
             } catch (error) {
@@ -5583,12 +5587,15 @@ body.light-mode .card.reference-info {
             return (d ? (/동$/.test(d) ? d : d + '동') : '') + (h ? ' ' + (/호$/.test(h) ? h : h + '호') : '');
         }
         // 고객 안내 문구 (대표님 보고서 전송 안내문 요약)
-        function buildReportMessage(p) {
+        function buildReportMessage(p, link) {
             const where = [String(p.apartmentName || '').trim(), _dongHoText(p)].filter(Boolean).join(' ');
             return '📋 [더홈점검] 점검 결과 보고서 안내\n'
                 + '안녕하세요, 금일 사전점검을 진행한 더홈점검입니다.\n'
-                + (where ? where + ' ' : '') + '점검 결과 보고서를 첨부해 드립니다.\n'
-                + '(PDF가 열리지 않으면 연락 주세요. 기한 내 다운로드 부탁드립니다.)\n\n'
+                + (link
+                    ? (where ? where + ' ' : '') + '점검 결과 보고서를 보내드립니다.\n👉 보고서 보기: ' + link + '\n'
+                      + '(링크를 누르면 PDF로 보고 저장하실 수 있습니다. 기한 내 다운로드 부탁드립니다.)\n\n'
+                    : (where ? where + ' ' : '') + '점검 결과 보고서를 첨부해 드립니다.\n'
+                      + '(PDF가 열리지 않으면 연락 주세요. 기한 내 다운로드 부탁드립니다.)\n\n')
                 + '🔍 보고서 활용\n'
                 + '1. 입주 시 하자 보수 검토 자료\n'
                 + '2. 시공사 미보수 시 증빙 자료\n'
@@ -5618,11 +5625,11 @@ body.light-mode .card.reference-info {
             return false;
         }
         // 보고서 저장 직후 아래쪽 '보내기' 창 (기존 저장 동작은 그대로, 이 창은 추가 안내)
-        window.offerReportShare = function(blob, filename, kind) {
+        window.offerReportShare = function(blob, filename, kind, link, retryLink) {
             try {
                 if (!blob || !filename) return;
                 const project = getCurrentProject();
-                const text = buildReportMessage(project);
+                const text = buildReportMessage(project, link);
                 // 고객 연락처가 휴대폰·유선 번호 형식이면 '문자로 보내기' 버튼 표시
                 const _pd = String(project.customerPhone || '').replace(/[^0-9]/g, '');
                 const smsNum = /^0[0-9]{8,10}$/.test(_pd) ? _pd : '';
@@ -5639,15 +5646,17 @@ body.light-mode .card.reference-info {
                 wrap.style.cssText = 'position:fixed;left:0;right:0;bottom:0;z-index:99990;padding:12px 12px calc(12px + env(safe-area-inset-bottom, 0px));background:rgba(13,20,32,0.35);';
                 wrap.innerHTML = '<div style="max-width:480px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 -6px 30px rgba(0,0,0,0.3);overflow:hidden;color:#1f2733;">'
                     + '<div style="background:#141d2e;color:#fff;padding:12px 16px;border-bottom:3px solid #E84848;display:flex;justify-content:space-between;align-items:center;gap:10px;">'
-                    + '<div><div style="font-size:11px;color:#8e98b2;font-weight:700;letter-spacing:.08em;">보고서 보내기</div><div style="font-size:15px;font-weight:800;">📄 ' + escapeHtml(kind || '보고서') + ' 저장 완료</div></div>'
+                    + '<div><div style="font-size:11px;color:#8e98b2;font-weight:700;letter-spacing:.08em;">보고서 보내기</div><div style="font-size:15px;font-weight:800;">📄 ' + escapeHtml(kind || '보고서') + (link !== undefined ? ' 업로드 완료' : ' 저장 완료') + '</div></div>'
                     + '<button type="button" data-act="close" aria-label="닫기" style="background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.25);color:#fff;width:40px;height:40px;border-radius:50%;font-size:17px;cursor:pointer;">✕</button></div>'
                     + '<div style="padding:12px 16px 14px;">'
                     + '<div style="font-size:12.5px;color:#5b6472;margin-bottom:8px;word-break:break-all;">' + escapeHtml(filename) + ' · ' + mb.toFixed(1) + 'MB</div>'
-                    + (mb > 1 ? '<div style="font-size:12.5px;line-height:1.5;padding:8px 10px;border-radius:8px;background:#fdf3e1;color:#7a4b00;margin-bottom:10px;">문자(MMS)로 보내기엔 큰 파일입니다. <b>카카오톡이나 메일</b>을 권장합니다.</div>' : '')
+                    + (mb > 1 && !link ? '<div style="font-size:12.5px;line-height:1.5;padding:8px 10px;border-radius:8px;background:#fdf3e1;color:#7a4b00;margin-bottom:10px;">문자(MMS)로 보내기엔 큰 파일입니다. <b>카카오톡이나 메일</b>을 권장합니다.</div>' : '')
                     + (canShareFile
                         ? '<button type="button" data-act="share" style="width:100%;min-height:48px;margin-bottom:8px;border:none;border-radius:12px;background:#141d2e;color:#fff;font-size:16px;font-weight:800;cursor:pointer;">📤 고객에게 보내기 (카톡·문자·메일)</button>'
-                        : '<div style="font-size:12.5px;line-height:1.5;color:#5b6472;margin-bottom:8px;">이 화면에서는 바로 보내기를 쓸 수 없습니다. 저장된 PDF를 첨부하고, 아래 안내 문구를 복사해 붙여넣으세요.</div>')
-                    + (smsNum ? '<button type="button" data-act="sms" style="width:100%;min-height:44px;margin-bottom:8px;border:none;border-radius:12px;background:#D23B3B;color:#fff;font-size:14.5px;font-weight:800;cursor:pointer;">📩 고객 문자로 안내 문구 보내기 (' + escapeHtml(String(project.customerPhone || '').trim()) + ')</button>' : '')
+                        : link !== undefined ? '' : '<div style="font-size:12.5px;line-height:1.5;color:#5b6472;margin-bottom:8px;">이 화면에서는 바로 보내기를 쓸 수 없습니다. 저장된 PDF를 첨부하고, 아래 안내 문구를 복사해 붙여넣으세요.</div>')
+                    + (smsNum && link ? '<button type="button" data-act="sms" style="width:100%;min-height:48px;margin-bottom:8px;border:none;border-radius:12px;background:#D23B3B;color:#fff;font-size:15px;font-weight:800;cursor:pointer;">📩 고객에게 보고서 문자 보내기 (' + escapeHtml(String(project.customerPhone || '').trim()) + ')</button>' : '')
+                    + (link === null && retryLink ? '<button type="button" data-act="retry" style="width:100%;min-height:48px;margin-bottom:8px;border:none;border-radius:12px;background:#D23B3B;color:#fff;font-size:15px;font-weight:800;cursor:pointer;">🔗 보고서 링크 다시 만들기</button>' : '')
+                    + (smsNum && link === undefined ? '<div style="font-size:12.5px;line-height:1.5;padding:8px 10px;border-radius:8px;background:#eef3fb;color:#1f3a66;margin-bottom:8px;">📩 고객 문자(보고서 링크 포함)는 <b>공유드라이브에 저장하기</b>가 끝나면 이 창에서 바로 보낼 수 있습니다.</div>' : '')
                     + '<button type="button" data-act="copy" style="width:100%;min-height:44px;border:1px solid #c9d0da;border-radius:12px;background:#fff;color:#141d2e;font-size:14.5px;font-weight:700;cursor:pointer;">📋 안내 문구 복사</button>'
                     + '</div></div>';
                 const close = () => { try { wrap.remove(); } catch (e) {} };
@@ -5656,6 +5665,7 @@ body.light-mode .card.reference-info {
                     if (!btn) { if (e.target === wrap) close(); return; }
                     const act = btn.getAttribute('data-act');
                     if (act === 'close') return close();
+                    if (act === 'retry') { close(); if (retryLink) retryLink(); return; }
                     if (act === 'sms') {
                         // 문자앱을 열고 고객 번호·안내 문구를 채움 (PDF 첨부는 문자앱 구조상 불가 → 보내기 버튼으로)
                         const body = encodeURIComponent(text);
@@ -5676,6 +5686,33 @@ body.light-mode .card.reference-info {
                 document.body.appendChild(wrap);
             } catch (e) {
                 console.warn('보내기 창 표시 실패:', e);
+            }
+        };
+        // 공유드라이브에 올린 보고서 PDF를 '링크 있는 사람 보기'로 열고 링크 포함 보내기 창 (고객 연락처 있을 때만)
+        window.offerReportLinkSms = async function(project, pdf, kind) {
+            try {
+                if (!project || !pdf || !pdf.id || !pdf.blob) return;
+                const digits = String(project.customerPhone || '').replace(/[^0-9]/g, '');
+                if (!/^0[0-9]{8,10}$/.test(digits)) return; // 연락처 없으면 기존과 같음 (창 없음)
+                let link = '';
+                try {
+                    showToast('🔗 고객용 보고서 링크 만드는 중...');
+                    const ctl = (typeof AbortController === 'function') ? new AbortController() : null;
+                    const timer = ctl ? setTimeout(() => ctl.abort(), 15000) : 0;
+                    const res = await fetch('https://www.googleapis.com/drive/v3/files/' + encodeURIComponent(pdf.id) + '/permissions?supportsAllDrives=true', Object.assign({
+                        method: 'POST',
+                        headers: { 'Authorization': 'Bearer ' + accessToken, 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ role: 'reader', type: 'anyone' })
+                    }, ctl ? { signal: ctl.signal } : {}));
+                    clearTimeout(timer);
+                    if (res.ok) link = 'https://drive.google.com/file/d/' + pdf.id + '/view';
+                    else console.warn('보고서 링크 공유 실패:', res.status, await res.text().catch(() => ''));
+                } catch (e) { console.warn('보고서 링크 만들기 실패:', e); }
+                if (!link) alert('⚠️ 고객용 보고서 링크를 만들지 못했습니다.\n(인터넷 연결 또는 드라이브 공유 설정 확인 필요)\n\n이어서 뜨는 창에서 [보고서 링크 다시 만들기]를 누르거나, PDF 파일을 직접 첨부해 보내주세요.');
+                // link: 링크 / null = 업로드는 됐지만 링크 실패 (다시 만들기 버튼) — undefined 는 휴대폰 저장(업로드 전)
+                window.offerReportShare(pdf.blob, pdf.name, kind, link || null, link ? null : () => window.offerReportLinkSms(project, pdf, kind));
+            } catch (e) {
+                console.warn('보고서 링크 보내기 창 오류:', e);
             }
         };
         // Toast 메시지
