@@ -1902,6 +1902,17 @@ body.light-mode .card.reference-info {
                     🔧 장비점검 보고서만
                 </button>
                 
+                <div style="display: flex; gap: 8px; margin-bottom: 6px;">
+                    <button class="btn" onclick="shareEquipmentData()" style="flex: 1; background: #6366f1; color: white; font-size: 14.5px; padding-left: 6px; padding-right: 6px;">
+                        📤 장비점검 보내기
+                    </button>
+                    <button class="btn" onclick="importEquipmentData()" style="flex: 1; background: #6366f1; color: white; font-size: 14.5px; padding-left: 6px; padding-right: 6px;">
+                        📥 장비점검 합치기
+                    </button>
+                </div>
+                <div style="font-size: 12px; line-height: 1.5; color: var(--text-secondary); margin-bottom: 12px; word-break: keep-all;">소장님이 보내고 매니저가 합치면 하자+장비가 <b>PDF 보고서 1개</b>로 나갑니다</div>
+                <input type="file" id="equipmentImportInput" accept=".txt,.json,text/plain,application/json" style="display: none;" onchange="mergeEquipmentFile(this)">
+
                 <button class="btn" onclick="generateFieldReportPDF()" style="width: 100%; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white;">
                     📋 현장출력보고서 (요약형)
                 </button>
@@ -4539,7 +4550,7 @@ body.light-mode .card.reference-info {
                     }
                 };
             });
-            ['switchProject', 'addNewProject', 'deleteCurrentProject', 'importProjectFromBackup', 'clearAllData', 'loadSavedData', 'cleanupUploadedProjects'].forEach(function(name) {
+            ['switchProject', 'addNewProject', 'deleteCurrentProject', 'importProjectFromBackup', 'clearAllData', 'loadSavedData', 'cleanupUploadedProjects', 'importEquipmentData'].forEach(function(name) {
                 const orig = window[name];
                 if (typeof orig !== 'function') return;
                 window[name] = function() {
@@ -9370,6 +9381,163 @@ body.light-mode .card.reference-info {
 
 
         // ✅ 장비점검 전용 PDF 생성 (표지 + 장비측정만)
+        // ==================== ✅ 장비점검 보내기 · 합치기 (소장 폰 → 매니저 폰 → 보고서 1개) ====================
+        // 파일 = 이 세대 장비점검을 글자(JSON)로 담은 .txt (안드로이드 크롬 공유는 .json 파일을 못 보냄). 사진은 그대로 들어감
+        // {type:'thehome-equipment', v:1, exportedAt, author, unit:{apartmentName,dong,ho,inspectionDate}, equipment:[...]}
+        const EQUIP_FILE_TYPE = 'thehome-equipment';
+        function _equipHasPhoto(e) {
+            return !!(e && ((e.photos && typeof e.photos === 'object' && Object.values(e.photos).some(x => x)) || e.photo));
+        }
+        function _equipWhere(q) {
+            return [String((q && q.apartmentName) || '').trim(), _dongHoText(q || {}).trim()].filter(Boolean).join(' ') || '(세대 정보 없음)';
+        }
+        window.shareEquipmentData = async function() {
+            const p = getCurrentProject();
+            // '장비점검 보고서만'과 같은 확인
+            if (!p.apartmentName || !p.dong || !p.ho) { alert('프로젝트 정보를 먼저 입력해주세요'); return; }
+            if (!p.inspectionDate) { alert('⚠️ 점검일자를 입력해주세요'); return; }
+            const list = (Array.isArray(p.equipment) ? p.equipment : []).filter(e => e && (_equipHasPhoto(e) || String(e.inspection || '').trim()));
+            if (!list.some(_equipHasPhoto)) {
+                alert('⚠️ 촬영된 장비측정 사진이 없습니다.\n장비점검 탭에서 사진을 찍은 뒤 다시 눌러주세요.');
+                return;
+            }
+            let text;
+            try {
+                let thermal = null; // 열화상 온도차 안내 스위치(휴대폰별 설정) → 매니저 보고서에도 같게
+                try { thermal = localStorage.getItem('thermalNoticeGlobal') === 'on'; } catch (e) {}
+                text = JSON.stringify({ type: EQUIP_FILE_TYPE, v: 1, exportedAt: new Date().toISOString(), author: String(p.author || '').trim(),
+                    unit: { apartmentName: p.apartmentName, dong: p.dong, ho: p.ho, inspectionDate: p.inspectionDate },
+                    thermalNotice: thermal,
+                    equipment: list }, (k, v) => (k && k.charAt(0) === '_') ? undefined : v); // 보고서 표시용 _값은 빼고 복사
+            } catch (e) {
+                alert('장비점검 파일을 만들지 못했습니다: ' + e.message);
+                return;
+            }
+            const name = ('장비점검_' + String(p.apartmentName).trim() + '_' + _dongHoText(p).replace(/\s+/g, ''))
+                .replace(/[\\/:*?"<>|\s\u0000-\u001f]+/g, '_') + '.txt'; // 파일 이름에 못 쓰는 글자 → _
+            // 공유창은 버튼을 누른 직후에만 열림 → 위에서 기다리는 작업 없이 바로 엶
+            // 파일만 보냄 (글자를 같이 넣으면 카톡 등에서 파일이 빠지고 글자만 가는 경우가 있음)
+            let file = null, canShare = false;
+            try {
+                file = new File([text], name, { type: 'text/plain' });
+                canShare = !!(navigator.share && navigator.canShare && navigator.canShare({ files: [file] }));
+            } catch (e) { canShare = false; }
+            if (canShare) {
+                try {
+                    await navigator.share({ files: [file] });
+                    showToast('📤 카톡에서 매니저에게 ' + name + ' 파일이 갔는지 확인해주세요 (매니저: 📥 장비점검 합치기)');
+                    return;
+                } catch (err) {
+                    if (err && (err.name === 'AbortError' || err.name === 'InvalidStateError')) return; // 공유창을 닫음 / 이미 공유창이 열려 있음(두 번 누름)
+                    console.warn('장비점검 공유 실패 → 파일로 저장:', err);
+                }
+            }
+            // 공유를 못 쓰는 화면: 파일로 저장 (아이폰은 저장 시트가 뜬 뒤 파일을 읽으므로 60초 뒤 해제)
+            const url = URL.createObjectURL(new Blob([text], { type: 'text/plain' }));
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = name;
+            a.style.display = 'none';
+            document.body.appendChild(a);
+            a.click();
+            setTimeout(() => { try { a.remove(); } catch (e) {} }, 100);
+            setTimeout(() => { try { URL.revokeObjectURL(url); } catch (e) {} }, 60000);
+            showToast('📥 장비점검 파일을 저장했습니다 — 카톡에 파일로 첨부해 매니저에게 보내주세요');
+        };
+        // 합치기: [📥 장비점검 합치기] → 숨은 파일 선택칸 (선택 후 mergeEquipmentFile)
+        window.importEquipmentData = function() {
+            const input = document.getElementById('equipmentImportInput');
+            if (!input) return;
+            if (isAppBusy()) { showToast('⏳ 업로드·보고서 생성이 끝난 뒤 다시 합쳐주세요', 'warning'); return; }
+            input.value = ''; // 같은 파일을 다시 골라도 동작
+            input.click();
+        };
+        window.mergeEquipmentFile = async function(input) {
+            const f = input && input.files && input.files[0];
+            if (!f) return;
+            let data = null;
+            try { data = JSON.parse(await f.text()); } catch (e) { data = null; }
+            finally { try { input.value = ''; } catch (e) {} } // 같은 파일을 다시 골라도 동작
+            if (isAppBusy()) { showToast('⏳ 작업이 진행 중입니다. 끝난 뒤 다시 합쳐주세요', 'warning'); return; }
+            if (!data || typeof data !== 'object' || data.type !== EQUIP_FILE_TYPE || !Array.isArray(data.equipment)) {
+                alert('⚠️ 장비점검 파일이 아닙니다.\n\n소장님이 [📤 장비점검 보내기]로 보낸 파일(장비점검_….txt)을 골라주세요.');
+                return;
+            }
+            if (data.v !== 1) {
+                alert('⚠️ 앱 버전이 달라 합칠 수 없는 파일입니다.\n\n두 휴대폰 모두 앱을 최신으로 업데이트한 뒤 다시 보내주세요.');
+                return;
+            }
+            // 외부 파일 값 정리: 글자 속 태그 무력화(백업 복원과 같은 함수, 세대·보낸 사람 포함) + 사진은 data:image 글자만 남김
+            sanitizeImportedProject(data);
+            const items = data.equipment.filter(e => e && typeof e === 'object' && !Array.isArray(e));
+            const okImg = v => (typeof v === 'string' && v.indexOf('data:image/') === 0) ? v : null;
+            items.forEach(e => {
+                if (e.photos && typeof e.photos === 'object') Object.keys(e.photos).forEach(k => { e.photos[k] = okImg(e.photos[k]); });
+                if ('photo' in e) e.photo = okImg(e.photo);
+            });
+            const n = items.length;
+            if (!n) { alert('⚠️ 파일에 장비점검 항목이 없습니다.'); return; }
+
+            const p = getCurrentProject();
+            const u = (data.unit && typeof data.unit === 'object') ? data.unit : {};
+            const have = Array.isArray(p.equipment) ? p.equipment : [];
+            // 세대 확인: 아파트명은 띄어쓰기 무시, 동·호는 숫자만 비교 ('101' = '101동')
+            const norm = x => String(x || '').replace(/\s+/g, '');
+            const num = x => String(x || '').replace(/\D/g, '') || norm(x);
+            const sameDongHo = !!num(u.dong) && num(u.dong) === num(p.dong) && !!num(u.ho) && num(u.ho) === num(p.ho);
+            const sameUnit = sameDongHo && !!norm(u.apartmentName) && norm(u.apartmentName) === norm(p.apartmentName);
+            // 중복 확인: 이미 있는 항목(같은 사진·점검결과·공간)은 건너뛰고 새 항목만 합침 (소장님이 하나 더 찍어 다시 보내도 두 번 안 들어감)
+            const sig = e => storeSig([e.photos || null, e.photo || null, String(e.inspection || ''), e.spaces || null]); // 사진은 요약만 (메모리 복사 없음)
+            const haveSig = new Set(have.map(sig));
+            const fresh = items.filter(e => !haveSig.has(sig(e)));
+            const skipped = n - fresh.length;
+            if (!fresh.length) { alert('✅ 이미 이 세대에 모두 합쳐진 장비점검입니다 (' + n + '건).\n\n다시 합칠 필요가 없습니다.'); return; }
+            const key = String(data.exportedAt || '') + '|' + String(data.author || '');
+            const dates = '\n점검일: 받은 파일 ' + (String(u.inspectionDate || '') || '-') + ' / 지금 세대 ' + (String(p.inspectionDate || '') || '-')
+                + (u.inspectionDate && p.inspectionDate && String(u.inspectionDate) !== String(p.inspectionDate) ? '  ⚠️ 날짜가 다릅니다' : '');
+            const from = '\n보낸 사람: ' + (String(data.author || '').trim() || '-');
+            const addNote = (have.length ? '\n\n이 세대에 이미 장비점검 ' + have.length + '건이 있습니다. 지우지 않고 뒤에 이어 붙입니다.' : '')
+                + (skipped ? '\n같은 장비점검 ' + skipped + '건은 이미 있어 건너뜁니다 · 새 ' + fresh.length + '건만 합칩니다.' : '');
+            const msg = sameUnit
+                ? '🔧 받은 장비점검 ' + fresh.length + '건을 이 세대에 합칩니다.\n\n' + _equipWhere(p) + dates + from + addNote + '\n\n합칠까요?'
+                : sameDongHo
+                ? '⚠️ 아파트 이름이 조금 다릅니다.\n\n받은 파일: ' + _equipWhere(u) + '\n지금 세대: ' + _equipWhere(p) + dates + from
+                    + '\n\n같은 세대가 맞으면 [확인]을 눌러 ' + fresh.length + '건을 합칩니다.' + addNote + '\n\n합칠까요?'
+                : '⚠️⚠️ 세대가 다릅니다! ⚠️⚠️\n\n받은 파일: ' + _equipWhere(u)
+                    + '\n지금 세대: ' + _equipWhere(p) + dates + from
+                    + '\n\n다른 세대에 합치면 고객 보고서에 다른 집 장비점검이 들어갑니다.\n[취소]를 누르고 프로젝트 탭에서 맞는 세대를 연 뒤 다시 합쳐주세요.'
+                    + addNote + '\n\n그래도 지금 세대에 합칠까요?';
+            if (!confirm(msg)) return;
+
+            // 이어 붙이기 (기존 항목은 그대로) — 번호는 이 세대 마지막 번호 다음부터
+            if (!Array.isArray(p.equipment)) p.equipment = [];
+            if (!Array.isArray(p.customSpaces)) p.customSpaces = [];
+            let id = Math.max(Number(p.lastEquipmentId) || 0, ...p.equipment.map(e => Number(e && e.id) || 0));
+            const known = getSpaceButtons();
+            fresh.forEach(e => {
+                e.id = ++id;
+                // 소장님이 직접 입력한 공간은 이 세대 공간 버튼에도 추가 (선택 표시가 보이도록)
+                (Array.isArray(e.spaces) ? e.spaces : []).forEach(s => { if (typeof s === 'string' && s.trim() && known.indexOf(s) < 0) { known.push(s); p.customSpaces.push(s); } });
+                p.equipment.push(e);
+            });
+            p.lastEquipmentId = id;
+            p.equipmentImports = (Array.isArray(p.equipmentImports) ? p.equipmentImports : []).concat([{ key: key, n: fresh.length, from: _equipWhere(u), at: new Date().toISOString() }]);
+            // 열화상 온도차 안내 페이지: 소장님 설정을 따름 (이 휴대폰 스위치도 같게)
+            let thermalNote = '';
+            if (typeof data.thermalNotice === 'boolean') {
+                try { localStorage.setItem('thermalNoticeGlobal', data.thermalNotice ? 'on' : 'off'); if (typeof restoreThermalToggle === 'function') restoreThermalToggle(); } catch (e) {}
+                thermalNote = ' · 열화상 온도차 안내 ' + (data.thermalNotice ? '켜짐' : '꺼짐') + '(소장님 설정)';
+            }
+            renderEquipment();
+            updateProgress();
+            // ✅ 즉시 저장 + 결과 확인 (사진이 많아 용량 부족에 걸리기 쉬운 저장)
+            clearTimeout(saveTimer);
+            const ok = await saveProjectsToLocalStorage();
+            showToast(ok === false
+                ? '⚠️ 합친 장비점검이 휴대폰에 저장되지 않았습니다. 앱을 끄지 마세요'
+                : '🔧 장비점검 ' + fresh.length + '건을 합쳤습니다 — PDF 보고서·업로드에 함께 들어갑니다' + thermalNote, ok === false ? 'error' : 'success');
+        };
+
         window.generateEquipmentOnlyPDF = async function() {
             // 1. 프로젝트 정보 검증
             if (!projectData.apartmentName || !projectData.dong || !projectData.ho) {
@@ -13160,9 +13328,9 @@ body.light-mode .card.reference-info {
             title: '소장님은 보고, 매니저는 남깁니다',
             content: _gd.lead('3세대 이상은 둘이 한 팀(1~2세대는 소장님 혼자 진행). 소장님이 하자를 찾아 스티커를 붙이면, 매니저가 <b>스티커 순서대로</b> 앱에 사진과 내용을 남깁니다.')
                 + _gd.h(_gd.chip('소장') + '현장 총괄 · 하자를 찾고, 고객과 이야기')
-                + _gd.pills(['고객 연락 (전날·당일 아침, 도착 30분 전)', '첫 세대는 고객과 함께 입실', '하자 찾고 스티커 (위치 구체적으로)', '장비점검 (보일러 먼저)', '욕실·발코니 물고임 사진', '고객 브리핑 · 잔금·모바일 접수 안내', '장비 보고서 → 매니저 전달'])
+                + _gd.pills(['고객 연락 (전날·당일 아침, 도착 30분 전)', '첫 세대는 고객과 함께 입실', '하자 찾고 스티커 (위치 구체적으로)', '장비점검 (보일러 먼저)', '욕실·발코니 물고임 사진', '고객 브리핑 · 잔금·모바일 접수 안내', '📤 장비점검 → 매니저에게 보내기'])
                 + _gd.h(_gd.chip('매니저') + '기록·관리 · 앱에 남기고 자료 마감')
-                + _gd.pills(['단톡방 입실톡 → 종료톡', '세대 정보·평면도 입력', '스티커마다 사진 2장 (원경+근경)', '공기질 수치 입력', '욕실·발코니 물 충분히 뿌리기', '하자+장비 보고서 2개 고객 전송', '오후 6시 전 드라이브 업로드'])
+                + _gd.pills(['단톡방 입실톡 → 종료톡', '세대 정보·평면도 입력', '스티커마다 사진 2장 (원경+근경)', '공기질 수치 입력', '욕실·발코니 물 충분히 뿌리기', '📥 장비점검 합쳐 보고서 1개 고객 전송', '오후 6시 전 드라이브 업로드'])
         },
         {
             title: '하루 흐름 ① 도착 · 세대 정보',
@@ -13196,14 +13364,16 @@ body.light-mode .card.reference-info {
                 + _gd.row('소장', '열화상(창·벽 단열, 바닥 난방), 레이저 수평계(벽·바닥), 욕실·발코니 물고임 사진을 <b>장비점검 탭</b>에 <b>좌 / 우 / 바닥1 / 바닥2</b> 4구역으로 올립니다. 열화상은 계절에 따라 진행 여부를 협의합니다.')
         },
         {
-            title: '하루 흐름 ④ 브리핑 · 보고서 2개',
+            title: '하루 흐름 ④ 브리핑 · 보고서 보내기',
             content: _gd.step(7, '10~15분', '고객 브리핑')
                 + _gd.row('소장', '밝은 표정으로 결과를 설명합니다. 급한 모습은 보이지 않습니다.')
                 + _gd.row('소장', '모바일 하자접수 대행 안내: 접수비 5만원(무상 고객 제외). 신청하면 매니저가 고객 ID·비번을 받아 적습니다.')
                 + _gd.row('소장', '잔금은 당일 입금 기준. 예약 안내 카톡의 잔금 내역으로 입금을 부탁드립니다.')
-                + _gd.step(8, '점검 끝', '보고서 2개 만들어 보내기')
-                + _gd.row('소장', '<b>데이터 탭 → 장비점검 전용 PDF</b> 만들기 → 매니저에게 카톡으로 전달.')
-                + _gd.row('매니저', '<b>데이터 탭 → PDF 보고서 생성</b>(하자 보고서). 소장님께 받은 장비 보고서와 함께 <b>파일 2개</b>를 고객님께 카톡·문자·메일로 보냅니다.')
+                + _gd.step(8, '점검 끝', '장비점검 합쳐 보고서 1개로 보내기')
+                + _gd.row('소장', '<b>데이터 탭 → 📤 장비점검 보내기</b> → 카톡에서 매니저를 골라 보냅니다.')
+                + _gd.row('매니저', '카톡에서 받은 파일은 열어 볼 필요 없이 저장만 합니다(안드로이드: 내 파일 → Download → KakaoTalk / 아이폰: 공유 → 파일에 저장) → <b>데이터 탭 → 📥 장비점검 합치기</b> → 받은 파일 선택. 세대가 맞는지 확인창이 뜹니다.')
+                + _gd.row('매니저', '<b>PDF 보고서</b>를 만들면 하자+장비가 <b>보고서 1개</b>로 나옵니다. 이 1개를 고객님께 카톡·문자·메일로 보냅니다. 업로드·고객 문자 링크에도 함께 들어갑니다.')
+                + _gd.tip('합치기가 안 되면 예전처럼 소장님이 <b>🔧 장비점검 보고서만</b>을 만들어 매니저에게 보내고, 고객님께 파일 2개를 보냅니다.')
         },
         {
             title: '하루 흐름 ⑤ 오후 6시 전 마감',
@@ -13253,7 +13423,7 @@ body.light-mode .card.reference-info {
                 + '<div style="background:#fff;border:1px solid #e1e5eb;border-radius:10px;overflow:hidden;">'
                 + _gd.check('매니저', '단톡방에 <b>입실톡과 종료톡</b>을 보냈다')
                 + _gd.check('매니저', '모든 하자에 <b>사진 2장</b>(원경+근경)이 들어갔다')
-                + _gd.check('매니저', '하자 보고서 + 장비 보고서, <b>파일 2개</b>를 고객님께 보냈다')
+                + _gd.check('매니저', '장비점검을 합친 <b>보고서 1개</b>(하자+장비)를 고객님께 보냈다')
                 + _gd.check('매니저', '<b>오후 6시 전</b>에 공유드라이브에 자료를 올렸다')
                 + _gd.check('매니저', '<b>🧹 정리</b>로 7일 지난 완료 세대를 확인했다(있으면 정리)')
                 + _gd.check('소장', '고객 브리핑을 밝고 여유 있게 했다')
