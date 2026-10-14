@@ -1854,12 +1854,24 @@ body.light-mode .card.reference-info {
             <div class="card" style="margin-bottom: 14px; padding: 12px 14px;">
                 <div style="display: flex; align-items: center; gap: 10px;">
                     <div id="driveLoginStatus" style="flex: 1; min-width: 0; font-size: 14px; font-weight: 700; word-break: break-all;">
-                        <div id="notSignedInSimple" style="display: block;">⚠️ 회사 구글 로그인이 필요합니다</div>
+                        <div id="notSignedInSimple" style="display: block;">⚠️ 구글 로그인 필요</div>
                         <div id="signedInSimple" style="display: none;">✅ <span id="userEmailSimple"></span></div>
                     </div>
                     <button id="signInBtnSimple" class="btn btn-secondary" onclick="handleGoogleSignIn()" style="width: auto; flex-shrink: 0; min-height: 40px; padding: 8px 14px; font-size: 14px;">🔐 로그인</button>
                     <button id="signOutBtnSimple" class="btn btn-secondary" onclick="handleGoogleSignOut()" style="width: auto; flex-shrink: 0; min-height: 40px; padding: 8px 14px; font-size: 13px; display: none;">로그아웃</button>
                 </div>
+                <details style="margin-top: 8px;">
+                    <summary style="cursor: pointer; font-size: 12.5px; font-weight: 700; color: var(--text-secondary); padding: 4px 0;">❓ 처음 로그인 방법 · 로그인이 풀릴 때</summary>
+                    <ol style="font-size: 13px; line-height: 1.55; margin: 8px 0 6px; padding-left: 20px;">
+                        <li style="margin: 0 0 6px;"><b>🔐 로그인</b> → 회사 구글 계정 선택</li>
+                        <li style="margin: 0 0 6px;">"확인하지 않은 앱" 화면 → 왼쪽 아래 <b>고급</b> → <b>이동(안전하지 않음)</b></li>
+                        <li style="margin: 0 0 6px;">권한 화면 → <b>모두 선택</b> 체크 → <b>계속</b></li>
+                    </ol>
+                    <div style="font-size: 12.5px; line-height: 1.55; padding: 8px 10px; border-radius: 8px; background: rgba(245, 158, 11, 0.12); word-break: keep-all;">
+                        ⏰ 로그인은 <b>약 1시간</b>만 유지됩니다.<br>
+                        소장님 <b>장비점검 보내기</b>, 매니저 <b>합치기·공유드라이브 저장</b> 전에 풀려 있으면 다시 로그인하세요.
+                    </div>
+                </details>
             </div>
 
             <!-- 🔧 소장님: 장비점검 끝나면 -->
