@@ -6516,7 +6516,7 @@ body.light-mode .card.reference-info {
                                        id="customSpace${defect.id}" 
                                        class="form-input" 
                                        value=""
-                                       placeholder="예: 서재, 다용도실 입력 후 엔터" 
+                                       placeholder="예: 서재, 창고 입력 후 엔터" 
                                        style="width: 100%; font-size: 14px; margin-bottom: 4px;"
                                        onkeydown="if(event.key==='Enter' && !event.isComposing){event.preventDefault();addCustomSpace(${defect.id});}"
                                        onchange="addCustomSpace(${defect.id})">
@@ -6866,7 +6866,7 @@ body.light-mode .card.reference-info {
                                        id="customSpaceEquip${item.id}" 
                                        class="form-input" 
                                        value=""
-                                       placeholder="예: 서재, 다용도실 입력 후 엔터" 
+                                       placeholder="예: 서재, 창고 입력 후 엔터" 
                                        style="width: 100%; font-size: 14px; margin-bottom: 4px;"
                                        onkeydown="if(event.key==='Enter' && !event.isComposing){event.preventDefault();addCustomSpaceEquipment(${item.id});}"
                                        onchange="addCustomSpaceEquipment(${item.id})">
@@ -8460,14 +8460,14 @@ body.light-mode .card.reference-info {
 
         // ==================== 커스텀 공간 관리 ====================
         function getSpaceButtons() {
-            const defaultSpaces = ['현관','안방','침실1','침실2','침실3','침실4','복도','거실','주방','팬트리','외부','알파룸','발코니','대피공간','실외기실','파우더룸','드레스룸','공용욕실','부부욕실'];
+            const defaultSpaces = ['현관','안방','침실1','침실2','침실3','침실4','복도','거실','주방','팬트리','다용도실','외부','알파룸','발코니','대피공간','실외기실','파우더룸','드레스룸','공용욕실','부부욕실'];
             
             // 프로젝트별 커스텀 공간 가져오기
             if (!projectData.customSpaces) {
                 projectData.customSpaces = [];
             }
             
-            return [...defaultSpaces, ...projectData.customSpaces];
+            return [...defaultSpaces, ...projectData.customSpaces.filter(s => defaultSpaces.indexOf(s) < 0)];
         }
 
         window.addCustomSpace = function(defectId) {
@@ -8611,7 +8611,7 @@ body.light-mode .card.reference-info {
         // 공간 정렬: 부속 공간(발코니·팬트리 등)을 뒤로 보내 자연스러운 표현으로
         // 예) 발코니 → 주방 순으로 눌러도 "주방, 발코니"
         function sortSpacesForKorean(spaces) {
-            const sub = ['발코니', '팬트리', '드레스룸', '파우더룸', '실외기실', '대피공간', '알파룸', '복도', '외부'];
+            const sub = ['발코니', '팬트리', '다용도실', '드레스룸', '파우더룸', '실외기실', '대피공간', '알파룸', '복도', '외부'];
             return [...spaces].sort((a, b) => {
                 const ai = sub.indexOf(a), bi = sub.indexOf(b);
                 const aSub = ai > -1, bSub = bi > -1;
