@@ -1850,83 +1850,63 @@ body.light-mode .card.reference-info {
 
         <!-- 데이터 관리 섹션 -->
         <div id="data" class="section">
-            <!-- ✅ 점검완료 → 공유드라이브 저장 카드 -->
-            <div class="card" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; margin-bottom: 20px;">
-                <h2 style="color: white; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
-                    ✅ 점검완료 → 공유드라이브 저장
-                </h2>
-                
-                <div id="driveLoginStatus" style="margin-bottom: 15px; padding: 12px; background: rgba(255,255,255,0.2); border-radius: 8px; font-size: 14px;">
-                    <div id="notSignedInSimple" style="display: block;">
-                        ⚠️ Google 로그인이 필요합니다
+            <!-- ✅ 회사 구글 로그인 (소장님·매니저 모두 필요) -->
+            <div class="card" style="margin-bottom: 14px; padding: 12px 14px;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div id="driveLoginStatus" style="flex: 1; min-width: 0; font-size: 14px; font-weight: 700; word-break: break-all;">
+                        <div id="notSignedInSimple" style="display: block;">⚠️ 회사 구글 로그인이 필요합니다</div>
+                        <div id="signedInSimple" style="display: none;">✅ <span id="userEmailSimple"></span></div>
                     </div>
-                    <div id="signedInSimple" style="display: none;">
-                        ✅ <span id="userEmailSimple"></span>
-                    </div>
-                </div>
-                
-                <button id="driveUploadBtn" class="btn" onclick="uploadProjectToDrive()" style="width: 100%; background: white; color: #059669; font-weight: bold; font-size: 16px; padding: 15px; margin-bottom: 10px;">
-                    ☁️ 공유드라이브에 저장하기
-                </button>
-                
-                <div style="display: flex; gap: 10px;">
-                    <button id="signInBtnSimple" class="btn" onclick="handleGoogleSignIn()" style="flex: 1; background: rgba(255,255,255,0.2); color: white;">
-                        🔐 로그인
-                    </button>
-                    <button id="signOutBtnSimple" class="btn" onclick="handleGoogleSignOut()" style="flex: 1; background: rgba(255,255,255,0.2); color: white; display: none;">
-                        🚪 로그아웃
-                    </button>
+                    <button id="signInBtnSimple" class="btn btn-secondary" onclick="handleGoogleSignIn()" style="width: auto; flex-shrink: 0; min-height: 40px; padding: 8px 14px; font-size: 14px;">🔐 로그인</button>
+                    <button id="signOutBtnSimple" class="btn btn-secondary" onclick="handleGoogleSignOut()" style="width: auto; flex-shrink: 0; min-height: 40px; padding: 8px 14px; font-size: 13px; display: none;">로그아웃</button>
                 </div>
             </div>
-            
-            <!-- 📖 사용 가이드 버튼 -->
-            <div class="card" style="margin-bottom: 20px; background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); color: white;">
-                <button onclick="showTutorial()" class="btn" style="width: 100%; background: white; color: #1d4ed8; font-weight: bold; font-size: 16px; padding: 15px;">
-                    📖 앱 사용 가이드 보기
+
+            <!-- 🔧 소장님: 장비점검 끝나면 -->
+            <div class="card" style="margin-bottom: 14px; border: 2px solid #7F77DD;">
+                <h2 style="font-size: 17px; margin-bottom: 12px; color: #9C95E8;">🔧 소장님 · 장비점검 끝나면</h2>
+                <button class="btn" onclick="sendEquipmentToDrive()" style="display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; margin-bottom: 8px; background: #534AB7; color: #FFFFFF; border: none; padding: 13px 14px; font-size: 15.5px;">
+                    <span style="display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: #FFFFFF; color: #534AB7; font-size: 13px; font-weight: 800; flex-shrink: 0;">1</span> 📤 장비점검 보내기 (필수)
+                </button>
+                <div style="font-size: 13.5px; line-height: 1.5; font-weight: 800; color: #9C95E8; margin: 2px 0 10px; word-break: keep-all;">✅ 장비점검이 끝나면 ① 장비점검 보내기를 꼭 눌러주세요. 매니저가 합쳐야 고객 보고서 1개에 장비점검이 들어갑니다.</div>
+                <div style="font-size: 13px; line-height: 1.5; font-weight: 800; padding: 9px 11px; border-radius: 10px; background: rgba(210, 59, 59, 0.12); border: 1px solid #D23B3B; color: #FF8080; margin-bottom: 10px; word-break: keep-all;">⚠️ 정말 긴급하게 ①이 안 될 때만 아래 <u>장비점검 보고서 PDF</u>를 매니저에게 보내주세요.</div>
+                <button class="btn btn-secondary" onclick="generateEquipmentOnlyPDF()" style="width: 100%; font-size: 14px;">
+                    🔧 장비점검 보고서만 (PDF · 긴급할 때만)
                 </button>
             </div>
 
-            <!-- 📥 다운로드 카드 -->
-            <div class="card" style="margin-bottom: 20px;">
-                <h2 style="color: var(--primary); margin-bottom: 15px;">📥 다운로드</h2>
-                
-                <button class="btn" onclick="downloadAllData()" style="width: 100%; background: #3b82f6; color: white; font-weight: bold; font-size: 16px; padding: 15px; margin-bottom: 10px;">
-                    📦 모든 자료 다운로드 (ZIP)
+            <!-- 📋 매니저: 점검 끝나면 순서대로 -->
+            <div class="card" style="margin-bottom: 14px; border: 2px solid #D23B3B;">
+                <h2 style="font-size: 17px; margin-bottom: 12px; color: #FF8080;">📋 매니저 · 점검 끝나면 순서대로</h2>
+                <button class="btn btn-secondary" onclick="openEquipmentDriveSheet()" style="display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; margin-bottom: 8px; padding: 12px 14px; font-size: 15px;">
+                    <span style="display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: #D23B3B; color: #FFFFFF; font-size: 13px; font-weight: 800; flex-shrink: 0;">1</span> 📥 장비점검 합치기 (소장님이 보낸 것)
                 </button>
-                
-                <button class="btn btn-primary" onclick="generatePDF()" style="width: 100%; margin-bottom: 10px;">
-                    📄 PDF 보고서만 다운로드
+                <button class="btn btn-primary" onclick="generatePDF()" style="display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; margin-bottom: 8px; padding: 13px 14px; font-size: 15.5px;">
+                    <span style="display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: #FFFFFF; color: #D23B3B; font-size: 13px; font-weight: 800; flex-shrink: 0;">2</span> 📄 PDF 보고서 (하자+장비) · 고객에게 보내기
                 </button>
-                
-                <button class="btn" onclick="generateEquipmentOnlyPDF()" style="width: 100%; background: #6366f1; color: white; margin-bottom: 10px;">
-                    🔧 장비점검 보고서만
+                <button id="driveUploadBtn" class="btn btn-secondary" onclick="uploadProjectToDrive()" style="display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; margin-bottom: 8px; padding: 12px 14px; font-size: 15px;">
+                    <span style="display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: #D23B3B; color: #FFFFFF; font-size: 13px; font-weight: 800; flex-shrink: 0;">3</span> ☁️ 공유드라이브에 저장하기 · 고객 문자 링크
                 </button>
-                
-                <div style="display: flex; gap: 8px; margin-bottom: 6px;">
-                    <button class="btn" onclick="sendEquipmentToDrive()" style="flex: 1; background: #6366f1; color: white; font-size: 14.5px; padding-left: 6px; padding-right: 6px;">
-                        📤 장비점검 보내기
-                    </button>
-                    <button class="btn" onclick="openEquipmentDriveSheet()" style="flex: 1; background: #6366f1; color: white; font-size: 14.5px; padding-left: 6px; padding-right: 6px;">
-                        📥 장비점검 합치기
-                    </button>
-                </div>
-                <div style="font-size: 12px; line-height: 1.5; color: var(--text-secondary); margin-bottom: 2px; word-break: keep-all;">소장님이 보내고 매니저가 합치면 하자+장비가 <b>PDF 보고서 1개</b>로 나갑니다 (회사 구글 로그인 필요)</div>
-                <div style="font-size: 12px; line-height: 1.5; color: var(--text-secondary); margin-bottom: 12px; word-break: keep-all;">드라이브가 안 될 때: <button type="button" onclick="shareEquipmentData()" style="background: none; border: none; margin: 0; padding: 6px 2px; color: #4f46e5; text-decoration: underline; font-size: 12px; font-weight: 700; font-family: inherit; cursor: pointer;">파일로 보내기</button> · <button type="button" onclick="importEquipmentData()" style="background: none; border: none; margin: 0; padding: 6px 2px; color: #4f46e5; text-decoration: underline; font-size: 12px; font-weight: 700; font-family: inherit; cursor: pointer;">파일에서 합치기</button></div>
+                <div style="font-size: 12.5px; line-height: 1.5; color: var(--text-secondary); word-break: keep-all; margin-top: 2px;">③이 끝나면 고객 연락처로 보고서 링크 문자를 보낼 수 있습니다.</div>
                 <input type="file" id="equipmentImportInput" accept=".txt,.json,text/plain,application/json" style="display: none;" onchange="mergeEquipmentFile(this)">
+            </div>
 
-                <button class="btn" onclick="generateFieldReportPDF()" style="width: 100%; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white;">
-                    📋 현장출력보고서 (요약형)
-                </button>
-                
-                <button class="btn" onclick="generateDefectListExcel()" style="width: 100%; background: linear-gradient(135deg, #059669 0%, #10b981 100%); color: white; margin-top: 10px;">
-                    📊 하자점검리스트 (엑셀)
-                </button>
-                
-                <div style="text-align: center; margin-top: 14px; padding-top: 12px; border-top: 1px solid #eee;">
+            <!-- 📁 기타 자료 -->
+            <div class="card" style="margin-bottom: 14px;">
+                <h2 style="font-size: 16px; margin-bottom: 10px; color: var(--text-secondary);">📁 기타 자료</h2>
+                <button class="btn btn-secondary" onclick="generateFieldReportPDF()" style="width: 100%; margin-bottom: 8px; font-size: 14px;">📋 현장출력보고서 (요약형)</button>
+                <button class="btn btn-secondary" onclick="generateDefectListExcel()" style="width: 100%; margin-bottom: 8px; font-size: 14px;">📊 하자점검리스트 (엑셀)</button>
+                <button class="btn btn-secondary" onclick="downloadAllData()" style="width: 100%; margin-bottom: 8px; font-size: 14px;">📦 모든 자료 다운로드 (ZIP)</button>
+                <div style="text-align: center; margin-top: 6px;">
                     <button onclick="importProjectFromBackup()" style="background: none; border: 1px solid #cbd5e1; color: #64748b; font-size: 13px; padding: 8px 18px; border-radius: 8px; cursor: pointer;">
                         ♻️ 프로젝트 가져오기 (백업 복원)
                     </button>
                 </div>
+            </div>
+
+            <!-- 📖 사용 가이드 -->
+            <div class="card" style="margin-bottom: 14px;">
+                <button onclick="showTutorial()" class="btn btn-secondary" style="width: 100%; font-size: 15px;">📖 앱 사용 가이드 보기</button>
             </div>
 
             <!-- 🗑️ 프로젝트 관리 카드 -->
@@ -5773,6 +5753,7 @@ body.light-mode .card.reference-info {
                 if (!blob || !filename) return;
                 const project = getCurrentProject();
                 const text = buildReportMessage(project, link);
+                const plain = kind === '장비점검 보고서'; // 소장 → 매니저 전달용: 고객 안내 문구 없이 파일만
                 // 고객 연락처가 휴대폰·유선 번호 형식이면 '문자로 보내기' 버튼 표시
                 const _pd = String(project.customerPhone || '').replace(/[^0-9]/g, '');
                 const smsNum = /^0[0-9]{8,11}$/.test(_pd) ? _pd : '';
@@ -5795,13 +5776,13 @@ body.light-mode .card.reference-info {
                     + '<div style="font-size:12.5px;color:#5b6472;margin-bottom:8px;word-break:break-all;">' + escapeHtml(filename) + ' · ' + mb.toFixed(1) + 'MB</div>'
                     + (mb > 1 && !link ? '<div style="font-size:12.5px;line-height:1.5;padding:8px 10px;border-radius:8px;background:#fdf3e1;color:#7a4b00;margin-bottom:10px;">문자(MMS)로 보내기엔 큰 파일입니다. <b>카카오톡이나 메일</b>을 권장합니다.</div>' : '')
                     + (canShareFile
-                        ? '<button type="button" data-act="share" style="width:100%;min-height:48px;margin-bottom:8px;border:none;border-radius:12px;background:#141d2e;color:#fff;font-size:16px;font-weight:800;cursor:pointer;">📤 고객에게 보내기 (카톡·문자·메일)</button>'
+                        ? '<button type="button" data-act="share" style="width:100%;min-height:48px;margin-bottom:8px;border:none;border-radius:12px;background:#141d2e;color:#fff;font-size:16px;font-weight:800;cursor:pointer;">' + (plain ? '📤 보내기 (카톡·문자·메일)' : '📤 고객에게 보내기 (카톡·문자·메일)') + '</button>'
                         : link !== undefined ? '' : '<div style="font-size:12.5px;line-height:1.5;color:#5b6472;margin-bottom:8px;">이 화면에서는 바로 보내기를 쓸 수 없습니다. 저장된 PDF를 첨부하고, 아래 안내 문구를 복사해 붙여넣으세요.</div>')
                     + (smsNum && link ? '<button type="button" data-act="sms" style="width:100%;min-height:48px;margin-bottom:8px;border:none;border-radius:12px;background:#D23B3B;color:#fff;font-size:15px;font-weight:800;cursor:pointer;">📩 고객에게 보고서 문자 보내기 (' + escapeHtml(String(project.customerPhone || '').trim()) + ')</button>' : '')
                     + (link ? '<div style="font-size:12.5px;line-height:1.55;padding:8px 10px;border-radius:8px;background:#fdf3e1;color:#6b4300;margin-bottom:8px;">📌 <b>직원 안내</b><br>· 드라이브에서 이 보고서 파일은 <b>이동·이름 변경은 괜찮지만</b>, <b>사본 만들기·다시 올리기·삭제</b>를 하면 고객 링크가 끊깁니다.<br>· 링크를 못 여는 고객(폴더폰·링크 불안 등)은 카톡으로 PDF를 보내주세요.</div>' : '')
                     + (link === null && retryLink ? '<button type="button" data-act="retry" style="width:100%;min-height:48px;margin-bottom:8px;border:none;border-radius:12px;background:#D23B3B;color:#fff;font-size:15px;font-weight:800;cursor:pointer;">🔗 보고서 링크 다시 만들기</button>' : '')
-                    + (smsNum && link === undefined ? '<div style="font-size:12.5px;line-height:1.5;padding:8px 10px;border-radius:8px;background:#eef3fb;color:#1f3a66;margin-bottom:8px;">📩 고객 문자(보고서 링크 포함)는 <b>공유드라이브에 저장하기</b>가 끝나면 이 창에서 바로 보낼 수 있습니다.</div>' : '')
-                    + '<button type="button" data-act="copy" style="width:100%;min-height:44px;border:1px solid #c9d0da;border-radius:12px;background:#fff;color:#141d2e;font-size:14.5px;font-weight:700;cursor:pointer;">📋 안내 문구 복사</button>'
+                    + (smsNum && link === undefined && !plain ? '<div style="font-size:12.5px;line-height:1.5;padding:8px 10px;border-radius:8px;background:#eef3fb;color:#1f3a66;margin-bottom:8px;">📩 고객 문자(보고서 링크 포함)는 <b>공유드라이브에 저장하기</b>가 끝나면 이 창에서 바로 보낼 수 있습니다.</div>' : '')
+                    + (plain ? '' : '<button type="button" data-act="copy" style="width:100%;min-height:44px;border:1px solid #c9d0da;border-radius:12px;background:#fff;color:#141d2e;font-size:14.5px;font-weight:700;cursor:pointer;">📋 안내 문구 복사</button>')
                     + '</div></div>';
                 const close = () => { try { wrap.remove(); } catch (e) {} };
                 wrap.addEventListener('click', async (e) => {
@@ -5819,7 +5800,7 @@ body.light-mode .card.reference-info {
                     if (act === 'copy') { const ok = await copyTextSafe(text, '📋 안내 문구가 복사되었습니다'); if (ok) { const t0 = btn.textContent; btn.textContent = '✅ 복사됨 — 카톡·문자에 붙여넣으세요'; setTimeout(() => { try { btn.textContent = t0; } catch (e) {} }, 2500); } return; }
                     if (act === 'share') {
                         try {
-                            await navigator.share({ files: [file], title: filename, text: text });
+                            await navigator.share(plain ? { files: [file] } : { files: [file], title: filename, text: text });
                             close();
                         } catch (err) {
                             if (err && err.name === 'AbortError') return; // 사용자가 공유창을 닫음
@@ -9619,7 +9600,7 @@ body.light-mode .card.reference-info {
         // 인터넷·구글 로그인 확인 (안 되면 안내 후 false). 확인 요청 자체가 안 되면(신호 약함) 진행 → 실제 요청이 실패하면 안내
         async function _eqReady(btnLabel, fileLabel) {
             if (navigator.onLine === false) {
-                alert('📶 인터넷이 연결되지 않았습니다.\n\n신호가 잡히는 곳에서 [' + btnLabel + ']를 다시 눌러주세요.\n(계속 안 되면 버튼 아래 [' + fileLabel + ']를 쓰세요)');
+                alert('📶 인터넷이 연결되지 않았습니다.\n\n신호가 잡히는 곳에서 [' + btnLabel + ']를 다시 눌러주세요.\n(계속 안 되면 소장님이 [🔧 장비점검 보고서만] PDF를 매니저에게 보내주세요)');
                 return false;
             }
             if (!accessToken) { _eqLoginSheet(btnLabel, false); return false; }
@@ -9774,7 +9755,7 @@ body.light-mode .card.reference-info {
                         ? '최근 3일 동안 온 장비점검이 없습니다.'
                         : '최근 7일 동안 이 세대로 온 장비점검이 없습니다 — 소장님이 [📤 장비점검 보내기]를 눌렀는지 확인해주세요.<br><span style="font-size:12.5px;">이 세대: ' + escapeHtml(_equipWhere(p)) + '</span>', true))
                 + (all ? _eqBtn('unit', '← 이 세대로 온 것만 보기') : _eqBtn('all', '🔎 최근 3일 전체 보기 (동·호를 잘못 넣었을 때)'))
-                + '<div style="font-size:12px;color:#5b6472;text-align:center;margin-bottom:2px;">받은 파일이 있으면 <button type="button" data-act="file" style="background:none;border:none;margin:0;padding:6px 2px;color:#4f46e5;text-decoration:underline;font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;">파일에서 합치기</button></div>';
+                + '';
         }
 
         window.generateEquipmentOnlyPDF = async function() {
@@ -13612,7 +13593,7 @@ body.light-mode .card.reference-info {
                 + _gd.row('소장', '<b>데이터 탭 → 📤 장비점검 보내기</b>를 누릅니다. 장비점검이 <b>회사 구글 드라이브</b>로 올라갑니다 (인터넷·회사 구글 로그인 필요).')
                 + _gd.row('매니저', '같은 세대를 열고 <b>데이터 탭 → 📥 장비점검 합치기</b> → 이 세대로 온 장비점검(보낸 사람·시간·건수)을 누릅니다. 세대가 맞는지 확인창이 뜹니다. 목록이 비어 있으면 소장님이 보냈는지 확인하고, 동·호를 다르게 넣었을 수 있으니 <b>최근 3일 전체 보기</b>를 누릅니다.')
                 + _gd.row('매니저', '<b>PDF 보고서</b>를 만들면 하자+장비가 <b>보고서 1개</b>로 나옵니다. 이 1개를 고객님께 카톡·문자·메일로 보냅니다. 업로드·고객 문자 링크에도 함께 들어갑니다.')
-                + _gd.tip('인터넷이 안 되면 두 버튼 아래 <b>파일로 보내기 · 파일에서 합치기</b>를 씁니다. 그래도 안 되면 예전처럼 소장님이 <b>🔧 장비점검 보고서만</b>을 만들어 매니저에게 보내고, 고객님께 파일 2개를 보냅니다.')
+                + _gd.tip('<b>장비점검 보내기는 필수</b>입니다. 정말 긴급하게 드라이브가 안 될 때만 예전처럼 소장님이 <b>🔧 장비점검 보고서만</b>을 만들어 매니저에게 보내고, 고객님께 파일 2개를 보냅니다.')
         },
         {
             title: '하루 흐름 ⑤ 오후 6시 전 마감',
