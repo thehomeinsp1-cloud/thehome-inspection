@@ -1903,14 +1903,15 @@ body.light-mode .card.reference-info {
                 </button>
                 
                 <div style="display: flex; gap: 8px; margin-bottom: 6px;">
-                    <button class="btn" onclick="shareEquipmentData()" style="flex: 1; background: #6366f1; color: white; font-size: 14.5px; padding-left: 6px; padding-right: 6px;">
+                    <button class="btn" onclick="sendEquipmentToDrive()" style="flex: 1; background: #6366f1; color: white; font-size: 14.5px; padding-left: 6px; padding-right: 6px;">
                         📤 장비점검 보내기
                     </button>
-                    <button class="btn" onclick="importEquipmentData()" style="flex: 1; background: #6366f1; color: white; font-size: 14.5px; padding-left: 6px; padding-right: 6px;">
+                    <button class="btn" onclick="openEquipmentDriveSheet()" style="flex: 1; background: #6366f1; color: white; font-size: 14.5px; padding-left: 6px; padding-right: 6px;">
                         📥 장비점검 합치기
                     </button>
                 </div>
-                <div style="font-size: 12px; line-height: 1.5; color: var(--text-secondary); margin-bottom: 12px; word-break: keep-all;">소장님이 보내고 매니저가 합치면 하자+장비가 <b>PDF 보고서 1개</b>로 나갑니다</div>
+                <div style="font-size: 12px; line-height: 1.5; color: var(--text-secondary); margin-bottom: 2px; word-break: keep-all;">소장님이 보내고 매니저가 합치면 하자+장비가 <b>PDF 보고서 1개</b>로 나갑니다 (회사 구글 로그인 필요)</div>
+                <div style="font-size: 12px; line-height: 1.5; color: var(--text-secondary); margin-bottom: 12px; word-break: keep-all;">드라이브가 안 될 때: <button type="button" onclick="shareEquipmentData()" style="background: none; border: none; margin: 0; padding: 6px 2px; color: #4f46e5; text-decoration: underline; font-size: 12px; font-weight: 700; font-family: inherit; cursor: pointer;">파일로 보내기</button> · <button type="button" onclick="importEquipmentData()" style="background: none; border: none; margin: 0; padding: 6px 2px; color: #4f46e5; text-decoration: underline; font-size: 12px; font-weight: 700; font-family: inherit; cursor: pointer;">파일에서 합치기</button></div>
                 <input type="file" id="equipmentImportInput" accept=".txt,.json,text/plain,application/json" style="display: none;" onchange="mergeEquipmentFile(this)">
 
                 <button class="btn" onclick="generateFieldReportPDF()" style="width: 100%; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white;">
@@ -9391,7 +9392,8 @@ body.light-mode .card.reference-info {
         function _equipWhere(q) {
             return [String((q && q.apartmentName) || '').trim(), _dongHoText(q || {}).trim()].filter(Boolean).join(' ') || '(세대 정보 없음)';
         }
-        window.shareEquipmentData = async function() {
+        // 보낼 내용 만들기 (파일로 보내기·드라이브 공통). 보낼 수 없으면 안내 후 undefined
+        function _equipPayload() {
             const p = getCurrentProject();
             // '장비점검 보고서만'과 같은 확인
             if (!p.apartmentName || !p.dong || !p.ho) { alert('프로젝트 정보를 먼저 입력해주세요'); return; }
@@ -9414,7 +9416,14 @@ body.light-mode .card.reference-info {
                 return;
             }
             const name = ('장비점검_' + String(p.apartmentName).trim() + '_' + _dongHoText(p).replace(/\s+/g, ''))
-                .replace(/[\\/:*?"<>|\s\u0000-\u001f]+/g, '_') + '.txt'; // 파일 이름에 못 쓰는 글자 → _
+                .replace(/[\\/:*?"<>|\s\u0000-\u001f]+/g, '_'); // 파일 이름에 못 쓰는 글자 → _ (확장자는 쓰는 쪽에서)
+            return { p: p, text: text, name: name, n: list.length };
+        }
+        // 파일로 보내기 (인터넷이 안 될 때): 공유창 → 안 되면 파일 저장
+        window.shareEquipmentData = async function() {
+            const pl = _equipPayload();
+            if (!pl) return;
+            const text = pl.text, name = pl.name + '.txt';
             // 공유창은 버튼을 누른 직후에만 열림 → 위에서 기다리는 작업 없이 바로 엶
             // 파일만 보냄 (글자를 같이 넣으면 카톡 등에서 파일이 빠지고 글자만 가는 경우가 있음)
             let file = null, canShare = false;
@@ -9425,7 +9434,7 @@ body.light-mode .card.reference-info {
             if (canShare) {
                 try {
                     await navigator.share({ files: [file] });
-                    showToast('📤 카톡에서 매니저에게 ' + name + ' 파일이 갔는지 확인해주세요 (매니저: 📥 장비점검 합치기)');
+                    showToast('📤 매니저에게 ' + name + ' 파일이 갔는지 확인해주세요 (카톡은 안 됩니다 — 문자 등으로) (매니저: 📥 장비점검 합치기)');
                     return;
                 } catch (err) {
                     if (err && (err.name === 'AbortError' || err.name === 'InvalidStateError')) return; // 공유창을 닫음 / 이미 공유창이 열려 있음(두 번 누름)
@@ -9442,7 +9451,7 @@ body.light-mode .card.reference-info {
             a.click();
             setTimeout(() => { try { a.remove(); } catch (e) {} }, 100);
             setTimeout(() => { try { URL.revokeObjectURL(url); } catch (e) {} }, 60000);
-            showToast('📥 장비점검 파일을 저장했습니다 — 카톡에 파일로 첨부해 매니저에게 보내주세요');
+            showToast('📥 장비점검 파일을 저장했습니다 — 파일로 첨부해 매니저에게 보내주세요');
         };
         // 합치기: [📥 장비점검 합치기] → 숨은 파일 선택칸 (선택 후 mergeEquipmentFile)
         window.importEquipmentData = function() {
@@ -9459,8 +9468,12 @@ body.light-mode .card.reference-info {
             try { data = JSON.parse(await f.text()); } catch (e) { data = null; }
             finally { try { input.value = ''; } catch (e) {} } // 같은 파일을 다시 골라도 동작
             if (isAppBusy()) { showToast('⏳ 작업이 진행 중입니다. 끝난 뒤 다시 합쳐주세요', 'warning'); return; }
+            return _mergeEquipmentData(data);
+        };
+        // 합치기 본체 (파일에서 합치기 · 드라이브에서 받기 공통): 확인 → 값 정리 → 세대 확인 → 중복 건너뛰기 → 이어 붙이기 → 저장
+        async function _mergeEquipmentData(data) {
             if (!data || typeof data !== 'object' || data.type !== EQUIP_FILE_TYPE || !Array.isArray(data.equipment)) {
-                alert('⚠️ 장비점검 파일이 아닙니다.\n\n소장님이 [📤 장비점검 보내기]로 보낸 파일(장비점검_….txt)을 골라주세요.');
+                alert('⚠️ 장비점검 파일이 아닙니다.\n\n소장님이 [📤 장비점검 보내기]로 보낸 것을 골라주세요.');
                 return;
             }
             if (data.v !== 1) {
@@ -9537,6 +9550,232 @@ body.light-mode .card.reference-info {
                 ? '⚠️ 합친 장비점검이 휴대폰에 저장되지 않았습니다. 앱을 끄지 마세요'
                 : '🔧 장비점검 ' + fresh.length + '건을 합쳤습니다 — PDF 보고서·업로드에 함께 들어갑니다' + thermalNote, ok === false ? 'error' : 'success');
         };
+
+        // ==================== ✅ 장비점검 보내기·합치기 — 회사 구글 드라이브 경유 ====================
+        // 카톡은 웹 공유 .txt 를 빈 메시지로 받음 → 두 폰 모두 회사 구글 계정으로 공유 드라이브를 거쳐 전달
+        // 소장: 공유 드라이브 '장비점검_전달' 폴더에 이 세대 장비점검(파일로 보내기와 같은 내용)을 올림
+        // 매니저: 같은 동·호로 온 것 목록(최근 것 위) → 누르면 받아서 파일 합치기와 같은 함수로 합침
+        // 드라이브에서는 아무것도 지우지 않음. 실패해도 휴대폰 자료는 그대로
+        const EQUIP_DRIVE_FOLDER = '장비점검_전달';
+        let _eqFolderIds = null; // 이번 실행 동안 기억 (찾은 폴더들, 첫 번째 = 가장 먼저 만든 폴더)
+        let _eqSendingAt = 0;
+        // 동·호 = 숫자만 (합치기의 세대 비교와 같은 규칙, 숫자가 없으면 띄어쓰기만 뺀 글자). 드라이브 표시값 길이 제한 → 15자까지
+        const _eqNum = x => (String(x || '').replace(/\D/g, '') || String(x || '').replace(/\s+/g, '')).slice(0, 15);
+        const _eqDongHo = q => _eqNum(q.dong) + '|' + _eqNum(q.ho);
+        const _eqCut = (x, n) => Array.from(String(x || '')).slice(0, n).join(''); // 글자 단위로 자름 (이모지가 반쪽 나지 않게)
+        const _eqProps = o => { Object.keys(o).forEach(k => { if (o[k] === '') delete o[k]; }); return o; }; // 빈 값은 빼고 보냄
+        const _eqQ = s => String(s).replace(/\\/g, '\\\\').replace(/'/g, "\\'"); // 드라이브 검색식 안 글자
+        const _eqListUrl = (q, fields, orderBy) => 'https://www.googleapis.com/drive/v3/files?' + new URLSearchParams({
+            q: q, fields: fields, orderBy: orderBy, pageSize: '200', driveId: SHARED_DRIVE_ID, corpora: 'drive', includeItemsFromAllDrives: 'true', supportsAllDrives: 'true' });
+        // 드라이브 요청 (시간 제한, 응답 끝까지). HTTP 오류면 err.status
+        async function _eqDrive(url, opt, ms, kind) {
+            const ctl = (typeof AbortController === 'function') ? new AbortController() : null;
+            const timer = ctl ? setTimeout(() => ctl.abort(), ms) : 0;
+            try {
+                const res = await fetch(url, Object.assign({}, opt, { headers: { 'Authorization': 'Bearer ' + accessToken } }, ctl ? { signal: ctl.signal } : {}));
+                if (!res.ok) { const err = new Error('드라이브 HTTP ' + res.status); err.status = res.status; throw err; }
+                return kind === 'text' ? await res.text() : await res.json();
+            } finally { clearTimeout(timer); }
+        }
+        function _eqLoggedOut() { // 만료된 로그인 정리 (업로드 전 토큰 검사와 같은 처리)
+            accessToken = null;
+            try { localStorage.removeItem('google_access_token'); } catch (e) {}
+            updateGoogleLoginUI();
+        }
+        // 아래쪽 창 (하자 순서 창과 같은 모양). 바깥·[닫기]를 누르면 닫힘, 나머지 버튼은 onAct(act, 버튼, 닫기)
+        function _eqSheet(title, html, onAct) {
+            const old = document.getElementById('equipmentDriveSheet');
+            if (old) old.remove();
+            const wrap = document.createElement('div');
+            wrap.id = 'equipmentDriveSheet';
+            wrap.style.cssText = 'position:fixed;left:0;right:0;bottom:0;top:0;z-index:99990;display:flex;align-items:flex-end;padding:12px 12px calc(12px + env(safe-area-inset-bottom, 0px));background:rgba(13,20,32,0.45);';
+            wrap.innerHTML = '<div style="width:100%;max-width:480px;margin:0 auto;background:#fff;border-radius:16px;overflow:hidden;color:#1f2733;box-shadow:0 -6px 30px rgba(0,0,0,0.3);">'
+                + '<div style="background:#141d2e;color:#fff;padding:12px 16px;border-bottom:3px solid #E84848;font-size:15px;font-weight:800;">' + escapeHtml(title) + '</div>'
+                + '<div data-body style="padding:12px 16px 0;">' + html + '</div>'
+                + '<div style="padding:0 16px 6px;"><button type="button" data-act="close" style="width:100%;min-height:44px;margin-bottom:8px;border:none;border-radius:12px;background:transparent;color:#5b6472;font-size:14.5px;font-weight:700;cursor:pointer;">닫기</button></div>'
+                + '</div>';
+            const close = () => { try { wrap.remove(); } catch (e) {} };
+            wrap.addEventListener('click', e => {
+                const b = e.target.closest && e.target.closest('[data-act]');
+                if (!b) { if (e.target === wrap) close(); return; }
+                const act = b.getAttribute('data-act');
+                if (act === 'close') return close();
+                if (onAct) onAct(act, b, close);
+            });
+            document.body.appendChild(wrap);
+            return { wrap: wrap, body: wrap.querySelector('[data-body]'), close: close };
+        }
+        const _eqBtn = (act, label, bg, color) => '<button type="button" data-act="' + act + '" style="width:100%;min-height:48px;margin-bottom:8px;border:' + (bg ? 'none' : '1px solid #c9d0da') + ';border-radius:12px;background:' + (bg || '#fff') + ';color:' + (color || '#141d2e') + ';font-size:15px;font-weight:800;cursor:pointer;">' + label + '</button>';
+        const _eqNote = (html, warn) => '<div style="font-size:13.5px;line-height:1.6;padding:10px 12px;border-radius:10px;margin-bottom:10px;background:' + (warn ? '#fdf3e1' : '#eef3fb') + ';color:' + (warn ? '#6b4300' : '#1f3a66') + ';word-break:keep-all;">' + html + '</div>';
+        // 로그인 안내: [구글 로그인]을 직접 눌러야 로그인 창이 막히지 않음 → 로그인 뒤 버튼을 다시 누름
+        function _eqLoginSheet(btnLabel, expired) {
+            _eqSheet('🔐 구글 로그인이 필요합니다', _eqNote((expired
+                    ? '구글 로그인이 만료되었습니다 (로그인은 1시간쯤 지나면 끝납니다).<br>'
+                    : '장비점검은 <b>회사 구글 계정</b>으로 로그인해야 주고받을 수 있습니다.<br>')
+                + '아래 <b>[구글 로그인]</b>으로 로그인한 뒤, <b>[' + btnLabel + ']</b>를 다시 눌러주세요.', true)
+                + _eqBtn('login', '🔐 구글 로그인', '#059669', '#fff'),
+                (act, b, close) => { if (act === 'login') { close(); handleGoogleSignIn(); } });
+        }
+        // 인터넷·구글 로그인 확인 (안 되면 안내 후 false). 확인 요청 자체가 안 되면(신호 약함) 진행 → 실제 요청이 실패하면 안내
+        async function _eqReady(btnLabel, fileLabel) {
+            if (navigator.onLine === false) {
+                alert('📶 인터넷이 연결되지 않았습니다.\n\n신호가 잡히는 곳에서 [' + btnLabel + ']를 다시 눌러주세요.\n(계속 안 되면 버튼 아래 [' + fileLabel + ']를 쓰세요)');
+                return false;
+            }
+            if (!accessToken) { _eqLoginSheet(btnLabel, false); return false; }
+            try {
+                const ctl = (typeof AbortController === 'function') ? new AbortController() : null;
+                const timer = ctl ? setTimeout(() => ctl.abort(), 10000) : 0;
+                const r = await fetch('https://www.googleapis.com/oauth2/v1/tokeninfo?access_token=' + accessToken, ctl ? { signal: ctl.signal } : {});
+                clearTimeout(timer);
+                if (r.status === 400 || r.status === 401) { _eqLoggedOut(); _eqLoginSheet(btnLabel, true); return false; }
+            } catch (e) {
+                console.log('토큰 검사 실패, 계속 진행');
+            }
+            return true;
+        }
+        // 실패 안내 (휴대폰 자료는 건드리지 않음)
+        function _eqFail(e, btnLabel, what) {
+            console.warn('장비점검 드라이브 오류:', e);
+            if (e && e.status === 401) { _eqLoggedOut(); _eqLoginSheet(btnLabel, true); return; }
+            alert('⚠️ 장비점검을 ' + what + ' 못했습니다.\n\n'
+                + (e && e.status
+                    ? (e.status === 403 || e.status === 404
+                        ? '회사 공유 드라이브를 쓸 수 있는 구글 계정인지 확인하고, 잠시 뒤 다시 눌러주세요.'
+                        : '구글 드라이브가 잠시 응답하지 않습니다. 잠시 뒤 다시 눌러주세요.') + ' (드라이브 오류 ' + e.status + ')'
+                    : '인터넷 연결이 불안정합니다. 신호가 좋은 곳에서 다시 눌러주세요.')
+                + '\n\n휴대폰에 있는 장비점검은 그대로 있습니다.');
+        }
+        // '장비점검_전달' 폴더 찾기 (create면 없을 때 공유 드라이브 맨 위에 만듦). 같은 이름 폴더가 여럿이면 모두 (목록은 전부에서 찾음)
+        async function _eqFolders(create) {
+            if (_eqFolderIds) return _eqFolderIds;
+            const q = "name='" + EQUIP_DRIVE_FOLDER + "' and mimeType='application/vnd.google-apps.folder' and '" + SHARED_DRIVE_ID + "' in parents and trashed=false";
+            const r = await _eqDrive(_eqListUrl(q, 'files(id)', 'createdTime'), null, 20000);
+            let ids = ((r && r.files) || []).map(f => f && f.id).filter(Boolean);
+            if (!ids.length && create) ids = [await createProjectFolder(SHARED_DRIVE_ID, EQUIP_DRIVE_FOLDER)];
+            if (ids.length) _eqFolderIds = ids;
+            return ids;
+        }
+        // 📤 소장: 드라이브로 보내기
+        window.sendEquipmentToDrive = async function() {
+            if (_eqSendingAt && Date.now() - _eqSendingAt < 600000) { showToast('⏳ 장비점검을 보내는 중입니다. 잠시만 기다려주세요', 'warning'); return; }
+            const pl = _equipPayload(); // 세대·사진 확인 + 보낼 내용 (파일로 보내기와 같음)
+            if (!pl) return;
+            const stamp = _eqSendingAt = Date.now();
+            try {
+                showToast('☁️ 확인 중...', 'info');
+                if (!(await _eqReady('📤 장비점검 보내기', '파일로 보내기'))) return;
+                showLoading();
+                showToast('☁️ 장비점검 ' + pl.n + '건을 회사 드라이브로 보내는 중...', 'info');
+                const folder = (await _eqFolders(true))[0];
+                const now = new Date(), pad = x => String(x).padStart(2, '0');
+                const by = String(pl.p.author || '').trim();
+                const meta = {
+                    name: pl.name + '_' + pad(now.getHours()) + pad(now.getMinutes()) + '.json',
+                    mimeType: 'application/json',
+                    parents: [folder],
+                    description: '더홈점검 장비점검 전달 · ' + _equipWhere(pl.p) + ' · ' + pl.n + '건 · 보낸 사람 ' + (by || '-') + ' · ' + now.toISOString(),
+                    appProperties: _eqProps({ thEquip: '1', thDongHo: _eqDongHo(pl.p), thApt: _eqCut(String(pl.p.apartmentName || '').trim(), 30), thBy: _eqCut(by, 20), thN: String(pl.n) })
+                };
+                const form = new FormData();
+                form.append('metadata', new Blob([JSON.stringify(meta)], { type: 'application/json' }));
+                form.append('file', new Blob([pl.text], { type: 'application/json' }));
+                // 시간 제한: 1분 + 1MB당 20초 (사진이 많은 큰 파일도 끝까지)
+                await _eqDrive('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&supportsAllDrives=true&fields=id', { method: 'POST', body: form }, 60000 + Math.round(pl.text.length / 50));
+                hideLoading();
+                showToast('☁️ ' + _equipWhere(pl.p) + ' 장비점검 ' + pl.n + '건을 보냈습니다 — 매니저가 [📥 장비점검 합치기]를 누르면 됩니다');
+            } catch (e) {
+                hideLoading();
+                _eqFolderIds = null; // 폴더가 옮겨졌거나 지워졌을 수 있음 → 다음에 다시 찾음
+                _eqFail(e, '📤 장비점검 보내기', '보내지');
+            } finally {
+                if (_eqSendingAt === stamp) _eqSendingAt = 0;
+            }
+        };
+        // 📥 매니저: 이 세대로 온 장비점검 목록
+        window.openEquipmentDriveSheet = async function() {
+            if (isAppBusy()) { showToast('⏳ 업로드·보고서 생성이 끝난 뒤 다시 합쳐주세요', 'warning'); return; }
+            const p = getCurrentProject();
+            if (!String(p.dong || '').trim() || !String(p.ho || '').trim()) {
+                alert('프로젝트 정보(동·호)를 먼저 입력해주세요.\n\n장비점검을 합칠 세대를 연 뒤 다시 눌러주세요.');
+                return;
+            }
+            showToast('☁️ 확인 중...', 'info');
+            if (!(await _eqReady('📥 장비점검 합치기', '파일에서 합치기'))) return;
+            _eqShowList(false);
+        };
+        async function _eqShowList(all) {
+            const p = getCurrentProject();
+            let files = null, picking = false;
+            const sheet = _eqSheet(all ? '☁️ 최근 3일 동안 온 장비점검 (전체)' : '☁️ 이 세대로 온 장비점검 · ' + _dongHoText(p).trim(),
+                '<div style="padding:18px 4px 22px;text-align:center;color:#5b6472;font-size:14px;">☁️ 불러오는 중...</div>',
+                async (act, b, close) => {
+                    if (act === 'all' || act === 'unit') return _eqShowList(act === 'all');
+                    if (act === 'file') { close(); return importEquipmentData(); }
+                    if (act !== 'pick' || picking || !files) return;
+                    const f = files[Number(b.getAttribute('data-i'))];
+                    if (!f) return;
+                    if (isAppBusy()) { alert('⏳ 업로드·보고서 생성 중입니다. 끝난 뒤 다시 합쳐주세요'); return; }
+                    picking = true;
+                    const stamp = window._appBusySince = Date.now(); // 받는 동안·합치는 동안 세대 전환·업로드·보고서 막음
+                    const t0 = b.innerHTML;
+                    b.innerHTML = '<div style="font-size:15px;font-weight:800;">☁️ 받는 중...</div>';
+                    try {
+                        let text;
+                        try {
+                            text = await _eqDrive('https://www.googleapis.com/drive/v3/files/' + encodeURIComponent(f.id) + '?alt=media&supportsAllDrives=true', null, 180000, 'text');
+                        } catch (e) {
+                            b.innerHTML = t0;
+                            _eqFail(e, '📥 장비점검 합치기', '받지');
+                            return;
+                        }
+                        if (!sheet.wrap.isConnected) { showToast('창을 닫아서 합치지 않았습니다'); return; }
+                        let data = null;
+                        try { data = JSON.parse(text); } catch (e) { data = null; }
+                        close();
+                        await _mergeEquipmentData(data); // 파일에서 합치기와 같은 과정
+                    } finally {
+                        picking = false;
+                        if (window._appBusySince === stamp) window._appBusySince = 0; // 내가 건 잠금만 해제
+                    }
+                });
+            try {
+                _eqFolderIds = null; // 폴더를 매번 새로 찾음 (오래 켜 둔 앱에서도 새 폴더·옮긴 폴더를 놓치지 않게)
+                const ids = await _eqFolders(false);
+                const since7 = new Date(Date.now() - 7 * 86400000).toISOString().replace('.000Z', 'Z').replace(/[.][0-9]+Z$/, 'Z');
+                const since = new Date(Date.now() - 3 * 86400000).toISOString().replace(/\.\d+Z$/, 'Z');
+                files = !ids.length ? [] : ((await _eqDrive(_eqListUrl('(' + ids.map(id => "'" + _eqQ(id) + "' in parents").join(' or ') + ') and trashed=false and '
+                    + (all ? "createdTime > '" + since + "'" : "appProperties has { key='thDongHo' and value='" + _eqQ(_eqDongHo(p)) + "' } and createdTime > '" + since7 + "'"),
+                    'files(id,name,createdTime,appProperties)', 'createdTime desc'), null, 20000)).files || []);
+            } catch (e) {
+                sheet.close();
+                _eqFail(e, '📥 장비점검 합치기', '불러오지');
+                return;
+            }
+            if (!sheet.wrap.isConnected) return; // 그사이 닫았거나 다른 목록으로 바꿈
+            const pad = x => String(x).padStart(2, '0');
+            const when = s => { const d = new Date(s); return isNaN(d) ? '' : (d.getMonth() + 1) + '/' + d.getDate() + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes()); };
+            const _n = x => String(x || '').split(' ').join('');
+            const myApt = _n(_eqCut(String(p.apartmentName || '').trim(), 30));
+            const other = f => { const a = (f && f.appProperties) || {}; return !all && !!a.thApt && !!myApt && _n(a.thApt) !== myApt; };
+            if (!all) files = files.filter(f => !other(f)).concat(files.filter(other)); // 이 단지 것을 위로
+            const rows = files.map((f, i) => {
+                const a = (f && f.appProperties) || {}, dh = String(a.thDongHo || '').split('|');
+                const unit = a.thDongHo ? [a.thApt, _dongHoText({ dong: dh[0], ho: dh[1] }).trim()].filter(Boolean).join(' ') : String((f && f.name) || '');
+                const top = [a.thBy || '보낸 사람 모름', when(f && f.createdTime), a.thN ? a.thN + '건' : ''].filter(Boolean).join(' · ');
+                return '<button type="button" data-act="pick" data-i="' + i + '" style="display:block;width:100%;text-align:left;min-height:56px;margin-bottom:8px;padding:10px 12px;border:1px solid #c9d0da;border-radius:12px;background:#fff;color:#141d2e;cursor:pointer;">'
+                    + '<div style="font-size:15px;font-weight:800;">' + escapeHtml(top) + '</div>'
+                    + '<div style="font-size:12.5px;color:#5b6472;margin-top:2px;word-break:break-all;">' + (other(f) ? '<b style="color:#c62f2f;">⚠️ 다른 단지 · </b>' : '') + escapeHtml(unit) + '</div></button>';
+            }).join('');
+            sheet.body.innerHTML = (files.length
+                    ? '<div style="font-size:12.5px;color:#5b6472;line-height:1.5;margin-bottom:10px;">합칠 장비점검을 누르세요 (최근 것이 위). 누르면 세대가 맞는지 한 번 더 묻습니다.</div>'
+                        + '<div style="max-height:46vh;overflow-y:auto;">' + rows + '</div>'
+                    : _eqNote(all
+                        ? '최근 3일 동안 온 장비점검이 없습니다.'
+                        : '최근 7일 동안 이 세대로 온 장비점검이 없습니다 — 소장님이 [📤 장비점검 보내기]를 눌렀는지 확인해주세요.<br><span style="font-size:12.5px;">이 세대: ' + escapeHtml(_equipWhere(p)) + '</span>', true))
+                + (all ? _eqBtn('unit', '← 이 세대로 온 것만 보기') : _eqBtn('all', '🔎 최근 3일 전체 보기 (동·호를 잘못 넣었을 때)'))
+                + '<div style="font-size:12px;color:#5b6472;text-align:center;margin-bottom:2px;">받은 파일이 있으면 <button type="button" data-act="file" style="background:none;border:none;margin:0;padding:6px 2px;color:#4f46e5;text-decoration:underline;font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;">파일에서 합치기</button></div>';
+        }
 
         window.generateEquipmentOnlyPDF = async function() {
             // 1. 프로젝트 정보 검증
@@ -13370,10 +13609,10 @@ body.light-mode .card.reference-info {
                 + _gd.row('소장', '모바일 하자접수 대행 안내: 접수비 5만원(무상 고객 제외). 신청하면 매니저가 고객 ID·비번을 받아 적습니다.')
                 + _gd.row('소장', '잔금은 당일 입금 기준. 예약 안내 카톡의 잔금 내역으로 입금을 부탁드립니다.')
                 + _gd.step(8, '점검 끝', '장비점검 합쳐 보고서 1개로 보내기')
-                + _gd.row('소장', '<b>데이터 탭 → 📤 장비점검 보내기</b> → 카톡에서 매니저를 골라 보냅니다.')
-                + _gd.row('매니저', '카톡에서 받은 파일은 열어 볼 필요 없이 저장만 합니다(안드로이드: 내 파일 → Download → KakaoTalk / 아이폰: 공유 → 파일에 저장) → <b>데이터 탭 → 📥 장비점검 합치기</b> → 받은 파일 선택. 세대가 맞는지 확인창이 뜹니다.')
+                + _gd.row('소장', '<b>데이터 탭 → 📤 장비점검 보내기</b>를 누릅니다. 장비점검이 <b>회사 구글 드라이브</b>로 올라갑니다 (인터넷·회사 구글 로그인 필요).')
+                + _gd.row('매니저', '같은 세대를 열고 <b>데이터 탭 → 📥 장비점검 합치기</b> → 이 세대로 온 장비점검(보낸 사람·시간·건수)을 누릅니다. 세대가 맞는지 확인창이 뜹니다. 목록이 비어 있으면 소장님이 보냈는지 확인하고, 동·호를 다르게 넣었을 수 있으니 <b>최근 3일 전체 보기</b>를 누릅니다.')
                 + _gd.row('매니저', '<b>PDF 보고서</b>를 만들면 하자+장비가 <b>보고서 1개</b>로 나옵니다. 이 1개를 고객님께 카톡·문자·메일로 보냅니다. 업로드·고객 문자 링크에도 함께 들어갑니다.')
-                + _gd.tip('합치기가 안 되면 예전처럼 소장님이 <b>🔧 장비점검 보고서만</b>을 만들어 매니저에게 보내고, 고객님께 파일 2개를 보냅니다.')
+                + _gd.tip('인터넷이 안 되면 두 버튼 아래 <b>파일로 보내기 · 파일에서 합치기</b>를 씁니다. 그래도 안 되면 예전처럼 소장님이 <b>🔧 장비점검 보고서만</b>을 만들어 매니저에게 보내고, 고객님께 파일 2개를 보냅니다.')
         },
         {
             title: '하루 흐름 ⑤ 오후 6시 전 마감',
