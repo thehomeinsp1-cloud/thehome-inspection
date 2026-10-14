@@ -1892,13 +1892,14 @@ body.light-mode .card.reference-info {
                 <button class="btn btn-secondary" onclick="openEquipmentDriveSheet()" style="display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; margin-bottom: 8px; padding: 12px 14px; font-size: 15px;">
                     <span style="display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: #D23B3B; color: #FFFFFF; font-size: 13px; font-weight: 800; flex-shrink: 0;">1</span> 📥 장비점검 합치기 (소장님이 보낸 것)
                 </button>
-                <button class="btn btn-primary" onclick="generatePDF()" style="display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; margin-bottom: 8px; padding: 13px 14px; font-size: 15.5px;">
-                    <span style="display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: #FFFFFF; color: #D23B3B; font-size: 13px; font-weight: 800; flex-shrink: 0;">2</span> 📄 PDF 보고서 (하자+장비) · 고객에게 보내기
+                <button id="driveUploadBtn" class="btn btn-primary" onclick="uploadProjectToDrive()" style="display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; margin-bottom: 8px; padding: 13px 14px; font-size: 15.5px;">
+                    <span style="display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: #FFFFFF; color: #D23B3B; font-size: 13px; font-weight: 800; flex-shrink: 0;">2</span> ☁️ 공유드라이브에 저장하기 (보고서 자동 포함)
                 </button>
-                <button id="driveUploadBtn" class="btn btn-secondary" onclick="uploadProjectToDrive()" style="display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; margin-bottom: 8px; padding: 12px 14px; font-size: 15px;">
-                    <span style="display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: #D23B3B; color: #FFFFFF; font-size: 13px; font-weight: 800; flex-shrink: 0;">3</span> ☁️ 공유드라이브에 저장하기 · 고객 문자 링크
-                </button>
-                <div style="font-size: 12.5px; line-height: 1.5; color: var(--text-secondary); word-break: keep-all; margin-top: 2px;">③이 끝나면 고객 연락처로 보고서 링크 문자를 보낼 수 있습니다.</div>
+                <div style="display: flex; align-items: center; gap: 10px; padding: 6px 14px 4px; font-size: 14.5px; font-weight: 700; word-break: keep-all;">
+                    <span style="display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: #D23B3B; color: #FFFFFF; font-size: 13px; font-weight: 800; flex-shrink: 0;">3</span> <span>저장이 끝나면 뜨는 창에서 📩 <b>고객에게 보고서 문자 보내기</b> (링크 포함)</span>
+                </div>
+                <div style="font-size: 12.5px; line-height: 1.5; color: var(--text-secondary); word-break: keep-all; margin: 2px 0 12px 48px;">인터넷 필요 · 1~3분</div>
+                <button class="btn btn-secondary" onclick="generatePDF()" style="width: 100%; font-size: 13.5px; min-height: 40px; padding: 8px 12px;">📄 PDF 보고서만 받기 (확인용 · 카톡으로 직접 보낼 때)</button>
                 <input type="file" id="equipmentImportInput" accept=".txt,.json,text/plain,application/json" style="display: none;" onchange="mergeEquipmentFile(this)">
             </div>
 
@@ -13582,15 +13583,15 @@ body.light-mode .card.reference-info {
                 + _gd.step(8, '점검 끝', '장비점검 합쳐 보고서 1개로 보내기')
                 + _gd.row('소장', '<b>데이터 탭 → 📤 장비점검 보내기</b>를 누릅니다. 장비점검이 <b>회사 구글 드라이브</b>로 올라갑니다 (인터넷·회사 구글 로그인 필요).')
                 + _gd.row('매니저', '같은 세대를 열고 <b>데이터 탭 → 📥 장비점검 합치기</b> → 이 세대로 온 장비점검(보낸 사람·시간·건수)을 누릅니다. 세대가 맞는지 확인창이 뜹니다. 목록이 비어 있으면 소장님이 보냈는지 확인하고, 동·호를 다르게 넣었을 수 있으니 <b>최근 3일 전체 보기</b>를 누릅니다.')
-                + _gd.row('매니저', '<b>PDF 보고서</b>를 만들면 하자+장비가 <b>보고서 1개</b>로 나옵니다. 이 1개를 고객님께 카톡·문자·메일로 보냅니다. 업로드·고객 문자 링크에도 함께 들어갑니다.')
-                + _gd.tip('<b>장비점검 보내기는 필수</b>입니다. 정말 긴급하게 드라이브가 안 될 때만 예전처럼 소장님이 <b>🔧 장비점검 보고서만</b>을 만들어 매니저에게 보내고, 고객님께 파일 2개를 보냅니다.')
+                + _gd.row('매니저', '이어서 <b>☁️ 공유드라이브에 저장하기</b>. 하자+장비 <b>보고서 1개</b>가 자동으로 만들어져 올라갑니다 (인터넷 필요 · 1~3분).')
+                + _gd.row('매니저', '저장이 끝나면 뜨는 창에서 <b>📩 고객에게 보고서 문자 보내기</b>. 번호·안내 문구·보고서 링크가 자동으로 채워지니 전송만 누릅니다.')
+                + _gd.warn('드라이브의 보고서 PDF는 <b>이동·이름 변경은 괜찮지만, 사본 만들기·다시 올리기·삭제는 하지 않습니다.</b> 고객에게 보낸 링크가 끊깁니다. 링크를 못 여는 고객은 카톡으로 PDF를 보냅니다.')
+                + _gd.tip('<b>장비점검 보내기는 필수</b>입니다. 정말 긴급하게 드라이브가 안 될 때만 예전처럼 소장님이 <b>🔧 장비점검 보고서만</b>을 만들어 매니저에게 보내고, 고객님께 파일 2개를 보냅니다. 신호가 없어 저장이 안 되면 <b>📄 PDF 보고서만 받기</b>로 카톡 전송 후, 신호가 잡히는 곳에서 저장합니다.')
         },
         {
             title: '하루 흐름 ⑤ 오후 6시 전 마감',
-            content: _gd.step(9, '오후 6시 전', '자료 올리고 종료톡')
-                + _gd.row('매니저', '데이터 탭에서 <b>회사 구글 계정으로 로그인 → 공유드라이브에 저장하기.</b> 목록에 <b>● 완료(초록)</b>가 뜨면 <b>PDF·엑셀·사진ZIP·백업</b> 4가지가 모두 올라간 것입니다. 7일 지나면 <b>📋 프로젝트 목록의 🧹 정리</b>를 누릅니다.')
-                + _gd.row('매니저', '<b>고객 연락처</b>를 넣어 두었으면 업로드가 끝난 뒤 뜨는 창에서 <b>📩 고객에게 보고서 문자 보내기</b>. 번호·안내 문구·보고서 링크가 자동으로 채워지니 전송만 누릅니다.')
-                + _gd.warn('드라이브의 보고서 PDF는 <b>이동·이름 변경은 괜찮지만, 사본 만들기·다시 올리기·삭제는 하지 않습니다.</b> 고객에게 보낸 링크가 끊깁니다. 링크를 못 여는 고객은 카톡으로 PDF를 보냅니다.')
+            content: _gd.step(9, '오후 6시 전', '업로드 확인 · 종료톡')
+                + _gd.row('매니저', '현장에서 못 올린 세대가 있으면 지금 <b>공유드라이브에 저장하기</b>. 목록에 <b>● 완료(초록)</b>가 뜨면 <b>PDF·엑셀·사진ZIP·백업</b> 4가지가 모두 올라간 것입니다. 7일 지나면 <b>📋 프로젝트 목록의 🧹 정리</b>를 누릅니다.')
                 + _gd.row('매니저', '다 올렸으면 단톡방에 <b>종료톡</b>.')
                 + _gd.row('공통', '퇴실 전 보일러·에어컨 끄기, 불 끄기, 창문·발코니문·수도 잠그기, 현관문 잠그기. 장비 챙기기.')
                 + _gd.warn('업로드가 일부라도 실패하면 목록에 <b>완료</b>로 표시되지 않습니다. 안내에 따라 다시 올려 <b>● 완료</b>가 뜨게 하세요.')
