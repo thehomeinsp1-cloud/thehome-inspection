@@ -12566,7 +12566,7 @@ body.light-mode .card.reference-info {
             contentHTML += `
                 <div style="margin-bottom:18px;break-inside:avoid;">
                     <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
-                        <span style="background:#141d2e;color:#fff;font-weight:800;font-size:12px;padding:4px 11px;border-radius:6px;">#${String(item._originalIndex).padStart(2, '0')}</span>
+                        <span style="background:#0E3B3F;color:#fff;font-weight:800;font-size:12px;padding:4px 11px;border-radius:6px;">#${String(item._originalIndex).padStart(2, '0')}</span>
                         <span style="font-size:14px;font-weight:800;color:#141d2e;">${space}</span>
                         <span style="width:1px;height:14px;background:#d5d9df;"></span>
                         <span style="font-size:12.5px;color:#5b6472;flex:1;">${item.inspection || '특이사항 없음'}</span>
@@ -12580,11 +12580,11 @@ body.light-mode .card.reference-info {
 
         return `
             <div style="width:794px;height:1123px;background:#fff;font-family:'Pretendard','Malgun Gothic',sans-serif;display:flex;flex-direction:column;overflow:hidden;box-sizing:border-box;">
-                <div style="background:#141d2e;padding:20px 44px;display:flex;justify-content:space-between;align-items:center;">
-                    <div style="display:flex;align-items:center;gap:11px;"><div style="width:42px;height:42px;background-color:#fff;border-radius:10px;background-image:url(${window.THEHOME_LOGO});background-size:28px;background-repeat:no-repeat;background-position:center;"></div><div><div style="font-size:9px;letter-spacing:.16em;color:#7c86a0;font-weight:700;">더홈점검 · REPORT</div><div style="font-size:17px;font-weight:800;color:#fff;">장비 점검 리포트</div></div></div>
-                    <div style="font-size:12px;color:#9aa6c2;font-weight:600;">${projectData.apartmentName} ${projectData.dong}동 ${projectData.ho}호</div>
+                <div style="background:#0E3B3F;padding:20px 44px;display:flex;justify-content:space-between;align-items:center;">
+                    <div style="display:flex;align-items:center;gap:11px;"><div style="width:42px;height:42px;background-color:#fff;border-radius:10px;background-image:url(${window.THEHOME_LOGO});background-size:28px;background-repeat:no-repeat;background-position:center;"></div><div><div style="font-size:9px;letter-spacing:.16em;color:#7FC9C4;font-weight:700;">더홈점검 · REPORT</div><div style="font-size:17px;font-weight:800;color:#fff;">장비 점검 리포트</div></div></div>
+                    <div style="font-size:12px;color:#A9D8D4;font-weight:600;">${projectData.apartmentName} ${projectData.dong}동 ${projectData.ho}호</div>
                 </div>
-                <div style="height:3px;background:#E84848;"></div>
+                <div style="height:3px;background:#12A4A4;"></div>
                 <div style="flex:1;padding:26px 44px 0;">
                     ${contentHTML}
                     <div style="margin-top:14px;font-size:11px;color:#9aa1ad;line-height:1.6;">· 열화상 카메라(FLIR) 및 레이저 레벨기로 벽체 수직 · 바닥 수평 · 단열 시공 상태를 확인합니다.</div>
