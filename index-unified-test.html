@@ -1921,28 +1921,6 @@ body.light-mode .card.reference-info {
                 <button onclick="showTutorial()" class="btn btn-secondary" style="width: 100%; font-size: 15px;">📖 앱 사용 가이드 보기</button>
             </div>
 
-            <!-- 🗑️ 프로젝트 관리 카드 -->
-            <div class="card">
-                <details>
-                    <summary style="cursor: pointer; padding: 10px; background: rgba(239, 68, 68, 0.1); border-radius: 8px; color: #ef4444; font-weight: bold;">
-                        🗑️ 프로젝트 삭제 (주의)
-                    </summary>
-                    <div style="padding: 15px; background: rgba(0,0,0,0.05); border-radius: 8px; margin-top: 10px;">
-                        <p style="font-size: 13px; color: #333; margin-bottom: 15px;">
-                            ⚠️ <strong>삭제된 프로젝트는 복구할 수 없습니다!</strong>
-                        </p>
-                        <div id="savedList" class="saved-list"></div>
-                        <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #ddd;">
-                            <button class="btn" onclick="cleanupUploadedProjects()" style="width: 100%; margin-bottom: 10px; background: linear-gradient(135deg, #059669 0%, #10b981 100%); color: white;">
-                                🧹 업로드 완료 세대 정리
-                            </button>
-                            <button class="btn btn-danger" onclick="clearAllData()" style="width: 100%;">
-                                🗑️ 모든 데이터 삭제
-                            </button>
-                        </div>
-                    </div>
-                </details>
-            </div>
         </div>
     </div>
 
@@ -12240,6 +12218,7 @@ body.light-mode .card.reference-info {
 
         async function renderSavedList() {
             const container = document.getElementById('savedList');
+            if (!container) return; // 저장 목록 칸은 데이터 탭에서 뺌 (패치 43)
             
             try {
                 // ✅ 키만 읽어 거른 뒤 그 기록만 읽음 (모든 세대·사진을 한꺼번에 메모리로 읽지 않음)
