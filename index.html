@@ -3264,6 +3264,10 @@ body.light-mode .card.reference-info {
         // ==================== Drive 폴더 관리 ====================
         // ==================== 공유 드라이브 설정 ====================
         const SHARED_DRIVE_ID = '0AEataxDIni_IUk9PVA'; // 더홈점검 공유 드라이브
+        // ✅ 앱이 이름으로 찾는 공유드라이브 폴더('현장진행중 목록'·'장비점검_전달'·'앱오류기록')는 이름 뒤에 경고 표시가 붙어도 같은 폴더 (패치 54)
+        const APP_FOLDER_MARK = '(이동/삭제/이름변경 금지)';
+        const appFolderNames = base => [base, base + APP_FOLDER_MARK];
+        const appFolderNameQ = base => '(' + appFolderNames(base).map(n => "name='" + n + "'").join(' or ') + ')'; // 이름에 작은따옴표 없음
         
         async function getOrCreateAppFolder() {
             try {
@@ -3497,14 +3501,14 @@ body.light-mode .card.reference-info {
                 if (r.ok) { const f = await r.json(); if (f && !f.trashed && f.mimeType === 'application/vnd.google-apps.folder') return id; }
                 else if (r.status !== 404) throw new Error('폴더 확인 ' + r.status);
             }
-            const q = "name='" + ERRLOG_FOLDER + "' and mimeType='application/vnd.google-apps.folder' and '" + SHARED_DRIVE_ID + "' in parents and trashed=false";
+            const q = appFolderNameQ(ERRLOG_FOLDER) + " and mimeType='application/vnd.google-apps.folder' and '" + SHARED_DRIVE_ID + "' in parents and trashed=false";
             const r2 = await fetch('https://www.googleapis.com/drive/v3/files?' + new URLSearchParams({ q, fields: 'files(id)', driveId: SHARED_DRIVE_ID, corpora: 'drive', includeItemsFromAllDrives: 'true', supportsAllDrives: 'true', pageSize: '10' }), { headers: H });
             if (!r2.ok) throw new Error('폴더 찾기 ' + r2.status);
             const found = (await r2.json()).files || [];
             if (found.length) id = found[0].id;
             else {
                 const r3 = await fetch('https://www.googleapis.com/drive/v3/files?supportsAllDrives=true&fields=id', { method: 'POST', headers: Object.assign({ 'Content-Type': 'application/json' }, H),
-                    body: JSON.stringify({ name: ERRLOG_FOLDER, mimeType: 'application/vnd.google-apps.folder', parents: [SHARED_DRIVE_ID] }) });
+                    body: JSON.stringify({ name: ERRLOG_FOLDER + APP_FOLDER_MARK, mimeType: 'application/vnd.google-apps.folder', parents: [SHARED_DRIVE_ID] }) });
                 if (!r3.ok) throw new Error('폴더 만들기 ' + r3.status);
                 id = (await r3.json()).id;
                 if (!id) throw new Error('폴더 ID 없음');
@@ -3628,7 +3632,7 @@ body.light-mode .card.reference-info {
                 const apt = _ftClean(project.apartmentName);
                 const dong = String(project.dong || '').trim().replace(/동$/, '').trim(), ho = String(project.ho || '').trim().replace(/호$/, '').trim();
                 if (!apt || !dong || !ho || !accessToken) return SHARED_DRIVE_ID;
-                const ip = (await _ftChildFolders(SHARED_DRIVE_ID)).find(f => f.name === INPROGRESS_FOLDER);
+                const ip = (await _ftChildFolders(SHARED_DRIVE_ID)).find(f => appFolderNames(INPROGRESS_FOLDER).indexOf(f.name) > -1);
                 if (!ip) return SHARED_DRIVE_ID;
                 const dm = String(project.inspectionDate || '').match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
                 const now = new Date();
@@ -8713,7 +8717,7 @@ body.light-mode .card.reference-info {
             "침실": {"spaces":["안방","침실1","침실2","침실3","침실4","알파룸"],"items":[{"n":"바닥 들뜸","loc":["바닥"],"ty":["들뜸","불량"],"pick":{"bases":["입구","창","문"],"base":"입구","dirs":[]}},{"n":"도배 들뜸","loc":["벽","도배"],"ty":["들뜸","불량"],"pick":{"bases":["창","문"],"base":"창","dirs":["우"]}},{"n":"문틀 찍힘","loc":["문","틀"],"ty":["찍힘","불량"],"pick":{"bases":[],"base":"","dirs":["좌"]}},{"n":"창 수평/수직","loc":["창","짝"],"ty":["수평/수직","불량"]},{"n":"문짝 유격","loc":["문","짝"],"ty":["유격"]},{"n":"문 안닫힘","s":"작동 불량","loc":["문","짝"],"ty":["작동","불량"],"d":"안닫힘"}]},
             "욕실": {"spaces":["공용욕실","부부욕실"],"items":[{"n":"바닥 타일 단차","loc":["바닥","타일"],"ty":["단차","다수"]},{"n":"샤워부스 손잡이","s":"고정 불량","loc":["문","짝"],"ty":["고정","불량"],"d":"샤워부스 손잡이"},{"n":"문짝 유격","loc":["문","짝"],"ty":["유격"]},{"n":"점검구 단열재","s":"틈새·파손","loc":["천장"],"ty":["틈새","파손","다수","불량"],"d":"점검구 내 단열재"},{"n":"줄눈 마감","s":"입구 외","loc":["바닥","타일","줄눈"],"ty":["마감","다수","불량"],"d":"입구 외"},{"n":"수건걸이 고정","loc":["벽"],"ty":["고정","불량"],"d":"수건걸이"}]},
             "주방": {"spaces":["주방"],"items":[{"n":"냉장고장 도배","s":"들뜸","loc":["벽","도배"],"ty":["들뜸","다수","불량"],"d":"냉장고장 내"},{"n":"콘센트 고정","loc":["벽"],"ty":["고정","불량"],"d":"콘센트"},{"n":"상판 틈새·고정","loc":["가구"],"ty":["틈새","고정","다수","불량"],"d":"상판"},{"n":"하부장 도어","s":"단차·수평","loc":["가구"],"ty":["단차","수평/수직","불량"],"d":"싱크 하부장"},{"n":"인덕션 고정","loc":["가구"],"ty":["고정","불량"],"d":"인덕션"},{"n":"후드 작동","loc":["가구"],"ty":["작동","불량"],"d":"후드"}]},
-            "현관": {"spaces":["현관","외부"],"items":[{"n":"반달스토퍼","s":"누락","loc":["문","짝"],"ty":["누락"],"d":"반달 스토퍼"},{"n":"디딤석 틈새","s":"좌/우","loc":["바닥","타일"],"ty":["틈새","다수","불량"],"d":"디딤석 좌/우"},{"n":"문틀 하부 긁힘","loc":["문","틀"],"ty":["긁힘","불량"],"pick":{"bases":["하부틀"],"base":"하부틀","dirs":["좌","우"],"after":true}},{"n":"문짝 유격","loc":["문","짝"],"ty":["유격"]},{"n":"피스커버 누락","s":"문틀 좌우","loc":["문","틀"],"ty":["다수","누락"],"d":"좌우 피스커버"},{"n":"줄눈 채움","s":"불량","loc":["바닥","타일","줄눈"],"ty":["불량"],"d":"채움"}]},
+            "현관": {"spaces":["현관","외부"],"items":[{"n":"반달스토퍼","s":"누락","loc":["문","짝"],"ty":["누락"],"d":"반달 스토퍼"},{"n":"디딤석 틈새","s":"좌/우","loc":["바닥","타일"],"ty":["틈새","다수","불량"],"d":"디딤석 좌/우"},{"n":"문틀 하부 긁힘","loc":["문","틀"],"ty":["긁힘","불량"],"pick":{"bases":["하부틀"],"base":"하부틀","dirs":["좌","우"],"after":true}},{"n":"문짝 유격","loc":["문","짝"],"ty":["유격"]},{"n":"피스커버 누락","s":"신발장 내측","loc":["벽","가구"],"ty":["다수","누락"],"d":"신발장 내측 피스커버"},{"n":"줄눈 채움","s":"불량","loc":["바닥","타일","줄눈"],"ty":["불량"],"d":"채움"}]},
             "발코니": {"spaces":["발코니","실외기실","대피공간","다용도실"],"items":[{"n":"문 스토퍼","s":"누락","loc":["문","짝"],"ty":["누락"],"d":"스토퍼"},{"n":"도어체크","s":"누락","loc":["문","짝"],"ty":["누락"],"d":"도어체크"},{"n":"줄눈 마감","s":"입구 외","loc":["바닥","타일","줄눈"],"ty":["마감","다수","불량"],"d":"입구 외"},{"n":"바닥 타일 단차","loc":["바닥","타일"],"ty":["단차","다수"]},{"n":"도장 면처리","loc":["벽","도장"],"ty":["마감","다수","불량"],"d":"면처리"},{"n":"창 수평/수직","loc":["창","짝"],"ty":["수평/수직","불량"]}]},
             "거실": {"spaces":["거실"],"items":[{"n":"우물천장 도배","s":"들뜸","loc":["천장","도배"],"ty":["들뜸","다수","불량"],"d":"우물천장 주위"},{"n":"도배 들뜸","loc":["벽","도배"],"ty":["들뜸","불량"],"pick":{"bases":["창","문"],"base":"창","dirs":["우"]}},{"n":"바닥 들뜸","loc":["바닥"],"ty":["들뜸","불량"],"pick":{"bases":["입구","창","문"],"base":"창","dirs":["우"]}},{"n":"창 수평/수직","loc":["창","짝"],"ty":["수평/수직","불량"]},{"n":"아트월 타일","s":"단차","loc":["벽","타일"],"ty":["단차","불량"],"d":"아트월"},{"n":"창틀 긁힘","loc":["창","틀"],"ty":["긁힘","불량"],"pick":{"bases":[],"base":"","dirs":["상"]}}]},
             "복도": {"spaces":["복도"],"items":[{"n":"바닥 들뜸","loc":["바닥"],"ty":["들뜸","불량"],"pick":{"bases":["디딤석 앞","공용욕실 입구","문 앞"],"base":"디딤석 앞","dirs":[]}},{"n":"도배 들뜸","loc":["벽","도배"],"ty":["틈새","들뜸","불량"],"pick":{"bases":["문","창"],"base":"문","dirs":["우"]}},{"n":"문틀 찍힘","loc":["문","틀"],"ty":["찍힘","불량"],"pick":{"bases":[],"base":"","dirs":["좌"]}},{"n":"콘센트 고정","loc":["벽"],"ty":["고정","불량"],"d":"콘센트"},{"n":"바닥 찍힘","loc":["바닥"],"ty":["찍힘","불량"]},{"n":"천장 도배 들뜸","loc":["천장","도배"],"ty":["들뜸","불량"]}]},
@@ -10058,10 +10062,10 @@ body.light-mode .card.reference-info {
         // '장비점검_전달' 폴더 찾기 (create면 없을 때 공유 드라이브 맨 위에 만듦). 같은 이름 폴더가 여럿이면 모두 (목록은 전부에서 찾음)
         async function _eqFolders(create) {
             if (_eqFolderIds) return _eqFolderIds;
-            const q = "name='" + EQUIP_DRIVE_FOLDER + "' and mimeType='application/vnd.google-apps.folder' and '" + SHARED_DRIVE_ID + "' in parents and trashed=false";
+            const q = appFolderNameQ(EQUIP_DRIVE_FOLDER) + " and mimeType='application/vnd.google-apps.folder' and '" + SHARED_DRIVE_ID + "' in parents and trashed=false";
             const r = await _eqDrive(_eqListUrl(q, 'files(id)', 'createdTime'), null, 20000);
             let ids = ((r && r.files) || []).map(f => f && f.id).filter(Boolean);
-            if (!ids.length && create) ids = [await createProjectFolder(SHARED_DRIVE_ID, EQUIP_DRIVE_FOLDER)];
+            if (!ids.length && create) ids = [await createProjectFolder(SHARED_DRIVE_ID, EQUIP_DRIVE_FOLDER + APP_FOLDER_MARK)];
             if (ids.length) _eqFolderIds = ids;
             return ids;
         }
