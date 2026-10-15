@@ -1855,7 +1855,7 @@ body.light-mode .card.reference-info {
                     <input type="tel" class="form-input" id="customerPhone" placeholder="숫자만 입력 (필수)" oninput="formatPhoneInput(this); autoSaveProjectData()" onblur="formatPhoneInput(this, true); autoSaveProjectData()">
                 </div>
 
-                <button class="btn btn-primary" onclick="saveProject()">✅ 프로젝트 정보 저장</button>
+                <div id="autoSaveNote" style="font-size:13px; font-weight:600; color:var(--text-secondary); text-align:center; padding:4px 0 2px;">✓ 입력하면 자동으로 저장돼요</div>
             </div>
 
             <!-- 평면도 섹션 통합 -->
