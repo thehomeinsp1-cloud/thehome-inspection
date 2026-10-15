@@ -2,6 +2,89 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
+    <script>
+    // ✅ 현장 오류 자동 기록 (패치 51) — 다른 스크립트보다 먼저 실행
+    // 오류를 이 폰 안(localStorage 'th_errlog_v1_unifiedtest')에 모아 두고, 로그인돼 있을 때 공유드라이브 '앱오류기록'에 조용히 올림 (올리는 코드는 본문 flushErrorLog)
+    // 고객 전화번호·로그인 토큰은 지우고 저장, 이 코드에서 문제가 나도 앱은 그대로 동작 (모두 try/catch)
+    (function () {
+        try {
+            var KEY = 'th_errlog_v1_unifiedtest', MAX = 150, SESSION_MAX = 300, busy = false, adds = 0;
+            var scrub = function (s) {
+                return String(s == null ? '' : s)
+                    .replace(/01[016789][-.\s]?\d{3,4}[-.\s]?\d{4}/g, '010-****-****')
+                    .replace(/(access_token=)[^&\s"']+/gi, '$1***')
+                    .replace(/(Bearer\s+)[\w\-.~+\/]+=*/gi, '$1***')
+                    .replace(/ya29\.[\w\-.]+/g, 'ya29.***');
+            };
+            var load = function () { try { var v = JSON.parse(localStorage.getItem(KEY) || '[]'); return Array.isArray(v) ? v : []; } catch (e) { return []; } };
+            var save = function (a) { try { localStorage.setItem(KEY, JSON.stringify(a)); } catch (e) {} };
+            var pad = function (n) { return (n < 10 ? '0' : '') + n; };
+            var now = function () { var d = new Date(); return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds()); };
+            var stack3 = function (x) { return x && x.stack ? String(x.stack).split('\n').slice(0, 3).join(' | ') : ''; };
+            var add = function (k, m, s) {
+                if (busy) return;
+                busy = true;
+                try {
+                    m = scrub(m).replace(/\s+/g, ' ').trim().slice(0, 300);
+                    s = scrub(s || '').slice(0, 300);
+                    // 제외: 브라우저 잡음, 내용 없는 외부 스크립트 오류, 현장에서 흔한 인터넷 끊김(앱이 따로 안내함)
+                    if (!m || /ResizeObserver loop|^Script error\.?$/.test(m) || /(chrome|moz|safari-web)-extension:/.test(s)) return;
+                    if (/Failed to fetch|NetworkError|Load failed|network (error|request failed|connection was lost)|net::ERR_|인터넷 연결|오프라인|신호가 없/i.test(m)) return;
+                    adds++;
+                    if (adds > SESSION_MAX + 1) return;
+                    if (adds === SESSION_MAX + 1) { k = 'overflow'; m = '이번 실행에서 오류가 ' + SESSION_MAX + '번을 넘어 이후는 기록하지 않음'; s = ''; }
+                    var a = load(), t = now(), ctx = {};
+                    try { ctx = (window.__thErrCtx && window.__thErrCtx()) || {}; } catch (e) {}
+                    for (var i = a.length - 1; i >= 0; i--) {
+                        var e = a[i];
+                        if (e && e.k === k && e.m === m && String(e.t).slice(0, 10) === t.slice(0, 10)) { e.c = (e.c || 1) + 1; e.last = t; save(a); return; }
+                    }
+                    a.push({ t: t, k: k, m: m, s: s, c: 1, last: t, scr: ctx.scr || '', p: scrub(ctx.p || ''), sentC: 0 });
+                    while (a.length > MAX) {
+                        var j = -1;
+                        for (var x = 0; x < a.length; x++) if ((a[x].sentC || 0) >= (a[x].c || 1)) { j = x; break; }
+                        a.splice(j < 0 ? 0 : j, 1);
+                    }
+                    save(a);
+                } catch (e) {} finally { busy = false; }
+            };
+            window.__thErrLog = { add: add, list: load, save: save, key: KEY };
+            // 실행 중 오류 (그림·파일 못 불러온 경우는 window까지 올라오지 않아 제외됨)
+            window.addEventListener('error', function (ev) {
+                try {
+                    if (!ev || (ev.target && ev.target !== window)) return;
+                    var er = ev.error;
+                    add('js', (er && er.message) || ev.message || '', stack3(er) || (ev.filename ? ev.filename.split('/').pop() + ':' + (ev.lineno || '') + ':' + (ev.colno || '') : ''));
+                } catch (e) {}
+            });
+            window.addEventListener('unhandledrejection', function (ev) {
+                try { var r = ev && ev.reason; add('promise', (r && r.message) || String(r), stack3(r)); } catch (e) {}
+            });
+            // console.error: 원래 동작 그대로 + 기록 (앱의 전역 오류 처리기가 다시 찍는 줄은 위에서 이미 기록하므로 제외)
+            var oe = console.error;
+            console.error = function () {
+                try {
+                    var parts = [], st = '';
+                    for (var i = 0; i < arguments.length; i++) {
+                        var x = arguments[i];
+                        if (x && typeof x === 'object' && (x instanceof Error || (x.message && x.stack))) { parts.push(x.message); if (!st) st = stack3(x); }
+                        else if (x && typeof x === 'object') { var j = ''; try { j = JSON.stringify(x); } catch (e) { j = String(x); } parts.push(String(j).slice(0, 200)); }
+                        else parts.push(String(x));
+                    }
+                    var msg = parts.join(' ');
+                    if (!/^(전역 오류:|처리되지 않은 Promise 거부:)/.test(msg)) add('console', msg, st);
+                } catch (e) {}
+                return oe.apply(console, arguments);
+            };
+            // 오류·실패 안내창(alert)도 기록 (원래 안내창은 그대로)
+            var oa = window.alert;
+            window.alert = function (msg) {
+                try { if (/오류|실패|에러|error|부족|용량|못 했|못했|문제/i.test(String(msg))) add('alert', String(msg), ''); } catch (e) {}
+                return oa.apply(window, arguments);
+            };
+        } catch (e) {}
+    })();
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>[테스트] 더홈점검 - 하자관리 시스템</title>
     
@@ -1093,6 +1176,26 @@
         html.ios #saveFailBanner { padding-top: calc(8px + env(safe-area-inset-top, 0px)) !important; }
     </style>
 
+<style>
+/* ✅ 자주 나오는 하자 버튼 (패치 50) */
+.qd-wrap{margin:2px 0 14px;padding:10px;border-radius:10px;background:var(--a-sunken,#0F1726);border:1px solid rgba(245,158,11,.55)}
+.qd-title{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:12.5px;font-weight:800;color:#F2A93B;margin-bottom:8px}
+.qd-title span{flex:none;font-size:11px;font-weight:600;color:var(--text-secondary,#A9B4C8)}
+.qd-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.qd-chip{min-height:42px;padding:5px 9px;border-radius:8px;border:1px solid rgba(245,158,11,.45);background:var(--a-raised,#212C42);color:var(--a-ink,#F1F4F9);font-size:13.5px;font-weight:800;line-height:1.25;text-align:left;font-family:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.qd-chip small{display:block;font-size:11px;font-weight:600;color:#E8B25A;margin-top:1px}
+.qd-chip i{font-style:normal;font-size:11px;font-weight:700;color:#E8B25A;margin-left:4px}
+.qd-chip.on{background:#F59E0B;border-color:#F59E0B;color:#141D2E}.qd-chip.on small,.qd-chip.on i{color:#3A2600}
+.qd-pick{margin-top:8px;padding:8px;border-radius:8px;background:var(--a-raised,#212C42);display:flex;flex-direction:column;gap:6px}
+.qd-row{display:flex;align-items:center;gap:5px}
+.qd-row b{width:30px;flex:none;font-size:11.5px;color:var(--text-secondary,#A9B4C8)}
+.qd-pill{flex:1;min-width:0;height:34px;padding:0 4px;border-radius:7px;border:1px solid var(--a-line,#2A3550);background:var(--a-sunken,#0F1726);color:var(--a-ink,#F1F4F9);font-size:13px;font-weight:800;font-family:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.qd-pill.on{background:#F59E0B;border-color:#F59E0B;color:#141D2E}
+.qd-res{font-size:11.5px;color:#F2C46B;font-weight:700}
+body.light-mode .qd-title{color:#9A5B00}
+body.light-mode .qd-chip small,body.light-mode .qd-chip i,body.light-mode .qd-res{color:#8A4B00}
+body.light-mode .qd-chip.on small,body.light-mode .qd-chip.on i{color:#3A2600}
+</style>
 <style id="designA">
 /* =====================================================================
    더홈점검 앱 디자인 샘플 A — "보고서 톤 통일 (Clean Pro)"
@@ -3364,6 +3467,198 @@ body.light-mode .card.reference-info {
             }
         }
 
+        // ✅ 현장 오류 기록 올리기 (패치 51): 로그인돼 있고 인터넷이 될 때만, 공유드라이브 '앱오류기록' 폴더에 작은 글 파일 하나씩
+        // 실패해도 안내창·알림·로그아웃 없음 (다음에 다시), 올리는 중 오류는 console.warn만 (기록이 기록을 부르지 않게)
+        const ERRLOG_FOLDER = '앱오류기록';
+        let _errFlushBusy = false;
+        window.__thErrCtx = function () {
+            let scr = '', p = '';
+            try { const a = document.querySelector('.section.active'); scr = a ? a.id : ''; } catch (e) {}
+            // projectData 프록시는 세대 목록이 비어 있으면 새 세대를 만들므로 목록에서 직접 읽음 (기록이 앱 상태를 바꾸지 않게)
+            try { const cp = (typeof projects !== 'undefined' && projects || []).find(x => x && x.id === currentProjectId); if (cp && cp.apartmentName) p = cp.apartmentName + ' ' + (cp.dong || '') + '-' + (cp.ho || ''); } catch (e) {}
+            return { scr, p };
+        };
+        function errDeviceText() {
+            const ua = navigator.userAgent || '';
+            let m;
+            if ((m = ua.match(/iPhone OS (\d+)[_.](\d+)/))) return 'iPhone iOS ' + m[1] + '.' + m[2];
+            if ((m = ua.match(/iPad.*?OS (\d+)[_.](\d+)/))) return 'iPad iOS ' + m[1] + '.' + m[2];
+            if ((m = ua.match(/Android (\d+(?:\.\d+)?);\s*([^;)]*)/))) return ('Android ' + m[1] + ' ' + m[2].replace(/\s*Build\/.*$/, '')).trim();
+            if (/Windows/.test(ua)) return 'Windows PC';
+            if (/Mac OS X/.test(ua)) return 'Mac';
+            return '기타 기기';
+        }
+        async function errDriveFolderId() {
+            const H = { 'Authorization': 'Bearer ' + accessToken };
+            let id = '';
+            try { id = localStorage.getItem('th_errlog_folder') || ''; } catch (e) {}
+            if (id) {
+                const r = await fetch('https://www.googleapis.com/drive/v3/files/' + encodeURIComponent(id) + '?supportsAllDrives=true&fields=id,trashed,mimeType', { headers: H });
+                if (r.ok) { const f = await r.json(); if (f && !f.trashed && f.mimeType === 'application/vnd.google-apps.folder') return id; }
+                else if (r.status !== 404) throw new Error('폴더 확인 ' + r.status);
+            }
+            const q = "name='" + ERRLOG_FOLDER + "' and mimeType='application/vnd.google-apps.folder' and '" + SHARED_DRIVE_ID + "' in parents and trashed=false";
+            const r2 = await fetch('https://www.googleapis.com/drive/v3/files?' + new URLSearchParams({ q, fields: 'files(id)', driveId: SHARED_DRIVE_ID, corpora: 'drive', includeItemsFromAllDrives: 'true', supportsAllDrives: 'true', pageSize: '10' }), { headers: H });
+            if (!r2.ok) throw new Error('폴더 찾기 ' + r2.status);
+            const found = (await r2.json()).files || [];
+            if (found.length) id = found[0].id;
+            else {
+                const r3 = await fetch('https://www.googleapis.com/drive/v3/files?supportsAllDrives=true&fields=id', { method: 'POST', headers: Object.assign({ 'Content-Type': 'application/json' }, H),
+                    body: JSON.stringify({ name: ERRLOG_FOLDER, mimeType: 'application/vnd.google-apps.folder', parents: [SHARED_DRIVE_ID] }) });
+                if (!r3.ok) throw new Error('폴더 만들기 ' + r3.status);
+                id = (await r3.json()).id;
+                if (!id) throw new Error('폴더 ID 없음');
+            }
+            try { localStorage.setItem('th_errlog_folder', id); } catch (e) {}
+            return id;
+        }
+        async function flushErrorLog() {
+            if (_errFlushBusy || !window.__thErrLog || !accessToken || navigator.onLine === false) return false;
+            const pending = window.__thErrLog.list().filter(e => e && (e.c || 1) > (e.sentC || 0));
+            // 새 오류가 하나라도 있을 때만 올림 (이미 올린 오류의 횟수만 늘었으면 다음 새 오류 때 같이)
+            if (!pending.some(e => !(e.sentC > 0))) return false;
+            _errFlushBusy = true;
+            try {
+                const folderId = await errDriveFolderId();
+                let est = '';
+                try { if (navigator.storage && navigator.storage.estimate) { const e = await navigator.storage.estimate(); est = Math.round((e.usage || 0) / 1048576) + 'MB / ' + Math.round((e.quota || 0) / 1048576) + 'MB'; } } catch (e) {}
+                const tag = (document.getElementById('appVersionTag') || {}).textContent || '';
+                const ver = tag.replace(/^.*·\s*/, '');
+                const isTest = tag.indexOf('테스트판') > -1; // 테스트판은 상단 버전 글자에 '테스트판'이 들어감 (build-test.js)
+                const dev = errDeviceText();
+                const homeApp = navigator.standalone === true || !!(window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
+                const who = (typeof currentUser !== 'undefined' && currentUser && currentUser.email) || '';
+                const head = [
+                    '더홈점검 앱 오류 기록',
+                    '올린 시각: ' + new Date().toLocaleString('ko-KR'),
+                    '앱: ' + ver + (isTest ? ' (테스트판)' : ' (정식판)'),
+                    '기기: ' + dev + (homeApp ? ' · 홈 화면 앱' : ' · 브라우저'),
+                    '저장 방식: ' + (typeof STORAGE_V2 !== 'undefined' ? (STORAGE_V2 ? '세대별' : '예전 방식') : '?') + (est ? ' · 저장공간 ' + est : ''),
+                    '세대 수: ' + (typeof projects !== 'undefined' && projects ? projects.length : '?'),
+                    '로그인: ' + (who || '-'),
+                    'UA: ' + navigator.userAgent,
+                    ''];
+                const body = pending.map((e, i) => [
+                    (i + 1) + ') ' + e.t + ((e.c || 1) > 1 ? ' ~ ' + e.last + ' (' + e.c + '회)' : '') + ' [' + e.k + ']' + (e.scr ? ' 화면:' + e.scr : '') + (e.p ? ' 세대:' + e.p : ''),
+                    '   ' + e.m,
+                    e.s ? '   @ ' + e.s : ''].filter(Boolean).join('\n'));
+                const d = new Date(), p2 = n => String(n).padStart(2, '0');
+                const name = d.getFullYear() + '-' + p2(d.getMonth() + 1) + '-' + p2(d.getDate()) + ' ' + p2(d.getHours()) + p2(d.getMinutes()) + ' ' + dev + ' ' + ((who.split('@')[0]) || '로그인없음') + ' (' + pending.length + '건)' + (isTest ? ' [테스트판]' : '') + '.txt';
+                const form = new FormData();
+                form.append('metadata', new Blob([JSON.stringify({ name, mimeType: 'text/plain', parents: [folderId] })], { type: 'application/json' }));
+                form.append('file', new Blob([head.concat(body).join('\n')], { type: 'text/plain;charset=utf-8' }));
+                const r = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&supportsAllDrives=true&fields=id', { method: 'POST', headers: { 'Authorization': 'Bearer ' + accessToken }, body: form });
+                if (!r.ok) throw new Error('올리기 ' + r.status);
+                // 올린 횟수까지 '보냄' 표시 (올리는 사이 늘어난 횟수는 다음에 다시)
+                const sent = new Map(pending.map(e => [e.t + '|' + e.k + '|' + e.m, e.c || 1]));
+                const all = window.__thErrLog.list();
+                all.forEach(e => { const c = e && sent.get(e.t + '|' + e.k + '|' + e.m); if (c) e.sentC = Math.max(e.sentC || 0, c); });
+                window.__thErrLog.save(all);
+                return true;
+            } catch (e) {
+                console.warn('오류 기록 올리기 보류 (다음에 다시):', e && e.message);
+                return false;
+            } finally {
+                _errFlushBusy = false;
+            }
+        }
+        window.flushErrorLog = flushErrorLog;
+        setTimeout(() => { flushErrorLog(); }, 20000);
+        setInterval(() => { if (document.visibilityState === 'visible') flushErrorLog(); }, 10 * 60 * 1000);
+        window.addEventListener('online', () => { setTimeout(() => { flushErrorLog(); }, 3000); });
+
+        // ✅ 공유드라이브 폴더 자동 정리 (패치 52): 직원들이 손으로 하던 구조 그대로
+        //    현장진행중 목록 / 'M.D 이름 단지' / 'N. 동동 호호' / (세대 폴더) — 이미 있는 폴더는 그대로 쓰고, 없으면 만듦
+        //    '현장진행중 목록'이 없거나 무엇이든 실패하면 예전처럼 공유드라이브 맨 위 (업로드는 그대로 진행)
+        const INPROGRESS_FOLDER = '현장진행중 목록';
+        const FT_FOLDER_MIME = 'application/vnd.google-apps.folder';
+        const _ftNorm = s => String(s || '').replace(/\s+/g, '').toLowerCase();
+        const _ftRe = s => String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        async function _ftApi(url) {
+            const r = await fetch(url, { headers: { 'Authorization': 'Bearer ' + accessToken } });
+            if (!r.ok) { const e = new Error('드라이브 ' + r.status); e.status = r.status; throw e; }
+            return r.json();
+        }
+        async function _ftChildFolders(parentId) {
+            const out = [];
+            let pageToken = '';
+            do {
+                const p = new URLSearchParams({ q: "'" + String(parentId).replace(/'/g, '') + "' in parents and mimeType='" + FT_FOLDER_MIME + "' and trashed=false",
+                    fields: 'nextPageToken,files(id,name)', pageSize: '1000', orderBy: 'createdTime', driveId: SHARED_DRIVE_ID, corpora: 'drive', includeItemsFromAllDrives: 'true', supportsAllDrives: 'true' });
+                if (pageToken) p.set('pageToken', pageToken);
+                const j = await _ftApi('https://www.googleapis.com/drive/v3/files?' + p);
+                out.push(...(j.files || []));
+                pageToken = j.nextPageToken || '';
+            } while (pageToken && out.length < 5000);
+            return out;
+        }
+        // 방금 만든 폴더는 목록 검색에 늦게 잡힐 수 있어 기억해 두고, 다시 쓰기 전에 아직 그 자리에 있는지 확인
+        const _ftMemLoad = () => { try { return JSON.parse(localStorage.getItem('th_folder_mem') || '{}') || {}; } catch (e) { return {}; } };
+        function _ftMemSet(key, id) {
+            try {
+                const m = _ftMemLoad(); delete m[key]; m[key] = id;
+                const ks = Object.keys(m); if (ks.length > 300) ks.slice(0, ks.length - 300).forEach(k => delete m[k]);
+                localStorage.setItem('th_folder_mem', JSON.stringify(m));
+            } catch (e) {}
+        }
+        async function _ftMemValid(id, parentId) {
+            if (!id) return false;
+            try {
+                const f = await _ftApi('https://www.googleapis.com/drive/v3/files/' + encodeURIComponent(id) + '?supportsAllDrives=true&fields=id,name,trashed,mimeType,parents');
+                return !!f && !f.trashed && f.mimeType === FT_FOLDER_MIME && (f.parents || []).indexOf(parentId) > -1 ? f : false;
+            } catch (e) { return false; }
+        }
+        // parentId 안에서 match 되는 폴더를 찾고(없으면 기억해 둔 폴더 → 그래도 없으면 makeName(형제 폴더)로 만듦)
+        async function _ftFindOrCreate(parentId, memKey, makeName, match) {
+            const kids = await _ftChildFolders(parentId);
+            let hit = kids.find(f => _ftNorm(f.name) === memKey) || kids.find(f => match(f.name)); // 이름이 똑같은 폴더 먼저
+            const key = parentId + '|' + memKey;
+            if (!hit) { const f = await _ftMemValid(_ftMemLoad()[key], parentId); if (f && match(f.name)) hit = f; }
+            const name = hit ? hit.name : makeName(kids);
+            const id = hit ? hit.id : await createProjectFolder(parentId, name);
+            _ftMemSet(key, id);
+            return { id, name };
+        }
+        // 직원들이 칸에 덧붙여 쓰는 표시는 폴더 찾기·이름에서만 뺌: '(10-11 10시) 한강 풍경채 어바니티', '이조왕(일-1)', '임예은_1번째'
+        const _ftClean = x => String(x || '').replace(/\([^)]*\)/g, ' ').replace(/[_\s]*\d+\s*번째\s*$/, '').trim().replace(/\s+/g, ' ');
+        let _ftLastPath = '';
+        async function getAutoParentFolderId(project) {
+            _ftLastPath = '';
+            try {
+                const apt = _ftClean(project.apartmentName);
+                const dong = String(project.dong || '').trim().replace(/동$/, '').trim(), ho = String(project.ho || '').trim().replace(/호$/, '').trim();
+                if (!apt || !dong || !ho || !accessToken) return SHARED_DRIVE_ID;
+                const ip = (await _ftChildFolders(SHARED_DRIVE_ID)).find(f => f.name === INPROGRESS_FOLDER);
+                if (!ip) return SHARED_DRIVE_ID;
+                const dm = String(project.inspectionDate || '').match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+                const now = new Date();
+                const md = (dm ? +dm[2] : now.getMonth() + 1) + '.' + (dm ? +dm[3] : now.getDate());
+                const author = _ftClean(project.author);
+                const dayStd = [md, author, apt].filter(Boolean).join(' ');
+                // 날짜는 숫자 경계까지 (10.1 ≠ 10.11), 띄어쓰기·순서 무관 (예: '이조왕 10.11 한강 풍경채 어바니티')
+                // 날짜·이름을 빼고 남은 글자가 단지명과 똑같아야 함 ('자이'가 '10.15 홍길동 마포자이'에 들어가지 않게)
+                const reMd = new RegExp('(^|[^0-9.])' + _ftRe(md) + '(?![0-9])');
+                const day = await _ftFindOrCreate(ip.id, _ftNorm(dayStd), () => dayStd, name => {
+                    const n = _ftNorm(_ftClean(name));
+                    if (n === _ftNorm(dayStd)) return true;
+                    if (!author || !reMd.test(n)) return false;
+                    return n.replace(reMd, '$1').split(_ftNorm(author)).join('') === _ftNorm(apt);
+                });
+                // '1. 102동 201호'·'4.102동 1002호'·'102동 201호' (번호는 '숫자.' 통째로만 — '1101동'을 '1' + '101동'으로 보지 않게)
+                const reUnit = new RegExp('^(\\d+\\.)?' + _ftRe(_ftNorm(dong)) + '동' + _ftRe(_ftNorm(ho)) + '호$');
+                const unit = await _ftFindOrCreate(day.id, _ftNorm(dong + '동' + ho + '호'), kids => {
+                    const nums = kids.map(f => (_ftNorm(f.name).match(/^(\d+)\./) || [])[1]).filter(Boolean).map(Number);
+                    return (nums.length ? Math.max.apply(null, nums) + 1 : 1) + '. ' + dong + '동 ' + ho + '호';
+                }, name => reUnit.test(_ftNorm(name)));
+                _ftLastPath = INPROGRESS_FOLDER + ' › ' + day.name + ' › ' + unit.name;
+                return unit.id;
+            } catch (e) {
+                console.warn('폴더 자동 정리 생략 → 공유드라이브 맨 위에 저장:', e && e.message);
+                return SHARED_DRIVE_ID;
+            }
+        }
+        window.getAutoParentFolderId = getAutoParentFolderId;
+
         // Google Sheets 생성 (하자 리스트)
 
         async function createDefectSpreadsheet(projectFolderId, projectName, defects) {
@@ -3835,7 +4130,7 @@ body.light-mode .card.reference-info {
                 // 1. 프로젝트 폴더 생성 (공유드라이브 루트에 바로 생성)
                 showToast('📁 폴더 생성 중...');
                 const projectName = `${project.apartmentName}_${project.dong}동_${project.ho}호_${project.author}_${project.inspectionDate}`;
-                const projectFolderId = await createProjectFolder(SHARED_DRIVE_ID, projectName);
+                const projectFolderId = await createProjectFolder(await getAutoParentFolderId(project), projectName); // ✅ 패치 52: 현장진행중 목록 / 날짜 이름 단지 / N. 동 호
                 
                 // ✅ 프로젝트 백업 자동 업로드 (zip 압축 - 업로드 속도 최적화) - 삭제 후에도 이 파일로 복원 가능
                 try {
@@ -3886,7 +4181,6 @@ body.light-mode .card.reference-info {
                                 <div style="display:flex;flex-direction:column;gap:7px;font-size:11.5px;color:rgba(255,255,255,.82);line-height:1.4;">
                                     <div style="display:flex;gap:8px;"><span style="color:#12a4a4;font-weight:800;">·</span><span>열화상 카메라 (FLIR)</span></div>
                                     <div style="display:flex;gap:8px;"><span style="color:#12a4a4;font-weight:800;">·</span><span>레이저 레벨기</span></div>
-                                    <div style="display:flex;gap:8px;"><span style="color:#12a4a4;font-weight:800;">·</span><span>공기질 측정기</span></div>
                                 </div>
                                 <div style="height:1px;background:rgba(255,255,255,.14);margin:24px 0;"></div>
                                 <div style="font-size:16px;font-weight:800;color:#fff;">1668-5322</div>
@@ -4261,7 +4555,6 @@ body.light-mode .card.reference-info {
                                 <div style="display:flex;flex-direction:column;gap:7px;font-size:11.5px;color:rgba(255,255,255,.82);line-height:1.4;">
                                     <div style="display:flex;gap:8px;"><span style="color:#12a4a4;font-weight:800;">·</span><span>열화상 카메라 (FLIR)</span></div>
                                     <div style="display:flex;gap:8px;"><span style="color:#12a4a4;font-weight:800;">·</span><span>레이저 레벨기</span></div>
-                                    <div style="display:flex;gap:8px;"><span style="color:#12a4a4;font-weight:800;">·</span><span>공기질 측정기</span></div>
                                 </div>
                                 <div style="height:1px;background:rgba(255,255,255,.14);margin:24px 0;"></div>
                                 <div style="font-size:16px;font-weight:800;color:#fff;">1668-5322</div>
@@ -5909,6 +6202,7 @@ body.light-mode .card.reference-info {
         // Toast 메시지
         // ✅ 타입별 색상 지원: 'success'(초록), 'error'(빨강), 'warning'(주황), 'info'(파랑)
         function showToast(message, type = 'success') {
+            try { if (window.__thErrLog && /^\s*(❌|⚠)|실패|오류/.test(String(message)) && !/^\s*📶/.test(String(message))) window.__thErrLog.add('toast', String(message), ''); } catch (e) {}
             const toast = document.getElementById('toast');
             toast.textContent = message;
             
@@ -6537,6 +6831,7 @@ body.light-mode .card.reference-info {
                         </details>
                     </div>
 
+                    ${typeof renderQuickDefects === 'function' ? renderQuickDefects(defect) : ''}
                     <div class="form-field">
                         <label class="form-label">위치 선택 (최대 4개)</label>
                         <div class="selected-count">${defect.locations.length}/4 선택됨</div>
@@ -8411,6 +8706,108 @@ body.light-mode .card.reference-info {
         }
 
 
+        // ✅ 자주 나오는 하자 버튼 (완료된 현장 1,037세대 집계 → 조사_반복하자/자주나오는하자_버튼표.json, tools/gen-quick-defects.js가 넣음)
+        // 누르면 위치·하자내용·상세위치를 한 번에 채움 (손으로 버튼 누를 때와 같은 설명 생성·화면·저장), 다시 누르면 누르기 전 값으로
+        // ▾ 버튼은 기준(창/문 등)·방향(좌/우/상/하)을 고름: 방향 1곳 '창 우측', 2곳 이상 '창 좌/우' + 하자내용 '다수'
+        const QUICK_DEFECTS = {
+            "침실": {"spaces":["안방","침실1","침실2","침실3","침실4","알파룸"],"items":[{"n":"바닥 들뜸","loc":["바닥"],"ty":["들뜸","불량"],"pick":{"bases":["입구","창","문"],"base":"입구","dirs":[]}},{"n":"도배 들뜸","loc":["벽","도배"],"ty":["들뜸","불량"],"pick":{"bases":["창","문"],"base":"창","dirs":["우"]}},{"n":"문틀 찍힘","loc":["문","틀"],"ty":["찍힘","불량"],"pick":{"bases":[],"base":"","dirs":["좌"]}},{"n":"창 수평/수직","loc":["창","짝"],"ty":["수평/수직","불량"]},{"n":"문짝 유격","loc":["문","짝"],"ty":["유격"]},{"n":"문 안닫힘","s":"작동 불량","loc":["문","짝"],"ty":["작동","불량"],"d":"안닫힘"}]},
+            "욕실": {"spaces":["공용욕실","부부욕실"],"items":[{"n":"바닥 타일 단차","loc":["바닥","타일"],"ty":["단차","다수"]},{"n":"샤워부스 손잡이","s":"고정 불량","loc":["문","짝"],"ty":["고정","불량"],"d":"샤워부스 손잡이"},{"n":"문짝 유격","loc":["문","짝"],"ty":["유격"]},{"n":"점검구 단열재","s":"틈새·파손","loc":["천장"],"ty":["틈새","파손","다수","불량"],"d":"점검구 내 단열재"},{"n":"줄눈 마감","s":"입구 외","loc":["바닥","타일","줄눈"],"ty":["마감","다수","불량"],"d":"입구 외"},{"n":"수건걸이 고정","loc":["벽"],"ty":["고정","불량"],"d":"수건걸이"}]},
+            "주방": {"spaces":["주방"],"items":[{"n":"냉장고장 도배","s":"들뜸","loc":["벽","도배"],"ty":["들뜸","다수","불량"],"d":"냉장고장 내"},{"n":"콘센트 고정","loc":["벽"],"ty":["고정","불량"],"d":"콘센트"},{"n":"상판 틈새·고정","loc":["가구"],"ty":["틈새","고정","다수","불량"],"d":"상판"},{"n":"하부장 도어","s":"단차·수평","loc":["가구"],"ty":["단차","수평/수직","불량"],"d":"싱크 하부장"},{"n":"인덕션 고정","loc":["가구"],"ty":["고정","불량"],"d":"인덕션"},{"n":"후드 작동","loc":["가구"],"ty":["작동","불량"],"d":"후드"}]},
+            "현관": {"spaces":["현관","외부"],"items":[{"n":"반달스토퍼","s":"누락","loc":["문","짝"],"ty":["누락"],"d":"반달 스토퍼"},{"n":"디딤석 틈새","s":"좌/우","loc":["바닥","타일"],"ty":["틈새","다수","불량"],"d":"디딤석 좌/우"},{"n":"문틀 하부 긁힘","loc":["문","틀"],"ty":["긁힘","불량"],"pick":{"bases":["하부틀"],"base":"하부틀","dirs":["좌","우"],"after":true}},{"n":"문짝 유격","loc":["문","짝"],"ty":["유격"]},{"n":"피스커버 누락","s":"문틀 좌우","loc":["문","틀"],"ty":["다수","누락"],"d":"좌우 피스커버"},{"n":"줄눈 채움","s":"불량","loc":["바닥","타일","줄눈"],"ty":["불량"],"d":"채움"}]},
+            "발코니": {"spaces":["발코니","실외기실","대피공간","다용도실"],"items":[{"n":"문 스토퍼","s":"누락","loc":["문","짝"],"ty":["누락"],"d":"스토퍼"},{"n":"도어체크","s":"누락","loc":["문","짝"],"ty":["누락"],"d":"도어체크"},{"n":"줄눈 마감","s":"입구 외","loc":["바닥","타일","줄눈"],"ty":["마감","다수","불량"],"d":"입구 외"},{"n":"바닥 타일 단차","loc":["바닥","타일"],"ty":["단차","다수"]},{"n":"도장 면처리","loc":["벽","도장"],"ty":["마감","다수","불량"],"d":"면처리"},{"n":"창 수평/수직","loc":["창","짝"],"ty":["수평/수직","불량"]}]},
+            "거실": {"spaces":["거실"],"items":[{"n":"우물천장 도배","s":"들뜸","loc":["천장","도배"],"ty":["들뜸","다수","불량"],"d":"우물천장 주위"},{"n":"도배 들뜸","loc":["벽","도배"],"ty":["들뜸","불량"],"pick":{"bases":["창","문"],"base":"창","dirs":["우"]}},{"n":"바닥 들뜸","loc":["바닥"],"ty":["들뜸","불량"],"pick":{"bases":["입구","창","문"],"base":"창","dirs":["우"]}},{"n":"창 수평/수직","loc":["창","짝"],"ty":["수평/수직","불량"]},{"n":"아트월 타일","s":"단차","loc":["벽","타일"],"ty":["단차","불량"],"d":"아트월"},{"n":"창틀 긁힘","loc":["창","틀"],"ty":["긁힘","불량"],"pick":{"bases":[],"base":"","dirs":["상"]}}]},
+            "복도": {"spaces":["복도"],"items":[{"n":"바닥 들뜸","loc":["바닥"],"ty":["들뜸","불량"],"pick":{"bases":["디딤석 앞","공용욕실 입구","문 앞"],"base":"디딤석 앞","dirs":[]}},{"n":"도배 들뜸","loc":["벽","도배"],"ty":["틈새","들뜸","불량"],"pick":{"bases":["문","창"],"base":"문","dirs":["우"]}},{"n":"문틀 찍힘","loc":["문","틀"],"ty":["찍힘","불량"],"pick":{"bases":[],"base":"","dirs":["좌"]}},{"n":"콘센트 고정","loc":["벽"],"ty":["고정","불량"],"d":"콘센트"},{"n":"바닥 찍힘","loc":["바닥"],"ty":["찍힘","불량"]},{"n":"천장 도배 들뜸","loc":["천장","도배"],"ty":["들뜸","불량"]}]},
+            "드레스룸": {"spaces":["드레스룸","팬트리"],"items":[{"n":"피스커버 누락","s":"문틀 좌우","loc":["문","틀"],"ty":["다수","누락"],"d":"좌우 피스커버"},{"n":"선반 단차","loc":["가구"],"ty":["단차","다수","불량"],"d":"선반"},{"n":"선반 고정","loc":["가구"],"ty":["고정","불량"],"d":"선반"},{"n":"도배 들뜸","loc":["벽","도배"],"ty":["들뜸","불량"],"pick":{"bases":["창","문"],"base":"창","dirs":["우"]}},{"n":"문틀 찍힘","loc":["문","틀"],"ty":["찍힘","불량"],"pick":{"bases":[],"base":"","dirs":["좌"]}},{"n":"바닥 타일 틈새","loc":["바닥","타일"],"ty":["틈새","불량"]}]},
+            "파우더룸": {"spaces":["파우더룸"],"items":[{"n":"바닥 들뜸","loc":["바닥"],"ty":["들뜸","불량"],"pick":{"bases":["욕실 입구","입구"],"base":"욕실 입구","dirs":[]}},{"n":"거울 고정","loc":["가구"],"ty":["고정","불량"],"d":"거울"},{"n":"서랍 피스커버","s":"누락","loc":["가구"],"ty":["전체","누락"],"d":"서랍 내 피스커버"},{"n":"가구·문 수평","loc":["가구","문","짝"],"ty":["수평/수직","불량"]},{"n":"문틀 찍힘","loc":["문","틀"],"ty":["찍힘","불량"],"pick":{"bases":[],"base":"","dirs":["좌"]}},{"n":"도배 들뜸","loc":["벽","도배"],"ty":["들뜸","불량"],"pick":{"bases":["창","문"],"base":"문","dirs":["우"]}}]},
+            "공통": {"spaces":[],"items":[{"n":"바닥 들뜸","loc":["바닥"],"ty":["들뜸","불량"],"pick":{"bases":["입구","창","문"],"base":"입구","dirs":[]}},{"n":"도배 들뜸","loc":["벽","도배"],"ty":["들뜸","불량"],"pick":{"bases":["창","문"],"base":"창","dirs":["우"]}},{"n":"문틀 찍힘","loc":["문","틀"],"ty":["찍힘","불량"],"pick":{"bases":[],"base":"","dirs":["좌"]}},{"n":"콘센트 고정","loc":["벽"],"ty":["고정","불량"],"d":"콘센트"},{"n":"문 안닫힘","s":"작동 불량","loc":["문","짝"],"ty":["작동","불량"],"d":"안닫힘"},{"n":"창 수평/수직","loc":["창","짝"],"ty":["수평/수직","불량"]}]}
+        };
+        const QD_DIRS = ['좌', '우', '상', '하'], QD_ONE = { 좌: '좌측', 우: '우측', 상: '상단', 하: '하단' };
+        const _qdState = {}; // '세대id:하자id' → { g, i, base, dirs, prev(누르기 전 값) } — 화면용, 저장하지 않음
+        const qdKey = id => (typeof currentProjectId !== 'undefined' ? currentProjectId : '') + ':' + id;
+        function qdGroup(defect) {
+            const sp = (defect.spaces || [])[0];
+            for (const g in QUICK_DEFECTS) if (QUICK_DEFECTS[g].spaces.indexOf(sp) > -1) return g;
+            return '공통';
+        }
+        function qdCompose(q, base, dirs) {
+            if (!q.pick) return { locations: q.loc.slice(0, 4), detailLocation: q.d || '', types: q.ty.slice(0, 4) };
+            const ds = QD_DIRS.filter(x => dirs.indexOf(x) > -1);
+            const dirText = ds.length === 1 ? QD_ONE[ds[0]] : ds.join('/');
+            const types = q.ty.slice();
+            if (ds.length >= 2 && types.indexOf('다수') < 0) { const k = types.indexOf('불량'); if (k < 0) types.push('다수'); else types.splice(k, 0, '다수'); }
+            const parts = q.pick.after ? [dirText, base] : [base, dirText];
+            return { locations: q.loc.slice(0, 4), detailLocation: parts.filter(Boolean).join(' '), types: types.slice(0, 4) };
+        }
+        // 지금 하자 값(공간 포함)이 버튼으로 채운 값 그대로일 때만 버튼을 켜진 상태로 봄 (손으로 고쳤거나 공간을 바꿨거나 다른 세대·하자면 표시만 풀림, 값은 그대로)
+        function qdActive(defect) {
+            const st = _qdState[qdKey(defect.id)];
+            if (!st) return null;
+            const grp = QUICK_DEFECTS[st.g], q = grp && grp.items[st.i];
+            const r = q && qdCompose(q, st.base, st.dirs);
+            const same = (a, b) => JSON.stringify(a || []) === JSON.stringify(b || []);
+            if (!r || st.g !== qdGroup(defect) || st.sp !== JSON.stringify(defect.spaces || []) || !same(defect.locations, r.locations) || !same(defect.types, r.types) || (defect.detailLocation || '') !== r.detailLocation) {
+                delete _qdState[qdKey(defect.id)];
+                return null;
+            }
+            return { st, q };
+        }
+        window.tapQuickDefect = function(id, i) {
+            const defect = projectData.defects.find(d => d.id === id);
+            if (!defect) return;
+            const g = qdGroup(defect), q = QUICK_DEFECTS[g].items[i];
+            if (!q) return;
+            const act = qdActive(defect);
+            if (act && act.st.i === i) {
+                // 다시 누르면 취소 → 누르기 전 값(설명 포함) 그대로
+                Object.assign(defect, act.st.prev);
+                delete _qdState[qdKey(id)];
+                renderDefects();
+                saveWithDebounce();
+                return;
+            }
+            const prev = act ? act.st.prev : { locations: (defect.locations || []).slice(), types: (defect.types || []).slice(), detailLocation: defect.detailLocation || '', description: defect.description || '' };
+            const st = { g, i, prev, sp: JSON.stringify(defect.spaces || []), base: q.pick ? q.pick.base : '', dirs: q.pick ? q.pick.dirs.slice() : [] };
+            Object.assign(defect, qdCompose(q, st.base, st.dirs));
+            _qdState[qdKey(id)] = st;
+            generateAutoDescription(id);
+            renderDefects();
+            saveWithDebounce();
+        };
+        window.tapQuickPick = function(id, kind, v) {
+            const defect = projectData.defects.find(d => d.id === id);
+            const act = defect && qdActive(defect);
+            if (!act || !act.q.pick) return;
+            const st = act.st;
+            if (kind === 'base') st.base = st.base === v ? '' : v;
+            else { const k = st.dirs.indexOf(v); if (k > -1) st.dirs.splice(k, 1); else st.dirs.push(v); }
+            Object.assign(defect, qdCompose(act.q, st.base, st.dirs));
+            generateAutoDescription(id);
+            renderDefects();
+            saveWithDebounce();
+        };
+        function renderQuickDefects(defect) {
+            try {
+                const g = qdGroup(defect), grp = QUICK_DEFECTS[g];
+                const act = qdActive(defect);
+                const on = act ? act.st.i : -1;
+                const chips = grp.items.map((q, i) => `<button type="button" class="qd-chip${i === on ? ' on' : ''}" onclick="tapQuickDefect(${defect.id}, ${i})">${escapeHtml(q.n)}${q.pick ? '<i>▾</i>' : ''}${q.s ? '<small>' + escapeHtml(q.s) + '</small>' : ''}</button>`).join('');
+                let pick = '';
+                if (act && act.q.pick) {
+                    const st = act.st, r = qdCompose(act.q, st.base, st.dirs);
+                    const pill = (kind, v, sel) => `<button type="button" class="qd-pill${sel ? ' on' : ''}" onclick="tapQuickPick(${defect.id}, '${kind}', ${escapeHtml(JSON.stringify(v))})">${escapeHtml(v)}</button>`;
+                    pick = '<div class="qd-pick">'
+                        + (act.q.pick.bases.length ? '<div class="qd-row"><b>기준</b>' + act.q.pick.bases.map(b => pill('base', b, b === st.base)).join('') + '</div>' : '')
+                        + '<div class="qd-row"><b>방향</b>' + QD_DIRS.map(d => pill('dir', d, st.dirs.indexOf(d) > -1)).join('') + '</div>'
+                        + '<div class="qd-res">→ ' + escapeHtml(r.detailLocation || '(상세위치 없음)') + ' · ' + escapeHtml(r.types.join(', ')) + '</div></div>';
+                }
+                const sp = (defect.spaces || [])[0];
+                return `<div class="qd-wrap"><div class="qd-title">⚡ 자주 나오는 하자${sp ? ' · ' + escapeHtml(sp) : ''}<span>다시 누르면 취소</span></div><div class="qd-grid">${chips}</div>${pick}</div>`;
+            } catch (e) {
+                console.warn('자주 나오는 하자 버튼 표시 생략:', e);
+                return '';
+            }
+        }
+
         function updateDefect(id, field, value) {
             const defect = projectData.defects.find(d => d.id === id);
             if (defect) {
@@ -9849,7 +10246,6 @@ body.light-mode .card.reference-info {
                                 <div style="display:flex;flex-direction:column;gap:7px;font-size:11.5px;color:rgba(255,255,255,.82);line-height:1.4;">
                                     <div style="display:flex;gap:8px;"><span style="color:#12a4a4;font-weight:800;">·</span><span>열화상 카메라 (FLIR)</span></div>
                                     <div style="display:flex;gap:8px;"><span style="color:#12a4a4;font-weight:800;">·</span><span>레이저 레벨기</span></div>
-                                    <div style="display:flex;gap:8px;"><span style="color:#12a4a4;font-weight:800;">·</span><span>공기질 측정기</span></div>
                                 </div>
                                 <div style="height:1px;background:rgba(255,255,255,.14);margin:24px 0;"></div>
                                 <div style="font-size:16px;font-weight:800;color:#fff;">1668-5322</div>
@@ -9887,11 +10283,11 @@ body.light-mode .card.reference-info {
                     await window.addHTMLPageToPDF(doc, thermalHTML, pageWidth, pageHeight);
                 }
 
-                // 공기질 측정 결과 페이지 (측정값이 있을 때만 - 표지의 '공기질 측정기'와 일치, 메인 보고서와 같은 페이지)
+                // 공기질 측정 결과 페이지: 측정값이 있고 하자가 하나도 없을 때만 (하자가 있으면 하자 보고서에 이미 들어감)
                 const airQualityWithData = (projectData.airQuality || []).filter(room =>
                     room.radon || room.formaldehyde || room.vocs
                 );
-                if (airQualityWithData.length > 0) {
+                if (airQualityWithData.length > 0 && !(projectData.defects || []).length) {
                     doc.addPage();
                     const airQualityHTML = window.createAirQualityDetailPage();
                     await window.addHTMLPageToPDF(doc, airQualityHTML, pageWidth, pageHeight);
@@ -10015,7 +10411,7 @@ body.light-mode .card.reference-info {
             // RULE 08: 철재방화문 (현관문/방화문)
             // ═══════════════════════════════════════
             if (r.includes('현관') && l.includes('문') && !d.includes('중문')) {
-                if (['하부씰','하틀','좌우하틀','도어체크','긁힘','찍힘','틈새','파손','고정','녹','유격'].some(kw => d.includes(kw))) return '철재방화문';
+                if (['하부씰','하틀','하부틀','좌우하틀','도어체크','긁힘','찍힘','틈새','파손','고정','녹','유격'].some(kw => d.includes(kw))) return '철재방화문';
             }
             if (['대피','실외기'].some(kw => r.includes(kw)) && l.includes('문')) {
                 if (['스토퍼','도어클로저','손잡이','파손','긁힘','찍힘','틈새','고정','하부씰','유격','도어체크'].some(kw => d.includes(kw))) return '철재방화문';
