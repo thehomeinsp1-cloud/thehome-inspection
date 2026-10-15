@@ -5295,8 +5295,8 @@ body.light-mode .card.reference-info {
             // 프로젝트 삭제
             projects = projects.filter(p => p.id !== currentProjectId);
             
-            // 가장 최근 세대로 전환 (오래된 세대를 열어 무거운 화면을 다시 그리지 않도록)
-            currentProjectId = projects[projects.length - 1].id;
+            // ✅ 목록 맨 위 세대로 전환 (예전엔 맨 아래 = 대개 작업 중인 세대 → 삭제를 한 번 더 누르면 작업 중인 세대가 지워질 위험)
+            currentProjectId = projects[0].id;
 
             // UI 업데이트
             loadProjectToUI();
