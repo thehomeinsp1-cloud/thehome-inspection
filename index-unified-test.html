@@ -1196,6 +1196,20 @@ body.light-mode .qd-title{color:#9A5B00}
 body.light-mode .qd-chip small,body.light-mode .qd-chip i,body.light-mode .qd-res{color:#8A4B00}
 body.light-mode .qd-chip.on small,body.light-mode .qd-chip.on i{color:#3A2600}
 </style>
+<style>
+/* ✅ 입실톡 칸 (패치 57): 하자점검 탭 맨 위 */
+.et-bar{display:flex; align-items:center; gap:10px; margin:-8px 0 8px; padding:10px 12px; border-radius:10px; background:var(--a-sunken,#0F1726); border:1px solid var(--a-line,#2A3550)}
+.et-bar .u{flex:1; min-width:0; line-height:1.25}
+.et-bar .u small{display:block; font-size:12px; font-weight:600; color:var(--text-secondary,#A9B4C8); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.et-bar .u b{display:block; font-size:16.5px; font-weight:800; color:var(--a-ink,#F1F4F9); white-space:nowrap}
+.et-bar.sent{padding:7px 10px}
+.et-bar.sent .u{white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-size:12.5px; font-weight:600; color:var(--text-secondary,#A9B4C8)}
+.et-bar.sent .u b{display:inline; font-size:14px}
+.et-bar .hint{font-size:12.5px; color:var(--text-secondary,#A9B4C8)}
+.et-pill{flex:none; min-height:34px; padding:0 11px; border-radius:17px; border:1px solid var(--a-line-strong,#62708C); background:var(--a-raised,#212C42); color:var(--a-ink,#F1F4F9); font-size:12.5px; font-weight:800; font-family:inherit; white-space:nowrap; cursor:pointer; -webkit-tap-highlight-color:transparent}
+.et-pill.sent{min-height:30px; border-color:rgba(74,222,128,.7); color:#4ade80; background:rgba(74,222,128,.10)}
+body.light-mode .et-pill.sent{border-color:rgba(21,128,61,.55); color:#15803D; background:rgba(21,128,61,.08)}
+</style>
 <style id="designA">
 /* =====================================================================
    더홈점검 앱 디자인 샘플 A — "보고서 톤 통일 (Clean Pro)"
@@ -1777,7 +1791,7 @@ body.light-mode .card.reference-info {
         </button>
         
         <h1>🏠 더홈점검</h1>
-        <p id="appVersionTag" style="color:#fde68a;font-weight:700;">🧪 테스트판 · 업데이트 2026.10.15</p>
+        <p id="appVersionTag" style="color:#fde68a;font-weight:700;">🧪 테스트판 · 업데이트 2026.10.16</p>
     </div>
 
     <div class="container">
@@ -1902,6 +1916,7 @@ body.light-mode .card.reference-info {
         <div id="defects" class="section">
             <div class="card">
                 <h2 style="color: var(--primary); margin-bottom: 20px;">🔍 하자 점검</h2>
+                <div id="entryTalkBar" class="et-bar" style="display:none;"></div>
                 <p style="color: var(--text-secondary); font-size: 14px;">
                     우측 하단의 ➕ 버튼을 눌러 하자를 추가하세요
                 </p>
@@ -6088,6 +6103,63 @@ body.light-mode .card.reference-info {
             window.prompt('아래 내용을 길게 눌러 복사하세요', text);
             return false;
         }
+        // ✅ 입실톡 (패치 57): '[입실] 단지 101동 502호 / 작성자 / 10:12' → 공유창(카톡 → 단톡방 선택) 또는 복사
+        const _etHM = d => String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+        const _etDongHo = p => String(p.dong || '').trim().replace(/동$/, '') + '동 ' + String(p.ho || '').trim().replace(/호$/, '') + '호';
+        const _etReady = p => !!(p && String(p.apartmentName || '').trim() && String(p.dong || '').trim() && String(p.ho || '').trim());
+        function entryTalkText(p) {
+            return '[입실] ' + String(p.apartmentName || '').trim() + ' ' + _etDongHo(p)
+                + (String(p.author || '').trim() ? ' / ' + String(p.author).trim() : '') + ' / ' + _etHM(new Date());
+        }
+        window.renderEntryTalkBar = function() {
+            try {
+                const el = document.getElementById('entryTalkBar');
+                if (!el) return;
+                const p = getCurrentProject();
+                if (!p) { el.style.display = 'none'; return; }
+                el.style.display = 'flex';
+                if (!_etReady(p)) {
+                    el.className = 'et-bar';
+                    el.innerHTML = '<div class="u hint">📍 프로젝트 탭에서 아파트명 · 동 · 호를 먼저 입력하세요</div>';
+                    return;
+                }
+                const apt = escapeHtml(String(p.apartmentName).trim()), dh = escapeHtml(_etDongHo(p));
+                const at = p._entryTalkAt ? new Date(p._entryTalkAt) : null;
+                if (at && !isNaN(at)) {
+                    const today = new Date().toDateString() === at.toDateString();
+                    el.className = 'et-bar sent';
+                    el.innerHTML = '<div class="u">📍 <b>' + dh + '</b> · ' + apt + '</div>'
+                        + '<button type="button" class="et-pill sent" onclick="sendEntryTalk()" title="다시 누르면 입실톡을 또 보냅니다">✓ 입실 ' + (today ? '' : (at.getMonth() + 1) + '/' + at.getDate() + ' ') + _etHM(at) + '</button>';
+                } else {
+                    el.className = 'et-bar';
+                    el.innerHTML = '<div class="u"><small>📍 ' + apt + '</small><b>' + dh + '</b></div>'
+                        + '<button type="button" class="et-pill" onclick="sendEntryTalk()">📨 입실톡</button>';
+                }
+            } catch (e) {}
+        };
+        function _etMarkSent(id) {
+            const p = (projects || []).find(x => x && x.id === id);
+            if (!p) return;
+            p._entryTalkAt = new Date().toISOString();
+            saveWithDebounce();
+            renderEntryTalkBar();
+        }
+        window.sendEntryTalk = function() {
+            const p = getCurrentProject();
+            if (!_etReady(p)) { alert('아파트명 · 동 · 호를 먼저 입력해 주세요.'); return; }
+            const id = p.id, text = entryTalkText(p);
+            const copyMsg = '📋 입실톡 문구를 복사했어요. 업무 단톡방에 붙여넣기 하세요';
+            const viaCopy = () => copyTextSafe(text, copyMsg).then(ok => { if (ok) _etMarkSent(id); });
+            if (navigator.share) {
+                // 누른 그 순간에 공유창을 열어야 함 (기다린 뒤 열면 휴대폰이 막음)
+                navigator.share({ text: text }).then(() => _etMarkSent(id), err => {
+                    if (err && err.name === 'AbortError') return; // 공유창을 그냥 닫음
+                    viaCopy();
+                });
+            } else {
+                viaCopy();
+            }
+        };
         // 보고서 저장 직후 아래쪽 '보내기' 창 (기존 저장 동작은 그대로, 이 창은 추가 안내)
         window.offerReportShare = function(blob, filename, kind, link, retryLink, opt) {
             try {
@@ -6671,6 +6743,7 @@ body.light-mode .card.reference-info {
         };
 
         function renderDefects() {
+            if (typeof renderEntryTalkBar === 'function') renderEntryTalkBar(); // ✅ 패치 57
             const container = document.getElementById('defectsList');
             
             if (projectData.defects.length === 0) {
@@ -12626,6 +12699,7 @@ body.light-mode .card.reference-info {
             
             // 저장 (이미 debounce 적용)
             saveWithDebounce(500); // 0.5초 지연
+            if (typeof renderEntryTalkBar === 'function') renderEntryTalkBar(); // ✅ 패치 57
             updateProgress();
         }
 
