@@ -3572,7 +3572,7 @@ body.light-mode .card.reference-info {
         window.addEventListener('online', () => { setTimeout(() => { flushErrorLog(); }, 3000); });
 
         // ✅ 공유드라이브 폴더 자동 정리 (패치 52): 직원들이 손으로 하던 구조 그대로
-        //    현장진행중 목록 / 'M.D 이름 단지' / 'N. 동동 호호' / (세대 폴더) — 이미 있는 폴더는 그대로 쓰고, 없으면 만듦
+        //    현장진행중 목록 / 'M.D 이름 단지' / 'N. 세대 폴더' (지은주 직원 방식: 날짜 폴더 안에 순서 번호를 붙인 세대 폴더) — 날짜 폴더는 있으면 그대로 씀
         //    '현장진행중 목록'이 없거나 무엇이든 실패하면 예전처럼 공유드라이브 맨 위 (업로드는 그대로 진행)
         const INPROGRESS_FOLDER = '현장진행중 목록';
         const FT_FOLDER_MIME = 'application/vnd.google-apps.folder';
@@ -3626,14 +3626,16 @@ body.light-mode .card.reference-info {
         // 직원들이 칸에 덧붙여 쓰는 표시는 폴더 찾기·이름에서만 뺌: '(10-11 10시) 한강 풍경채 어바니티', '이조왕(일-1)', '임예은_1번째'
         const _ftClean = x => String(x || '').replace(/\([^)]*\)/g, ' ').replace(/[_\s]*\d+\s*번째\s*$/, '').trim().replace(/\s+/g, ' ');
         let _ftLastPath = '';
-        async function getAutoParentFolderId(project) {
+        // 돌려줌: { id: 세대 폴더를 만들 곳, prefix: 세대 폴더 이름 앞 번호('3. ') } — 무엇이든 안 되면 예전처럼 맨 위·번호 없음
+        async function getAutoParentFolder(project, projectName) {
             _ftLastPath = '';
+            const ROOT = { id: SHARED_DRIVE_ID, prefix: '' };
             try {
                 const apt = _ftClean(project.apartmentName);
                 const dong = String(project.dong || '').trim().replace(/동$/, '').trim(), ho = String(project.ho || '').trim().replace(/호$/, '').trim();
-                if (!apt || !dong || !ho || !accessToken) return SHARED_DRIVE_ID;
+                if (!apt || !dong || !ho || !projectName || !accessToken) return ROOT;
                 const ip = (await _ftChildFolders(SHARED_DRIVE_ID)).find(f => appFolderNames(INPROGRESS_FOLDER).indexOf(f.name) > -1);
-                if (!ip) return SHARED_DRIVE_ID;
+                if (!ip) return ROOT;
                 const dm = String(project.inspectionDate || '').match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
                 const now = new Date();
                 const md = (dm ? +dm[2] : now.getMonth() + 1) + '.' + (dm ? +dm[3] : now.getDate());
@@ -3648,20 +3650,23 @@ body.light-mode .card.reference-info {
                     if (!author || !reMd.test(n)) return false;
                     return n.replace(reMd, '$1').split(_ftNorm(author)).join('') === _ftNorm(apt);
                 });
-                // '1. 102동 201호'·'4.102동 1002호'·'102동 201호' (번호는 '숫자.' 통째로만 — '1101동'을 '1' + '101동'으로 보지 않게)
-                const reUnit = new RegExp('^(\\d+\\.)?' + _ftRe(_ftNorm(dong)) + '동' + _ftRe(_ftNorm(ho)) + '호$');
-                const unit = await _ftFindOrCreate(day.id, _ftNorm(dong + '동' + ho + '호'), kids => {
-                    const nums = kids.map(f => (_ftNorm(f.name).match(/^(\d+)\./) || [])[1]).filter(Boolean).map(Number);
-                    return (nums.length ? Math.max.apply(null, nums) + 1 : 1) + '. ' + dong + '동 ' + ho + '호';
-                }, name => reUnit.test(_ftNorm(name)));
-                _ftLastPath = INPROGRESS_FOLDER + ' › ' + day.name + ' › ' + unit.name;
-                return unit.id;
+                // 세대 폴더 번호: 같은 세대를 다시 올리면 그 번호 그대로, 아니면 날짜 폴더 안 가장 큰 번호 + 1
+                // (방금 만든 폴더가 목록에 늦게 잡혀도 번호가 겹치지 않게, 10분 안에 이 날짜 폴더에 쓴 번호도 같이 봄)
+                const kids = await _ftChildFolders(day.id);
+                const numOf = name => +((String(name).match(/^\s*(\d+)\./) || [])[1] || 0);
+                const same = kids.find(f => numOf(f.name) && String(f.name).replace(/^\s*\d+\.\s*/, '').trim() === String(projectName).trim());
+                const memKey = 'n|' + day.id, mem = String(_ftMemLoad()[memKey] || '').split('@');
+                const recent = Date.now() - (+mem[1] || 0) < 600000 ? +mem[0] || 0 : 0;
+                const n = same ? numOf(same.name) : Math.max(0, recent, ...kids.map(f => numOf(f.name))) + 1;
+                _ftLastPath = INPROGRESS_FOLDER + ' › ' + day.name + ' › ' + n + '. ' + projectName;
+                // 번호 기억은 세대 폴더를 실제로 만든 뒤에 (done) — 만들기가 실패하면 다음에 같은 번호를 다시 씀
+                return { id: day.id, prefix: n + '. ', done: () => { if (!same) _ftMemSet(memKey, n + '@' + Date.now()); } };
             } catch (e) {
                 console.warn('폴더 자동 정리 생략 → 공유드라이브 맨 위에 저장:', e && e.message);
-                return SHARED_DRIVE_ID;
+                return ROOT;
             }
         }
-        window.getAutoParentFolderId = getAutoParentFolderId;
+        window.getAutoParentFolder = getAutoParentFolder;
 
         // Google Sheets 생성 (하자 리스트)
 
@@ -4134,7 +4139,9 @@ body.light-mode .card.reference-info {
                 // 1. 프로젝트 폴더 생성 (공유드라이브 루트에 바로 생성)
                 showToast('📁 폴더 생성 중...');
                 const projectName = `${project.apartmentName}_${project.dong}동_${project.ho}호_${project.author}_${project.inspectionDate}`;
-                const projectFolderId = await createProjectFolder(await getAutoParentFolderId(project), projectName); // ✅ 패치 52: 현장진행중 목록 / 날짜 이름 단지 / N. 동 호
+                const _ftDest = await getAutoParentFolder(project, projectName); // ✅ 패치 52: 현장진행중 목록 / 날짜 이름 단지 / 번호. 세대 폴더 (파일 이름은 그대로)
+                const projectFolderId = await createProjectFolder(_ftDest.id, _ftDest.prefix + projectName);
+                if (_ftDest.done) _ftDest.done(); // 폴더를 만든 뒤에 번호 기억
                 
                 // ✅ 프로젝트 백업 자동 업로드 (zip 압축 - 업로드 속도 최적화) - 삭제 후에도 이 파일로 복원 가능
                 try {
