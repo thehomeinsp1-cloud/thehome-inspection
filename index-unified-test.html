@@ -85,6 +85,8 @@
             --border: rgba(0, 0, 0, 0.1);
             --text-primary: #1f2937;
             --text-secondary: #6b7280;
+            --role-eq-text: #3C3489;  /* 데이터 탭 소장님 칸 글씨 (흰 바탕 대비 10:1) */
+            --role-mgr-text: #A32D2D; /* 데이터 탭 매니저 칸 제목 (흰 바탕 대비 7:1) */
         }
 
         /* ✅ iOS Safari 러버밴드 바운스 방지 (아이폰에서만 적용) */
@@ -1659,7 +1661,7 @@ body.light-mode .card.reference-info {
         </button>
         
         <h1>🏠 더홈점검</h1>
-        <p id="appVersionTag" style="color:#fde68a;font-weight:700;">🧪 테스트판 · 업데이트 2026.10.14</p>
+        <p id="appVersionTag" style="color:#fde68a;font-weight:700;">🧪 테스트판 · 업데이트 2026.10.15</p>
     </div>
 
     <div class="container">
@@ -1876,11 +1878,11 @@ body.light-mode .card.reference-info {
 
             <!-- 🔧 소장님: 장비점검 끝나면 -->
             <div class="card" style="margin-bottom: 14px; border: 2px solid #7F77DD;">
-                <h2 style="font-size: 17px; margin-bottom: 12px; color: #9C95E8;">🔧 소장님 · 장비점검 끝나면</h2>
+                <h2 style="font-size: 17px; margin-bottom: 12px; color: var(--role-eq-text, #9C95E8);">🔧 소장님 · 장비점검 끝나면</h2>
                 <button class="btn" onclick="sendEquipmentToDrive()" style="display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; margin-bottom: 8px; background: #534AB7; color: #FFFFFF; border: none; padding: 13px 14px; font-size: 15.5px;">
                     <span style="display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: #FFFFFF; color: #534AB7; font-size: 13px; font-weight: 800; flex-shrink: 0;">1</span> 📤 장비점검 보내기 (필수)
                 </button>
-                <div style="font-size: 13.5px; line-height: 1.5; font-weight: 800; color: #9C95E8; margin: 2px 0 10px; word-break: keep-all;">✅ 장비점검이 끝나면 ① 장비점검 보내기를 꼭 눌러주세요. 매니저가 합쳐야 고객 보고서 1개에 장비점검이 들어갑니다.</div>
+                <div style="font-size: 13.5px; line-height: 1.5; font-weight: 800; color: var(--role-eq-text, #9C95E8); margin: 2px 0 10px; word-break: keep-all;">✅ 장비점검이 끝나면 ① 장비점검 보내기를 꼭 눌러주세요. 매니저가 합쳐야 고객 보고서 1개에 장비점검이 들어갑니다.</div>
                 <button class="btn btn-secondary" onclick="generateEquipmentOnlyPDF()" style="width: 100%; font-size: 14px;">
                     <span>🔧 장비점검 보고서만 (PDF · <b style="color: var(--a-red-text, #FF8080); font-weight: 800; text-decoration: underline;">긴급할 때만</b>)</span>
                 </button>
@@ -1888,7 +1890,7 @@ body.light-mode .card.reference-info {
 
             <!-- 📋 매니저: 점검 끝나면 순서대로 -->
             <div class="card" style="margin-bottom: 14px; border: 2px solid #D23B3B;">
-                <h2 style="font-size: 17px; margin-bottom: 12px; color: #FF8080;">📋 매니저 · 점검 끝나면 순서대로</h2>
+                <h2 style="font-size: 17px; margin-bottom: 12px; color: var(--role-mgr-text, #FF8080);">📋 매니저 · 점검 끝나면 순서대로</h2>
                 <button class="btn btn-secondary" onclick="openEquipmentDriveSheet()" style="display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; margin-bottom: 8px; padding: 12px 14px; font-size: 15px;">
                     <span style="display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: #D23B3B; color: #FFFFFF; font-size: 13px; font-weight: 800; flex-shrink: 0;">1</span> 📥 장비점검 합치기 (소장님이 보낸 것)
                 </button>
@@ -3682,7 +3684,7 @@ body.light-mode .card.reference-info {
         // ✅ 업로드 당시 내용 요약값 (사진은 길이+끝부분만 사용) - 업로드 이후 수정 여부 판단용
         function getUploadSig(project) {
             try {
-                const skipKeys = ['isUploaded', 'uploadedAt', 'driveFolderId', 'uploadSig', 'syncTimestamp'];
+                const skipKeys = ['isUploaded', 'uploadedAt', 'driveFolderId', 'uploadSig', 'syncTimestamp', 'legacySig'];
                 const json = JSON.stringify(project, function(key, value) {
                     if (skipKeys.indexOf(key) !== -1 || (key && key.charAt(0) === '_')) return undefined;
                     if (value === '' || value === null) return undefined;
@@ -4741,12 +4743,20 @@ body.light-mode .card.reference-info {
         // ✅ 🧹 정리 기준: 업로드 완료 후 7일 지난 세대 (가이드의 1주일 규칙과 같음)
         const CLEANUP_DAYS = 7;
         const MANY_UNITS = 8; // 이 세대 수부터 '느려집니다' 안내 + 새 프로젝트 때 정리 권유
-        // 정리 대상: 지금 연 세대 아님 + uploadSig 있음 + 업로드 후 CLEANUP_DAYS일 지남 + 업로드 뒤 수정 없음
+        // 정리 대상: 지금 연 세대 아님 + 업로드 표시 있음 + 업로드 후 CLEANUP_DAYS일 지남 + 업로드 뒤 수정 없음
+        // uploadSig 없는 예전 앱 업로드는 수정 여부를 알 수 없음 → 대상에 넣되 정리할 때 따로 한 번 더 물어봄 (uploadedAt 없으면 제외)
         // upToDate: 목록 그리기에서 이미 계산한 isUploadUpToDate 값 (없으면 여기서 계산 — 가장 무거워서 맨 마지막)
         function isCleanupTarget(p, upToDate) {
-            return p.id !== currentProjectId && !!p.uploadSig
-                && new Date(p.uploadedAt || 0).getTime() < Date.now() - CLEANUP_DAYS * 86400000
-                && (upToDate === undefined ? isUploadUpToDate(p) : upToDate);
+            if (p.id === currentProjectId || !p.isUploaded || !(new Date(p.uploadedAt || 0).getTime() < Date.now() - CLEANUP_DAYS * 86400000)) return false;
+            if (!p.uploadSig) return isLegacyCleanupCandidate(p);
+            return upToDate === undefined ? isUploadUpToDate(p) : upToDate;
+        }
+        // 예전 앱 업로드 세대: 업로드 시각·드라이브 폴더가 있고, 업로드 대기열에 없고, 새 앱에서 처음 본 뒤로 고친 적 없을 때만
+        // (최종 확인은 정리할 때 드라이브에 백업 파일이 실제로 있는지까지 봄)
+        function isLegacyCleanupCandidate(p) {
+            if (!p.uploadedAt || !p.driveFolderId) return false;
+            try { if (pendingSyncProjects.some(x => x && x.id === p.id)) return false; } catch (e) { return false; }
+            return !p.legacySig || p.legacySig === getUploadSig(p);
         }
         function cleanupTargets() {
             return projects.filter(p => isCleanupTarget(p));
@@ -4994,17 +5004,39 @@ body.light-mode .card.reference-info {
         }
 
         // ✅ 🧹 업로드 완료 후 CLEANUP_DAYS일 지난 세대를 한 번에 정리 (저장 1번)
-        // 지우지 않음: 지금 연 세대, 작업중, 업로드 뒤 수정한 세대, uploadSig 없는 예전 업로드(직접 삭제만)
+        // 지우지 않음: 지금 연 세대, 작업중, 업로드 뒤 수정한 세대, 업로드 표시 없는 세대
+        // 예전 앱 업로드(uploadSig 없음)는 두 번째 확인창에서 따로 물어보고 OK일 때만 지움
         window.cleanupUploadedProjects = async function() {
-            const t = cleanupTargets();
-            if (!t.length) { alert('정리할 세대가 없습니다.\n(업로드 ● 완료 후 ' + CLEANUP_DAYS + '일 지난 세대만 정리됩니다)'); return; }
-            if (!confirm('업로드 완료 후 ' + CLEANUP_DAYS + '일 지난 ' + t.length + '세대를 휴대폰에서 지웁니다.\n드라이브 백업(♻️ 프로젝트 가져오기)으로 언제든 복원됩니다.\n\n'
-                + t.map(p => (p.apartmentName || '') + ' ' + (p.dong || '') + '동 ' + (p.ho || '') + '호').join('\n'))) return;
+            const all = cleanupTargets();
+            if (!all.length) { alert('정리할 세대가 없습니다.\n(업로드 ● 완료 후 ' + CLEANUP_DAYS + '일 지난 세대만 정리됩니다)'); return; }
+            const names = list => list.map(p => (p.apartmentName || '') + ' ' + (p.dong || '') + '동 ' + (p.ho || '') + '호').join('\n');
+            const cur = all.filter(p => p.uploadSig), old = all.filter(p => !p.uploadSig);
+            const t = [];
+            if (cur.length && confirm('업로드 완료 후 ' + CLEANUP_DAYS + '일 지난 ' + cur.length + '세대를 휴대폰에서 지웁니다.\n드라이브 백업(♻️ 프로젝트 가져오기)으로 언제든 복원됩니다.\n\n'
+                + names(cur))) t.push(...cur);
+            // 예전 앱 업로드 세대: 드라이브 폴더에 백업 파일(…프로젝트백업.zip)이 실제로 있는 세대만 물어봄
+            // (예전 앱은 백업 업로드가 실패해도 완료로 표시했음 → 인터넷·구글 로그인이 없으면 확인 못 해 남겨 둠)
+            let oldOk = [];
+            if (old.length && navigator.onLine !== false && typeof accessToken === 'string' && accessToken) {
+                showToast('☁️ 예전 업로드 세대의 드라이브 백업을 확인하는 중...', 'info');
+                for (const p of old) {
+                    try {
+                        const q = "'" + String(p.driveFolderId).replace(/'/g, '') + "' in parents and name contains '프로젝트백업' and trashed=false";
+                        const r = await fetch('https://www.googleapis.com/drive/v3/files?' + new URLSearchParams({ q: q, fields: 'files(id,size)', supportsAllDrives: 'true', includeItemsFromAllDrives: 'true', pageSize: '10' }), { headers: { 'Authorization': 'Bearer ' + accessToken } });
+                        if (r.ok) { const j = await r.json(); if ((j.files || []).some(f => Number(f.size || 0) > 1000)) oldOk.push(p); }
+                    } catch (e) {}
+                }
+            }
+            const oldLeft = old.length - oldOk.length;
+            if (oldOk.length && confirm('예전 앱으로 업로드한 ' + oldOk.length + '세대 · 드라이브에 백업 파일이 있는 것을 확인했어요.\n업로드 뒤 고쳤는지는 앱이 알 수 없어요. 휴대폰에서 지울까요?\n(드라이브 백업 ♻️ 프로젝트 가져오기로 다시 불러올 수 있어요)\n\n'
+                + names(oldOk))) t.push(...oldOk);
+            const leftNote = oldLeft ? ' · 예전 업로드 ' + oldLeft + '세대는 ' + ((typeof accessToken === 'string' && accessToken) ? '드라이브 백업을 확인하지 못해' : '구글 로그인 뒤에 확인할 수 있어') + ' 남겨 두었어요' : '';
+            if (!t.length) { if (oldLeft) showToast('🧹 지운 세대 없음' + leftNote, 'warning'); return; }
             const ids = new Set(t.map(p => p.id));
             projects = projects.filter(p => !ids.has(p.id));
             renderProjectList();
             const ok = await saveProjectsToLocalStorage();
-            showToast(ok === false ? '⚠️ 정리 내용이 저장되지 않았습니다. 앱을 완전히 종료 후 다시 해주세요' : '🧹 ' + t.length + '세대 정리 완료', ok === false ? 'error' : 'success');
+            showToast(ok === false ? '⚠️ 정리 내용이 저장되지 않았습니다. 앱을 완전히 종료 후 다시 해주세요' : '🧹 ' + t.length + '세대 정리 완료' + leftNote, ok === false ? 'error' : 'success');
         };
 
         // UI에서 현재 프로젝트로 데이터 저장
@@ -5029,6 +5061,7 @@ body.light-mode .card.reference-info {
 
         // 프로젝트 데이터를 UI에 로드
         function loadProjectToUI() {
+            try { const rs = document.getElementById('reportShareSheet'); if (rs) rs.remove(); } catch (e) {} // 앞 세대 보고서 창이 다음 세대에 남지 않게
             const project = getCurrentProject();
             
             document.getElementById('apartmentName').value = project.apartmentName || '';
@@ -5206,7 +5239,7 @@ body.light-mode .card.reference-info {
         
         // 프로젝트 목록을 로컬 스토리지에 저장 (기존 함수 수정)
         // ✅ 저장 실패 안내 문구 (용량 부족 / 그 밖의 실패 / 불러오기 실패로 저장 차단)
-        const SAVE_MSG_QUOTA = '⚠️ 휴대폰 저장공간이 가득 차 방금 사진이 저장되지 않았습니다.\n앱을 끄지 마세요(끄면 사진이 사라집니다).\n① 프로젝트 탭 → 🧹 정리 (업로드 완료 세대)\n② 지금 세대로 돌아오면 자동 저장됩니다.\n사진은 지우지 마세요.\n정리할 세대가 없으면 [공유드라이브에 저장하기]로 이 세대를 올린 뒤 관리자 010-9985-0128.';
+        const SAVE_MSG_QUOTA = '⚠️ 휴대폰 저장공간이 가득 차 방금 사진이 저장되지 않았습니다.\n앱을 끄지 마세요(끄면 사진이 사라집니다).\n① 데이터 탭 → 이 세대 [공유드라이브에 저장하기]\n② 프로젝트 탭 → 🧹 정리 (업로드 완료 세대)\n띠가 사라지면 그대로 계속하세요.\n③ 그래도 안 되면 관리자 010-9985-0128\n사진은 지우지 마세요.';
         const SAVE_MSG_FAIL = '⚠️ 저장이 안 되고 있습니다. 앱을 끄거나 새로고침하지 마세요.\n먼저 [공유드라이브에 저장하기]로 이 세대를 올린 뒤, 앱을 완전히 종료(화면 아래에서 위로 쓸어 올려 더홈점검 카드를 위로 밀기)하고 다시 여세요.\n계속되면 휴대폰 재시동 → 관리자 010-9985-0128.';
         const SAVE_MSG_BLOCKED = '⛔ 저장 안 됨 — 지금 입력하는 내용은 저장되지 않습니다.\n앱을 완전히 종료(아래에서 위로 쓸어 올려 카드 밀기) 후 다시 여세요.\n이미 저장된 세대는 그대로 있습니다 (앱을 지우지 마세요).\n계속되면 관리자 010-9985-0128.';
         // ✅ 저장 실패 띠: msg가 있으면 표시(다음 저장 성공까지 유지), 없으면 숨김 + 경고창 1회 제한 초기화
@@ -5594,6 +5627,7 @@ body.light-mode .card.reference-info {
         try {
             await loadProjectsFromLocalStorage();
             await migrateToV2IfNeeded(); // 한 번만 (실패하면 예전 방식 그대로, 오류를 밖으로 내지 않음)
+            try { projects.forEach(p => { if (p && p.isUploaded && !p.uploadSig && !p.legacySig) p.legacySig = getUploadSig(p); }); } catch (e) {} // 다음 저장 때 같이 기록
             // v2로 정상 시작한 횟수 (다음 저장 때 idx와 함께 기록) — 3번이면 예비본 projects_list 삭제 (기다리지 않음)
             if (window._v2Loaded && window._storageV2 && window._idx && !window._dbLoadFailed) {
                 window._idx.okStarts = (window._idx.okStarts || 0) + 1;
@@ -5738,15 +5772,15 @@ body.light-mode .card.reference-info {
             return false;
         }
         // 보고서 저장 직후 아래쪽 '보내기' 창 (기존 저장 동작은 그대로, 이 창은 추가 안내)
-        window.offerReportShare = function(blob, filename, kind, link, retryLink) {
+        window.offerReportShare = function(blob, filename, kind, link, retryLink, opt) {
             try {
                 if (!blob || !filename) return;
-                const project = getCurrentProject();
+                const project = (opt && opt.project) || getCurrentProject(); // 링크 문자: 업로드한 그 세대 (세대를 바꾼 뒤 다시 만들기에도)
                 const text = buildReportMessage(project, link);
-                const plain = kind === '장비점검 보고서'; // 소장 → 매니저 전달용: 고객 안내 문구 없이 파일만
+                const plain = !!(opt && opt.plain); // 소장 → 매니저 전달용: 고객 안내 문구 없이 파일만
                 // 고객 연락처가 휴대폰·유선 번호 형식이면 '문자로 보내기' 버튼 표시
                 const _pd = String(project.customerPhone || '').replace(/[^0-9]/g, '');
-                const smsNum = /^0[0-9]{8,11}$/.test(_pd) ? _pd : '';
+                const smsNum = window.isValidKrPhone(_pd) ? _pd : '';
                 const mb = blob.size / 1048576;
                 let file = null, canShareFile = false;
                 try {
@@ -5767,7 +5801,7 @@ body.light-mode .card.reference-info {
                     + (mb > 1 && !link ? '<div style="font-size:12.5px;line-height:1.5;padding:8px 10px;border-radius:8px;background:#fdf3e1;color:#7a4b00;margin-bottom:10px;">문자(MMS)로 보내기엔 큰 파일입니다. <b>카카오톡이나 메일</b>을 권장합니다.</div>' : '')
                     + (canShareFile
                         ? '<button type="button" data-act="share" style="width:100%;min-height:48px;margin-bottom:8px;border:none;border-radius:12px;background:#141d2e;color:#fff;font-size:16px;font-weight:800;cursor:pointer;">' + (plain ? '📤 보내기 (카톡·문자·메일)' : '📤 고객에게 보내기 (카톡·문자·메일)') + '</button>'
-                        : link !== undefined ? '' : '<div style="font-size:12.5px;line-height:1.5;color:#5b6472;margin-bottom:8px;">이 화면에서는 바로 보내기를 쓸 수 없습니다. 저장된 PDF를 첨부하고, 아래 안내 문구를 복사해 붙여넣으세요.</div>')
+                        : link !== undefined ? '' : '<div style="font-size:12.5px;line-height:1.5;color:#5b6472;margin-bottom:8px;">' + (plain ? '이 화면에서는 바로 보내기를 쓸 수 없습니다. 저장된 PDF를 매니저에게 첨부해 보내주세요.' : '이 화면에서는 바로 보내기를 쓸 수 없습니다. 저장된 PDF를 첨부하고, 아래 안내 문구를 복사해 붙여넣으세요.') + '</div>')
                     + (smsNum && link ? '<button type="button" data-act="sms" style="width:100%;min-height:48px;margin-bottom:8px;border:none;border-radius:12px;background:#D23B3B;color:#fff;font-size:15px;font-weight:800;cursor:pointer;">📩 고객에게 보고서 문자 보내기 (' + escapeHtml(String(project.customerPhone || '').trim()) + ')</button>' : '')
                     + (link ? '<div style="font-size:12.5px;line-height:1.55;padding:8px 10px;border-radius:8px;background:#fdf3e1;color:#6b4300;margin-bottom:8px;">📌 <b>직원 안내</b><br>· 드라이브에서 이 보고서 파일은 <b>이동·이름 변경은 괜찮지만</b>, <b>사본 만들기·다시 올리기·삭제</b>를 하면 고객 링크가 끊깁니다.<br>· 링크를 못 여는 고객(폴더폰·링크 불안 등)은 카톡으로 PDF를 보내주세요.</div>' : '')
                     + (link === null && retryLink ? '<button type="button" data-act="retry" style="width:100%;min-height:48px;margin-bottom:8px;border:none;border-radius:12px;background:#D23B3B;color:#fff;font-size:15px;font-weight:800;cursor:pointer;">🔗 보고서 링크 다시 만들기</button>' : '')
@@ -5807,7 +5841,7 @@ body.light-mode .card.reference-info {
         // ✅ 고객 연락처 필수 확인: 비었거나 자리수가 틀리면 안내 후 false (업로드·PDF 공통)
         window.requireCustomerPhone = function(project) {
             const raw = String((project && project.customerPhone) || '').trim();
-            if (/^0[0-9]{8,11}$/.test(raw.replace(/[^0-9]/g, ''))) return true; // 12자리 = 0507 등 안심번호
+            if (window.isValidKrPhone(raw.replace(/[^0-9]/g, ''))) return true; // 12자리 = 0507 등 안심번호
             alert(raw
                 ? '⚠️ 고객 연락처 형식을 확인해주세요.\n\n"' + raw + '"\n\n프로젝트 탭에서 010-0000-0000 형식으로 입력해주세요.'
                 : '⚠️ 고객 연락처를 입력해주세요.\n\n프로젝트 탭에서 고객 연락처(예약 때 받은 번호)를 입력해주세요.');
@@ -5833,6 +5867,10 @@ body.light-mode .card.reference-info {
             if (d.length <= 10) return d.slice(0, 3) + '-' + d.slice(3, 6) + '-' + d.slice(6);
             return d.slice(0, 3) + '-' + d.slice(3, 7) + '-' + d.slice(7);
         };
+        // 전화번호 자리수 검사 (숫자만 넣음): 010=11 / 011·016~019=10~11 / 02=9~10 / 지역번호(031~064)=10~11 / 070=11 / 050X 안심번호=11~12 / 080=10~11
+        window.isValidKrPhone = function(d) {
+            return /^(010\d{8}|01[16-9]\d{7,8}|02\d{7,8}|0(3[1-3]|4[1-4]|5[1-5]|6[1-4])\d{7,8}|070\d{8}|050\d{8,9}|080\d{7,8})$/.test(String(d || ''));
+        };
         // 입력 중에는 맨 끝에서 칠 때만 바꿈 (중간 수정 시 커서 튐 방지), 칸을 벗어나면 항상 정리
         window.formatPhoneInput = function(el, force) {
             try {
@@ -5846,7 +5884,7 @@ body.light-mode .card.reference-info {
             try {
                 if (!project || !pdf || !pdf.id || !pdf.blob) return;
                 const digits = String(project.customerPhone || '').replace(/[^0-9]/g, '');
-                if (!/^0[0-9]{8,11}$/.test(digits)) return; // 연락처 없으면 기존과 같음 (창 없음)
+                if (!window.isValidKrPhone(digits)) return; // 연락처 없으면 기존과 같음 (창 없음)
                 let link = '';
                 try {
                     showToast('🔗 고객용 보고서 링크 만드는 중...');
@@ -5863,7 +5901,7 @@ body.light-mode .card.reference-info {
                 } catch (e) { console.warn('보고서 링크 만들기 실패:', e); }
                 if (!link) alert('⚠️ 고객용 보고서 링크를 만들지 못했습니다.\n(인터넷 연결 또는 드라이브 공유 설정 확인 필요)\n\n이어서 뜨는 창에서 [보고서 링크 다시 만들기]를 누르거나, PDF 파일을 직접 첨부해 보내주세요.');
                 // link: 링크 / null = 업로드는 됐지만 링크 실패 (다시 만들기 버튼) — undefined 는 휴대폰 저장(업로드 전)
-                window.offerReportShare(pdf.blob, pdf.name, kind, link || null, link ? null : () => window.offerReportLinkSms(project, pdf, kind));
+                window.offerReportShare(pdf.blob, pdf.name, kind, link || null, link ? null : () => window.offerReportLinkSms(project, pdf, kind), { project: project });
             } catch (e) {
                 console.warn('보고서 링크 보내기 창 오류:', e);
             }
@@ -6216,7 +6254,7 @@ body.light-mode .card.reference-info {
             const ph = String(project.customerPhone || '').trim();
             if (ph) {
                 const digits = ph.replace(/[^0-9]/g, '');
-                if (/[^0-9 ().+-]/.test(ph) || !/^0[0-9]{8,11}$/.test(digits)) out.push({ no: 0, text: '연락처 확인: "' + ph + '" (형식·자리수)' });
+                if (/[^0-9 ().+-]/.test(ph) || !window.isValidKrPhone(digits)) out.push({ no: 0, text: '연락처 확인: "' + ph + '" (형식·자리수)' });
             }
             return out;
         }
@@ -8645,7 +8683,10 @@ body.light-mode .card.reference-info {
             setTimeout(() => {
                 const i = projectData.defects.findIndex(d => d.id === id);
                 const card = document.getElementById('defectsList').children[i];
-                if (card) card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                if (!card) return;
+                const tabs = document.querySelector('.tabs');
+                card.style.scrollMarginTop = ((tabs ? (parseFloat(getComputedStyle(tabs).top) || 0) + tabs.offsetHeight : 0) + 10) + 'px'; // 상단 고정 탭에 가리지 않게
+                card.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }, 100);
         }
         window.insertDefectBefore = function(id) {
@@ -8695,8 +8736,8 @@ body.light-mode .card.reference-info {
                 + '<div style="padding:12px 16px 6px;">'
                 + '<div style="font-size:12.5px;color:#5b6472;line-height:1.5;margin-bottom:10px;">스티커 번호와 어긋났을 때 씁니다. 번호는 목록 순서대로 다시 매겨집니다.</div>'
                 + btn('insert', '➕ 이 하자 앞에 끼워넣기 (새 ' + n + '번)', true)
-                + btn('up', '▲ 위로 (' + n + '번 → ' + (n - 1) + '번)', n > 1)
-                + btn('down', '▼ 아래로 (' + n + '번 → ' + (n + 1) + '번)', n < last)
+                + btn('up', n <= 1 ? '▲ 위로 (맨 위입니다)' : '▲ 위로 (' + n + '번 → ' + (n - 1) + '번)', n > 1)
+                + btn('down', n >= last ? '▼ 아래로 (맨 아래입니다)' : '▼ 아래로 (' + n + '번 → ' + (n + 1) + '번)', n < last)
                 + '<button type="button" data-act="close" style="width:100%;min-height:44px;margin-bottom:8px;border:none;border-radius:12px;background:transparent;color:#5b6472;font-size:14.5px;font-weight:700;cursor:pointer;">닫기</button>'
                 + '</div></div>';
             wrap.addEventListener('click', e => {
@@ -9590,7 +9631,7 @@ body.light-mode .card.reference-info {
         // 인터넷·구글 로그인 확인 (안 되면 안내 후 false). 확인 요청 자체가 안 되면(신호 약함) 진행 → 실제 요청이 실패하면 안내
         async function _eqReady(btnLabel, fileLabel) {
             if (navigator.onLine === false) {
-                alert('📶 인터넷이 연결되지 않았습니다.\n\n신호가 잡히는 곳에서 [' + btnLabel + ']를 다시 눌러주세요.\n(계속 안 되면 소장님이 [🔧 장비점검 보고서만] PDF를 매니저에게 보내주세요)');
+                alert('📶 인터넷이 연결되지 않았습니다.\n\n신호가 잡히는 곳에서 [' + btnLabel + ']를 다시 눌러주세요.\n' + (btnLabel.indexOf('합치기') >= 0 ? '(계속 안 되면 소장님께 장비점검 보고서 PDF를 받아 따로 보내주세요)' : '(계속 안 되면 소장님이 [🔧 장비점검 보고서만] PDF를 매니저에게 보내주세요)'));
                 return false;
             }
             if (!accessToken) { _eqLoginSheet(btnLabel, false); return false; }
@@ -9879,12 +9920,12 @@ body.light-mode .card.reference-info {
                     
                     hideLoading();
                     showToast('🔧 장비점검 보고서가 다운로드 폴더에 저장되었습니다!');
-                    try { window.offerReportShare(pdfBlob, filename, '장비점검 보고서'); } catch (shareErr) { console.warn('보내기 창 오류:', shareErr); }
+                    try { window.offerReportShare(pdfBlob, filename, '장비점검 보고서', undefined, null, { plain: true }); } catch (shareErr) { console.warn('보내기 창 오류:', shareErr); }
                 } else {
                     doc.save(filename);
                     hideLoading();
                     showToast('🔧 장비점검 보고서가 생성되었습니다');
-                    try { window.offerReportShare(doc.output('blob'), filename, '장비점검 보고서'); } catch (shareErr) { console.warn('보내기 창 오류:', shareErr); }
+                    try { window.offerReportShare(doc.output('blob'), filename, '장비점검 보고서', undefined, null, { plain: true }); } catch (shareErr) { console.warn('보내기 창 오류:', shareErr); }
                 }
 
             } catch (error) {
@@ -11781,6 +11822,14 @@ body.light-mode .card.reference-info {
                 try { localStorage.removeItem(tryKey); } catch (e) {}
                 console.log('✅ 세대별 저장(v2)으로 전환:', snap.length + '세대');
             };
+            // 처음 한 번은 오래 걸릴 수 있음 → 무엇을 하는지 안내 (끝나면 원래 '처리 중...'으로)
+            const loadBox = document.getElementById('loading'), loadMsg = loadBox && loadBox.querySelector('p');
+            if (loadMsg) {
+                loadMsg.textContent = '처음 한 번 저장 방식을\n정리하고 있어요\n최대 1분 · 앱을 끄지 마세요';
+                loadMsg.style.cssText = 'white-space: pre-line; word-break: keep-all; line-height: 1.5;';
+                loadBox.style.width = 'min(84vw, 320px)';
+            }
+            let quotaFull = false;
             showLoading();
             try {
                 // 지금 내용 기준 (전환 중 바뀐 세대는 서명이 달라져 미뤄진 저장이 다시 씀)
@@ -11816,6 +11865,7 @@ body.light-mode .card.reference-info {
                 done();
             } catch (e) {
                 console.error('v2 전환 실패 - 예전 방식 유지:', e);
+                quotaFull = !!e && e.name === 'QuotaExceededError';
                 if (idxTried) {
                     // idx 쓰기가 실패로 보고돼도 실제로는 기록됐을 수 있음 (WebKit 'Connection lost' 등) → 다시 읽어 판단
                     let r;
@@ -11834,6 +11884,12 @@ body.light-mode .card.reference-info {
                 } }).catch(() => {});
             } finally {
                 hideLoading();
+                if (loadMsg) { loadMsg.textContent = '처리 중...'; loadMsg.style.cssText = ''; loadBox.style.width = ''; }
+                if (quotaFull && !window._storageV2) {
+                    showToast('⚠️ 저장공간이 가득 찼어요 · 데이터는 안전해요 · 🧹 정리로 비워 주세요', 'error');
+                    clearTimeout(showToast._hideTimer); // 긴 문구라 7초 보여줌
+                    showToast._hideTimer = setTimeout(() => document.getElementById('toast').classList.remove('show'), 7000);
+                }
             }
         }
 
@@ -13541,7 +13597,7 @@ body.light-mode .card.reference-info {
                 + _gd.h(_gd.chip('소장') + '현장 총괄 · 하자를 찾고, 고객과 이야기')
                 + _gd.pills(['고객 연락 (전날·당일 아침, 도착 30분 전)', '첫 세대는 고객과 함께 입실', '하자 찾고 스티커 (위치 구체적으로)', '장비점검 (보일러 먼저)', '욕실·발코니 물고임 사진', '고객 브리핑 · 잔금·모바일 접수 안내', '📤 장비점검 → 매니저에게 보내기'])
                 + _gd.h(_gd.chip('매니저') + '기록·관리 · 앱에 남기고 자료 마감')
-                + _gd.pills(['단톡방 입실톡 → 종료톡', '세대 정보·평면도 입력', '스티커마다 사진 2장 (원경+근경)', '공기질 수치 입력', '욕실·발코니 물 충분히 뿌리기', '📥 장비점검 합쳐 보고서 1개 고객 전송', '오후 6시 전 드라이브 업로드'])
+                + _gd.pills(['단톡방 입실톡 → 종료톡', '세대 정보·평면도 입력', '스티커마다 사진 2장 (원경+근경)', '공기질 수치 입력', '욕실·발코니 물 충분히 뿌리기', '📥 장비점검 합치기 → ☁️ 공유드라이브 저장 → 📩 고객 문자', '오후 6시 전 못 올린 세대 업로드'])
         },
         {
             title: '하루 흐름 ① 도착 · 세대 정보',
@@ -13562,7 +13618,7 @@ body.light-mode .card.reference-info {
                 + _gd.row('매니저', '<b>하자점검 탭 → 오른쪽 아래 + 버튼</b> → 스티커 순서대로 기록합니다.')
                 + _gd.row('매니저', '<b>사진 2장 필수.</b> 원경은 화면에서 <b>하자 자리를 먼저 터치</b>(빨간 원 표시)하고 찍습니다. 그다음 근경 버튼이 켜지면 가까이서 한 장.')
                 + _gd.row('매니저', '스티커에 동그라미 친 대로 <b>공간 · 위치 · 하자내용</b>을 터치하면(각 최대 4개) 설명이 자동으로 만들어집니다. 목록에 없는 공간은 <b>+ 버튼</b>으로 직접 입력.')
-                + _gd.tip('다음 하자를 추가하면 직전 공간이 <b>점선</b>으로 미리 들어갑니다. 같은 공간이면 그대로 두고, 다르면 새 공간을 누르세요.')
+                + _gd.tip('다음 하자를 추가하면 직전 공간이 <b>미리 선택</b>되고 <b>✓ 이전 하자 공간 자동 적용</b>이 표시됩니다. 같은 공간이면 그대로 두고, 다르면 새 공간을 누르세요.')
         },
         {
             title: '하루 흐름 ③ 공기질 · 물 · 장비점검',
