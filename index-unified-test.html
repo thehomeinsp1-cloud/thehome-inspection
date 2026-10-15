@@ -1284,24 +1284,37 @@ body.light-mode {
 }
 button, input, select, textarea { font-family: inherit; }
 
-/* ---------- 3. 헤더: 보고서 표지 띠 ---------- */
+/* ---------- 3. 헤더: 한 줄로 얇게 (2026.10.15 대표님 A안) ----------
+   왼쪽 '🏠 더홈점검' + 그 아래 작은 '업데이트 날짜', 오른쪽 로그아웃·테마 버튼 (로그아웃은 로그인 뒤에만 보임)
+   네이비 띠 + 아래 빨간 3px 선은 그대로, 로고 칸 아래 빈 띠는 없앰 (.container·.tabs 위 여백) */
 .header {
     background: var(--a-navy);
     color: #FFFFFF;
-    padding-bottom: 18px;               /* padding-top 은 html.ios 규칙 유지 */
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    grid-template-areas: "title logout theme" "ver logout theme";
+    align-items: center;
+    column-gap: 8px;
+    text-align: left;
+    padding: 7px 12px 9px 14px;
     box-shadow: inset 0 -3px 0 var(--a-red);
 }
-.header::before {
-    content: "THE HOME INSPECTION";
-    display: block;
-    font-size: 9.5px;                   /* 360px 폭에서도 좌우 버튼 사이에 들어가게 */
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    color: #8E98B2;                     /* 5.9:1 */
-    margin-bottom: 6px;
+html.ios .header {                      /* 아이폰 노치·상태바 아래로 */
+    padding-top: calc(7px + env(safe-area-inset-top, 0px));
+    padding-left: calc(14px + env(safe-area-inset-left, 0px));
+    padding-right: calc(12px + env(safe-area-inset-right, 0px));
 }
-.header h1 { color: #FFFFFF; font-weight: 800; letter-spacing: -0.03em; }
-.header p { color: #9AA6C2; opacity: 1; font-size: 12.5px; font-weight: 500; }
+.header::before { content: none; }
+.header h1 { grid-area: title; color: #FFFFFF; font-weight: 800; letter-spacing: -0.03em; font-size: 18px; line-height: 1.25; margin: 0; justify-content: flex-start; }
+.header p { grid-area: ver; color: #9AA6C2; opacity: 1; font-size: 10.5px; font-weight: 600; line-height: 1.3; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.header .logout-btn,
+.header .theme-toggle { position: static; transform: none; align-self: center; }
+.header .logout-btn,
+body.light-mode .header .logout-btn { grid-area: logout; min-height: 36px; padding: 4px 12px; font-size: 12px; }
+.header .theme-toggle,
+body.light-mode .header .theme-toggle { grid-area: theme; width: 38px; height: 38px; font-size: 18px; }
+.container { padding-top: 6px; }
+.tabs { margin-top: 0; }
 .progress-bar { height: 6px; background: rgba(255, 255, 255, 0.14); border-radius: 999px; }
 .progress-fill { background: #FFFFFF; border-radius: 999px; }
 
