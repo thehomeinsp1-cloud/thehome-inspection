@@ -2047,7 +2047,8 @@ body.light-mode .card.reference-info {
                     </ol>
                     <div style="font-size: 12.5px; line-height: 1.55; padding: 8px 10px; border-radius: 8px; background: rgba(245, 158, 11, 0.12); word-break: keep-all;">
                         ⏰ 로그인은 <b>약 1시간</b>만 유지됩니다.<br>
-                        소장님 <b>장비점검 보내기</b>, 매니저 <b>합치기·공유드라이브 저장</b> 전에 풀려 있으면 다시 로그인하세요.
+                        소장님 <b>장비점검 보내기</b>, 매니저 <b>합치기·공유드라이브 저장</b> 전에 풀려 있으면 다시 로그인하세요.<br>
+                        ✅ 두 번째부터는 <b>🔐 로그인</b>만 누르면 위 화면 없이 바로 됩니다. (계정을 바꾸려면 로그아웃 후 로그인)
                     </div>
                 </details>
             </div>
@@ -3089,13 +3090,15 @@ body.light-mode .card.reference-info {
             
             console.log('🔵 OAuth2 팝업 로그인 시작...');
             
-            const authUrl = 'https://accounts.google.com/o/oauth2/v2/auth?' + new URLSearchParams({
+            // ✅ 패치 61: 권한이 빠졌을 때만 권한 화면, 아니면 지난번 계정으로 바로(처음·로그아웃 뒤엔 계정 선택)
+            let _lastEmail = '', _needConsent = false;
+            try { _lastEmail = localStorage.getItem('google_last_email') || ''; _needConsent = localStorage.getItem('google_need_consent') === '1'; } catch (e) {}
+            const authUrl = 'https://accounts.google.com/o/oauth2/v2/auth?' + new URLSearchParams(Object.assign({
                 client_id: GOOGLE_CLIENT_ID,
                 redirect_uri: REDIRECT_URI,
                 response_type: 'token',
-                scope: SCOPES,
-                prompt: 'consent'
-            });
+                scope: SCOPES
+            }, _needConsent ? { prompt: 'consent' } : _lastEmail ? { login_hint: _lastEmail } : { prompt: 'select_account' }));
             
             // 팝업으로 로그인
             const width = 500;
@@ -3139,6 +3142,19 @@ body.light-mode .card.reference-info {
                         
                         currentUser = await response.json();
                         console.log('✅ 로그인 성공:', currentUser.email);
+                        // ✅ 패치 61: 다음 로그인은 이 계정으로 바로. 드라이브·시트 권한이 빠졌으면 다음엔 권한 화면을 띄우게 표시
+                        try {
+                            localStorage.setItem('google_last_email', String(currentUser.email || ''));
+                            const ti = await fetch('https://oauth2.googleapis.com/tokeninfo?access_token=' + encodeURIComponent(accessToken)).then(r => r.ok ? r.json() : null).catch(() => null);
+                            if (ti && ti.scope) {
+                                const sc = ' ' + String(ti.scope) + ' ';
+                                if (/\/auth\/drive\s/.test(sc) && /\/auth\/spreadsheets\s/.test(sc)) localStorage.removeItem('google_need_consent');
+                                else {
+                                    localStorage.setItem('google_need_consent', '1');
+                                    setTimeout(() => alert('⚠️ 구글 권한이 일부 빠졌어요.\n\n[🔐 로그인]을 한 번 더 눌러, 권한 화면에서 모두 선택 → 계속을 눌러주세요.'), 300);
+                                }
+                            }
+                        } catch (e) {}
                         
                         updateSignInStatus(true);
                         showToast('✅ ' + currentUser.email + ' 로그인 성공!');
@@ -3244,6 +3260,7 @@ body.light-mode .card.reference-info {
             accessToken = null;
             currentUser = null;
             localStorage.removeItem('google_access_token');
+            try { localStorage.removeItem('google_last_email'); } catch (e) {} // ✅ 패치 61: 다른 계정으로 바꿀 수 있게
             updateSignInStatus(false);
             showToast('로그아웃되었습니다');
         }
