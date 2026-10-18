@@ -4086,6 +4086,11 @@ body.light-mode .card.reference-info {
             if (!project.uploadSig) return true; // 이전 버전에서 업로드한 프로젝트: 기존처럼 '완료'
             return getUploadSig(project) === project.uploadSig;
         }
+        // ✅ 패치 60: 소장이 '장비점검 보내기'를 한 뒤 그대로인지 (하자가 있는 세대는 업로드해야 완료)
+        function isEquipSentUpToDate(project) {
+            return !!(project && project._eqSentAt && project._eqSentSig && !(project.defects || []).length && (project.equipment || []).length
+                && getUploadSig(project) === project._eqSentSig);
+        }
 
         // ✅ 일부 업로드 실패 안내 ('완료'로 표시하지 않음)
         function reportPartialUpload(failedParts) {
@@ -5210,11 +5215,14 @@ body.light-mode .card.reference-info {
                 // ✅ 상태 색상: 완료=연두(#4ade80), 작업중=노랑(#fbbf24)
                 // ✅ 업로드 이후 하자·사진을 추가/수정했으면 다시 '작업중' (재업로드 필요)
                 const uploadedOk = isUploadUpToDate(project);
-                const statusColor = uploadedOk ? '#4ade80' : '#fbbf24';
+                const eqSent = !uploadedOk && isEquipSentUpToDate(project); // ✅ 패치 60
+                const statusColor = uploadedOk || eqSent ? '#4ade80' : '#fbbf24';
                 const upAt = project.uploadedAt ? new Date(project.uploadedAt) : null;
-                const statusText = uploadedOk ? '완료' + (upAt && !isNaN(upAt) ? ' ' + (upAt.getMonth() + 1) + '/' + upAt.getDate() : '') : '작업중';
+                const eqAt = eqSent ? new Date(project._eqSentAt) : null;
+                const statusText = uploadedOk ? '완료' + (upAt && !isNaN(upAt) ? ' ' + (upAt.getMonth() + 1) + '/' + upAt.getDate() : '')
+                    : eqSent ? '장비 보냄' + (eqAt && !isNaN(eqAt) ? ' ' + (eqAt.getMonth() + 1) + '/' + eqAt.getDate() : '') : '작업중';
                 // 보관 현황·정리 대상 집계
-                if (uploadedOk) doneN++;
+                if (uploadedOk || eqSent) doneN++;
                 else if ((project.defects || []).length || (project.equipment || []).length) needN++;
                 if (isCleanupTarget(project, uploadedOk)) cleanN++;
                 totalLen += dataLen(project, 0);
@@ -10771,6 +10779,12 @@ body.light-mode .card.reference-info {
                 form.append('file', new Blob([pl.text], { type: 'application/json' }));
                 // 시간 제한: 1분 + 1MB당 20초 (사진이 많은 큰 파일도 끝까지)
                 await _eqDrive('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&supportsAllDrives=true&fields=id', { method: 'POST', body: form }, 60000 + Math.round(pl.text.length / 50));
+                try { // ✅ 패치 60: 보낸 기록 → 프로젝트 목록 '장비 보냄'
+                    pl.p._eqSentAt = new Date().toISOString();
+                    pl.p._eqSentSig = getUploadSig(pl.p);
+                    saveProjectsToLocalStorage();
+                    renderProjectList();
+                } catch (e) { console.warn('장비 보냄 표시 실패:', e); }
                 hideLoading();
                 showToast('☁️ ' + _equipWhere(pl.p) + ' 장비점검 ' + pl.n + '건을 보냈습니다 — 매니저가 [📥 장비점검 합치기]를 누르면 됩니다');
             } catch (e) {
