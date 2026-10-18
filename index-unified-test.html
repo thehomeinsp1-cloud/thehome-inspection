@@ -1210,6 +1210,43 @@ body.light-mode .qd-chip.on small,body.light-mode .qd-chip.on i{color:#3A2600}
 .et-pill.sent{min-height:30px; border-color:rgba(74,222,128,.7); color:#4ade80; background:rgba(74,222,128,.10)}
 body.light-mode .et-pill.sent{border-color:rgba(21,128,61,.55); color:#15803D; background:rgba(21,128,61,.08)}
 </style>
+<style>
+/* ✅ 관리자 탭 (패치 59) */
+#admin .adm-h{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:4px}
+#admin .adm-h h2{margin:0}
+#admin .adm-sub{font-size:12px; color:var(--text-secondary); margin-bottom:12px}
+#admin .adm-re{flex:none; min-height:36px; padding:0 12px; border-radius:18px; border:1px solid var(--a-line-strong,#62708C); background:var(--a-raised,#212C42); color:var(--a-ink,#F1F4F9); font-size:12.5px; font-weight:800; font-family:inherit}
+#admin .adm-msg{font-size:14px; line-height:1.6; color:var(--text-secondary); padding:10px 0}
+#admin .adm-err{color:#f59e0b; font-weight:700}
+#admin .adm-step{font-size:13px; font-weight:800; color:var(--a-ink,#F1F4F9); margin:14px 0 8px; display:flex; justify-content:space-between; align-items:baseline; gap:8px}
+#admin .adm-step small{font-size:12px; font-weight:600; color:var(--text-secondary)}
+#admin .adm-kinds{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:6px}
+#admin .adm-kind{min-height:52px; border-radius:10px; border:1px solid var(--a-line,#2A3550); background:var(--a-sunken,#0F1726); color:var(--a-ink,#F1F4F9); font-size:12.5px; font-weight:700; line-height:1.25; padding:6px 4px; font-family:inherit}
+#admin .adm-kind span{display:block; font-size:10.5px; font-weight:600; color:var(--text-secondary); margin-top:2px}
+#admin .adm-kind.on{background:var(--a-ink,#F1F4F9); color:var(--a-on-ink,#141D2E); border-color:var(--a-ink,#F1F4F9)}
+#admin .adm-kind.on span{color:var(--a-on-ink,#141D2E); opacity:.75}
+#admin .adm-sel{display:block; width:100%; box-sizing:border-box; min-height:46px; padding:0 12px; border-radius:10px; border:1px solid var(--a-line-strong,#62708C); background:var(--a-sunken,#0F1726); color:var(--a-ink,#F1F4F9); font-size:15px; font-weight:700; margin-bottom:6px; font-family:inherit}
+#admin .adm-dates{display:flex; gap:6px; align-items:center}
+#admin .adm-dates .adm-sel{flex:1; min-width:0; font-size:14px}
+#admin .adm-bar{height:6px; border-radius:3px; background:var(--a-line,#2A3550); overflow:hidden; margin-bottom:8px}
+#admin .adm-bar i{display:block; height:100%; background:#4ade80}
+#admin .adm-row{display:flex; align-items:center; gap:10px; padding:10px 0; border-top:1px solid var(--a-line,#2A3550)}
+#admin .adm-row .t{flex:none; width:44px; font-size:12.5px; font-weight:800; color:var(--text-secondary); font-variant-numeric:tabular-nums}
+#admin .adm-row .w{flex:1; min-width:0; line-height:1.3}
+#admin .adm-row .w b{display:block; font-size:15px; color:var(--a-ink,#F1F4F9)}
+#admin .adm-row .w small{display:block; font-size:12px; color:var(--text-secondary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+#admin .warn{color:#f59e0b; font-weight:700}
+#admin .adm-send{flex:none; min-height:40px; padding:0 12px; border-radius:20px; border:none; background:#D23B3B; color:#fff; font-size:13px; font-weight:800; font-family:inherit; white-space:nowrap}
+#admin .adm-done{flex:none; min-height:36px; padding:0 10px; border-radius:18px; border:1px solid rgba(74,222,128,.7); color:#4ade80; background:rgba(74,222,128,.10); font-size:12.5px; font-weight:800; font-family:inherit; white-space:nowrap}
+#admin .adm-off{flex:none; min-height:36px; padding:0 10px; border-radius:18px; border:1px dashed var(--a-line-strong,#62708C); color:var(--text-secondary); background:transparent; font-size:12px; font-weight:700; font-family:inherit; white-space:nowrap}
+#admin .adm-next{width:100%; min-height:52px; margin-top:12px; border:none; border-radius:12px; background:#D23B3B; color:#fff; font-size:16px; font-weight:800; font-family:inherit}
+#admin .adm-grp{margin:12px 0 4px; padding:8px 10px; border-radius:8px; font-size:12.5px; line-height:1.5; color:var(--a-ink,#F1F4F9)}
+#admin .adm-grp.info{background:rgba(74,222,128,.10); border:1px solid rgba(74,222,128,.45)}
+#admin .adm-grp.ad{background:rgba(245,158,11,.12); border:1px solid rgba(245,158,11,.55)}
+body.light-mode #admin .adm-done{border-color:rgba(21,128,61,.55); color:#15803D; background:rgba(21,128,61,.08)}
+body.light-mode #admin .adm-bar i{background:#16a34a}
+body.light-mode #admin .warn, body.light-mode #admin .adm-err{color:#b45309}
+</style>
 <style id="designA">
 /* =====================================================================
    더홈점검 앱 디자인 샘플 A — "보고서 톤 통일 (Clean Pro)"
@@ -1791,7 +1828,7 @@ body.light-mode .card.reference-info {
         </button>
         
         <h1>🏠 더홈점검</h1>
-        <p id="appVersionTag" style="color:#fde68a;font-weight:700;">🧪 테스트판 · 업데이트 2026.10.17</p>
+        <p id="appVersionTag" style="color:#fde68a;font-weight:700;">🧪 테스트판 · 업데이트 2026.10.18</p>
     </div>
 
     <div class="container">
@@ -1802,6 +1839,7 @@ body.light-mode .card.reference-info {
             <button class="tab" onclick="switchTab('equipment', event)">📸 장비점검</button>
             <button class="tab" onclick="switchTab('airquality', event)">🌬️ 공기질</button>
             <button class="tab" onclick="switchTab('data', event)">💾 데이터</button>
+            <button class="tab" id="adminTabBtn" style="display:none;" onclick="switchTab('admin', event); if (window.admOpen) admOpen();">🛡️ 관리자</button>
         </div>
 
         <!-- 프로젝트 정보 섹션 -->
@@ -2054,6 +2092,9 @@ body.light-mode .card.reference-info {
             </div>
 
         </div>
+
+        <!-- ✅ 관리자 탭 (패치 59): 대표님 계정에서만 보임 -->
+        <div id="admin" class="section"></div>
     </div>
 
     <!-- 카메라 모달 -->
@@ -3226,6 +3267,7 @@ body.light-mode .card.reference-info {
                     if (signOutBtnSimple) signOutBtnSimple.style.display = 'none';
                 }
                 console.log('✅ UI 업데이트 완료:', isSignedIn ? '로그인' : '로그아웃');
+                if (window.admSyncTab) window.admSyncTab(); // ✅ 패치 59
             } catch (e) {
                 console.error('UI 업데이트 오류:', e);
             }
@@ -6272,6 +6314,413 @@ body.light-mode .card.reference-info {
                 if (f !== el.value) el.value = f;
             } catch (e) {}
         };
+        // ✅ 관리자 탭 (패치 59, 대표님 요청 10-18): 예약일정 시트를 '읽기만' 해서 고객 문자 6종을 한 명씩 문자앱으로
+        //    - 대표님 구글 계정(이메일 해시 비교)일 때만 탭이 보임. 실제 잠금은 시트 공유 권한(공유 안 된 계정은 읽기 자체가 안 됨)
+        //    - 시트에는 아무것도 쓰지 않음. 고객 정보는 메모리에만 두고, '보냄' 표시(단지·날짜·동·호·시각)만 이 휴대폰에 저장
+        //    - 사후점검 '그 외 고객'은 광고 문자 → (광고)·무료수신거부(080)·밤 9시~아침 8시 금지. 080 번호가 없으면 잠금
+        (function() {
+            const ADM_SHEET = '1xbVXQa1p7wRg7NjF1ZrEQSaSUAEdnLk6aYqnWflr1No'; // 더홈점검_통합자료_ver2
+            const ADM_HASH = '2cf97b8235bc9b0098fcac4a113922be36b9d7d8761e44f24169d1b7400e11ff';
+            const ADM_OPTOUT = ''; // 080 무료수신거부 번호 (예: '080-000-0000') — 비어 있으면 사후점검 광고 문자 잠금
+            const ADM_PKG_TAB = '사후점검_패키지';
+            const SENT_KEY = 'th_adm_sent_v1', K6_KEY = 'th_adm_k6_v1';
+            const KINDS = [['k1', '🏠 서비스 안내', '문의 고객'], ['k2', '💳 예약금 요청', '예약 직전'], ['k3', '📢 필독 안내문', '점검 전 공지'],
+                ['k4', '★ 예약 안내문', '예약금 입금 후'], ['k5', '🧾 정산·잔금', '점검 후'], ['k6', '🔁 사후점검', '단지 공지']];
+            const L = a => a.join('\n');
+            const MSG = {
+                k1: L(['🏠 더홈점검 점검서비스 안내', '', '안녕하세요, 건축자격증 보유 · 현장경력 10년의 사전점검 전문 더홈점검입니다.', '문의 감사합니다 😊', '',
+                    '📄 실제 보고서 샘플 먼저 확인해 보세요', 'https://drive.google.com/file/d/1h34gEhhAf7aqlyms4pmPWUR1qFoTF4Zt/view?usp=drive_link', '',
+                    '🔍 점검 구성', '육안점검+기능점검+장비점검(열화상·레이저레벨)+공기질측정+현장 브리핑+당일 종합보고서+사후점검(유상옵션)', '· 소요시간 : 세대당 2시간내외', '',
+                    '✅ 예약 방법', '단지명 / 동·호수 / 평형 / 희망일시 회신 → 일정 확인 → 예약금 5만원 → 잔금은 점검 후 결제', '',
+                    '📞 문의', '1668-5322 / 010-9985-0128 (문자 남겨주시면 회신드립니다)', '홈페이지 https://www.thehomeinsp.com/', '카톡상담 https://open.kakao.com/o/sR64Xb3e', '후기·사례 https://blog.naver.com/thehomeinsp']),
+                k2: L(['▶안녕하세요 더홈점검입니다.', '저희 더홈점검을 믿고 맡겨주셔서 감사합니다.', '', '▶점검 서비스 이용 시 5만 원의 예약금을 아래 지정 계좌로 입금 요청드립니다.', '',
+                    '▶입금 후 "동 / 호수 / 계약자 성함"을 카톡 채팅창에 남겨주시기 바랍니다.', '', '▶최종 "예약 안내문"은 예약금 입금 완료 후 전송됩니다.', '*예약금 미입금 시 1일 내로 자동 예약취소되는 점 양해 바랍니다.', '',
+                    '▶입금계좌 : 국민은행 757301-00-288729 박지현(더홈점검)', '예약금 : 5만 원']),
+                k3: L(['[공지] 사전점검 예약 고객님을 위한 필독 안내문 🏠✨', '', '안녕하세요, 사전점검 파트너 더홈점검입니다.',
+                    '저희를 믿고 소중한 보금자리의 점검을 맡겨주셔서 감사합니다. 원활하고 정밀한 서비스를 위해 아래 안내 사항을 반드시 확인해 주시기 바랍니다.', '',
+                    '🕒 1. 예약 세대 방문 및 입장 안내', '(●시공사방문예약이 아닌 저희더홈점검과 약속한 예약시간 기준입니다●)',
+                    '점검 당일 상황에 따라 시작 시간이 다소 지연될 수 있습니다. 꼼꼼한 점검을 위한 과정이오니 너그러운 양해 부탁드리며, 지연 시 사전에 개별 연락 드립니다.', '',
+                    '✅ 오전 10시 예약 세대', '(●저희더홈점검과 약속한 예약시간 기준입니다●)', '동행 입장: 오전 9시 20분까지 단지 주출입구에서 저희 팀과 만나 함께 입장합니다.', '',
+                    '비동행 입장 (선택): 개별 입장하길 원하실 경우 아래 중 하나를 준비해 주세요.', '', '신분증 확인: 계약자 신분증 사본(뒷자리 제외)을 미리 카톡 전송', '',
+                    '앱계정 공유: 시공사 앱으로 입실 승인이 필요한 경우, 계정(아이디/비번) 정보를 미리 공유 (하자 접수 시에도 필요하니 미리 알려주시면 좋습니다.)', '',
+                    '✅ 오전 11시 ~ 오후 3시 예약 세대', '(●저희더홈점검과 약속한 예약시간 기준입니다●)', '예약 시간 1시간 전에 행사장에 도착하여 본인 확인 후 세대로 이동해주시기바랍니다.', '',
+                    '세대에 먼저 입실해 계시면, 저희 팀이 도착 전 연락 후 방문하겠습니다.', '(예: 12시 예약 시, 11시 현장 도착 및 본인확인후 세대 입실)', '',
+                    '🎒 2. 준비물 및 요청사항', '예약자(계약자) 준비: 별도 챙겨오실건 없지만 간이돗자리.줄자.간식등 챙겨오시기도합니다.', '더홈점검 준비: 전문 점검 장비, 점검 스티커 등 일체', '',
+                    '요청사항 : 정확한 공기질 측정을 위해 공기질 측정중에는 세대 환기를 자제해 주세요.', '',
+                    '📱 3. 하자 접수 대행 서비스 (유료)', '직접 앱 등록 또는 지면 접수가 어려우신 분들을 위해 대행 서비스를 운영합니다.', '', '이용료: 50,000원 (서비스 포함 고객님은 해당 없음)', '',
+                    '(앱접수시)준비사항: 시공사 앱 계정을 미리 생성하신 후, 계약자계정을 카톡으로 보내주세요.(시공사마다 시스템다름)', '',
+                    '계정 생성이 어려우신 경우, 당일 현장 시공사 안내 데스크에 문의하시면 도움을 받으실 수 있습니다.', '',
+                    '🛠️ 4. 점검 범위 및 유의사항', '미시공 부분: 점검 당일 시공이 완료되지 않은 부분은 하자 체크가 불가능합니다.', '',
+                    '장비 점검: 시공사 난방 가동 시에만 난방 배관 점검이 가능하며, 그 외 벽체 단열 및 천장 누수 등은 열화상 카메라로 정밀 확인해 드립니다.', '',
+                    '📅 5. 사후 점검(재점검) 안내', "준공 이후, 평일(화, 수, 목) 중 '사후 점검일'을 지정하여 별도로 공지해 드립니다.", '',
+                    '해당 공지일에 신청해 주셔야 원활한 점검이 가능하며, 기간 외 신청 시 진행이 어려울 수 있습니다. (사후 점검 시 앱 접수 요청은 별도 비용 발생)', '',
+                    '📞 문의사항: 010-9985-0128 (평일 영업시간 내)', '', '더홈점검은 고객님의 소중한 집을 내 집처럼 꼼꼼하게 살피겠습니다. 감사합니다! 😊'])
+            };
+            const won = n => Number(n || 0).toLocaleString('ko-KR') + '원';
+            function msgK5(r) {
+                return L(['안녕하세요, 더홈점검입니다 🙂', '점검 서비스를 이용해 주셔서 감사합니다.', '', '【 정산 】', '', '점검비 ' + won(r.total)]
+                    .concat(r.dep ? ['예약금 -' + won(r.dep)] : [])
+                    .concat(['──────────────────', '★ 최종 잔금 : ' + won(r.total - r.dep), '', '【 입금 】', '국민 757301-00-288729 (더홈점검)', '※ 입금 후 입금자명 메시지를 꼭 남겨주세요.',
+                        '※ 다른 명의로 입금 시 「입금자명 + 동호수」 필수', '(예: 홍길동 / 101동 1001호)', '', '【 현금영수증 】', '예약자 연락처로 자동 발행됩니다.', '(다른 번호·세금계산서 필요 시 별도 요청)', '',
+                        '⭐ 만족도 조사 & 개선 의견', '불편했던 점을 남겨주시면 꼭 반영하겠습니다.', 'https://www.thehomeinsp.com/61', '', '입주 축하드립니다! 🏠 문의 1668-5322']));
+            }
+            // 사후점검: 패키지 고객(계약 안내) / 그 외 고객(광고 — 맨 앞 (광고), 끝에 무료수신거부)
+            function msgK6(pkg, d1, d2, time) {
+                const days = [d1, d2].filter(Boolean).join(' / ');
+                const SEP = '━━━━━━━━━━';
+                return L([(pkg ? '' : '(광고) ') + '[사후점검 예약 안내]', '', '안녕하세요, 더홈점검입니다 😊', "입주 전 마지막 점검인 '사후점검' 일정을 안내드립니다.", '',
+                    '👇 예약은 여기에서 바로 👇', 'https://www.thehomeinsp.com/57', '📅 ' + days + ' · 예약순 마감', '', SEP,
+                    '사전점검 이후에도 콘크리트 건조수축, 온습도 변화에 따른 자재 수축·팽창, 보수공사 과정에서 새로운 하자가 생길 수 있습니다.', '', SEP,
+                    '🕒 점검 일정', days, time, '', '🔍 점검 내용', '· 세대 재점검', '· 보일러 난방 점검(가동시)', '· 점검리스트 제공', '· 소요 시간 : 세대당 30분 내외', '', SEP, '💰 비용 안내', '']
+                    .concat(pkg ? ['▪ 사전점검 패키지 고객님', '  기본 점검 → 무료 (패키지에 포함)', '  하자접수대행 → 3만원 (선택)'] : ['  기본 점검 → 7만원', '  하자접수대행 → 3만원 (선택)'])
+                    .concat(['', '※ 지정일 외 단독 방문 시 추가 비용이 발생합니다.', ''])
+                    .concat(pkg ? [SEP, '📌 패키지 고객님, 이 부분만 꼭 확인해 주세요', '사후점검은 더홈점검이 정한 지정일에만 진행됩니다.', '', '· 지정일 안에 반드시 예약해 주세요.',
+                        '· 시공사 사정이나 개인 사정으로 지정일 전에 취소하시면 3만원을 환급해 드립니다.(할인사항 있다면 공제 후 환급)',
+                        '· 지정일이 지나면 추가일정 검토 및 일정 운영상 제공이 어렵거나 서비스가 소멸될 수 있습니다.',
+                        '· 안내를 확인하지 못하셨거나 신청하지 않아 점검을 받지 못한 경우에는 책임지지 않습니다.', ''] : [])
+                    .concat(['⚠️ 지정일이 어려우시면 희망하시는 날짜에 단독 방문도 가능합니다. 다만 비용이 추가되며, 별도 조율이 필요합니다.', '', SEP,
+                        '✅ 신청 방법', '1. 아래 링크에서 신청', '   https://www.thehomeinsp.com/57', '2. 채팅 또는 유선으로 일정 협의', '3. 예약 확정', '', '입금계좌 : 국민 757301-00-288729 (더홈점검)', '', SEP,
+                        '🏠 점검 당일 준비사항', '· 보일러 가동 상태 확인 (필수)', '· 계약자분은 점검 10분 전 입실', '· 대리 참석 시 위임 서류 또는 도어락 비밀번호 공유', '· 위임 · 임시방문 관련은 시공사로 문의해 주세요', '', SEP,
+                        '🔗 예약하기 → https://www.thehomeinsp.com/57', '📞 문의 : 010-9985-0128', '', '감사합니다 🙏'])
+                    .concat(pkg ? [] : ['', '더홈점검 010-9985-0128', '무료수신거부 ' + ADM_OPTOUT]));
+            }
+
+            const norm = s => String(s == null ? '' : s).replace(/\s+/g, '');
+            const num = s => { const d = String(s == null ? '' : s).replace(/[^0-9]/g, ''); return d ? parseInt(d, 10) : 0; };
+            const baseKey = s => norm(s).replace(/\(?사후[^()]*\)?/g, ''); // (사후)·(사후점검)·사후점검예상 → 같은 단지
+            const unitPart = (s, suf) => norm(s).replace(new RegExp(suf + '$'), '');
+            const unitKey = (site, dong, ho) => baseKey(site) + '|' + unitPart(dong, '동') + '|' + unitPart(ho, '호');
+            const pad = n => String(n).padStart(2, '0');
+            const dKey = d => d ? d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) : '';
+            const dLabel = d => d ? (d.getMonth() + 1) + '월 ' + d.getDate() + '일(' + '일월화수목금토'[d.getDay()] + ')' : '날짜 없음';
+            const tMin = t => { const m = /(\d{1,2})\s*[:시]\s*(\d{0,2})/.exec(String(t || '')); if (!m) return 9999; let h = +m[1]; if (h >= 1 && h <= 6) h += 12; return h * 60 + (+m[2] || 0); }; // '2:30' = 오후
+            const colL = i => { let s = ''; for (i++; i > 0; i = Math.floor((i - 1) / 26)) s = String.fromCharCode(65 + (i - 1) % 26) + s; return s; };
+            const dh = r => { const d = String(r.dong || '').trim(), h = String(r.ho || '').trim();
+                return [d ? (/동/.test(d) ? d : d + '동') : '', h ? (/^\d+$/.test(h) ? h + '호' : h) : ''].filter(Boolean).join(' ') || '동·호 없음'; };
+            function phonesOf(s) {
+                const out = [];
+                (String(s || '').match(/0\d{1,3}[\s.)-]*\d{3,4}[\s.-]*\d{4}/g) || []).forEach(m => {
+                    const d = m.replace(/\D/g, '');
+                    if (window.isValidKrPhone(d) && out.indexOf(d) < 0) out.push(d);
+                });
+                return out;
+            }
+            const fmtPh = d => window.formatPhoneNumber ? window.formatPhoneNumber(d) : d;
+            const night = () => { const h = new Date().getHours(); return h >= 21 || h < 8; };
+            const lsGet = (k, def) => { try { return JSON.parse(localStorage.getItem(k) || 'null') || def; } catch (e) { return def; } };
+            const lsSet = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
+
+            let isAdmin = false, data = null, loading = false, err = null, cur = [];
+            const ST_KEY = 'th_adm_st_v1'; // 문자앱에 다녀오며 앱이 새로 열려도 고른 종류·단지·날짜 그대로
+            const st = Object.assign({ kind: 'k4', group: '', date: '' }, lsGet(ST_KEY, {}));
+            const saveSt = () => lsSet(ST_KEY, { kind: st.kind, group: st.group, date: st.date });
+            let sent = lsGet(SENT_KEY, {});
+            (function prune() { const lim = Date.now() - 200 * 86400000; let ch = false;
+                Object.keys(sent).forEach(k => { if (!(Date.parse(sent[k]) > lim)) { delete sent[k]; ch = true; } }); if (ch) lsSet(SENT_KEY, sent); })();
+            const k6in = lsGet(K6_KEY, {});
+
+            async function api(path) {
+                const ctl = typeof AbortController === 'function' ? new AbortController() : null;
+                const t = ctl ? setTimeout(() => ctl.abort(), 20000) : 0;
+                try {
+                    const res = await fetch('https://sheets.googleapis.com/v4/spreadsheets/' + ADM_SHEET + path, Object.assign({ headers: { Authorization: 'Bearer ' + accessToken } }, ctl ? { signal: ctl.signal } : {}));
+                    if (!res.ok) { const e = new Error('sheets ' + res.status); e.status = res.status; throw e; }
+                    return await res.json();
+                } finally { clearTimeout(t); }
+            }
+            const rq = s => encodeURIComponent(s);
+
+            async function load() {
+                const meta = await api('?fields=sheets.properties.title');
+                const titles = (meta.sheets || []).map(s => s.properties.title);
+                const tabs = titles.filter(t => /^예약일정_\d{4}$/.test(t)).sort();
+                if (!tabs.length) throw Object.assign(new Error('no tab'), { msg: "시트에서 '예약일정_연도' 탭을 찾지 못했어요" });
+                const rows = [], zCol = {};
+                for (const tab of tabs) {
+                    const hv = (await api('/values/' + rq("'" + tab + "'!1:2"))).values || [];
+                    const h1 = (hv[0] || []).map(norm), h2 = (hv[1] || []).map(norm);
+                    const ix = n => h1.indexOf(n);
+                    const need = { site: ix('현장명'), day: ix('일'), time: ix('시간'), dong: ix('동'), ho: ix('호수'), name: ix('이름'), phone: ix('연락처'), total: ix('총합계'), paid: ix('결재확인') };
+                    const miss = ['site', 'day', 'dong', 'ho', 'name', 'phone'].filter(k => need[k] < 0);
+                    if (miss.length) throw Object.assign(new Error('head'), { msg: "'" + tab + "' 탭 머리글을 찾지 못했어요 (현장명·일·동·호수·이름·연락처)" });
+                    const deps = [ix('예약금'), h2.indexOf('계좌')].filter((v, i, a) => v >= 0 && a.indexOf(v) === i);
+                    const start = (h2.indexOf('숨고') >= 0 || h2.indexOf('계좌') >= 0) ? 3 : 2;
+                    const keys = Object.keys(need).filter(k => need[k] >= 0);
+                    const idxs = keys.map(k => need[k]).concat(deps);
+                    const bg = await api('/values:batchGet?majorDimension=COLUMNS&' + idxs.map(i => 'ranges=' + rq("'" + tab + "'!" + colL(i) + start + ':' + colL(i))).join('&'));
+                    const col = j => (((bg.valueRanges || [])[j] || {}).values || [])[0] || [];
+                    const C = {}; keys.forEach((k, j) => { C[k] = col(j); });
+                    const D = deps.map((_, j) => col(keys.length + j));
+                    const n = Math.max.apply(null, keys.map(k => C[k].length));
+                    // 연도: 칸에 'YYYY년'이 있으면 그 행만, 없으면 탭 연도. 앞에서 11·12월이 나온 뒤의 1~6월은 다음 해 (늦게 넣은 12월 행이 있어도 밀리지 않게 행마다 계산)
+                    const tabYear = parseInt(tab.slice(-4), 10);
+                    let late = false;
+                    for (let i = 0; i < n; i++) {
+                        const g = k => String((C[k] || [])[i] == null ? '' : C[k][i]).trim();
+                        const site = g('site');
+                        if (!site || !(g('name') || g('phone') || g('dong') || g('ho'))) continue; // 빈 예약칸
+                        const day = g('day');
+                        const m = /(?:(\d{4})\s*년\s*)?(\d{1,2})\s*월\s*(\d{1,2})\s*일/.exec(day), iso = /(\d{4})-(\d{1,2})-(\d{1,2})/.exec(day);
+                        let date = null;
+                        if (m) { const mo = +m[2]; if (mo >= 11) late = true; date = new Date(m[1] ? +m[1] : (late && mo <= 6 ? tabYear + 1 : tabYear), mo - 1, +m[3]); }
+                        else if (iso) date = new Date(+iso[1], +iso[2] - 1, +iso[3]);
+                        rows.push({ tab: tab, row: start + i, site: site.replace(/\s+/g, ' '), key: norm(site), after: /사후/.test(site), date: date, time: g('time'),
+                            dong: g('dong'), ho: g('ho'), name: g('name').replace(/\s*\n\s*/g, ' / '), phones: phonesOf(g('phone')),
+                            total: num(g('total')), paid: /TRUE/i.test(g('paid')),
+                            dep: D.reduce((a, c) => a + (/^\s*[\d,]+\s*$/.test(String(c[i] == null ? '' : c[i])) ? num(c[i]) : 0), 0) }); // 예약금 칸의 메모·비밀번호 같은 글자는 금액 아님
+                    }
+                    // 예약안내문은 보낼 때 그 행을 다시 읽음 → 행이 밀렸는지 확인하려고 현장명·동·호수·이름 칸 위치도 같이 기억
+                    const zi = ix('예약안내문'), ai = ix('사후점검안내문');
+                    zCol[tab] = { z: zi, a: ai, site: need.site, dong: need.dong, ho: need.ho, name: need.name };
+                }
+                let pkg = null, pkgBad = false;
+                if (titles.indexOf(ADM_PKG_TAB) >= 0) {
+                    const v = (await api('/values/' + rq("'" + ADM_PKG_TAB + "'!A1:Z"))).values || [];
+                    const h = (v[0] || []).map(norm);
+                    const iS = h.indexOf('현장명'), iD = h.indexOf('동'), iH = h.indexOf('호수'), iP = h.findIndex(x => x.indexOf('패키지') >= 0);
+                    pkg = new Set();
+                    if (iS >= 0 && iH >= 0 && iP >= 0) v.slice(1).forEach(r => { if (/TRUE/i.test(String(r[iP] || ''))) pkg.add(unitKey(r[iS], iD >= 0 ? r[iD] : '', r[iH])); });
+                    else pkgBad = true;
+                }
+                return { rows: rows, zCol: zCol, pkg: pkg, pkgBad: pkgBad, at: new Date() };
+            }
+
+            function groups() {
+                const k6 = st.kind === 'k6', m = new Map();
+                data.rows.forEach(r => {
+                    if (k6 && r.after) return;
+                    const key = k6 ? baseKey(r.site) : r.key;
+                    let g = m.get(key);
+                    if (!g) m.set(key, g = { key: key, name: k6 ? r.site.replace(/\s*\(사후\)\s*/g, '') : r.site, rows: [] });
+                    g.rows.push(r);
+                });
+                const now = new Date(); now.setHours(0, 0, 0, 0);
+                const gs = Array.from(m.values());
+                gs.forEach(g => { g.d = Math.min.apply(null, g.rows.map(r => r.date ? Math.abs(r.date - now) : 9e15)); });
+                return gs.sort((a, b) => a.d - b.d || a.name.localeCompare(b.name, 'ko'));
+            }
+            function datesOf(g) {
+                const now = new Date(); now.setHours(0, 0, 0, 0);
+                const seen = {}, out = [];
+                g.rows.forEach(r => { const k = dKey(r.date); if (!seen[k]) { seen[k] = 1; out.push({ k: k, date: r.date, n: 0 }); } });
+                g.rows.forEach(r => { out.find(o => o.k === dKey(r.date)).n++; });
+                out.sort((a, b) => (a.date ? a.date - 0 : 9e15) - (b.date ? b.date - 0 : 9e15));
+                let best = out[0];
+                out.forEach(o => { if (o.date && best && (!best.date || Math.abs(o.date - now) < Math.abs(best.date - now))) best = o; });
+                return { list: out, best: best ? best.k : '' };
+            }
+            const sentKey = r => st.kind + '|' + (st.kind === 'k6' ? unitKey(r.site, r.dong, r.ho) : r.key + '|' + dKey(r.date) + '|' + unitPart(r.dong, '동') + '|' + unitPart(r.ho, '호'));
+            const sentLabel = iso => { const d = new Date(iso), now = new Date();
+                return '✓ 보냄 ' + (d.toDateString() === now.toDateString() ? '' : (d.getMonth() + 1) + '/' + d.getDate() + ' ') + pad(d.getHours()) + ':' + pad(d.getMinutes()); };
+            function lockOf(r) {
+                if (!r.phones.length) return '연락처 없음';
+                if (st.kind === 'k4' && r.noZ) return '안내문 없음';
+                if (st.kind === 'k5' && !r.total) return '금액 없음';
+                if (st.kind === 'k5' && r.dep > r.total) return '금액 확인';
+                if (st.kind === 'k6' && !r.pkg) { if (!ADM_OPTOUT) return '080 번호 필요'; if (night()) return '밤 9시~8시 잠김'; }
+                return '';
+            }
+
+            const E = s => escapeHtml(String(s == null ? '' : s));
+            function head() {
+                return '<div class="adm-h"><h2 style="color: var(--primary);">🛡️ 고객 문자</h2>' + (accessToken ? '<button type="button" class="adm-re" data-act="reload">↻ 새로 불러오기</button>' : '') + '</div>'
+                    + '<div class="adm-sub">예약일정 시트에서 읽기만 함' + (data ? ' · ' + pad(data.at.getHours()) + ':' + pad(data.at.getMinutes()) + ' · ' + data.rows.length + '건' : '') + ' · 대표님 구글 계정</div>';
+            }
+            function render() {
+                const box = document.getElementById('admin');
+                if (!box) return;
+                const card = h => '<div class="card">' + head() + h + '</div>';
+                if (!accessToken) { box.innerHTML = card('<div class="adm-msg">구글 로그인이 필요해요. 대표님 계정으로 로그인하면 예약현황을 불러옵니다.</div><button type="button" class="btn btn-primary" data-act="login" style="width:100%;">🔐 구글 로그인</button>'); return; }
+                if (loading) { box.innerHTML = card('<div class="adm-msg">⏳ 예약현황 불러오는 중...</div>'); return; }
+                if (err) { box.innerHTML = card('<div class="adm-msg adm-err">' + E(err) + '</div>' + (/로그인/.test(err) ? '<button type="button" class="btn btn-primary" data-act="login" style="width:100%;">🔐 구글 다시 로그인</button>' : '')); return; }
+                if (!data) { box.innerHTML = card(''); return; }
+                const gs = groups();
+                let g = gs.find(x => x.key === st.group) || gs[0];
+                if (g) st.group = g.key;
+                let h = '<div class="adm-step">① 문자 종류</div><div class="adm-kinds">'
+                    + KINDS.map(k => '<button type="button" class="adm-kind' + (k[0] === st.kind ? ' on' : '') + '" data-act="kind" data-k="' + k[0] + '">' + k[1] + '<span>' + k[2] + '</span></button>').join('') + '</div>';
+                h += '<div class="adm-step">② ' + (st.kind === 'k6' ? '단지 · 사후점검 지정일' : '단지 · 날짜') + '</div>';
+                h += '<select class="adm-sel" data-f="group">' + gs.map(x => '<option value="' + E(x.key) + '"' + (g && x.key === g.key ? ' selected' : '') + '>' + E(x.name) + ' (' + x.rows.length + ')</option>').join('') + '</select>';
+                cur = [];
+                if (g && st.kind !== 'k6') {
+                    const ds = datesOf(g);
+                    if (!ds.list.some(o => o.k === st.date)) st.date = ds.best;
+                    h += '<select class="adm-sel" data-f="date">' + ds.list.map(o => '<option value="' + o.k + '"' + (o.k === st.date ? ' selected' : '') + '>' + dLabel(o.date) + ' · ' + o.n + '세대</option>').join('') + '</select>';
+                    cur = g.rows.filter(r => dKey(r.date) === st.date).sort((a, b) => tMin(a.time) - tMin(b.time));
+                } else if (g) {
+                    const v = k6in[g.key] || {};
+                    h += '<div class="adm-dates"><input class="adm-sel" data-f="d1" placeholder="지정일 1 (예: 6월 2일(화))" value="' + E(v.d1 || '') + '"><input class="adm-sel" data-f="d2" placeholder="지정일 2 (없으면 비움)" value="' + E(v.d2 || '') + '"></div>'
+                        + '<input class="adm-sel" data-f="time" placeholder="시간" value="' + E(v.time || '오전 10시 ~ 오후 3시 30분') + '">';
+                    const seen = {}, booked = new Set(data.rows.filter(r => r.after && baseKey(r.site) === g.key).map(r => unitKey(r.site, r.dong, r.ho)));
+                    g.rows.forEach(r => { const uk = unitKey(r.site, r.dong, r.ho); if (!seen[uk]) { seen[uk] = 1; cur.push(Object.assign({}, r, { pkg: !!(data.pkg && data.pkg.has(uk)), booked: booked.has(uk) })); } });
+                    cur.sort((a, b) => (b.pkg - a.pkg) || (num(a.dong) - num(b.dong)) || (num(a.ho) - num(b.ho)));
+                }
+                const done = cur.filter(r => sent[sentKey(r)]).length;
+                h += '<div class="adm-step">③ 보낼 고객 <small>' + cur.length + '명 중 ' + done + '명 보냄</small></div><div class="adm-bar"><i style="width:' + (cur.length ? Math.round(done * 100 / cur.length) : 0) + '%"></i></div>';
+                const row = (r, i) => {
+                    const at = sent[sentKey(r)], lock = lockOf(r);
+                    let info = r.phones.length ? E(fmtPh(r.phones[0]) + (r.phones.length > 1 ? ' 외 ' + (r.phones.length - 1) + '개' : '')) : '<span class="warn">⚠ 연락처 없음 (시트 확인)</span>';
+                    if (st.kind === 'k4') info += ' · ' + (r.dep ? '예약금 ' + won(r.dep) : '예약금 없음');
+                    if (st.kind === 'k5') info += ' · ' + (r.total ? '잔금 ' + won(r.total - r.dep) + (r.paid ? ' · 입금확인' : '') : '금액 없음');
+                    if (st.kind === 'k6' && r.booked) info += ' · 사후 예약됨';
+                    return '<div class="adm-row">' + (st.kind === 'k6' ? '' : '<div class="t">' + E(r.time || '-') + '</div>') + '<div class="w"><b>' + E(dh(r)) + ' · ' + E(r.name || '이름 없음') + '</b><small>' + info + '</small></div>'
+                        + (at ? '<button type="button" class="adm-done" data-act="unsent" data-i="' + i + '">' + sentLabel(at) + '</button>'
+                            : lock ? '<button type="button" class="adm-off" disabled>' + E(lock) + '</button>'
+                            : '<button type="button" class="adm-send" data-act="open" data-i="' + i + '">📩 보내기</button>') + '</div>';
+                };
+                if (st.kind === 'k6') {
+                    const np = cur.filter(r => r.pkg).length;
+                    if (!data.pkg) h += '<div class="adm-grp ad">패키지 표시 탭(\'' + ADM_PKG_TAB + '\')이 아직 없어서 모두 \'그 외 고객\'으로 봤어요.</div>';
+                    else if (data.pkgBad) h += '<div class="adm-grp ad">\'' + ADM_PKG_TAB + '\' 탭 머리글(현장명·동·호수·패키지)을 찾지 못했어요.</div>';
+                    h += '<div class="adm-grp info">✅ <b>사후점검 포함(패키지) ' + np + '명</b> — 계약 안내라 그대로 보냄</div>' + cur.map((r, i) => r.pkg ? row(r, i) : '').join('');
+                    h += '<div class="adm-grp ad">📣 <b>그 외 ' + (cur.length - np) + '명</b> — 유료 권유라 \'광고 문자\'예요. 맨 앞 <b>(광고)</b>와 끝에 <b>무료수신거부</b>가 붙고, <b>밤 9시~아침 8시</b>엔 보낼 수 없어요.'
+                        + (ADM_OPTOUT ? '' : ' <b>080 수신거부 번호가 생기면 열립니다.</b>') + '</div>' + cur.map((r, i) => r.pkg ? '' : row(r, i)).join('');
+                } else {
+                    h += cur.map(row).join('') || '<div class="adm-msg">이 날짜에 고객이 없어요.</div>';
+                }
+                const nx = cur.findIndex(r => !sent[sentKey(r)] && !lockOf(r));
+                if (nx >= 0) h += '<button type="button" class="adm-next" data-act="open" data-i="' + nx + '">▶ 다음 사람 보내기 (' + E(cur[nx].name || dh(cur[nx])) + ')</button>';
+                saveSt();
+                if (['k1', 'k2', 'k3'].indexOf(st.kind) >= 0) h += '<div class="adm-step">번호 직접 입력 <small>시트에 없는 고객</small></div><div class="adm-dates"><input class="adm-sel" data-f="direct" inputmode="tel" placeholder="010-0000-0000"><button type="button" class="adm-send" data-act="direct">📩 보내기</button></div>';
+                box.innerHTML = card(h);
+            }
+
+            // 예약안내문: 사전 = '예약안내문' 칸, (사후) 예약 = '사후점검 안내문' 칸. 보낼 때 그 행을 다시 읽고,
+            // 그사이 시트 행이 밀려 다른 고객 행이면(현장명·동·호수·이름이 다르면) 보내지 않음
+            async function zText(r) {
+                const c = data.zCol[r.tab], zi = c ? (r.after ? c.a : c.z) : -1;
+                if (zi < 0) return '';
+                const last = Math.max(zi, c.site, c.dong, c.ho, c.name);
+                const v = ((await api('/values/' + rq("'" + r.tab + "'!A" + r.row + ':' + colL(last) + r.row))).values || [])[0] || [];
+                const g = i => String(v[i] == null ? '' : v[i]).trim();
+                if (norm(g(c.site)) !== r.key || g(c.dong) !== r.dong || g(c.ho) !== r.ho || g(c.name).replace(/\s*\n\s*/g, ' / ') !== r.name)
+                    throw Object.assign(new Error('moved'), { msg: '그사이 시트가 바뀌었어요. ↻ 새로 불러오기 후 다시 보내 주세요.' });
+                return g(zi).replace(/^["\s]+/, '').replace(/["\s]+$/, '');
+            }
+            async function textFor(r) {
+                if (st.kind === 'k4') return zText(r);
+                if (st.kind === 'k5') return msgK5(r);
+                if (st.kind === 'k6') { const v = k6in[st.group] || {}; return msgK6(!!r.pkg, v.d1, v.d2, v.time || '오전 10시 ~ 오후 3시 30분'); }
+                return MSG[st.kind];
+            }
+            window._admGo = url => { window.location.href = url; };
+            function sheet(title, text, phones, onSent, after) {
+                const old = document.getElementById('admSheet');
+                if (old) old.remove();
+                let pick = phones[0];
+                const n = Array.from(text).length;
+                const note = ({ k1: '점검서비스 안내 이미지는 문자앱에서 직접 첨부하세요.', k2: '명함·자주묻는질문 이미지는 문자앱에서 직접 첨부하세요.', k4: after ? "시트의 '사후점검 안내문' 칸 그대로입니다." : "시트의 '예약안내문' 칸 그대로입니다." }[st.kind] || '')
+                    + (n > 1000 ? ' 1,000자가 넘어 채팅+가 아닌 일반 문자로는 잘릴 수 있어요(카톡 복사도 가능).' : '');
+                const w = document.createElement('div');
+                w.id = 'admSheet';
+                w.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;z-index:99990;background:rgba(13,20,32,0.55);display:flex;align-items:flex-end;';
+                w.innerHTML = '<div style="width:100%;max-width:480px;margin:0 auto;background:#fff;border-radius:16px 16px 0 0;overflow:hidden;color:#1f2733;padding-bottom:env(safe-area-inset-bottom,0px);">'
+                    + '<div style="background:#141d2e;color:#fff;padding:12px 16px;border-bottom:3px solid #E84848;display:flex;justify-content:space-between;align-items:center;gap:10px;">'
+                    + '<div style="min-width:0;"><div style="font-size:11px;color:#8e98b2;font-weight:700;letter-spacing:.08em;">' + E((KINDS.find(k => k[0] === st.kind) || [])[1]) + ' · 미리보기</div><div style="font-size:16px;font-weight:800;">' + E(title) + '</div></div>'
+                    + '<button type="button" data-a="close" aria-label="닫기" style="flex:none;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.25);color:#fff;width:40px;height:40px;border-radius:50%;font-size:17px;">✕</button></div>'
+                    + '<div style="padding:12px 16px 14px;">'
+                    + '<div style="white-space:pre-wrap;word-break:break-all;font-size:13px;line-height:1.5;background:#f4f6f9;border:1px solid #e2e5ea;border-radius:10px;padding:10px 12px;max-height:38vh;overflow:auto;">' + E(text) + '</div>'
+                    + '<div style="font-size:12px;color:#5b6472;margin:8px 0 10px;">약 ' + n.toLocaleString() + '자' + (note ? ' · ' + E(note) : '') + '</div>'
+                    + (phones.length > 1 ? '<div data-ph style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;">' + phones.map((p, i) => '<button type="button" data-a="ph" data-p="' + p + '" style="min-height:36px;padding:0 12px;border-radius:18px;border:1px solid ' + (i ? '#c9d0da;background:#fff;color:#141d2e' : '#141d2e;background:#141d2e;color:#fff') + ';font-size:13px;font-weight:700;">' + E(fmtPh(p)) + '</button>').join('') + '</div>' : '')
+                    + '<button type="button" data-a="sms" style="width:100%;min-height:50px;margin-bottom:8px;border:none;border-radius:12px;background:#D23B3B;color:#fff;font-size:15.5px;font-weight:800;">📩 문자앱으로 보내기 (<span data-n>' + E(fmtPh(pick)) + '</span>)</button>'
+                    + '<button type="button" data-a="copy" style="width:100%;min-height:44px;border:1px solid #c9d0da;border-radius:12px;background:#fff;color:#141d2e;font-size:14.5px;font-weight:700;">📋 복사 (카톡에 붙여넣기)</button>'
+                    + (onSent ? '<div style="font-size:12px;color:#5b6472;margin-top:8px;line-height:1.5;">누르면 \'✓ 보냄\'으로 표시돼요. 잘못 눌렀으면 목록의 초록 버튼을 누르면 지워집니다.</div>' : '')
+                    + '</div></div>';
+                const close = () => { try { w.remove(); } catch (e) {} };
+                w.addEventListener('click', async e => {
+                    const b = e.target.closest && e.target.closest('[data-a]');
+                    if (!b) { if (e.target === w) close(); return; }
+                    const a = b.getAttribute('data-a');
+                    if (a === 'close') return close();
+                    if (a === 'ph') {
+                        pick = b.getAttribute('data-p');
+                        w.querySelectorAll('[data-a="ph"]').forEach(x => { const on = x === b; x.style.background = on ? '#141d2e' : '#fff'; x.style.color = on ? '#fff' : '#141d2e'; x.style.borderColor = on ? '#141d2e' : '#c9d0da'; });
+                        w.querySelector('[data-n]').textContent = fmtPh(pick);
+                        return;
+                    }
+                    if (a === 'sms') { if (onSent) onSent(); close(); window._admGo('sms:' + pick + (window.IS_IOS_DEVICE ? '&' : '?') + 'body=' + encodeURIComponent(text)); return; }
+                    if (a === 'copy') { const ok = await copyTextSafe(text, '📋 복사했어요. 카톡에 붙여넣기 하세요'); if (ok && onSent) onSent(); if (ok) close(); }
+                });
+                document.body.appendChild(w);
+            }
+            async function openRow(i) {
+                const r = cur[i];
+                if (!r || lockOf(r)) return;
+                if (st.kind === 'k6') { const v = k6in[st.group] || {}; if (!v.d1) { alert('사후점검 지정일을 먼저 입력해 주세요.'); return; } }
+                const key = sentKey(r), kind = st.kind; // 시트를 읽는 사이 종류를 바꿔도 보냄 표시는 누른 종류로
+                if (kind === 'k4') showToast('📄 예약안내문 불러오는 중...');
+                let text = '';
+                try { text = await textFor(r); }
+                catch (e) {
+                    if (e && e.status === 401) { err = '구글 로그인이 만료됐어요. 다시 로그인해 주세요.'; render(); }
+                    alert(e && e.msg ? e.msg : e && e.status === 401 ? err : '예약안내문을 불러오지 못했어요. 인터넷 연결을 확인해 주세요.');
+                    return;
+                }
+                if (st.kind !== kind) return;
+                if (!text) { if (kind === 'k4') { r.noZ = true; render(); } alert("시트에 이 세대의 " + (r.after ? "'사후점검 안내문'" : "'예약안내문'") + "이 없어요."); return; }
+                sheet(dh(r) + ' · ' + (r.name || ''), text, r.phones, () => { sent[key] = new Date().toISOString(); lsSet(SENT_KEY, sent); render(); }, r.after);
+            }
+
+            async function start(force) {
+                if (!isAdmin) return;
+                if (force) { data = null; err = null; }
+                if (!accessToken || loading || data) return render();
+                loading = true; err = null; render();
+                try { data = await load(); }
+                catch (e) {
+                    err = e && e.msg ? e.msg
+                        : e && e.status === 401 ? '구글 로그인이 만료됐어요. 다시 로그인해 주세요.'
+                        : e && (e.status === 403 || e.status === 404) ? '이 구글 계정은 예약현황 시트를 볼 수 없어요. 대표님 계정으로 로그인해 주세요.'
+                        : '예약현황을 불러오지 못했어요. 인터넷 연결을 확인하고 다시 불러오기를 눌러 주세요.';
+                }
+                loading = false;
+                render();
+            }
+            window.admOpen = () => start(false);
+            window.admSyncTab = async function() {
+                let ok = false;
+                try {
+                    const em = currentUser && currentUser.email ? String(currentUser.email).trim().toLowerCase() : '';
+                    if (em && window.crypto && crypto.subtle) {
+                        const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(em));
+                        ok = Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('') === ADM_HASH;
+                    }
+                } catch (e) { ok = false; }
+                isAdmin = ok;
+                const btn = document.getElementById('adminTabBtn'), sec = document.getElementById('admin');
+                if (btn) btn.style.display = ok ? '' : 'none';
+                if (!ok) {
+                    data = null; err = null; cur = [];
+                    if (sec) { if (sec.classList.contains('active')) { const pb = document.querySelector(".tab[onclick*=\"'project'\"]"); switchTab('project'); if (pb) pb.classList.add('active'); } sec.innerHTML = ''; }
+                    const s = document.getElementById('admSheet'); if (s) s.remove();
+                } else if (sec && sec.classList.contains('active')) start(false);
+            };
+            document.addEventListener('DOMContentLoaded', () => {
+                const box = document.getElementById('admin');
+                if (!box) return;
+                box.addEventListener('click', e => {
+                    const b = e.target.closest && e.target.closest('[data-act]');
+                    if (!b) return;
+                    const a = b.getAttribute('data-act');
+                    if (a === 'login') { if (window.handleGoogleSignIn) window.handleGoogleSignIn(); return; }
+                    if (a === 'reload') return start(true);
+                    if (a === 'kind') { st.kind = b.getAttribute('data-k'); return render(); }
+                    if (a === 'open') return openRow(+b.getAttribute('data-i'));
+                    if (a === 'unsent') { const r = cur[+b.getAttribute('data-i')]; if (r && confirm('보냄 표시를 지울까요?')) { delete sent[sentKey(r)]; lsSet(SENT_KEY, sent); render(); } return; }
+                    if (a === 'direct') {
+                        const inp = box.querySelector('[data-f="direct"]'), d = String(inp && inp.value || '').replace(/\D/g, '');
+                        if (!window.isValidKrPhone(d)) { alert('전화번호를 확인해 주세요.'); return; }
+                        sheet(fmtPh(d), MSG[st.kind], [d], null);
+                    }
+                });
+                box.addEventListener('change', e => {
+                    const f = e.target.getAttribute && e.target.getAttribute('data-f');
+                    if (f === 'group') { st.group = e.target.value; st.date = ''; render(); }
+                    else if (f === 'date') { st.date = e.target.value; render(); }
+                    else if (f === 'd1' || f === 'd2' || f === 'time') { const v = k6in[st.group] = k6in[st.group] || {}; v[f] = e.target.value.trim(); lsSet(K6_KEY, k6in); }
+                });
+            });
+        })();
         window.offerReportLinkSms = async function(project, pdf, kind) {
             try {
                 if (!project || !pdf || !pdf.id || !pdf.blob) return;
