@@ -1223,6 +1223,7 @@ body.light-mode .et-pill.sent{border-color:rgba(21,128,61,.55); color:#15803D; b
 #admin .adm-kinds{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:6px}
 #admin .adm-kind{min-height:52px; border-radius:10px; border:1px solid var(--a-line,#2A3550); background:var(--a-sunken,#0F1726); color:var(--a-ink,#F1F4F9); font-size:12.5px; font-weight:700; line-height:1.25; padding:6px 4px; font-family:inherit}
 #admin .adm-kind span{display:block; font-size:10.5px; font-weight:600; color:var(--text-secondary); margin-top:2px}
+#admin .adm-kind.wide{grid-column:1 / -1; min-height:46px}
 #admin .adm-kind.on{background:var(--a-ink,#F1F4F9); color:var(--a-on-ink,#141D2E); border-color:var(--a-ink,#F1F4F9)}
 #admin .adm-kind.on span{color:var(--a-on-ink,#141D2E); opacity:.75}
 #admin .adm-sel{display:block; width:100%; box-sizing:border-box; min-height:46px; padding:0 12px; border-radius:10px; border:1px solid var(--a-line-strong,#62708C); background:var(--a-sunken,#0F1726); color:var(--a-ink,#F1F4F9); font-size:15px; font-weight:700; margin-bottom:6px; font-family:inherit}
@@ -6342,7 +6343,9 @@ body.light-mode .card.reference-info {
             const SENT_KEY = 'th_adm_sent_v1', K6_KEY = 'th_adm_k6_v1';
             const KINDS = [['k1', '🏠 서비스 안내', '문의 고객'], ['k2', '💳 예약금 요청', '예약 직전'], ['k3', '📢 필독 안내문', '점검 전 공지'],
                 ['k4', '★ 예약 안내문', '예약금 입금 후'], ['k5', '🧾 정산·잔금', '점검 후'], ['k6', '🔁 사후점검', '단지 공지'],
-                ['k7', '⏰ 전날 안내', '내일 점검 고객'], ['k8', '💰 미입금', '잔금 재안내'], ['k9', '⚠️ 확인 필요', '빠진 것·보고서']];
+                ['k7', '⏰ 전날 안내', '내일 점검 고객'], ['k8', '💰 미입금', '잔금 재안내'], ['k9', '⚠️ 확인 필요', '빠진 것·보고서'],
+                ['k10', '📩 하자접수 완료 안내', '접수완료 체크된 고객 (모바일접수대행 시트)']];
+            const SUB_SHEET = '1jfYZNb9aIsWY6nQOoHjSUE8a2NTGXoD1aPVrVzqRGO8'; // 더홈점검_모바일접수대행_공유 — 아이디·비밀번호 칸은 요청하지 않음 (필요한 칸만 골라 읽음)
             const MK = k => k === 'k8' ? 'k5' : k; // 미입금 목록은 정산 문자(⑤)를 다시 보냄 → 보냄 표시도 정산과 같이
             const L = a => a.join('\n');
             const MSG = {
@@ -6405,6 +6408,15 @@ body.light-mode .card.reference-info {
 
             // 하루 전 안내 (예약 안내문 FAQ '점검 하루 전에 다시 안내드립니다'): 10시 예약은 9시 20분 주출입구 동행, 그 외는 1시간 전 입실 / 사후점검은 10분 전·보일러
             const hmLabel = t => { const h = Math.floor(t / 60), m = t % 60; return (h < 12 ? '오전 ' : '오후 ') + (h > 12 ? h - 12 : h) + '시' + (m ? ' ' + m + '분' : ''); };
+            // 하자접수 완료 안내 (모바일접수대행 시트 규칙 '접수완료 후 건수 입력 + 고객 완료문자 발송')
+            function msgK10(r) {
+                const site = r.site.replace(/\s*\(?사후[^()]*\)?\s*/g, '').trim(), name = String(r.name || '').split(' / ')[0];
+                return L(['[더홈점검] 하자접수 완료 안내', '안녕하세요' + (name ? ', ' + name + ' 고객님' : '') + '. 더홈점검입니다.', site + ' ' + dh(r) + ' 하자접수를 완료했습니다.', '',
+                    '✅ 접수 ' + (r.cnt ? r.cnt + '건' : '완료') + (r.app ? ' · ' + r.app : ''),
+                    '· 접수 내역과 처리 진행은 ' + (r.app || '시공사 앱') + '에서 확인하실 수 있습니다.',
+                    '· 시공사 일정에 따라 보수 방문 연락이 갈 수 있습니다.',
+                    '· 빠지거나 잘못된 항목이 보이면 이 번호로 문자 남겨주세요.', '', '이용해 주셔서 감사합니다. 문의 010-9985-0128']);
+            }
             function msgK7(r) {
                 const now = new Date(); now.setHours(0, 0, 0, 0);
                 const dd = r.date ? Math.round((r.date - now) / 86400000) : -1, word = dd === 0 ? '오늘' : dd === 1 ? '내일' : '';
@@ -6531,6 +6543,38 @@ body.light-mode .card.reference-info {
             }
 
             // 보고서 못 받은 고객: 드라이브의 '…_동_호_작성자_YYYY-MM-DD_하자점검보고서.pdf'(최근 45일) 이름을 읽어 동·호·날짜(±2일)로 맞춤 (읽기만)
+            // 하자접수 완료 고객: '모바일접수대행_YYYY' 탭에서 접수완료 체크된 지난 90일 (머리글 행을 찾아 필요한 칸만 읽음)
+            async function loadSub() {
+                const sget = path => gget('https://sheets.googleapis.com/v4/spreadsheets/' + SUB_SHEET + path);
+                const tabs = ((await sget('?fields=sheets.properties.title')).sheets || []).map(x => x.properties.title).filter(t => /^모바일접수대행_\d{4}$/.test(t)).sort();
+                if (!tabs.length) throw Object.assign(new Error('no tab'), { msg: "모바일접수대행 시트에서 '모바일접수대행_연도' 탭을 찾지 못했어요" });
+                // 머리글 행은 한 줄씩 읽다가 찾으면 멈춤 (여러 줄을 한 번에 읽으면 아래 고객 행의 아이디·비밀번호까지 받아짐)
+                const tab = tabs[tabs.length - 1];
+                let hr = -1, h = [];
+                for (let i = 1; i <= 8 && hr < 0; i++) {
+                    const row = (((await sget('/values/' + rq("'" + tab + "'!" + i + ':' + i))).values || [])[0] || []).map(norm);
+                    if (row.indexOf('현장명') >= 0) { hr = i - 1; h = row; }
+                }
+                const ix = n => h.indexOf(n);
+                const need = { site: ix('현장명'), day: ix('일'), dong: ix('동'), ho: ix('호수'), name: ix('이름'), phone: ix('연락처'), app: ix('시공사앱'), who: ix('접수담당'), cnt: ix('접수건수'), done: ix('접수완료'), iso: ix('날짜변환(자동)') };
+                if (['site', 'dong', 'ho', 'name', 'phone', 'done'].some(k => need[k] < 0)) throw Object.assign(new Error('head'), { msg: "'" + tab + "' 탭 머리글(현장명·동·호수·이름·연락처·접수완료)을 찾지 못했어요" });
+                const keys = Object.keys(need).filter(k => need[k] >= 0), start = hr + 2;
+                const bg = await sget('/values:batchGet?majorDimension=COLUMNS&' + keys.map(k => 'ranges=' + rq("'" + tab + "'!" + colL(need[k]) + start + ':' + colL(need[k]))).join('&'));
+                const C = {}; keys.forEach((k, j) => { C[k] = (((bg.valueRanges || [])[j] || {}).values || [])[0] || []; });
+                const n = Math.max.apply(null, keys.map(k => C[k].length)), y0 = parseInt(tab.slice(-4), 10), out = [];
+                const now = new Date(); now.setHours(0, 0, 0, 0);
+                for (let i = 0; i < n; i++) {
+                    const g = k => String((C[k] || [])[i] == null ? '' : C[k][i]).trim();
+                    if (!g('site') || !/TRUE/i.test(g('done'))) continue;
+                    const a = /(\d{4})-(\d{1,2})-(\d{1,2})/.exec(g('iso')) || /(\d{4})\.\s*(\d{1,2})\.\s*(\d{1,2})/.exec(g('day'));
+                    const b = a ? null : /(?:(\d{4})\s*년\s*)?(\d{1,2})\s*월\s*(\d{1,2})\s*일/.exec(g('day'));
+                    const date = a ? new Date(+a[1], +a[2] - 1, +a[3]) : b ? new Date(b[1] ? +b[1] : y0, +b[2] - 1, +b[3]) : null;
+                    if (!date || date < now.getTime() - 90 * 86400000 || date > now) continue;
+                    out.push({ site: g('site').replace(/\s+/g, ' '), key: norm(g('site')), date: date, dong: g('dong'), ho: g('ho'), name: g('name').replace(/\s*\n\s*/g, ' / '),
+                        phones: phonesOf(g('phone')), app: g('app'), who: g('who'), cnt: num(g('cnt')) });
+                }
+                return { rows: out.sort((x, z) => z.date - x.date) };
+            }
             async function loadReports() {
                 const since = new Date(); since.setDate(since.getDate() - 45);
                 const q = "name contains '하자점검보고서' and mimeType = 'application/pdf' and trashed = false and modifiedTime > '" + since.toISOString() + "'";
@@ -6626,7 +6670,7 @@ body.light-mode .card.reference-info {
                 if (loading) { box.innerHTML = card('<div class="adm-msg">⏳ 예약현황 불러오는 중...</div>'); return; }
                 if (err) { box.innerHTML = card('<div class="adm-msg adm-err">' + E(err) + '</div>' + (/로그인/.test(err) ? '<button type="button" class="btn btn-primary" data-act="login" style="width:100%;">🔐 구글 다시 로그인</button>' : '')); return; }
                 if (!data) { box.innerHTML = card(''); return; }
-                const V = views(), cross = ['k7', 'k8', 'k9'].indexOf(st.kind) >= 0;
+                const V = views(), cross = ['k7', 'k8', 'k9', 'k10'].indexOf(st.kind) >= 0;
                 const repNote = !data.reports; // 드라이브 보고서 확인 전이면 '확인 필요' 숫자 뒤에 +
                 const nCheck = V.soon.length + V.noRep.length;
                 // 한눈에: 오늘·내일·7일·미입금·확인 필요 (누르면 그 목록으로)
@@ -6634,7 +6678,7 @@ body.light-mode .card.reference-info {
                 let h = '<div class="adm-sum">' + chip('오늘', V.today, 'k7', dKey(new Date(V.day(0)))) + chip('내일', V.tom, 'k7', dKey(new Date(V.day(1)))) + chip('7일', V.week, 'k9')
                     + chip('미입금', V.unpaid.length, 'k8', null, true) + chip('확인 필요', repNote ? V.soon.length + '+' : nCheck, 'k9', null, true) + '</div>';
                 h += '<div class="adm-step">① 문자 종류</div><div class="adm-kinds">'
-                    + KINDS.map(k => '<button type="button" class="adm-kind' + (k[0] === st.kind ? ' on' : '') + '" data-act="kind" data-k="' + k[0] + '">' + k[1] + '<span>' + k[2] + '</span></button>').join('') + '</div>';
+                    + KINDS.map(k => '<button type="button" class="adm-kind' + (k[0] === st.kind ? ' on' : '') + (k[0] === 'k10' ? ' wide' : '') + '" data-act="kind" data-k="' + k[0] + '">' + k[1] + '<span>' + k[2] + '</span></button>').join('') + '</div>';
                 const gs = cross ? [] : groups();
                 let g = gs.find(x => x.key === st.group) || gs[0];
                 if (g) st.group = g.key;
@@ -6646,6 +6690,11 @@ body.light-mode .card.reference-info {
                     if (st.d7at !== opts[0].k || !opts.some(o => o.k === st.d7)) { st.d7 = opts[1].k; st.d7at = opts[0].k; } // 날이 바뀌면 다시 '내일'로
                     h += '<select class="adm-sel" data-f="d7">' + opts.map(o => '<option value="' + o.k + '"' + (o.k === st.d7 ? ' selected' : '') + '>' + o.w + dLabel(o.d) + ' · ' + o.n + '세대</option>').join('') + '</select>';
                     cur = data.rows.filter(r => dKey(r.date) === st.d7).sort((a, b) => a.key.localeCompare(b.key, 'ko') || tMin(a.time) - tMin(b.time));
+                } else if (st.kind === 'k10') {
+                    h += '<div class="adm-step">② 대상 <small>모바일접수대행 시트 · 접수완료 체크 · 지난 90일</small></div>';
+                    if (!data.sub) { h += '<div class="adm-msg">⏳ 모바일접수대행 시트 불러오는 중...</div>'; startSub(); }
+                    else if (data.sub.err) h += '<div class="adm-msg adm-err">' + E(data.sub.err) + '</div>';
+                    else cur = data.sub.rows;
                 } else if (st.kind === 'k8') {
                     h += '<div class="adm-step">② 대상 <small>지난 60일 · 점검 ' + (PAY_GRACE + 1) + '일째부터 · 시트 결재확인 안 된 고객</small></div>';
                     cur = V.unpaid;
@@ -6685,11 +6734,12 @@ body.light-mode .card.reference-info {
                     const at = sent[sentKey(r)], lock = lockOf(r);
                     let info = r.phones.length ? E(fmtPh(r.phones[0]) + (r.phones.length > 1 ? ' 외 ' + (r.phones.length - 1) + '개' : '')) : '<span class="warn">⚠ 연락처 없음 (시트 확인)</span>';
                     if (st.kind === 'k4') info += ' · ' + (r.dep ? '예약금 ' + won(r.dep) : '예약금 없음');
+                    if (st.kind === 'k10') info += (r.app ? ' · ' + E(r.app) : '') + (r.cnt ? ' · 접수 ' + r.cnt + '건' : '') + (r.who ? ' · 담당 ' + E(r.who) : '');
                     if (MK(st.kind) === 'k5') info += ' · ' + (r.total ? '잔금 ' + won(r.total - r.dep) + (r.paid ? ' · 입금확인' : '') : '금액 없음');
                     if (st.kind === 'k8') { const k5 = sent['k5' + sentKey(r).slice(2)]; if (k5) info += ' · 정산 보냄 ' + (new Date(k5).getMonth() + 1) + '/' + new Date(k5).getDate(); }
                     if (st.kind === 'k7' && TIME_NOTE.test(r.note || '')) info += ' · 📝 ' + E(String(r.note).replace(/\s+/g, ' ').slice(0, 30));
                     if (st.kind === 'k6' && r.booked) info += ' · 사후 예약됨';
-                    const left = st.kind === 'k6' ? '' : '<div class="t">' + (st.kind === 'k8' ? E((r.date.getMonth() + 1) + '/' + r.date.getDate()) : E(r.time || '-')) + '</div>';
+                    const left = st.kind === 'k6' ? '' : '<div class="t">' + (st.kind === 'k8' || st.kind === 'k10' ? E((r.date.getMonth() + 1) + '/' + r.date.getDate()) : E(r.time || '-')) + '</div>';
                     return '<div class="adm-row">' + left + '<div class="w"><b>' + E(dh(r)) + ' · ' + E(r.name || '이름 없음') + '</b>' + (cross ? '<small>' + E(r.site) + '</small>' : '') + '<small>' + info + '</small></div>'
                         + (at ? '<button type="button" class="adm-done" data-act="unsent" data-i="' + i + '">' + sentLabel(at) + '</button>'
                             : lock ? '<button type="button" class="adm-off" disabled>' + E(lock) + '</button>'
@@ -6728,6 +6778,7 @@ body.light-mode .card.reference-info {
                 if (st.kind === 'k4') return zText(r);
                 if (MK(st.kind) === 'k5') return msgK5(r);
                 if (st.kind === 'k7') return msgK7(r);
+                if (st.kind === 'k10') return msgK10(r);
                 if (st.kind === 'k6') { const v = k6in[st.group] || {}; return msgK6(!!r.pkg, v.d1, v.d2, v.time || '오전 10시 ~ 오후 3시 30분'); }
                 return MSG[st.kind];
             }
@@ -6794,6 +6845,13 @@ body.light-mode .card.reference-info {
                 }, r.after);
             }
 
+            function startSub() {
+                const d = data;
+                if (!d || d.subLoading) return;
+                d.subLoading = true;
+                loadSub().then(s => { d.sub = s; }, e => { d.sub = { err: e && e.msg ? e.msg : e && (e.status === 403 || e.status === 404) ? '이 구글 계정은 모바일접수대행 시트를 볼 수 없어요.' : e && e.status === 401 ? '구글 로그인이 만료됐어요. 다시 로그인해 주세요.' : '모바일접수대행 시트를 불러오지 못했어요. ↻ 새로 불러오기로 다시 시도해 주세요.' }; })
+                    .then(() => { d.subLoading = false; if (data === d && isAdmin) render(); });
+            }
             async function start(force) {
                 if (!isAdmin) return;
                 if (force) { data = null; err = null; }
