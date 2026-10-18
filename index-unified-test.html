@@ -6506,11 +6506,13 @@ body.light-mode .card.reference-info {
                 const tabs = titles.filter(t => /^예약일정_\d{4}$/.test(t)).sort();
                 if (!tabs.length) throw Object.assign(new Error('no tab'), { msg: "시트에서 '예약일정_연도' 탭을 찾지 못했어요" });
                 const rows = [], zCol = {};
+                let hasPkgCol = false;
                 for (const tab of tabs) {
                     const hv = (await api('/values/' + rq("'" + tab + "'!1:2"))).values || [];
                     const h1 = (hv[0] || []).map(norm), h2 = (hv[1] || []).map(norm);
                     const ix = n => h1.indexOf(n);
-                    const need = { site: ix('현장명'), day: ix('일'), time: ix('시간'), dong: ix('동'), ho: ix('호수'), name: ix('이름'), phone: ix('연락처'), total: ix('총합계'), paid: ix('결재확인'), boss: ix('소장'), mgr: ix('매니저'), team: ix('팀'), note: ix('비고'), anote: ix('사후점검안내문') };
+                    const need = { site: ix('현장명'), day: ix('일'), time: ix('시간'), dong: ix('동'), ho: ix('호수'), name: ix('이름'), phone: ix('연락처'), total: ix('총합계'), paid: ix('결재확인'), boss: ix('소장'), mgr: ix('매니저'), team: ix('팀'), note: ix('비고'), anote: ix('사후점검안내문'), pkg: h1.findIndex(x => x.indexOf('패키지') >= 0) }; // 패키지: 예약일정 맨 끝에 대표님이 추가하는 체크박스 칸
+                    if (need.pkg >= 0) hasPkgCol = true;
                     const miss = ['site', 'day', 'dong', 'ho', 'name', 'phone'].filter(k => need[k] < 0);
                     if (miss.length) throw Object.assign(new Error('head'), { msg: "'" + tab + "' 탭 머리글을 찾지 못했어요 (현장명·일·동·호수·이름·연락처)" });
                     const deps = [ix('예약금'), h2.indexOf('계좌')].filter((v, i, a) => v >= 0 && a.indexOf(v) === i);
@@ -6540,12 +6542,12 @@ body.light-mode .card.reference-info {
                         if (!boss && !mgr && !g('team') && prev && prev.tab === tab && prev.key === norm(site) && prev.date && date && +prev.date === +date) { boss = prev.boss; mgr = prev.mgr; }
                         rows.push({ tab: tab, row: start + i, site: site.replace(/\s+/g, ' '), key: norm(site), after: /사후/.test(site) || !!g('anote'), date: date, time: g('time'),
                             dong: g('dong'), ho: g('ho'), name: g('name').replace(/\s*\n\s*/g, ' / '), phones: phonesOf(g('phone')), team: g('team'), note: g('note'),
-                            total: num(g('total')), paid: /TRUE/i.test(g('paid')), boss: boss, mgr: mgr, hasStaff: need.boss >= 0 || need.mgr >= 0,
+                            total: num(g('total')), paid: /TRUE/i.test(g('paid')), pkgFlag: /TRUE/i.test(g('pkg')), boss: boss, mgr: mgr, hasStaff: need.boss >= 0 || need.mgr >= 0,
                             dep: D.reduce((a, c) => a + (/^\s*[\d,]+\s*$/.test(String(c[i] == null ? '' : c[i])) ? num(c[i]) : 0), 0) }); // 예약금 칸의 메모·비밀번호 같은 글자는 금액 아님
                     }
                     // 예약안내문은 보낼 때 그 행을 다시 읽음 → 행이 밀렸는지 확인하려고 현장명·동·호수·이름 칸 위치도 같이 기억
                     const zi = ix('예약안내문'), ai = ix('사후점검안내문');
-                    zCol[tab] = { z: zi, a: ai, site: need.site, dong: need.dong, ho: need.ho, name: need.name };
+                    zCol[tab] = { z: zi, a: ai, n: ix('입주예약안내'), site: need.site, dong: need.dong, ho: need.ho, name: need.name };
                 }
                 let pkg = null, pkgBad = false;
                 if (titles.indexOf(ADM_PKG_TAB) >= 0) {
@@ -6556,7 +6558,7 @@ body.light-mode .card.reference-info {
                     if (iS >= 0 && iH >= 0 && iP >= 0) v.slice(1).forEach(r => { if (/TRUE/i.test(String(r[iP] || ''))) pkg.add(unitKey(r[iS], iD >= 0 ? r[iD] : '', r[iH])); });
                     else pkgBad = true;
                 }
-                return { rows: rows, zCol: zCol, pkg: pkg, pkgBad: pkgBad, at: new Date() };
+                return { rows: rows, zCol: zCol, pkg: pkg, pkgBad: pkgBad, hasPkgCol: hasPkgCol, at: new Date() };
             }
 
             // 보고서 못 받은 고객: 드라이브의 '…_동_호_작성자_YYYY-MM-DD_하자점검보고서.pdf'(최근 45일) 이름을 읽어 동·호·날짜(±2일)로 맞춤 (읽기만)
@@ -6687,7 +6689,7 @@ body.light-mode .card.reference-info {
                 if (loading) { box.innerHTML = card('<div class="adm-msg">⏳ 예약현황 불러오는 중...</div>'); return; }
                 if (err) { box.innerHTML = card('<div class="adm-msg adm-err">' + E(err) + '</div>' + (/로그인/.test(err) ? '<button type="button" class="btn btn-primary" data-act="login" style="width:100%;">🔐 구글 다시 로그인</button>' : '')); return; }
                 if (!data) { box.innerHTML = card(''); return; }
-                const V = views(), cross = ['k7', 'k8', 'k9', 'k10'].indexOf(st.kind) >= 0;
+                const V = views(), cross = ['k1', 'k7', 'k8', 'k9', 'k10'].indexOf(st.kind) >= 0;
                 const repNote = !data.reports; // 드라이브 보고서 확인 전이면 '확인 필요' 숫자 뒤에 +
                 const nCheck = V.soon.length + V.noRep.length;
                 // 한눈에: 오늘·내일·7일·미입금·확인 필요 (누르면 그 목록으로)
@@ -6700,6 +6702,18 @@ body.light-mode .card.reference-info {
                 let g = gs.find(x => x.key === st.group) || gs[0];
                 if (g) st.group = g.key;
                 cur = [];
+                if (st.kind === 'k1') {
+                    // 서비스 안내: 문의 고객은 통합자료에 없음 → 전화·문자 온 번호를 넣어 보냄 (붙여넣기 / 안드로이드는 연락처에서 고르기)
+                    const canPick = 'contacts' in navigator && 'ContactsManager' in window;
+                    h += '<div class="adm-step">② 문의 고객 번호 <small>전화·문자 온 번호 (통합자료에 없는 고객)</small></div>'
+                        + '<input class="adm-sel" data-f="direct" inputmode="tel" placeholder="010-0000-0000 (여러 개면 쉼표로)">'
+                        + '<div class="adm-dates"><button type="button" class="adm-re" data-act="paste" style="flex:1;">📋 붙여넣기</button>'
+                        + (canPick ? '<button type="button" class="adm-re" data-act="pick" style="flex:1;">👤 연락처에서</button>' : '') + '</div>'
+                        + '<button type="button" class="adm-next" data-act="direct">📩 서비스 안내 보내기</button>';
+                    saveSt();
+                    box.innerHTML = card(h);
+                    return;
+                }
                 if (st.kind === 'k7') {
                     h += '<div class="adm-step">② 점검 날짜 <small>단지 상관없이 모아 보기</small></div>';
                     const opts = [];
@@ -6741,8 +6755,9 @@ body.light-mode .card.reference-info {
                     const v = k6in[g.key] || {};
                     h += '<div class="adm-dates"><input class="adm-sel" data-f="d1" placeholder="지정일 1 (예: 6월 2일(화))" value="' + E(v.d1 || '') + '"><input class="adm-sel" data-f="d2" placeholder="지정일 2 (없으면 비움)" value="' + E(v.d2 || '') + '"></div>'
                         + '<input class="adm-sel" data-f="time" placeholder="시간" value="' + E(v.time || '오전 10시 ~ 오후 3시 30분') + '">';
-                    const seen = {}, booked = new Set(data.rows.filter(r => r.after && baseKey(r.site) === g.key).map(r => unitKey(r.site, r.dong, r.ho)));
-                    g.rows.forEach(r => { const uk = unitKey(r.site, r.dong, r.ho); if (!seen[uk]) { seen[uk] = 1; cur.push(Object.assign({}, r, { pkg: !!(data.pkg && data.pkg.has(uk)), booked: booked.has(uk) })); } });
+                    const flagged = new Set(g.rows.filter(r => r.pkgFlag).map(r => unitKey(r.site, r.dong, r.ho)));
+                    const seen = {}, booked =new Set(data.rows.filter(r => r.after && baseKey(r.site) === g.key).map(r => unitKey(r.site, r.dong, r.ho)));
+                    g.rows.forEach(r => { const uk = unitKey(r.site, r.dong, r.ho); if (!seen[uk]) { seen[uk] = 1; cur.push(Object.assign({}, r, { pkg: flagged.has(uk) || !!(data.pkg && data.pkg.has(uk)), booked: booked.has(uk) })); } });
                     cur.sort((a, b) => (b.pkg - a.pkg) || (num(a.dong) - num(b.dong)) || (num(a.ho) - num(b.ho)));
                 }
                 const done = cur.filter(r => sent[sentKey(r)]).length;
@@ -6764,7 +6779,7 @@ body.light-mode .card.reference-info {
                 };
                 if (st.kind === 'k6') {
                     const np = cur.filter(r => r.pkg).length;
-                    if (!data.pkg) h += '<div class="adm-grp ad">패키지 표시 탭(\'' + ADM_PKG_TAB + '\')이 아직 없어서 모두 \'그 외 고객\'으로 봤어요.</div>';
+                    if (!data.pkg && !data.hasPkgCol) h += '<div class="adm-grp ad">예약일정 탭에 \'패키지\' 칸이 아직 없어서 모두 \'그 외 고객\'으로 봤어요.</div>';
                     else if (data.pkgBad) h += '<div class="adm-grp ad">\'' + ADM_PKG_TAB + '\' 탭 머리글(현장명·동·호수·패키지)을 찾지 못했어요.</div>';
                     h += '<div class="adm-grp info">✅ <b>사후점검 포함(패키지) ' + np + '명</b> — 계약 안내라 그대로 보냄</div>' + cur.map((r, i) => r.pkg ? row(r, i) : '').join('');
                     h += '<div class="adm-grp ad">📣 <b>그 외 ' + (cur.length - np) + '명</b> — 유료 권유라 \'광고 문자\'예요. 맨 앞 <b>(광고)</b>와 끝에 <b>무료수신거부</b>가 붙고, <b>밤 9시~아침 8시</b>엔 보낼 수 없어요.'
@@ -6781,15 +6796,18 @@ body.light-mode .card.reference-info {
 
             // 예약안내문: 사전 = '예약안내문' 칸, (사후) 예약 = '사후점검 안내문' 칸. 보낼 때 그 행을 다시 읽고,
             // 그사이 시트 행이 밀려 다른 고객 행이면(현장명·동·호수·이름이 다르면) 보내지 않음
+            // 입주점검 세대는 '입주예약안내' 칸이 채워져 있으면 그 칸이 먼저
             async function zText(r) {
                 const c = data.zCol[r.tab], zi = c ? (r.after ? c.a : c.z) : -1;
-                if (zi < 0) return '';
-                const last = Math.max(zi, c.site, c.dong, c.ho, c.name);
+                if (zi < 0 && !(c && c.n >= 0)) return '';
+                const last = Math.max(zi, c.n, c.site, c.dong, c.ho, c.name);
                 const v = ((await api('/values/' + rq("'" + r.tab + "'!A" + r.row + ':' + colL(last) + r.row))).values || [])[0] || [];
-                const g = i => String(v[i] == null ? '' : v[i]).trim();
+                const g = i => i < 0 ? '' : String(v[i] == null ? '' : v[i]).trim();
                 if (norm(g(c.site)) !== r.key || g(c.dong) !== r.dong || g(c.ho) !== r.ho || g(c.name).replace(/\s*\n\s*/g, ' / ') !== r.name)
                     throw Object.assign(new Error('moved'), { msg: '그사이 시트가 바뀌었어요. ↻ 새로 불러오기 후 다시 보내 주세요.' });
-                return g(zi).replace(/^["\s]+/, '').replace(/["\s]+$/, '');
+                const ip = g(c.n);
+                r._src = ip ? '입주예약안내' : r.after ? '사후점검 안내문' : '예약안내문';
+                return (ip || g(zi)).replace(/^["\s]+/, '').replace(/["\s]+$/, '');
             }
             async function textFor(r) {
                 if (st.kind === 'k4') return zText(r);
@@ -6800,12 +6818,12 @@ body.light-mode .card.reference-info {
                 return MSG[st.kind];
             }
             window._admGo = url => { window.location.href = url; };
-            function sheet(title, text, phones, onSent, after) {
+            function sheet(title, text, phones, onSent, src) {
                 const old = document.getElementById('admSheet');
                 if (old) old.remove();
                 let pick = phones[0];
                 const n = Array.from(text).length;
-                const note = ({ k1: '점검서비스 안내 이미지는 문자앱에서 직접 첨부하세요.', k2: '명함·자주묻는질문 이미지는 문자앱에서 직접 첨부하세요.', k4: after ? "시트의 '사후점검 안내문' 칸 그대로입니다." : "시트의 '예약안내문' 칸 그대로입니다." }[st.kind] || '')
+                const note = ({ k1: '점검서비스 안내 이미지는 문자앱에서 직접 첨부하세요.', k2: '명함·자주묻는질문 이미지는 문자앱에서 직접 첨부하세요.', k4: "시트의 '" + (src || '예약안내문') + "' 칸 그대로입니다." }[st.kind] || '')
                     + (n > 1000 ? ' 1,000자가 넘어 채팅+가 아닌 일반 문자로는 잘릴 수 있어요(카톡 복사도 가능).' : '');
                 const w = document.createElement('div');
                 w.id = 'admSheet';
@@ -6854,12 +6872,13 @@ body.light-mode .card.reference-info {
                 }
                 if (st.kind !== kind) return;
                 if (!text) { if (kind === 'k4') { r.noZ = true; render(); } alert("시트에 이 세대의 " + (r.after ? "'사후점검 안내문'" : "'예약안내문'") + "이 없어요."); return; }
+                const src = r._src;
                 sheet(dh(r) + ' · ' + (r.name || ''), text, r.phones, () => {
                     const now = new Date().toISOString(), k5 = 'k5' + key.slice(2);
                     sent[key] = now;
                     if (kind === 'k8' && !sent[k5]) sent[k5] = now; // 미입금에서 처음 보낸 정산이면 정산 목록에도 표시
                     lsSet(SENT_KEY, sent); render();
-                }, r.after);
+                }, src);
             }
 
             function startSub() {
@@ -6920,10 +6939,18 @@ body.light-mode .card.reference-info {
                     if (a === 'jump') { st.kind = b.getAttribute('data-k'); if (b.getAttribute('data-d')) { st.d7 = b.getAttribute('data-d'); st.d7at = dKey(new Date()); } render(); box.scrollIntoView({ block: 'start' }); return; }
                     if (a === 'open') return openRow(+b.getAttribute('data-i'));
                     if (a === 'unsent') { const r = cur[+b.getAttribute('data-i')]; if (r && confirm('보냄 표시를 지울까요?')) { delete sent[sentKey(r)]; lsSet(SENT_KEY, sent); render(); } return; }
+                    if (a === 'paste' || a === 'pick') {
+                        const inp = box.querySelector('[data-f="direct"]');
+                        const put = t => { const ph = phonesOf(t); if (!ph.length) throw 0; inp.value = ph.map(fmtPh).join(', '); };
+                        (a === 'pick' ? navigator.contacts.select(['tel'], { multiple: true }).then(cs => (cs || []).map(c => (c.tel || []).join(' ')).join(' '))
+                            : navigator.clipboard && navigator.clipboard.readText ? navigator.clipboard.readText() : Promise.reject())
+                            .then(put).catch(() => { if (a === 'paste') { inp.focus(); showToast('번호 칸을 길게 눌러 붙여넣기 하세요', 'warning'); } });
+                        return;
+                    }
                     if (a === 'direct') {
-                        const inp = box.querySelector('[data-f="direct"]'), d = String(inp && inp.value || '').replace(/\D/g, '');
-                        if (!window.isValidKrPhone(d)) { alert('전화번호를 확인해 주세요.'); return; }
-                        sheet(fmtPh(d), MSG[st.kind], [d], null);
+                        const inp = box.querySelector('[data-f="direct"]'), ph = phonesOf(inp && inp.value);
+                        if (!ph.length) { alert('전화번호를 확인해 주세요.'); return; }
+                        sheet(fmtPh(ph[0]) + (ph.length > 1 ? ' 외 ' + (ph.length - 1) + '명' : ''), MSG[st.kind], ph, null);
                     }
                 });
                 box.addEventListener('change', e => {
