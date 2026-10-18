@@ -1240,6 +1240,13 @@ body.light-mode .et-pill.sent{border-color:rgba(21,128,61,.55); color:#15803D; b
 #admin .adm-done{flex:none; min-height:36px; padding:0 10px; border-radius:18px; border:1px solid rgba(74,222,128,.7); color:#4ade80; background:rgba(74,222,128,.10); font-size:12.5px; font-weight:800; font-family:inherit; white-space:nowrap}
 #admin .adm-off{flex:none; min-height:36px; padding:0 10px; border-radius:18px; border:1px dashed var(--a-line-strong,#62708C); color:var(--text-secondary); background:transparent; font-size:12px; font-weight:700; font-family:inherit; white-space:nowrap}
 #admin .adm-next{width:100%; min-height:52px; margin-top:12px; border:none; border-radius:12px; background:#D23B3B; color:#fff; font-size:16px; font-weight:800; font-family:inherit}
+#admin .adm-sum{display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:6px; margin-bottom:2px}
+#admin .adm-chip{min-height:56px; border-radius:10px; border:1px solid var(--a-line,#2A3550); background:var(--a-sunken,#0F1726); color:var(--text-secondary); font-size:11.5px; font-weight:700; font-family:inherit; padding:4px 2px; line-height:1.2}
+#admin .adm-chip b{display:block; font-size:19px; font-weight:800; color:var(--a-ink,#F1F4F9); font-variant-numeric:tabular-nums}
+#admin .adm-chip.hot{border-color:rgba(245,158,11,.7)}
+#admin .adm-chip.hot b{color:#f59e0b}
+body.light-mode #admin .adm-chip.hot b{color:#b45309}
+#admin .adm-row small.warn{white-space:normal}
 #admin .adm-grp{margin:12px 0 4px; padding:8px 10px; border-radius:8px; font-size:12.5px; line-height:1.5; color:var(--a-ink,#F1F4F9)}
 #admin .adm-grp.info{background:rgba(74,222,128,.10); border:1px solid rgba(74,222,128,.45)}
 #admin .adm-grp.ad{background:rgba(245,158,11,.12); border:1px solid rgba(245,158,11,.55)}
@@ -6318,6 +6325,7 @@ body.light-mode .card.reference-info {
         //    - 대표님 구글 계정(이메일 해시 비교)일 때만 탭이 보임. 실제 잠금은 시트 공유 권한(공유 안 된 계정은 읽기 자체가 안 됨)
         //    - 시트에는 아무것도 쓰지 않음. 고객 정보는 메모리에만 두고, '보냄' 표시(단지·날짜·동·호·시각)만 이 휴대폰에 저장
         //    - 사후점검 '그 외 고객'은 광고 문자 → (광고)·무료수신거부(080)·밤 9시~아침 8시 금지. 080 번호가 없으면 잠금
+        //    - 관리 편의(10-18 추가): 맨 위 한눈에(오늘·내일·7일·미입금·확인 필요), ⏰ 하루 전 안내, 💰 미입금(정산 문자 다시), ⚠️ 확인 필요(빠진 것·보고서 못 받은 고객)
         (function() {
             const ADM_SHEET = '1xbVXQa1p7wRg7NjF1ZrEQSaSUAEdnLk6aYqnWflr1No'; // 더홈점검_통합자료_ver2
             const ADM_HASH = '2cf97b8235bc9b0098fcac4a113922be36b9d7d8761e44f24169d1b7400e11ff';
@@ -6325,7 +6333,9 @@ body.light-mode .card.reference-info {
             const ADM_PKG_TAB = '사후점검_패키지';
             const SENT_KEY = 'th_adm_sent_v1', K6_KEY = 'th_adm_k6_v1';
             const KINDS = [['k1', '🏠 서비스 안내', '문의 고객'], ['k2', '💳 예약금 요청', '예약 직전'], ['k3', '📢 필독 안내문', '점검 전 공지'],
-                ['k4', '★ 예약 안내문', '예약금 입금 후'], ['k5', '🧾 정산·잔금', '점검 후'], ['k6', '🔁 사후점검', '단지 공지']];
+                ['k4', '★ 예약 안내문', '예약금 입금 후'], ['k5', '🧾 정산·잔금', '점검 후'], ['k6', '🔁 사후점검', '단지 공지'],
+                ['k7', '⏰ 전날 안내', '내일 점검 고객'], ['k8', '💰 미입금', '잔금 재안내'], ['k9', '⚠️ 확인 필요', '빠진 것·보고서']];
+            const MK = k => k === 'k8' ? 'k5' : k; // 미입금 목록은 정산 문자(⑤)를 다시 보냄 → 보냄 표시도 정산과 같이
             const L = a => a.join('\n');
             const MSG = {
                 k1: L(['🏠 더홈점검 점검서비스 안내', '', '안녕하세요, 건축자격증 보유 · 현장경력 10년의 사전점검 전문 더홈점검입니다.', '문의 감사합니다 😊', '',
@@ -6385,6 +6395,23 @@ body.light-mode .card.reference-info {
                     .concat(pkg ? [] : ['', '더홈점검 010-9985-0128', '무료수신거부 ' + ADM_OPTOUT]));
             }
 
+            // 하루 전 안내 (예약 안내문 FAQ '점검 하루 전에 다시 안내드립니다'): 10시 예약은 9시 20분 주출입구 동행, 그 외는 1시간 전 입실 / 사후점검은 10분 전·보일러
+            const hmLabel = t => { const h = Math.floor(t / 60), m = t % 60; return (h < 12 ? '오전 ' : '오후 ') + (h > 12 ? h - 12 : h) + '시' + (m ? ' ' + m + '분' : ''); };
+            function msgK7(r) {
+                const now = new Date(); now.setHours(0, 0, 0, 0);
+                const dd = r.date ? Math.round((r.date - now) / 86400000) : -1, word = dd === 0 ? '오늘' : dd === 1 ? '내일' : '';
+                const t = tMin(r.time), site = r.site.replace(/\s*\(?사후[^()]*\)?\s*/g, '').replace(/\s*\(추가\)/g, '').trim();
+                const name = String(r.name || '').split(' / ')[0];
+                const how = r.after
+                    ? ['· 점검 10분 전까지 세대에 입실해 주세요.', '· 보일러 가동 상태를 확인해 주세요. (난방 점검)', '· 대리 참석 시 위임 서류 또는 도어락 비밀번호를 공유해 주세요.']
+                    : [t === 600 ? '· 오전 9시 20분까지 단지 주출입구에서 저희 팀과 만나 함께 입장합니다.'
+                        : t < 9999 ? '· 점검 1시간 전(' + hmLabel(t - 60) + ')까지 행사장에서 본인 확인 후 세대에 입실해 주세요.' : '· 점검 1시간 전까지 행사장에서 본인 확인 후 세대에 입실해 주세요.',
+                        '· 공기질 측정 중에는 세대 환기를 자제해 주세요.'];
+                return L(['[더홈점검] ' + (word ? word + ' ' : '') + (r.after ? '사후점검' : '사전점검') + ' 일정 안내', '안녕하세요' + (name ? ', ' + name + ' 고객님' : '') + '. 더홈점검입니다.',
+                    (word ? word + ' ' : '') + '점검 일정을 다시 안내드립니다.', '', '📅 ' + dLabel(r.date) + (t < 9999 ? ' ' + hmLabel(t) : ''), '📍 ' + site + (!r.dong && site.indexOf(dh(r)) >= 0 ? '' : ' ' + dh(r)), '']
+                    .concat(how, ['· 일정 변경·문의 : 010-9985-0128', '', (word ? word + ' ' : '점검일에 ') + '뵙겠습니다. 감사합니다 😊']));
+            }
+
             const norm = s => String(s == null ? '' : s).replace(/\s+/g, '');
             const num = s => { const d = String(s == null ? '' : s).replace(/[^0-9]/g, ''); return d ? parseInt(d, 10) : 0; };
             const baseKey = s => norm(s).replace(/\(?사후[^()]*\)?/g, ''); // (사후)·(사후점검)·사후점검예상 → 같은 단지
@@ -6394,6 +6421,11 @@ body.light-mode .card.reference-info {
             const dKey = d => d ? d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) : '';
             const dLabel = d => d ? (d.getMonth() + 1) + '월 ' + d.getDate() + '일(' + '일월화수목금토'[d.getDay()] + ')' : '날짜 없음';
             const tMin = t => { const m = /(\d{1,2})\s*[:시]\s*(\d{0,2})/.exec(String(t || '')); if (!m) return 9999; let h = +m[1]; if (h >= 1 && h <= 6) h += 12; return h * 60 + (+m[2] || 0); }; // '2:30' = 오후
+            const badT = r => { const t = tMin(r.time); return t === 9999 || t < 480 || t > 1080; }; // 빈칸·'오전'·'위임'·0:00·20:00 등 → 시간 확인
+            const TIME_NOTE = /조율|미정|시간.{0,4}(확인|정|변경)|변경/; // 비고에 이런 말이 있으면 시간 확정 전 (비고 원문은 비번 등이 있어 이 경우만 보여줌)
+            const PAY_GRACE = 2; // 잔금은 당일 입금, 결재확인은 며칠 뒤 몰아서 체크 → 점검 3일째부터 미입금으로
+            // 행사장이 없는 예약(주소형·인테리어·입주)이나 현장명 칸 메모는 전날 안내 문구가 맞지 않음 → 잠금
+            const oddSite = r => /인테리어|입주/.test(r.site + ' ' + (r.team || '')) || /\d+-\d+|번길|[시군구]\s|\(.{9,}\)|\d+월\s*\d/.test(r.site);
             const colL = i => { let s = ''; for (i++; i > 0; i = Math.floor((i - 1) / 26)) s = String.fromCharCode(65 + (i - 1) % 26) + s; return s; };
             const dh = r => { const d = String(r.dong || '').trim(), h = String(r.ho || '').trim();
                 return [d ? (/동/.test(d) ? d : d + '동') : '', h ? (/^\d+$/.test(h) ? h + '호' : h) : ''].filter(Boolean).join(' ') || '동·호 없음'; };
@@ -6412,22 +6444,23 @@ body.light-mode .card.reference-info {
 
             let isAdmin = false, data = null, loading = false, err = null, cur = [];
             const ST_KEY = 'th_adm_st_v1'; // 문자앱에 다녀오며 앱이 새로 열려도 고른 종류·단지·날짜 그대로
-            const st = Object.assign({ kind: 'k4', group: '', date: '' }, lsGet(ST_KEY, {}));
-            const saveSt = () => lsSet(ST_KEY, { kind: st.kind, group: st.group, date: st.date });
+            const st = Object.assign({ kind: 'k4', group: '', date: '', d7: '', d7at: '' }, lsGet(ST_KEY, {}));
+            const saveSt = () => lsSet(ST_KEY, { kind: st.kind, group: st.group, date: st.date, d7: st.d7, d7at: st.d7at });
             let sent = lsGet(SENT_KEY, {});
             (function prune() { const lim = Date.now() - 200 * 86400000; let ch = false;
                 Object.keys(sent).forEach(k => { if (!(Date.parse(sent[k]) > lim)) { delete sent[k]; ch = true; } }); if (ch) lsSet(SENT_KEY, sent); })();
             const k6in = lsGet(K6_KEY, {});
 
-            async function api(path) {
+            async function gget(url) {
                 const ctl = typeof AbortController === 'function' ? new AbortController() : null;
                 const t = ctl ? setTimeout(() => ctl.abort(), 20000) : 0;
                 try {
-                    const res = await fetch('https://sheets.googleapis.com/v4/spreadsheets/' + ADM_SHEET + path, Object.assign({ headers: { Authorization: 'Bearer ' + accessToken } }, ctl ? { signal: ctl.signal } : {}));
-                    if (!res.ok) { const e = new Error('sheets ' + res.status); e.status = res.status; throw e; }
+                    const res = await fetch(url, Object.assign({ headers: { Authorization: 'Bearer ' + accessToken } }, ctl ? { signal: ctl.signal } : {}));
+                    if (!res.ok) { const e = new Error('google ' + res.status); e.status = res.status; throw e; }
                     return await res.json();
                 } finally { clearTimeout(t); }
             }
+            const api = path => gget('https://sheets.googleapis.com/v4/spreadsheets/' + ADM_SHEET + path);
             const rq = s => encodeURIComponent(s);
 
             async function load() {
@@ -6440,7 +6473,7 @@ body.light-mode .card.reference-info {
                     const hv = (await api('/values/' + rq("'" + tab + "'!1:2"))).values || [];
                     const h1 = (hv[0] || []).map(norm), h2 = (hv[1] || []).map(norm);
                     const ix = n => h1.indexOf(n);
-                    const need = { site: ix('현장명'), day: ix('일'), time: ix('시간'), dong: ix('동'), ho: ix('호수'), name: ix('이름'), phone: ix('연락처'), total: ix('총합계'), paid: ix('결재확인') };
+                    const need = { site: ix('현장명'), day: ix('일'), time: ix('시간'), dong: ix('동'), ho: ix('호수'), name: ix('이름'), phone: ix('연락처'), total: ix('총합계'), paid: ix('결재확인'), boss: ix('소장'), mgr: ix('매니저'), team: ix('팀'), note: ix('비고'), anote: ix('사후점검안내문') };
                     const miss = ['site', 'day', 'dong', 'ho', 'name', 'phone'].filter(k => need[k] < 0);
                     if (miss.length) throw Object.assign(new Error('head'), { msg: "'" + tab + "' 탭 머리글을 찾지 못했어요 (현장명·일·동·호수·이름·연락처)" });
                     const deps = [ix('예약금'), h2.indexOf('계좌')].filter((v, i, a) => v >= 0 && a.indexOf(v) === i);
@@ -6464,9 +6497,13 @@ body.light-mode .card.reference-info {
                         let date = null;
                         if (m) { const mo = +m[2]; if (mo >= 11) late = true; date = new Date(m[1] ? +m[1] : (late && mo <= 6 ? tabYear + 1 : tabYear), mo - 1, +m[3]); }
                         else if (iso) date = new Date(+iso[1], +iso[2] - 1, +iso[3]);
-                        rows.push({ tab: tab, row: start + i, site: site.replace(/\s+/g, ' '), key: norm(site), after: /사후/.test(site), date: date, time: g('time'),
-                            dong: g('dong'), ho: g('ho'), name: g('name').replace(/\s*\n\s*/g, ' / '), phones: phonesOf(g('phone')),
-                            total: num(g('total')), paid: /TRUE/i.test(g('paid')),
+                        // 팀 이어쓰기: 같은 현장·날짜의 이어지는 행은 팀·소장·매니저를 비워 둠 → 앞 행 것을 물려받음
+                        let boss = g('boss'), mgr = g('mgr');
+                        const prev = rows[rows.length - 1];
+                        if (!boss && !mgr && !g('team') && prev && prev.tab === tab && prev.key === norm(site) && prev.date && date && +prev.date === +date) { boss = prev.boss; mgr = prev.mgr; }
+                        rows.push({ tab: tab, row: start + i, site: site.replace(/\s+/g, ' '), key: norm(site), after: /사후/.test(site) || !!g('anote'), date: date, time: g('time'),
+                            dong: g('dong'), ho: g('ho'), name: g('name').replace(/\s*\n\s*/g, ' / '), phones: phonesOf(g('phone')), team: g('team'), note: g('note'),
+                            total: num(g('total')), paid: /TRUE/i.test(g('paid')), boss: boss, mgr: mgr, hasStaff: need.boss >= 0 || need.mgr >= 0,
                             dep: D.reduce((a, c) => a + (/^\s*[\d,]+\s*$/.test(String(c[i] == null ? '' : c[i])) ? num(c[i]) : 0), 0) }); // 예약금 칸의 메모·비밀번호 같은 글자는 금액 아님
                     }
                     // 예약안내문은 보낼 때 그 행을 다시 읽음 → 행이 밀렸는지 확인하려고 현장명·동·호수·이름 칸 위치도 같이 기억
@@ -6485,6 +6522,50 @@ body.light-mode .card.reference-info {
                 return { rows: rows, zCol: zCol, pkg: pkg, pkgBad: pkgBad, at: new Date() };
             }
 
+            // 보고서 못 받은 고객: 드라이브의 '…_동_호_작성자_YYYY-MM-DD_하자점검보고서.pdf'(최근 45일) 이름을 읽어 동·호·날짜(±2일)로 맞춤 (읽기만)
+            async function loadReports() {
+                const since = new Date(); since.setDate(since.getDate() - 45);
+                const q = "name contains '하자점검보고서' and mimeType = 'application/pdf' and trashed = false and modifiedTime > '" + since.toISOString() + "'";
+                const names = [];
+                let tok = '';
+                for (let p = 0; p < 8; p++) {
+                    const j = await gget('https://www.googleapis.com/drive/v3/files?q=' + rq(q) + '&corpora=allDrives&includeItemsFromAllDrives=true&supportsAllDrives=true&pageSize=1000&fields=nextPageToken,files(name)' + (tok ? '&pageToken=' + rq(tok) : ''));
+                    (j.files || []).forEach(f => names.push(String(f.name || '')));
+                    tok = j.nextPageToken;
+                    if (!tok) break;
+                }
+                // 앱이 붙이는 '동_'·'호_'를 기준으로 읽음 (작성자 뒤 '_1번째' 같은 칸이 더 붙어도 됨)
+                const files = [];
+                names.forEach(n => {
+                    const m = /_([^_]*)동_([^_]*)호_(.*)_(\d{4})-(\d{1,2})-(\d{1,2})_하자점검보고서/.exec(n);
+                    if (m) files.push({ dong: m[1].replace(/\D/g, ''), ho: m[2].replace(/\D/g, ''), author: m[3].split('_')[0].replace(/\(.*?\)/g, '').trim(), date: new Date(+m[4], +m[5] - 1, +m[6]) });
+                });
+                return { files: files, n: names.length };
+            }
+            const DAY = 86400000, dd = s => String(s || '').replace(/\D/g, '');
+            // 시트 동이 빈칸이면 호만으로 (날짜 ±2일)
+            const repOf = r => data.reports.files.filter(f => r.date && Math.abs(f.date - r.date) <= 2 * DAY && f.ho === dd(r.ho) && (!dd(r.dong) || f.dong === dd(r.dong)));
+            function views() {
+                const now = new Date(); now.setHours(0, 0, 0, 0);
+                const day = n => now.getTime() + n * 86400000, rows = data.rows.filter(r => r.date);
+                const on = (r, n) => r.date.getTime() === day(n), within = (r, a, b) => r.date.getTime() >= day(a) && r.date.getTime() <= day(b);
+                const issues = r => [!r.name ? '이름 없음' : '', !r.phones.length ? '연락처 없음' : '', !r.after && !r.dep ? '예약금 없음' : '', r.hasStaff && !r.boss && !r.mgr ? '배정 없음' : '',
+                    badT(r) ? '시간 확인' : '', TIME_NOTE.test(r.note || '') ? '비고: 시간 확인' : ''].filter(Boolean);
+                const unpaid = rows.filter(r => within(r, -60, -(PAY_GRACE + 1)) && !r.paid && r.total > 0 && r.total - r.dep > 0).sort((a, b) => b.date - a.date || tMin(a.time) - tMin(b.time));
+                const soon = rows.filter(r => within(r, 0, 7) && issues(r).length).sort((a, b) => a.date - b.date || tMin(a.time) - tMin(b.time));
+                // 보고서: 맞는 파일이 없으면, 어느 세대와도 안 맞는 '남는 파일' 중 같은 날짜·같은 동이나 호·같은 소장인 것을 '동·호 확인' 후보로 보여줌
+                let noRep = [];
+                if (data.reports && data.reports.files && data.reports.n) {
+                    const recent = rows.filter(r => within(r, -32, 0));
+                    const orphans = data.reports.files.filter(f => !recent.some(r => Math.abs(f.date - r.date) <= 2 * DAY && f.ho === dd(r.ho) && (!dd(r.dong) || f.dong === dd(r.dong))));
+                    noRep = rows.filter(r => within(r, -30, -1) && !repOf(r).length).sort((a, b) => b.date - a.date).map(r => {
+                        const c = orphans.filter(f => Math.abs(f.date - r.date) <= 2 * DAY && (f.dong === dd(r.dong) || f.ho === dd(r.ho)) && (!r.boss || !f.author || f.author.indexOf(r.boss) >= 0 || r.boss.indexOf(f.author) >= 0));
+                        return { r: r, tag: c.length ? '보고서 있음? 시트·파일 동·호 확인 (파일: ' + c.slice(0, 2).map(f => (f.dong ? f.dong + '동 ' : '') + f.ho + '호').join(', ') + ')' : '보고서 없음' + (r.boss ? ' · 소장 ' + r.boss : '') };
+                    });
+                }
+                return { day: day, on: on, issues: issues, unpaid: unpaid, soon: soon, noRep: noRep,
+                    today: rows.filter(r => on(r, 0)).length, tom: rows.filter(r => on(r, 1)).length, week: rows.filter(r => within(r, 0, 6)).length };
+            }
             function groups() {
                 const k6 = st.kind === 'k6', m = new Map();
                 data.rows.forEach(r => {
@@ -6514,9 +6595,12 @@ body.light-mode .card.reference-info {
                 return '✓ 보냄 ' + (d.toDateString() === now.toDateString() ? '' : (d.getMonth() + 1) + '/' + d.getDate() + ' ') + pad(d.getHours()) + ':' + pad(d.getMinutes()); };
             function lockOf(r) {
                 if (!r.phones.length) return '연락처 없음';
+                if (st.kind === 'k7' && badT(r)) return '시간 확인';
+                if (st.kind === 'k7' && /조율|미정/.test(r.note || '')) return '시간 조율 중';
+                if (st.kind === 'k7' && !r.after && oddSite(r)) return '현장명 확인';
                 if (st.kind === 'k4' && r.noZ) return '안내문 없음';
-                if (st.kind === 'k5' && !r.total) return '금액 없음';
-                if (st.kind === 'k5' && r.dep > r.total) return '금액 확인';
+                if (MK(st.kind) === 'k5' && !r.total) return '금액 없음';
+                if (MK(st.kind) === 'k5' && r.dep > r.total) return '금액 확인';
                 if (st.kind === 'k6' && !r.pkg) { if (!ADM_OPTOUT) return '080 번호 필요'; if (night()) return '밤 9시~8시 잠김'; }
                 return '';
             }
@@ -6534,15 +6618,47 @@ body.light-mode .card.reference-info {
                 if (loading) { box.innerHTML = card('<div class="adm-msg">⏳ 예약현황 불러오는 중...</div>'); return; }
                 if (err) { box.innerHTML = card('<div class="adm-msg adm-err">' + E(err) + '</div>' + (/로그인/.test(err) ? '<button type="button" class="btn btn-primary" data-act="login" style="width:100%;">🔐 구글 다시 로그인</button>' : '')); return; }
                 if (!data) { box.innerHTML = card(''); return; }
-                const gs = groups();
+                const V = views(), cross = ['k7', 'k8', 'k9'].indexOf(st.kind) >= 0;
+                const repNote = !data.reports; // 드라이브 보고서 확인 전이면 '확인 필요' 숫자 뒤에 +
+                const nCheck = V.soon.length + V.noRep.length;
+                // 한눈에: 오늘·내일·7일·미입금·확인 필요 (누르면 그 목록으로)
+                const chip = (lab, n, k, d, hot) => '<button type="button" class="adm-chip' + (hot && n ? ' hot' : '') + '" data-act="jump" data-k="' + k + '"' + (d != null ? ' data-d="' + d + '"' : '') + '><b>' + n + '</b>' + lab + '</button>';
+                let h = '<div class="adm-sum">' + chip('오늘', V.today, 'k7', dKey(new Date(V.day(0)))) + chip('내일', V.tom, 'k7', dKey(new Date(V.day(1)))) + chip('7일', V.week, 'k9')
+                    + chip('미입금', V.unpaid.length, 'k8', null, true) + chip('확인 필요', repNote ? V.soon.length + '+' : nCheck, 'k9', null, true) + '</div>';
+                h += '<div class="adm-step">① 문자 종류</div><div class="adm-kinds">'
+                    + KINDS.map(k => '<button type="button" class="adm-kind' + (k[0] === st.kind ? ' on' : '') + '" data-act="kind" data-k="' + k[0] + '">' + k[1] + '<span>' + k[2] + '</span></button>').join('') + '</div>';
+                const gs = cross ? [] : groups();
                 let g = gs.find(x => x.key === st.group) || gs[0];
                 if (g) st.group = g.key;
-                let h = '<div class="adm-step">① 문자 종류</div><div class="adm-kinds">'
-                    + KINDS.map(k => '<button type="button" class="adm-kind' + (k[0] === st.kind ? ' on' : '') + '" data-act="kind" data-k="' + k[0] + '">' + k[1] + '<span>' + k[2] + '</span></button>').join('') + '</div>';
-                h += '<div class="adm-step">② ' + (st.kind === 'k6' ? '단지 · 사후점검 지정일' : '단지 · 날짜') + '</div>';
-                h += '<select class="adm-sel" data-f="group">' + gs.map(x => '<option value="' + E(x.key) + '"' + (g && x.key === g.key ? ' selected' : '') + '>' + E(x.name) + ' (' + x.rows.length + ')</option>').join('') + '</select>';
                 cur = [];
-                if (g && st.kind !== 'k6') {
+                if (st.kind === 'k7') {
+                    h += '<div class="adm-step">② 점검 날짜 <small>단지 상관없이 모아 보기</small></div>';
+                    const opts = [];
+                    for (let n = 0; n <= 7; n++) { const d = new Date(V.day(n)); opts.push({ k: dKey(d), d: d, n: data.rows.filter(r => r.date && V.on(r, n)).length, w: n === 0 ? '오늘 · ' : n === 1 ? '내일 · ' : '' }); }
+                    if (st.d7at !== opts[0].k || !opts.some(o => o.k === st.d7)) { st.d7 = opts[1].k; st.d7at = opts[0].k; } // 날이 바뀌면 다시 '내일'로
+                    h += '<select class="adm-sel" data-f="d7">' + opts.map(o => '<option value="' + o.k + '"' + (o.k === st.d7 ? ' selected' : '') + '>' + o.w + dLabel(o.d) + ' · ' + o.n + '세대</option>').join('') + '</select>';
+                    cur = data.rows.filter(r => dKey(r.date) === st.d7).sort((a, b) => a.key.localeCompare(b.key, 'ko') || tMin(a.time) - tMin(b.time));
+                } else if (st.kind === 'k8') {
+                    h += '<div class="adm-step">② 대상 <small>지난 60일 · 점검 ' + (PAY_GRACE + 1) + '일째부터 · 시트 결재확인 안 된 고객</small></div>';
+                    cur = V.unpaid;
+                } else if (st.kind === 'k9') {
+                    // 확인 필요: 문자 없이 목록만 (시트에서 고치면 ↻ 새로 불러오기)
+                    const chk = (r, tags) => '<div class="adm-row"><div class="t">' + E((r.date.getMonth() + 1) + '/' + r.date.getDate()) + '<br>' + E(r.time || '') + '</div><div class="w"><b>' + E(dh(r)) + ' · ' + E(r.name || '이름 없음') + '</b><small>' + E(r.site) + '</small>'
+                        + '<small class="warn">' + E(tags.join(' · ')) + '</small></div></div>';
+                    h += '<div class="adm-step">⚠️ 앞으로 7일 예약 중 빠진 것 <small>' + V.soon.length + '세대</small></div>'
+                        + (V.soon.map(r => chk(r, V.issues(r))).join('') || '<div class="adm-msg">빠진 것 없어요 👍</div>');
+                    h += '<div class="adm-step">📄 보고서 못 받은 고객 <small>지난 30일 · 어제까지</small></div>';
+                    if (!data.reports) h += '<div class="adm-msg">⏳ 드라이브에서 보고서 확인 중...</div>';
+                    else if (data.reports.err) h += '<div class="adm-msg adm-err">' + E(data.reports.err) + '</div>';
+                    else h += V.noRep.map(x => chk(x.r, [x.tag])).join('') || '<div class="adm-msg">모두 보고서가 올라가 있어요 👍</div>';
+                    saveSt();
+                    box.innerHTML = card(h);
+                    return;
+                } else {
+                    h += '<div class="adm-step">② ' + (st.kind === 'k6' ? '단지 · 사후점검 지정일' : '단지 · 날짜') + '</div>';
+                    h += '<select class="adm-sel" data-f="group">' + gs.map(x => '<option value="' + E(x.key) + '"' + (g && x.key === g.key ? ' selected' : '') + '>' + E(x.name) + ' (' + x.rows.length + ')</option>').join('') + '</select>';
+                }
+                if (cross) {} else if (g && st.kind !== 'k6') {
                     const ds = datesOf(g);
                     if (!ds.list.some(o => o.k === st.date)) st.date = ds.best;
                     h += '<select class="adm-sel" data-f="date">' + ds.list.map(o => '<option value="' + o.k + '"' + (o.k === st.date ? ' selected' : '') + '>' + dLabel(o.date) + ' · ' + o.n + '세대</option>').join('') + '</select>';
@@ -6561,9 +6677,12 @@ body.light-mode .card.reference-info {
                     const at = sent[sentKey(r)], lock = lockOf(r);
                     let info = r.phones.length ? E(fmtPh(r.phones[0]) + (r.phones.length > 1 ? ' 외 ' + (r.phones.length - 1) + '개' : '')) : '<span class="warn">⚠ 연락처 없음 (시트 확인)</span>';
                     if (st.kind === 'k4') info += ' · ' + (r.dep ? '예약금 ' + won(r.dep) : '예약금 없음');
-                    if (st.kind === 'k5') info += ' · ' + (r.total ? '잔금 ' + won(r.total - r.dep) + (r.paid ? ' · 입금확인' : '') : '금액 없음');
+                    if (MK(st.kind) === 'k5') info += ' · ' + (r.total ? '잔금 ' + won(r.total - r.dep) + (r.paid ? ' · 입금확인' : '') : '금액 없음');
+                    if (st.kind === 'k8') { const k5 = sent['k5' + sentKey(r).slice(2)]; if (k5) info += ' · 정산 보냄 ' + (new Date(k5).getMonth() + 1) + '/' + new Date(k5).getDate(); }
+                    if (st.kind === 'k7' && TIME_NOTE.test(r.note || '')) info += ' · 📝 ' + E(String(r.note).replace(/\s+/g, ' ').slice(0, 30));
                     if (st.kind === 'k6' && r.booked) info += ' · 사후 예약됨';
-                    return '<div class="adm-row">' + (st.kind === 'k6' ? '' : '<div class="t">' + E(r.time || '-') + '</div>') + '<div class="w"><b>' + E(dh(r)) + ' · ' + E(r.name || '이름 없음') + '</b><small>' + info + '</small></div>'
+                    const left = st.kind === 'k6' ? '' : '<div class="t">' + (st.kind === 'k8' ? E((r.date.getMonth() + 1) + '/' + r.date.getDate()) : E(r.time || '-')) + '</div>';
+                    return '<div class="adm-row">' + left + '<div class="w"><b>' + E(dh(r)) + ' · ' + E(r.name || '이름 없음') + '</b>' + (cross ? '<small>' + E(r.site) + '</small>' : '') + '<small>' + info + '</small></div>'
                         + (at ? '<button type="button" class="adm-done" data-act="unsent" data-i="' + i + '">' + sentLabel(at) + '</button>'
                             : lock ? '<button type="button" class="adm-off" disabled>' + E(lock) + '</button>'
                             : '<button type="button" class="adm-send" data-act="open" data-i="' + i + '">📩 보내기</button>') + '</div>';
@@ -6576,7 +6695,7 @@ body.light-mode .card.reference-info {
                     h += '<div class="adm-grp ad">📣 <b>그 외 ' + (cur.length - np) + '명</b> — 유료 권유라 \'광고 문자\'예요. 맨 앞 <b>(광고)</b>와 끝에 <b>무료수신거부</b>가 붙고, <b>밤 9시~아침 8시</b>엔 보낼 수 없어요.'
                         + (ADM_OPTOUT ? '' : ' <b>080 수신거부 번호가 생기면 열립니다.</b>') + '</div>' + cur.map((r, i) => r.pkg ? '' : row(r, i)).join('');
                 } else {
-                    h += cur.map(row).join('') || '<div class="adm-msg">이 날짜에 고객이 없어요.</div>';
+                    h += cur.map(row).join('') || '<div class="adm-msg">' + (st.kind === 'k8' ? '미입금 고객이 없어요 👍' : '이 날짜에 고객이 없어요.') + '</div>';
                 }
                 const nx = cur.findIndex(r => !sent[sentKey(r)] && !lockOf(r));
                 if (nx >= 0) h += '<button type="button" class="adm-next" data-act="open" data-i="' + nx + '">▶ 다음 사람 보내기 (' + E(cur[nx].name || dh(cur[nx])) + ')</button>';
@@ -6599,7 +6718,8 @@ body.light-mode .card.reference-info {
             }
             async function textFor(r) {
                 if (st.kind === 'k4') return zText(r);
-                if (st.kind === 'k5') return msgK5(r);
+                if (MK(st.kind) === 'k5') return msgK5(r);
+                if (st.kind === 'k7') return msgK7(r);
                 if (st.kind === 'k6') { const v = k6in[st.group] || {}; return msgK6(!!r.pkg, v.d1, v.d2, v.time || '오전 10시 ~ 오후 3시 30분'); }
                 return MSG[st.kind];
             }
@@ -6658,7 +6778,12 @@ body.light-mode .card.reference-info {
                 }
                 if (st.kind !== kind) return;
                 if (!text) { if (kind === 'k4') { r.noZ = true; render(); } alert("시트에 이 세대의 " + (r.after ? "'사후점검 안내문'" : "'예약안내문'") + "이 없어요."); return; }
-                sheet(dh(r) + ' · ' + (r.name || ''), text, r.phones, () => { sent[key] = new Date().toISOString(); lsSet(SENT_KEY, sent); render(); }, r.after);
+                sheet(dh(r) + ' · ' + (r.name || ''), text, r.phones, () => {
+                    const now = new Date().toISOString(), k5 = 'k5' + key.slice(2);
+                    sent[key] = now;
+                    if (kind === 'k8' && !sent[k5]) sent[k5] = now; // 미입금에서 처음 보낸 정산이면 정산 목록에도 표시
+                    lsSet(SENT_KEY, sent); render();
+                }, r.after);
             }
 
             async function start(force) {
@@ -6675,6 +6800,10 @@ body.light-mode .card.reference-info {
                 }
                 loading = false;
                 render();
+                const d = data;
+                if (d) loadReports().then(rep => { d.reports = rep.n ? rep : { err: '최근 45일 하자점검 보고서 파일을 드라이브에서 찾지 못했어요. 이 계정에서 공유드라이브가 보이는지 확인해 주세요.' }; },
+                    e => { d.reports = { err: e && e.status === 401 ? '구글 로그인이 만료돼 보고서를 확인하지 못했어요.' : '드라이브 보고서를 확인하지 못했어요. ↻ 새로 불러오기로 다시 시도해 주세요.' }; })
+                    .then(() => { if (data === d && isAdmin) render(); });
             }
             window.admOpen = () => start(false);
             window.admSyncTab = async function() {
@@ -6705,6 +6834,7 @@ body.light-mode .card.reference-info {
                     if (a === 'login') { if (window.handleGoogleSignIn) window.handleGoogleSignIn(); return; }
                     if (a === 'reload') return start(true);
                     if (a === 'kind') { st.kind = b.getAttribute('data-k'); return render(); }
+                    if (a === 'jump') { st.kind = b.getAttribute('data-k'); if (b.getAttribute('data-d')) { st.d7 = b.getAttribute('data-d'); st.d7at = dKey(new Date()); } render(); box.scrollIntoView({ block: 'start' }); return; }
                     if (a === 'open') return openRow(+b.getAttribute('data-i'));
                     if (a === 'unsent') { const r = cur[+b.getAttribute('data-i')]; if (r && confirm('보냄 표시를 지울까요?')) { delete sent[sentKey(r)]; lsSet(SENT_KEY, sent); render(); } return; }
                     if (a === 'direct') {
@@ -6717,6 +6847,7 @@ body.light-mode .card.reference-info {
                     const f = e.target.getAttribute && e.target.getAttribute('data-f');
                     if (f === 'group') { st.group = e.target.value; st.date = ''; render(); }
                     else if (f === 'date') { st.date = e.target.value; render(); }
+                    else if (f === 'd7') { st.d7 = e.target.value; st.d7at = dKey(new Date()); render(); }
                     else if (f === 'd1' || f === 'd2' || f === 'time') { const v = k6in[st.group] = k6in[st.group] || {}; v[f] = e.target.value.trim(); lsSet(K6_KEY, k6in); }
                 });
             });
