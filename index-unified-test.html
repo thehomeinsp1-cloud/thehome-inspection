@@ -1229,6 +1229,13 @@ body.light-mode .et-pill.sent{border-color:rgba(21,128,61,.55); color:#15803D; b
 #admin .adm-sel{display:block; width:100%; box-sizing:border-box; min-height:46px; padding:0 12px; border-radius:10px; border:1px solid var(--a-line-strong,#62708C); background:var(--a-sunken,#0F1726); color:var(--a-ink,#F1F4F9); font-size:15px; font-weight:700; margin-bottom:6px; font-family:inherit}
 #admin .adm-dates{display:flex; gap:6px; align-items:center}
 #admin .adm-dates .adm-sel{flex:1; min-width:0; font-size:14px}
+#admin input[type=date].adm-sel{color-scheme:dark; -webkit-appearance:none; appearance:none; line-height:46px}
+body.light-mode #admin input[type=date].adm-sel{color-scheme:light}
+#admin .adm-hint{font-size:12px; color:var(--text-secondary); margin:2px 0 6px; line-height:1.4}
+#admin .adm-hint b{color:var(--a-ink,#F1F4F9)}
+#admin .adm-days{display:grid; grid-template-columns:repeat(3,1fr); gap:6px; margin-bottom:8px}
+#admin .adm-day{min-height:40px; border-radius:10px; border:1px solid var(--a-line,#2A3550); background:var(--a-sunken,#0F1726); color:var(--a-ink,#F1F4F9); font-size:13.5px; font-weight:700; font-family:inherit; font-variant-numeric:tabular-nums}
+#admin .adm-day.on{background:var(--a-ink,#F1F4F9); color:var(--a-on-ink,#141D2E); border-color:var(--a-ink,#F1F4F9)}
 #admin .adm-bar{height:6px; border-radius:3px; background:var(--a-line,#2A3550); overflow:hidden; margin-bottom:8px}
 #admin .adm-bar i{display:block; height:100%; background:#4ade80}
 #admin .adm-row{display:flex; align-items:center; gap:10px; padding:10px 0; border-top:1px solid var(--a-line,#2A3550)}
@@ -6415,7 +6422,7 @@ body.light-mode .card.reference-info {
             }
             // 사후점검: 패키지 고객(계약 안내) / 그 외 고객(광고 — 맨 앞 (광고), 끝에 무료수신거부)
             function msgK6(pkg, d1, d2, time) {
-                const days = [d1, d2].filter(Boolean).join(' / ');
+                const days = [d1, d2].filter(Boolean).map(dayText).join(' / ');
                 const SEP = '━━━━━━━━━━';
                 return L([(pkg ? '' : '(광고) ') + '[사후점검 예약 안내]', '', '안녕하세요, 더홈점검입니다 😊', "입주 전 마지막 점검인 '사후점검' 일정을 안내드립니다.", '',
                     '👇 예약은 여기에서 바로 👇', 'https://www.thehomeinsp.com/57', '📅 ' + days + ' · 예약순 마감', '', SEP,
@@ -6468,6 +6475,9 @@ body.light-mode .card.reference-info {
             const pad = n => String(n).padStart(2, '0');
             const dKey = d => d ? d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) : '';
             const dLabel = d => d ? (d.getMonth() + 1) + '월 ' + d.getDate() + '일(' + '일월화수목금토'[d.getDay()] + ')' : '날짜 없음';
+            // 사후점검 지정일: 달력·간편 선택은 '2026-06-02'로 저장 → 문자에는 '6월 2일(화)'. 예전에 글로 적어 둔 날짜는 그대로
+            const isoD = s => /^\d{4}-\d{2}-\d{2}$/.test(s || '') ? new Date(s + 'T00:00:00') : null;
+            const dayText = s => { const d = isoD(s); return d ? dLabel(d) : String(s || ''); };
             const tMin = t => { const m = /(\d{1,2})\s*[:시]\s*(\d{0,2})/.exec(String(t || '')); if (!m) return 9999; let h = +m[1]; if (h >= 1 && h <= 6) h += 12; return h * 60 + (+m[2] || 0); }; // '2:30' = 오후
             const badT = r => { const t = tMin(r.time); return t === 9999 || t < 480 || t > 1080; }; // 빈칸·'오전'·'위임'·0:00·20:00 등 → 시간 확인
             const TIME_NOTE = /조율|미정|시간.{0,4}(확인|정|변경)|변경/; // 비고에 이런 말이 있으면 시간 확정 전 (비고 원문은 비번 등이 있어 이 경우만 보여줌)
@@ -6797,8 +6807,20 @@ body.light-mode .card.reference-info {
                     h += '<select class="adm-sel" data-f="date">' + ds.list.map(o => '<option value="' + o.k + '"' + (o.k === st.date ? ' selected' : '') + '>' + dLabel(o.date) + ' · ' + o.n + '세대</option>').join('') + '</select>';
                     cur = g.rows.filter(r => dKey(r.date) === st.date).sort((a, b) => tMin(a.time) - tMin(b.time));
                 } else if (g) {
-                    const v = k6in[g.key] || {};
-                    h += '<div class="adm-dates"><input class="adm-sel" data-f="d1" placeholder="지정일 1 (예: 6월 2일(화))" value="' + E(v.d1 || '') + '"><input class="adm-sel" data-f="d2" placeholder="지정일 2 (없으면 비움)" value="' + E(v.d2 || '') + '"></div>'
+                    const v = k6in[g.key] || {}, picked = [v.d1, v.d2].filter(Boolean);
+                    // 간편 선택: 내일부터 4주 화·수·목 (한 줄 = 한 주). 금~일이면 다음 주부터
+                    const tm = new Date(); tm.setHours(0, 0, 0, 0); tm.setDate(tm.getDate() + 1);
+                    const mon = new Date(tm); mon.setDate(tm.getDate() - (tm.getDay() + 6) % 7 + ([5, 6, 0].indexOf(tm.getDay()) >= 0 ? 7 : 0));
+                    let days = '';
+                    for (let i = 0; i < 12; i++) {
+                        const d = new Date(mon); d.setDate(mon.getDate() + Math.floor(i / 3) * 7 + 1 + i % 3);
+                        const k = dKey(d);
+                        days += d < tm ? '<span></span>' : '<button type="button" class="adm-day' + (picked.indexOf(k) >= 0 ? ' on' : '') + '" data-act="k6day" data-d="' + k + '">' + (d.getMonth() + 1) + '/' + d.getDate() + '(' + '일월화수목금토'[d.getDay()] + ')</button>';
+                    }
+                    h += '<div class="adm-hint">간편 선택 — 화·수·목, 최대 2일 (다시 누르면 빠짐)</div><div class="adm-days">' + days + '</div>'
+                        + '<div class="adm-hint">다른 날은 달력에서 — 지정일 1 · 지정일 2(없으면 비움)</div>'
+                        + '<div class="adm-dates"><input type="date" class="adm-sel" data-f="d1" aria-label="지정일 1" value="' + (isoD(v.d1) ? v.d1 : '') + '"><input type="date" class="adm-sel" data-f="d2" aria-label="지정일 2" value="' + (isoD(v.d2) ? v.d2 : '') + '"></div>'
+                        + '<div class="adm-hint">' + (picked.length ? '📅 문자에 들어갈 날짜: <b>' + E(picked.map(dayText).join(' / ')) + '</b>' : '📅 지정일을 골라 주세요') + '</div>'
                         + '<input class="adm-sel" data-f="time" placeholder="시간" value="' + E(v.time || '오전 10시 ~ 오후 3시 30분') + '">';
                     const flagged = new Set(g.rows.filter(r => r.pkgFlag).map(r => unitKey(r.site, r.dong, r.ho)));
                     const seen = {}, booked =new Set(data.rows.filter(r => r.after && baseKey(r.site) === g.key).map(r => unitKey(r.site, r.dong, r.ho)));
@@ -6991,6 +7013,12 @@ body.light-mode .card.reference-info {
                     if (a === 'kind') { st.kind = b.getAttribute('data-k'); return render(); }
                     if (a === 'jump') { st.kind = b.getAttribute('data-k'); if (b.getAttribute('data-d')) { st.d7 = b.getAttribute('data-d'); st.d7at = dKey(new Date()); } render(); box.scrollIntoView({ block: 'start' }); return; }
                     if (a === 'open') return openRow(+b.getAttribute('data-i'));
+                    if (a === 'k6day') { // 누른 날 넣기/빼기, 3번째를 누르면 가장 먼저 고른 날이 빠짐
+                        const v = k6in[st.group] = k6in[st.group] || {}, k = b.getAttribute('data-d');
+                        let ds = [v.d1, v.d2].filter(isoD);
+                        ds = ds.indexOf(k) >= 0 ? ds.filter(x => x !== k) : ds.concat(k).slice(-2);
+                        ds.sort(); v.d1 = ds[0] || ''; v.d2 = ds[1] || ''; lsSet(K6_KEY, k6in); render(); return;
+                    }
                     if (a === 'unsent') { const r = cur[+b.getAttribute('data-i')]; if (r && confirm('보냄 표시를 지울까요?')) { delete sent[sentKey(r)]; lsSet(SENT_KEY, sent); render(); } return; }
                     if (a === 'paste' || a === 'pick') {
                         const inp = box.querySelector('[data-f="direct"]');
@@ -7011,7 +7039,13 @@ body.light-mode .card.reference-info {
                     if (f === 'group') { st.group = e.target.value; st.date = ''; render(); }
                     else if (f === 'date') { st.date = e.target.value; render(); }
                     else if (f === 'd7') { st.d7 = e.target.value; st.d7at = dKey(new Date()); render(); }
-                    else if (f === 'd1' || f === 'd2' || f === 'time') { const v = k6in[st.group] = k6in[st.group] || {}; v[f] = e.target.value.trim(); lsSet(K6_KEY, k6in); }
+                    else if (f === 'time') { const v = k6in[st.group] = k6in[st.group] || {}; v.time = e.target.value.trim(); lsSet(K6_KEY, k6in); }
+                    else if (f === 'd1' || f === 'd2') { // 달력: 지정일 1이 비면 2를 앞으로, 둘 다 있으면 날짜순
+                        const v = k6in[st.group] = k6in[st.group] || {};
+                        v[f] = e.target.value;
+                        const ds = [v.d1, v.d2].filter(Boolean); if (ds.every(isoD)) ds.sort();
+                        v.d1 = ds[0] || ''; v.d2 = ds[1] || ''; lsSet(K6_KEY, k6in); render();
+                    }
                 });
             });
         })();
