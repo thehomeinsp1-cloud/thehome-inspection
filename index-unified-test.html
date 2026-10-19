@@ -1265,6 +1265,23 @@ body.light-mode :is(#admin,#staffDone) .adm-bar i{background:#16a34a}
 body.light-mode :is(#admin,#staffDone) .warn, body.light-mode :is(#admin,#staffDone) .adm-err{color:#b45309}
 #staffDone .adm-re{min-height:46px}
 </style>
+<style>
+/* ✅ 프리랜서 계약서 (패치 64) */
+#contractCard .ct-doc{max-height:46vh; overflow:auto; margin:12px 0 4px; padding:12px 14px; border:1px solid var(--a-line,#2A3550); border-radius:10px; background:var(--a-sunken,#0F1726); color:var(--a-ink,#F1F4F9); font-size:13px; line-height:1.65; word-break:keep-all}
+#contractCard .ct-step{font-size:13px; font-weight:800; color:var(--a-ink,#F1F4F9); margin:14px 0 6px; display:flex; align-items:center; gap:8px}
+#contractCard .ct-step small{font-weight:600; color:var(--text-secondary)}
+#contractCard .ct-l{display:block; font-size:12px; font-weight:700; color:var(--text-secondary); margin-bottom:8px}
+#contractCard .ct-i{display:block; width:100%; box-sizing:border-box; min-height:44px; margin-top:4px; padding:0 12px; border-radius:10px; border:1px solid var(--a-line-strong,#62708C); background:var(--a-sunken,#0F1726); color:var(--a-ink,#F1F4F9); font-size:16px; font-family:inherit}
+#contractCard .ct-agree{display:flex; align-items:center; gap:8px; font-size:14px; font-weight:700; color:var(--a-ink,#F1F4F9); margin:6px 0}
+#contractCard .ct-agree input{width:20px; height:20px; flex:none}
+#contractCard .ct-pad{display:block; width:100%; height:150px; box-sizing:border-box; border-radius:10px; border:2px dashed var(--a-line-strong,#62708C); background:#fff; touch-action:none}
+#contractCard .ct-clear{margin-left:auto; min-height:32px; padding:0 12px; border-radius:16px; border:1px solid var(--a-line-strong,#62708C); background:transparent; color:var(--a-ink,#F1F4F9); font-size:12.5px; font-weight:700; font-family:inherit}
+#contractCard .ct-err{margin-top:8px; color:#f59e0b; font-weight:700; font-size:13.5px}
+#contractCard .ct-done{margin:12px 0 8px; font-weight:800; color:#4ade80}
+#contractCard .ct-hint{margin-top:8px; font-size:12.5px; color:var(--text-secondary); line-height:1.5}
+body.light-mode #contractCard .ct-err{color:#b45309}
+body.light-mode #contractCard .ct-done{color:#15803D}
+</style>
 <style id="designA">
 /* =====================================================================
    더홈점검 앱 디자인 샘플 A — "보고서 톤 통일 (Clean Pro)"
@@ -2107,6 +2124,9 @@ body.light-mode .card.reference-info {
                     </button>
                 </div>
             </div>
+
+            <!-- 📝 프리랜서 계약서 (패치 64 contract.inc.js) -->
+            <div class="card" id="contractCard" style="margin-bottom: 14px;"></div>
 
             <!-- 📖 사용 가이드 -->
             <div class="card" style="margin-bottom: 14px;">
@@ -7201,6 +7221,241 @@ body.light-mode .card.reference-info {
                         const ds = [v.d1, v.d2].filter(Boolean); if (ds.every(isoD)) ds.sort();
                         v.d1 = ds[0] || ''; v.d2 = ds[1] || ''; lsSet(K6_KEY, k6in); render();
                     }
+                });
+            });
+        })();
+        // ✅ 프리랜서 계약서 (패치 64, 대표님 10-19): 데이터 탭에서 계약서 읽기 → 을 정보 입력 → 손가락 서명 → PDF
+        //    → 📥 내 휴대폰에 저장 + 📤 회사로 보내기(공유창 → 문자·카톡). 앱·서버 어디에도 개인정보를 남기지 않음 (서명 날짜만 이 휴대폰에)
+        //    원문: 구글 드라이브 '표준프리랜서계약서/표준_프리랜서_계약서_수정본' (주민등록번호 칸은 생년월일로 — 앱·문자로 주민번호가 오가지 않게)
+        (function() {
+            const CT_VER = '2026-01-06'; // 원문 구글 문서 수정일 — 문서를 고치면 이 글도 함께 고침
+            const CT_TO = '010-9985-0128'; // 서명본을 받을 회사 번호
+            const CT_KEY = 'th_contract_v1'; // { ver, at, sent } — 이름·연락처 등은 저장 안 함
+            const Q = s => s.replace(/"([^"]*)"/g, '“$1”');
+            const ART = [
+                ['제1조 [목적]', [Q('본 계약은 "갑"이 "을"에게 아파트사전점검 대행업무를 의뢰함에 있어 필요한 사항을 정하는 것을 목적으로 한다.')]],
+                ['제2조 [계약업무]', [Q('"을"은 "갑"이 의뢰한 다음 각 호의 과업을 수행하여야 한다.'), '1. 아파트사전점검 대행 서비스']],
+                ['제3조 [계약기간]', [Q('계약기간은 2026년 1월 1일로부터 2027년 12월 31일까지로 하며, "갑"과 "을"의 합의 하에 본 계약기간은 연장되거나 해지될 수 있다.')]],
+                ['제4조 [근무시간 및 장소]', [Q('"을"은 "갑"이 지정하는 근무시간 및 근무장소에서 업무를 성실히 수행하여야 한다. 다만, "갑"과 합의하여 근무시간과 근무장소를 조정할 수 있다.')]],
+                ['제5조 [계약금액]', ['① 총 계약금액은 일당 1만~50만 원으로 한다.(업무에 따라 지급비용이 다름)', Q('② "갑"은 "을"에게 아파트사전점검 업무 완료 시 "을" 명의의 계좌로 이체한다.(7일 이내)'),
+                    Q('③ "갑"은 전 항의 보수 중 사업소득세율(3.3%)에 따라 원천징수의무를 이행한 후 남은 금액을 "을"에게 지급한다.')]],
+                ['제6조 [양 당사자의 권리와 의무]', [Q('① "갑"은 "을"이 과업하는 데 필요한 자료 및 정보 등을 제공하여야 하며, 과업수행을 위한 "을"의 요청이 있는 경우 이에 적극적으로 협조하여야 한다.'),
+                    Q('② "을"은 본 계약상 부담하는 모든 사항을 "갑"과 합의한 대로 이행하여야 하며, 신의성실의 원칙에 따라 계약 내용을 이행하여야 한다.'),
+                    Q('③ "갑"은 "을"의 과업과 관련하여 협의할 사항이 있는 경우 "을"에게 협의를 요청할 수 있고 "을"은 이러한 "갑"의 요구에 최대한 협조한다.'),
+                    Q('④ "을"은 본 계약 종료 후 지체 없이 "갑"으로부터 제공받은 서류, 정보, 데이터 기타 모든 형태의 자료를 "갑"에게 반환하여야 하고, 반환이 어려운 경우 이를 파기하고 "갑"의 승인을 받아야 한다.')]],
+                ['제7조 [비밀유지 및 지식재산권의 귀속]', [Q('① "을"은 본 계약 및 과업과 관련하여 알게 된 일체의 정보를 외부에 누설하거나 유출해서는 아니 되며, 이로 인해 발생하는 손해에 대해 책임을 지기로 한다.'),
+                    Q('② "을"은 창조, 개선, 작성, 생산한 모든 결과물의 저작권에 대한 책임을 보증하며, 본 계약에 의한 결과물의 권리는 "갑"의 소유가 된다.')]],
+                ['제8조 [근무조건]', ['① 본 계약상의 업무를 수행하기 위하여 필요한 기타사항은 자율에 맡긴다.',
+                    Q('② 본 계약 내용 외에도 다른 필요한 업무가 필요한 경우 "갑"은 "을"이 추가로 작업을 수행하는 부분에 대한 인건비와 계약 기간은 상호 협의 하에 결정한다.')]],
+                ['제9조 [권리의 이전·양도·처분·재위탁 금지]', [Q('"갑" 또는 "을"은 서로 상대방의 서면 동의가 있는 경우를 제외하고는 어떠한 이유로도 본 계약상 자신의 권리나 의무를 다른 제3자에게 이전·양도·처분·재위탁할 수 없다.')]],
+                ['제10조 [해지]', [Q('① "갑"과 "을"은 다음 각 호에 해당될 경우 본 계약을 해지할 수 있다.'), '1. 정당한 이유 없이 과업 진행이 이루어지지 않을 때', '2. 정당한 이유 없이 계약기간 내에 과업완료가 불가능하다고 판단될 때',
+                    '3. 상호 간에 계약을 해지하기로 서면합의한 때', '4. 회생절차, 파산절차의 개시신청, 채무자 회생 및 파산에 관한 법률에 의한 보전처분의 신청, 기타 이와 유사한 신청, 회사의 해산결의 등의 사유가 발생한 때',
+                    '5. 압류, 가압류, 가처분, 경매의 집행을 받거나 국세나 지방세 체납, 기타 공법상의 처분을 받고 7일 이내에 집행취소나 체납 등 처분의 취소를 받지 않은 때', '6. 기타 본 계약상의 과업을 수행하는 것이 불가능하다고 객관적으로 판단될 때',
+                    '② 본 조에 따른 계약의 해지는 계약기간 중 발생한 당사자 간의 권리의무에 따른 손해배상의 청구에 영향을 미치지 않는다.']],
+                ['제11조 [손해배상]', [Q('① "을"의 귀책사유로 인하여 본 계약이 불이행되었을 경우 "을"은 "갑"이 제시한 손해배상의 책임을 진다(이때, 손해배상액은 상호 협의한다).'),
+                    Q('② "을"의 귀책사유로 인하여 기타 제3자에게 손해가 발생하는 경우 이는 "을"이 부담하며, "갑"이 전부 또는 일부를 배상한 때에는 "갑"이 "을"에게 이를 구상할 수 있다.')]],
+                ['제12조 [일부무효]', ['본 계약의 일부 조항이 법령 또는 판결에 의하여 무효 또는 불법으로 판정되는 경우에도 본 계약 전체가 무효로 되는 것은 아니며, 무효로 되지 않는 다른 조항은 법령에 의하여 허용되는 한도에서 여전히 유효하게 존속하고, 무효 또는 불법조항이 포함되지 않았던 것처럼 해석한다.']],
+                ['제13조 [계약의 변경]', [Q('본 계약은 "갑"과 "을"의 서면합의에 따라 변경될 수 있다.')]],
+                ['제14조 [관할]', [Q('본 계약과 관련하여 분쟁이 발생한 경우 당사자의 상호 협의에 의한 해결을 모색하되, 분쟁에 관한 합의가 이루어지지 아니한 경우에는 "갑"의 본점 소재지 관할법원을 제1심 관할법원으로 하여 소송을 통해 분쟁을 해결하기로 한다.')]]
+            ];
+            const CLOSE = Q('각 당사자는 위 계약을 증명하기 위하여 본 계약서 2통을 작성하여, 각각 서명(또는 기명)날인 후 "갑"과 "을"이 각각 1통씩을 보관한다. (더홈점검 앱 전자서명)');
+            const GAP = [['대표자', '박지현 (더홈점검) (인)'], ['주소', '경기도 부천시 원미구 송내대로265번길23'], ['사업자번호', '531-42-01293'], ['연락처', '010-9127-7708']];
+            const E = s => escapeHtml(String(s == null ? '' : s));
+            const lsGet = () => { try { return JSON.parse(localStorage.getItem(CT_KEY) || 'null'); } catch (e) { return null; } };
+            const lsSet = v => { try { localStorage.setItem(CT_KEY, JSON.stringify(v)); } catch (e) {} };
+            const myName = () => { try { return String(JSON.parse(localStorage.getItem('dhLoginData') || '{}').name || '').trim(); } catch (e) { return ''; } };
+            const pad = n => String(n).padStart(2, '0');
+            const korDate = d => d.getFullYear() + '년 ' + (d.getMonth() + 1) + '월 ' + d.getDate() + '일';
+            const ct = { open: false, f: { name: '', birth: '', addr: '', phone: '' }, agree: false, ink: 0, err: '', busy: false, file: null, pages: 0, wipe: null };
+
+            // 본문 HTML (화면·PDF 같은 글) — 을 이름은 입력값으로
+            function bodyBlocks(name) {
+                const b = ['<div style="text-align:center;font-size:23px;font-weight:800;letter-spacing:.06em;margin:4px 0 22px;">표준 프리랜서 계약서</div>',
+                    '<p style="margin:0 0 12px;">' + E(Q('[더홈점검](이하 "갑"이라 합니다)은 [' + (name || '        ') + '](이하 "을"이라 합니다)에게 아파트사전점검 대행업무를 의뢰하면서 다음과 같이 프리랜서 계약을 체결한다.')) + '</p>'];
+                ART.forEach(a => b.push('<div style="margin:0 0 10px;"><div style="font-weight:800;margin-bottom:2px;">' + E(a[0]) + '</div>' + a[1].map(t => '<div style="' + (/^\d\./.test(t) ? 'padding-left:14px;' : '') + '">' + E(t) + '</div>').join('') + '</div>'));
+                b.push('<p style="margin:14px 0 0;">' + E(CLOSE) + '</p>');
+                return b;
+            }
+            const plainText = name => ['표준 프리랜서 계약서', Q('[더홈점검](이하 "갑"이라 합니다)은 [' + name + '](이하 "을"이라 합니다)에게 아파트사전점검 대행업무를 의뢰하면서 다음과 같이 프리랜서 계약을 체결한다.')]
+                .concat(...ART.map(a => [a[0]].concat(a[1])), [CLOSE]).join('\n');
+
+            // PDF: 문단 단위로 A4(794×1123px)에 나눠 담고 페이지마다 그림으로 (앱 보고서와 같은 방식)
+            const PAGE_CSS = 'width:794px;height:1123px;box-sizing:border-box;padding:60px 70px 70px;position:relative;background:#fff;color:#000;'
+                + "font-family:'Malgun Gothic','Apple SD Gothic Neo','Noto Sans KR',sans-serif;font-size:13.5px;line-height:1.72;word-break:keep-all;";
+            function paginate(blocks) {
+                const probe = document.createElement('div');
+                probe.style.cssText = PAGE_CSS + 'height:auto;position:absolute;left:-9999px;top:0;';
+                document.body.appendChild(probe);
+                const pages = [];
+                let cur = [];
+                try {
+                    blocks.forEach(b => {
+                        probe.innerHTML = cur.concat(b).join('');
+                        if (probe.offsetHeight > 1123 - 20 && cur.length) { pages.push(cur); cur = [b]; } else cur.push(b);
+                    });
+                    if (cur.length) pages.push(cur);
+                } finally { probe.remove(); }
+                return pages;
+            }
+            async function makePdf(sig, f, at) {
+                const ds = at.getFullYear() + '-' + pad(at.getMonth() + 1) + '-' + pad(at.getDate()) + ' ' + pad(at.getHours()) + ':' + pad(at.getMinutes()) + ':' + pad(at.getSeconds());
+                // 확인코드: 계약서 글·을 정보·서명 시각·서명 그림의 SHA-256 앞 16자리 → 나중에 같은 문서인지 대조
+                let code = '';
+                try {
+                    const raw = JSON.stringify({ v: CT_VER, t: plainText(f.name), f: f, at: ds, s: sig });
+                    const h = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(raw));
+                    code = Array.from(new Uint8Array(h)).map(x => x.toString(16).padStart(2, '0')).join('').slice(0, 16).toUpperCase().replace(/(.{4})(?!$)/g, '$1-');
+                } catch (e) { code = '-'; }
+                const line = (k, v) => '<div style="display:flex;gap:8px;"><span style="width:84px;flex:none;color:#333;">' + E(k) + '</span><span>' + v + '</span></div>';
+                const sign = '<div style="margin-top:18px;text-align:center;font-weight:800;font-size:15px;">' + E(korDate(at)) + '</div>'
+                    + '<div style="display:flex;gap:26px;margin-top:16px;">'
+                    + '<div style="flex:1;border:1px solid #999;border-radius:6px;padding:12px 14px;"><div style="font-weight:800;margin-bottom:6px;">“갑”</div>' + GAP.map(g => line(g[0], E(g[1]))).join('') + '</div>'
+                    + '<div style="flex:1;border:1px solid #999;border-radius:6px;padding:12px 14px;"><div style="font-weight:800;margin-bottom:6px;">“을”</div>'
+                    + line('성명', E(f.name) + ' <img src="' + sig + '" style="height:46px;vertical-align:middle;margin-left:6px;"> <span style="color:#555;">(서명)</span>')
+                    + line('주소', E(f.addr)) + line('생년월일', E(f.birth)) + line('연락처', E(f.phone)) + '</div></div>'
+                    + '<div style="margin-top:14px;font-size:11px;color:#444;line-height:1.6;border-top:1px solid #bbb;padding-top:8px;">전자서명: ' + E(ds) + ' (휴대폰 시각) · 앱 로그인 ' + E(myName() || '-')
+                    + ' · 계약서 버전 ' + E(CT_VER) + ' · 확인코드 ' + E(code) + '<br>더홈점검 앱에서 “을”이 계약서 전문을 확인하고 동의한 뒤 손으로 서명했습니다.</div>';
+                const pages = paginate(bodyBlocks(f.name).concat(sign));
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+                const pw = doc.internal.pageSize.getWidth(), ph = doc.internal.pageSize.getHeight();
+                for (let i = 0; i < pages.length; i++) {
+                    if (i) doc.addPage();
+                    await window.addHTMLPageToPDF(doc, '<div style="' + PAGE_CSS + '">' + pages[i].join('')
+                        + '<div style="position:absolute;left:70px;right:70px;bottom:28px;display:flex;justify-content:space-between;font-size:10.5px;color:#555;border-top:1px solid #ccc;padding-top:6px;"><span>더홈점검 표준 프리랜서 계약서 · ' + E(f.name) + '</span><span>' + (i + 1) + ' / ' + pages.length + '</span></div></div>', pw, ph);
+                }
+                const fn = ('프리랜서계약서_' + f.name + '_' + ds.slice(0, 10)).replace(/[\\/:*?"<>|\s\u0000-\u001f]+/g, '_') + '.pdf';
+                return { file: new File([doc.output('blob')], fn, { type: 'application/pdf' }), pages: pages.length };
+            }
+
+            // 서명칸: 손가락·펜·마우스 (터치 스크롤 막음). 화면 전체를 다시 그리면 서명이 지워지므로 열 때 한 번만 만들고 나머지는 부분만 고침
+            function bindPad(cv) {
+                const ctx = cv.getContext('2d'), r0 = cv.getBoundingClientRect(), dpr = Math.min(window.devicePixelRatio || 1, 3);
+                cv.width = Math.round(r0.width * dpr); cv.height = Math.round(r0.height * dpr);
+                ctx.scale(dpr, dpr); ctx.lineWidth = 2.6; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.strokeStyle = '#111';
+                const wipe = () => { ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, r0.width, r0.height); ct.ink = 0; };
+                wipe();
+                let down = false, last = null;
+                const pt = e => { const r = cv.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; };
+                cv.addEventListener('pointerdown', e => { down = true; last = pt(e); try { cv.setPointerCapture(e.pointerId); } catch (x) {} e.preventDefault(); });
+                cv.addEventListener('pointermove', e => {
+                    if (!down) return;
+                    const p = pt(e);
+                    ctx.beginPath(); ctx.moveTo(last.x, last.y); ctx.lineTo(p.x, p.y); ctx.stroke();
+                    ct.ink += Math.abs(p.x - last.x) + Math.abs(p.y - last.y); last = p; e.preventDefault();
+                    if (ct.file) { ct.file = null; upd(); } // 서명을 고치면 만든 PDF는 버림
+                });
+                const up = () => { down = false; };
+                cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up); cv.addEventListener('pointerleave', up);
+                ct.wipe = wipe;
+            }
+            const status = () => { const d = lsGet(); return d ? '✓ 서명 ' + d.at + (d.sent ? ' · 회사로 보냄' : '') : '처음 한 번 · 읽고 서명 → 내 폰 저장 + 회사로 보내기'; };
+            function render() {
+                const box = document.getElementById('contractCard');
+                if (!box) return;
+                let h = '<button type="button" class="btn btn-secondary" data-ct="toggle" style="display:flex;align-items:center;gap:10px;width:100%;text-align:left;">'
+                    + '<span style="font-size:22px;">📝</span><span style="flex:1;"><b style="font-size:15px;">프리랜서 계약서</b><br><small class="ct-st" style="color:var(--text-secondary);">' + E(status()) + '</small></span><span>' + (ct.open ? '▲' : '▼') + '</span></button>';
+                if (ct.open) {
+                    const f = ct.f;
+                    const inp = (k, lab, ph, extra) => '<label class="ct-l">' + lab + '<input class="ct-i" data-ct-f="' + k + '" value="' + E(f[k]) + '" placeholder="' + ph + '" ' + (extra || '') + '></label>';
+                    h += '<div class="ct-doc">' + bodyBlocks(f.name).join('') + '<div style="margin-top:12px;color:var(--text-secondary);font-size:12.5px;">“갑” 대표자 박지현 (더홈점검) · 부천시 원미구 송내대로265번길23 · 사업자번호 531-42-01293</div></div>'
+                        + '<div class="ct-step">“을” 정보</div>'
+                        + inp('name', '성명', '홍길동', 'autocomplete="name"') + inp('birth', '생년월일', '1985.03.15', 'inputmode="numeric"')
+                        + inp('addr', '주소', '시·구·동까지', 'autocomplete="street-address"') + inp('phone', '연락처', '010-0000-0000', 'inputmode="tel" autocomplete="tel"')
+                        + '<label class="ct-agree"><input type="checkbox" data-ct-f="agree"' + (ct.agree ? ' checked' : '') + '> 위 계약서 내용을 모두 읽고 동의합니다</label>'
+                        + '<div class="ct-step">서명 <small>손가락으로 이름을 써 주세요</small><button type="button" class="ct-clear" data-ct="clear">지우기</button></div>'
+                        + '<canvas class="ct-pad" aria-label="서명칸"></canvas>'
+                        + '<div class="ct-err" hidden></div>'
+                        + '<button type="button" class="btn btn-primary" data-ct="make" style="width:100%;margin-top:10px;"></button>'
+                        + '<div class="ct-out"></div>';
+                }
+                box.innerHTML = h;
+                const cv = box.querySelector('.ct-pad');
+                if (cv) bindPad(cv);
+                upd();
+            }
+            // 부분만 고침: 상태 글·오류·만들기 버튼·결과(저장·보내기)
+            function upd() {
+                const box = document.getElementById('contractCard');
+                if (!box) return;
+                const q = s => box.querySelector(s), st = q('.ct-st'), er = q('.ct-err'), mk = q('[data-ct="make"]'), out = q('.ct-out');
+                if (st) st.textContent = status();
+                if (er) { er.textContent = ct.err; er.hidden = !ct.err; }
+                if (mk) { mk.disabled = ct.busy; mk.textContent = ct.busy ? '⏳ 계약서 PDF 만드는 중...' : '✍️ 서명 완료 · 계약서 PDF 만들기'; }
+                if (out) out.innerHTML = !ct.file ? '' : '<div class="ct-done">✅ 서명한 계약서 PDF를 만들었어요 (' + ct.pages + '쪽)</div>'
+                    + '<button type="button" class="btn btn-secondary" data-ct="save" style="width:100%;margin-bottom:8px;">📥 내 휴대폰에 저장 (본인 보관용)</button>'
+                    + '<button type="button" class="btn btn-primary" data-ct="send" style="width:100%;">📤 회사로 보내기 (문자·카톡)</button>'
+                    + '<div class="ct-hint">공유 창에서 <b>문자</b>를 고르고 받는 사람에 <b>' + CT_TO + '</b> (더홈점검)을 넣어 보내 주세요. 카톡으로 보내도 됩니다.</div>';
+            }
+            function check() {
+                const f = ct.f;
+                if (!f.name.trim()) return '성명을 적어 주세요.';
+                if (!/^(19|20)\d{2}[.\-/\s]?\d{1,2}[.\-/\s]?\d{1,2}$/.test(f.birth.trim())) return '생년월일을 1985.03.15처럼 적어 주세요.';
+                if (f.addr.trim().length < 5) return '주소를 적어 주세요.';
+                if (!(window.isValidKrPhone ? window.isValidKrPhone(f.phone.replace(/\D/g, '')) : /^01\d{8,9}$/.test(f.phone.replace(/\D/g, '')))) return '연락처를 확인해 주세요.';
+                if (!ct.agree) return '계약서 내용 동의에 체크해 주세요.';
+                if (ct.ink < 40) return '서명칸에 손가락으로 서명해 주세요.';
+                return '';
+            }
+            async function make() {
+                if (ct.busy) return;
+                ct.err = check();
+                if (ct.err) { upd(); return; }
+                const cv = document.querySelector('#contractCard .ct-pad'), sig = cv.toDataURL('image/png');
+                const f = { name: ct.f.name.trim(), birth: ct.f.birth.trim(), addr: ct.f.addr.trim(), phone: window.formatPhoneNumber ? window.formatPhoneNumber(ct.f.phone.replace(/\D/g, '')) : ct.f.phone.trim() };
+                ct.busy = true; ct.file = null; upd();
+                try {
+                    const at = new Date(), r = await makePdf(sig, f, at);
+                    ct.file = r.file; ct.pages = r.pages;
+                    lsSet({ ver: CT_VER, at: (at.getMonth() + 1) + '/' + at.getDate(), sent: false });
+                } catch (e) { console.error('계약서 PDF 실패:', e); ct.err = '계약서 PDF를 만들지 못했어요. 앱을 다시 열고 시도해 주세요.'; }
+                ct.busy = false; upd();
+                if (ct.file) { const b = document.querySelector('#contractCard [data-ct="save"]'); if (b) b.scrollIntoView({ block: 'center' }); }
+            }
+            function save() {
+                const url = URL.createObjectURL(ct.file), a = document.createElement('a');
+                a.href = url; a.download = ct.file.name; a.style.display = 'none';
+                document.body.appendChild(a); a.click();
+                setTimeout(() => { try { a.remove(); } catch (e) {} }, 100);
+                setTimeout(() => { try { URL.revokeObjectURL(url); } catch (e) {} }, 60000); // 아이폰은 저장 창이 뜬 뒤 파일을 읽음
+                showToast('📥 ' + ct.file.name + ' 저장 — 파일·다운로드에서 볼 수 있어요');
+            }
+            async function send() {
+                // 공유창은 버튼을 누른 직후에만 열림 → PDF는 미리 만들어 두고 여기선 바로 엶. 파일만 보냄(글자를 같이 넣으면 카톡에서 파일이 빠짐)
+                let ok = false;
+                try { ok = !!(navigator.share && navigator.canShare && navigator.canShare({ files: [ct.file] })); } catch (e) { ok = false; }
+                if (ok) {
+                    try {
+                        await navigator.share({ files: [ct.file] });
+                        const d = lsGet(); if (d) { d.sent = true; lsSet(d); }
+                        showToast('📤 회사(' + CT_TO + ')로 보내졌는지 확인해 주세요');
+                        upd();
+                        return;
+                    } catch (err) { if (err && (err.name === 'AbortError' || err.name === 'InvalidStateError')) return; }
+                }
+                save();
+                alert('이 휴대폰은 바로 보내기를 지원하지 않아 파일로 저장했어요.\n문자나 카톡에서 저장한 계약서 PDF를 첨부해 ' + CT_TO + '(더홈점검)로 보내 주세요.');
+            }
+            document.addEventListener('DOMContentLoaded', () => {
+                const box = document.getElementById('contractCard');
+                if (!box) return;
+                render();
+                box.addEventListener('click', e => {
+                    const b = e.target.closest && e.target.closest('[data-ct]');
+                    if (!b) return;
+                    const a = b.getAttribute('data-ct');
+                    if (a === 'toggle') { ct.open = !ct.open; if (ct.open && !ct.f.name) ct.f.name = myName(); render(); }
+                    else if (a === 'clear') { if (ct.wipe) ct.wipe(); if (ct.file) { ct.file = null; upd(); } }
+                    else if (a === 'make') make();
+                    else if (a === 'save' && ct.file) save();
+                    else if (a === 'send' && ct.file) send();
+                });
+                // 입력값은 메모리에만 (화면을 다시 그려도 그대로), 고치면 만든 PDF는 버림
+                box.addEventListener('input', e => {
+                    const k = e.target.getAttribute && e.target.getAttribute('data-ct-f');
+                    if (!k) return;
+                    if (k === 'agree') ct.agree = e.target.checked; else ct.f[k] = e.target.value;
+                    if (ct.err || ct.file) { ct.err = ''; ct.file = null; upd(); }
                 });
             });
         })();
