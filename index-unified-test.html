@@ -6361,7 +6361,9 @@ body.light-mode .card.reference-info {
             const KINDS = [['k1', '🏠 서비스 안내', '문의 고객'], ['k2', '💳 예약금 요청', '예약 직전'], ['k3', '📢 필독 안내문', '점검 전 공지'],
                 ['k4', '★ 예약 안내문', '예약금 입금 후'], ['k5', '🧾 정산·잔금', '점검 후'], ['k6', '🔁 사후점검', '단지 공지'],
                 ['k7', '⏰ 전날 안내', '내일 점검 고객'], ['k8', '💰 미입금', '잔금 재안내'], ['k9', '⚠️ 확인 필요', '빠진 것·보고서'],
-                ['k10', '📩 하자접수 완료 안내', '접수완료 체크된 고객 (모바일접수대행 시트)']];
+                ['k10', '📩 하자접수 완료 안내', '접수완료 체크된 고객 (모바일접수대행 시트)'], ['k11', '🔐 직원 로그인 기록', '누가 언제 로그인했는지 · PIN 틀림·잠금']];
+            // 로그인 서버(Apps Script)가 남기는 기록 + 직원관리코드(이름·소속·상태만, PIN 칸은 읽지 않음) — 둘 다 대표님 계정 소유, 읽기만
+            const LOG_SHEET = '1WVZXXrjPumWThhnonMYbQM4z_sYDgynfXU0gyFwDpI8', STAFF_SHEET = '1djnGAm8nlGbHgRuxxORGK-cqI_CTYOKrSwZuPtMzl2s';
             const SUB_SHEET = '1jfYZNb9aIsWY6nQOoHjSUE8a2NTGXoD1aPVrVzqRGO8'; // 더홈점검_모바일접수대행_공유 — 아이디·비밀번호 칸은 요청하지 않음 (필요한 칸만 골라 읽음)
             const MK = k => k === 'k8' ? 'k5' : k; // 미입금 목록은 정산 문자(⑤)를 다시 보냄 → 보냄 표시도 정산과 같이
             const L = a => a.join('\n');
@@ -6594,6 +6596,15 @@ body.light-mode .card.reference-info {
                 }
                 return { rows: out.sort((x, z) => z.date - x.date) };
             }
+            async function loadLogin() {
+                const sv = (id, rng, raw) => gget('https://sheets.googleapis.com/v4/spreadsheets/' + id + '/values/' + rq(rng) + (raw ? '?valueRenderOption=UNFORMATTED_VALUE&dateTimeRenderOption=SERIAL_NUMBER' : ''));
+                const [lg, sf] = await Promise.all([sv(LOG_SHEET, "'시트1'!A2:D", true), sv(STAFF_SHEET, "'시트1'!A2:D", false)]);
+                // 시트 날짜 숫자(일 단위, 시트 시간대 기준) → 휴대폰 시각 (둘 다 한국 시간)
+                const toDate = n => { const u = new Date(Math.round((Number(n) - 25569) * 86400000)); return new Date(u.getUTCFullYear(), u.getUTCMonth(), u.getUTCDate(), u.getUTCHours(), u.getUTCMinutes(), u.getUTCSeconds()); };
+                const rows = (lg.values || []).filter(r => r && typeof r[0] === 'number' && r[1]).map(r => ({ at: toDate(r[0]), name: String(r[1]).trim(), act: String(r[2] || ''), res: String(r[3] || '') }));
+                const staff = (sf.values || []).filter(r => r && String(r[0] || '').trim()).map(r => ({ name: String(r[0]).trim(), team: String(r[2] || '').trim(), active: String(r[3] || '').trim() === '활성' }));
+                return { rows: rows.sort((a, b) => b.at - a.at), staff: staff };
+            }
             async function loadReports() {
                 const since = new Date(); since.setDate(since.getDate() - 45);
                 const q = "name contains '하자점검보고서' and mimeType = 'application/pdf' and trashed = false and modifiedTime > '" + since.toISOString() + "'";
@@ -6689,7 +6700,7 @@ body.light-mode .card.reference-info {
                 if (loading) { box.innerHTML = card('<div class="adm-msg">⏳ 예약현황 불러오는 중...</div>'); return; }
                 if (err) { box.innerHTML = card('<div class="adm-msg adm-err">' + E(err) + '</div>' + (/로그인/.test(err) ? '<button type="button" class="btn btn-primary" data-act="login" style="width:100%;">🔐 구글 다시 로그인</button>' : '')); return; }
                 if (!data) { box.innerHTML = card(''); return; }
-                const V = views(), cross = ['k1', 'k7', 'k8', 'k9', 'k10'].indexOf(st.kind) >= 0;
+                const V = views(), cross = ['k1', 'k7', 'k8', 'k9', 'k10', 'k11'].indexOf(st.kind) >= 0;
                 const repNote = !data.reports; // 드라이브 보고서 확인 전이면 '확인 필요' 숫자 뒤에 +
                 const nCheck = V.soon.length + V.noRep.length;
                 // 한눈에: 오늘·내일·7일·미입금·확인 필요 (누르면 그 목록으로)
@@ -6697,7 +6708,7 @@ body.light-mode .card.reference-info {
                 let h = '<div class="adm-sum">' + chip('오늘', V.today, 'k7', dKey(new Date(V.day(0)))) + chip('내일', V.tom, 'k7', dKey(new Date(V.day(1)))) + chip('7일', V.week, 'k9')
                     + chip('미입금', V.unpaid.length, 'k8', null, true) + chip('확인 필요', repNote ? V.soon.length + '+' : nCheck, 'k9', null, true) + '</div>';
                 h += '<div class="adm-step">① 문자 종류</div><div class="adm-kinds">'
-                    + KINDS.map(k => '<button type="button" class="adm-kind' + (k[0] === st.kind ? ' on' : '') + (k[0] === 'k10' ? ' wide' : '') + '" data-act="kind" data-k="' + k[0] + '">' + k[1] + '<span>' + k[2] + '</span></button>').join('') + '</div>';
+                    + KINDS.map(k => '<button type="button" class="adm-kind' + (k[0] === st.kind ? ' on' : '') + (k[0] === 'k10' || k[0] === 'k11' ? ' wide' : '') + '" data-act="kind" data-k="' + k[0] + '">' + k[1] + '<span>' + k[2] + '</span></button>').join('') + '</div>';
                 const gs = cross ? [] : groups();
                 let g = gs.find(x => x.key === st.group) || gs[0];
                 if (g) st.group = g.key;
@@ -6721,6 +6732,31 @@ body.light-mode .card.reference-info {
                     if (st.d7at !== opts[0].k || !opts.some(o => o.k === st.d7)) { st.d7 = opts[1].k; st.d7at = opts[0].k; } // 날이 바뀌면 다시 '내일'로
                     h += '<select class="adm-sel" data-f="d7">' + opts.map(o => '<option value="' + o.k + '"' + (o.k === st.d7 ? ' selected' : '') + '>' + o.w + dLabel(o.d) + ' · ' + o.n + '세대</option>').join('') + '</select>';
                     cur = data.rows.filter(r => dKey(r.date) === st.d7).sort((a, b) => a.key.localeCompare(b.key, 'ko') || tMin(a.time) - tMin(b.time));
+                } else if (st.kind === 'k11') {
+                    // 직원 로그인 기록: 문자 없이 보기만
+                    if (!data.login) { h += '<div class="adm-msg">⏳ 로그인 기록 불러오는 중...</div>'; startLogin(); }
+                    else if (data.login.err) h += '<div class="adm-msg adm-err">' + E(data.login.err) + '</div>';
+                    else {
+                        const lg = data.login, now = new Date(); now.setHours(0, 0, 0, 0);
+                        const RES = { ok: '성공', invalid: 'PIN 틀림', inactive: '비활성', locked: '잠금' };
+                        const hm = d => pad(d.getHours()) + ':' + pad(d.getMinutes()), md = d => (d.getMonth() + 1) + '/' + d.getDate();
+                        const line = r => '<div class="adm-row"><div class="t">' + E(r.at >= now ? hm(r.at) : md(r.at) + '<br>' + hm(r.at)).replace('&lt;br&gt;', '<br>') + '</div><div class="w"><b>' + E(r.name) + '</b><small' + (r.res === 'ok' ? '' : ' class="warn"') + '>' + E(RES[r.res] || r.res) + '</small></div></div>';
+                        const today = lg.rows.filter(r => r.at >= now), bad = lg.rows.filter(r => r.res !== 'ok' && r.at >= now.getTime() - 6 * 86400000);
+                        const okToday = today.filter(r => r.res === 'ok');
+                        h += '<div class="adm-step">오늘 로그인 <small>' + new Set(okToday.map(r => r.name)).size + '명 · ' + okToday.length + '번</small></div>'
+                            + (today.map(line).join('') || '<div class="adm-msg">오늘 로그인한 직원이 없어요.</div>');
+                        h += '<div class="adm-step">PIN 틀림·잠금 <small>최근 7일</small></div>' + (bad.map(line).join('') || '<div class="adm-msg">없어요 👍</div>');
+                        const last = {};
+                        lg.rows.forEach(r => { if (r.res === 'ok' && !last[r.name]) last[r.name] = r.at; });
+                        const act = lg.staff.filter(s => s.active).map(s => ({ s: s, at: last[s.name] || null })).sort((a, b) => (a.at ? a.at - 0 : 0) - (b.at ? b.at - 0 : 0));
+                        h += '<div class="adm-step">직원별 마지막 로그인 <small>활성 ' + act.length + '명 · 오래된 순</small></div>'
+                            + act.map(x => { const days = x.at ? Math.floor((now - new Date(x.at.getFullYear(), x.at.getMonth(), x.at.getDate())) / 86400000) : -1;
+                                return '<div class="adm-row"><div class="w"><b>' + E(x.s.name) + '</b><small>' + E(x.s.team || '') + '</small></div><small style="flex:none;' + (days < 0 || days >= 7 ? 'color:#f59e0b;font-weight:700;' : '') + '">'
+                                    + (x.at ? md(x.at) + ' ' + hm(x.at) + (days > 0 ? ' · ' + days + '일 전' : ' · 오늘') : '기록 없음') + '</small></div>'; }).join('');
+                    }
+                    saveSt();
+                    box.innerHTML = card(h);
+                    return;
                 } else if (st.kind === 'k10') {
                     h += '<div class="adm-step">② 대상 <small>모바일접수대행 시트 · 접수완료 체크 · 지난 90일</small></div>';
                     if (!data.sub) { h += '<div class="adm-msg">⏳ 모바일접수대행 시트 불러오는 중...</div>'; startSub(); }
@@ -6881,6 +6917,13 @@ body.light-mode .card.reference-info {
                 }, src);
             }
 
+            function startLogin() {
+                const d = data;
+                if (!d || d.loginLoading) return;
+                d.loginLoading = true;
+                loadLogin().then(s => { d.login = s; }, e => { d.login = { err: e && e.status === 401 ? '구글 로그인이 만료됐어요. 다시 로그인해 주세요.' : e && (e.status === 403 || e.status === 404) ? '이 구글 계정은 로그인 기록을 볼 수 없어요. 대표님 계정으로 로그인해 주세요.' : '로그인 기록을 불러오지 못했어요. ↻ 새로 불러오기로 다시 시도해 주세요.' }; })
+                    .then(() => { d.loginLoading = false; if (data === d && isAdmin) render(); });
+            }
             function startSub() {
                 const d = data;
                 if (!d || d.subLoading) return;
