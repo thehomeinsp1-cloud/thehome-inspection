@@ -1836,7 +1836,7 @@ body.light-mode .card.reference-info {
         </button>
         
         <h1>🏠 더홈점검</h1>
-        <p id="appVersionTag">업데이트 2026.10.18</p>
+        <p id="appVersionTag">업데이트 2026.10.19</p>
     </div>
 
     <div class="container">
@@ -2307,7 +2307,7 @@ body.light-mode .card.reference-info {
 
         // ✅ 로그인 서버(구글 Apps Script 웹앱) 주소. 비어 있으면 기존처럼 위 시트(CSV)로 확인합니다.
         //    서버를 쓰면 PIN 목록이 밖으로 나가지 않고, 퇴사자 즉시 차단·5회 실패 잠금·로그인 기록이 됩니다.
-        const LOGIN_API_URL = '';
+        const LOGIN_API_URL = 'https://script.google.com/macros/s/AKfycbwEP62xxSXunaXgPgzl37y7u_BZlhywj6V2JUg_EGcnUQz-UOPRhg-2K22iID9c8DTL3g/exec'; // ✅ 패치 63 (10-19)
         // 서버 응답: { status: 'ok'|'invalid'|'inactive'|'locked', name, team }. 연결 실패·이상 응답은 'error' → 기존 시트 방식으로 확인
         async function staffApi(action, code, pin) {
             if (!LOGIN_API_URL) return { status: 'error' };
