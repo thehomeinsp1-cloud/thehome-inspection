@@ -6455,7 +6455,7 @@ body.light-mode .card.reference-info {
                     '✅ 접수 ' + (r.cnt ? r.cnt + '건' : '완료') + (r.app ? ' · ' + r.app : ''), '',
                     '· ' + (r.app ? r.app + '(시공사 하자접수 시스템)' : '시공사 하자접수 시스템(앱)') + '에 접속하셔서 접수 내역을 꼭 확인해 주세요.',
                     '· 접수 사항이 누락되었거나 오류가 보이면 이 번호로 문자 남겨주세요.', '',
-                    '이용해 주셔서 감사합니다. 문의 010-9985-0128']);
+                    '궁금하신 점도 이 문자로 답장 주시면 됩니다. 이용해 주셔서 감사합니다.']); // 직원 휴대폰으로 보내므로 회사 번호 대신 보낸 번호로 (대표님 10-19)
             }
             function msgK7(r) {
                 const now = new Date(); now.setHours(0, 0, 0, 0);
@@ -6590,11 +6590,15 @@ body.light-mode .card.reference-info {
             // 보고서 못 받은 고객: 드라이브의 '…_동_호_작성자_YYYY-MM-DD_하자점검보고서.pdf'(최근 45일) 이름을 읽어 동·호·날짜(±2일)로 맞춤 (읽기만)
             // 하자접수 완료 고객: '모바일접수대행_YYYY' 탭(해가 바뀌어도 12월 건이 보이게 마지막 두 해)에서 접수완료 체크된 지난 90일
             // 머리글 행은 A열(현장명)만 읽어 찾고 그 한 줄만 읽음. 고객 행을 줄째로 받으면 아이디·비밀번호 칸까지 오므로 고객 행은 필요한 칸(열)만
-            async function loadSub() {
+            async function loadSub(days) {
+                days = days || 90; // 관리자 탭 90일, 직원 데이터 탭 3일
                 const sget = path => gget(SUBURL + path);
-                const tabs = ((await sget('?fields=sheets.properties.title')).sheets || []).map(x => x.properties.title).filter(t => /^모바일접수대행_\d{4}$/.test(t)).sort().slice(-2);
-                if (!tabs.length) throw Object.assign(new Error('no tab'), { msg: "모바일접수대행 시트에서 '모바일접수대행_연도' 탭을 찾지 못했어요" });
+                const all = ((await sget('?fields=sheets.properties.title')).sheets || []).map(x => x.properties.title).filter(t => /^모바일접수대행_\d{4}$/.test(t)).sort();
+                if (!all.length) throw Object.assign(new Error('no tab'), { msg: "모바일접수대행 시트에서 '모바일접수대행_연도' 탭을 찾지 못했어요" });
                 const now = new Date(); now.setHours(0, 0, 0, 0);
+                const from = now.getTime() - days * 86400000;
+                // 보는 기간이 지난해로 넘어갈 때만(1월 초) 지난해 탭도 읽음 — 평소엔 올해 탭 하나 (요청 4번)
+                const tabs = all.slice(new Date(from).getFullYear() < parseInt(all[all.length - 1].slice(-4), 10) ? -2 : -1);
                 const out = [];
                 let newest = null;
                 for (const tab of tabs) {
@@ -6618,7 +6622,7 @@ body.light-mode .card.reference-info {
                         const b = a ? null : /(?:(\d{4})\s*년\s*)?(\d{1,2})\s*월\s*(\d{1,2})\s*일/.exec(g('day'));
                         let date = a ? new Date(+a[1], +a[2] - 1, +a[3]) : b ? new Date(b[1] ? +b[1] : y0, +b[2] - 1, +b[3]) : null;
                         if (b && !b[1] && date > now) date = new Date(y0 - 1, +b[2] - 1, +b[3]); // 새해 탭에 연도 없이 적은 12월 → 지난해
-                        if (!date || date < now.getTime() - 90 * 86400000 || date > now) continue;
+                        if (!date || date < from || date > now) continue;
                         out.push({ site: g('site').replace(/\s+/g, ' '), key: norm(g('site')), date: date, dong: g('dong'), ho: g('ho'), name: g('name').replace(/\s*\n\s*/g, ' / '),
                             phones: phonesOf(g('phone')), app: g('app'), who: g('who'), cnt: num(g('cnt')), row: start + i, mark: g('sent'), t: T });
                     }
@@ -7055,8 +7059,9 @@ body.light-mode .card.reference-info {
                     .then(() => { if (data === d && isAdmin) render(); });
             }
             // ── 직원용 (데이터 탭 '📩 하자접수 완료 문자', 대표님 10-19 B안) ──
-            //    접수담당은 그때그때 바뀌어 이름으로 거르지 않음 → 접수완료 체크된 지난 30일 고객을 모든 직원에게 안 보낸 것·최근 순으로.
+            //    접수담당은 그때그때 바뀌어 이름으로 거르지 않음 → 접수완료 체크된 지난 3일(점검일 기준, 대표님 10-19) 고객을 모든 직원에게 안 보낸 것·최근 순으로.
             //    보내면 시트 완료문자 칸에 '10/19 14:05 이름' → 다른 직원·관리자 탭에도 보냄. 목록의 번호는 가운데를 가림
+            const SD_DAYS = 3;
             const sd = { open: false, data: null, loading: false, err: '', site: '', email: '', cur: [] };
             const maskPh = d => { const p = fmtPh(d), m = /^(\d{2,3})-\d{3,4}-(\d{4})$/.exec(p); return m ? m[1] + '-****-' + m[2] : p; };
             function sdRender() {
@@ -7064,15 +7069,14 @@ body.light-mode .card.reference-info {
                 if (!box) return;
                 const msg = (t, bad) => '<div class="adm-msg' + (bad ? ' adm-err' : '') + '">' + t + '</div>';
                 let h = '<button type="button" class="btn btn-secondary" data-sd="toggle" style="display:flex;align-items:center;gap:10px;width:100%;text-align:left;">'
-                    + '<span style="font-size:22px;">📩</span><span style="flex:1;"><b style="font-size:15px;">하자접수 완료 문자</b><br><small style="color:var(--text-secondary);">접수 끝난 고객에게 · 지난 30일</small></span><span>' + (sd.open ? '▲' : '▼') + '</span></button>';
+                    + '<span style="font-size:22px;">📩</span><span style="flex:1;"><b style="font-size:15px;">하자접수 완료 문자</b><br><small style="color:var(--text-secondary);">접수 끝난 고객에게 · 지난 ' + SD_DAYS + '일</small></span><span>' + (sd.open ? '▲' : '▼') + '</span></button>';
                 if (sd.open) {
                     if (!accessToken) h += msg('위 🔐 로그인(구글)을 먼저 해 주세요.');
                     else if (sd.loading) h += msg('⏳ 모바일접수대행 시트 불러오는 중...');
                     else if (sd.err) h += msg(E(sd.err), true) + (/로그인/.test(sd.err) ? '<button type="button" class="btn btn-primary" data-sd="login" style="width:100%;">🔐 구글 다시 로그인</button>'
                         : '<button type="button" class="adm-re" data-sd="reload">↻ 다시 불러오기</button>');
                     else if (sd.data) {
-                        const now = new Date(); now.setHours(0, 0, 0, 0);
-                        const rows = sd.data.rows.filter(r => r.date >= now.getTime() - 30 * 86400000), sites = [];
+                        const rows = sd.data.rows, sites = [];
                         rows.forEach(r => { if (sites.indexOf(r.site) < 0) sites.push(r.site); });
                         if (sd.site && sites.indexOf(sd.site) < 0) sd.site = '';
                         // 보냄: 완료문자 칸이 있으면 시트 기준(다른 직원이 보낸 것·지운 것 그대로), 없으면 이 휴대폰 표시
@@ -7088,7 +7092,7 @@ body.light-mode .card.reference-info {
                                 + (!r.phones.length ? '<button type="button" class="adm-off" disabled>연락처 없음</button>'
                                     : r.markFail ? '<button type="button" class="adm-fail" data-sd="retry" data-i="' + i + '">⚠ 기록 실패 · 다시</button>'
                                     : '<button type="button" class="' + (dn ? 'adm-done' : 'adm-send') + '" data-sd="send" data-i="' + i + '">' + (dn ? E(dn) : '📩 보내기') + '</button>') + '</div>'; }).join('')
-                            || msg('지난 30일 접수완료 고객이 없어요.');
+                            || msg('지난 ' + SD_DAYS + '일 접수완료 고객이 없어요.');
                     }
                 }
                 box.innerHTML = h;
@@ -7096,7 +7100,7 @@ body.light-mode .card.reference-info {
             function sdLoad() {
                 if (!accessToken || sd.loading) return sdRender();
                 sd.loading = true; sd.err = ''; sd.email = currentUser && currentUser.email || ''; sdRender();
-                loadSub().then(s => { sd.data = s; }, e => { sd.data = null; sd.err = subErr(e, '모바일접수대행 시트를 불러오지 못했어요. 인터넷 연결을 확인해 주세요.'); })
+                loadSub(SD_DAYS).then(s => { sd.data = s; }, e => { sd.data = null; sd.err = subErr(e, '모바일접수대행 시트를 불러오지 못했어요. 인터넷 연결을 확인해 주세요.'); })
                     .then(() => { sd.loading = false; sdRender(); });
             }
             async function sdSend(i) {
