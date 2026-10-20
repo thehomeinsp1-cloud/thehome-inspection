@@ -1720,6 +1720,23 @@ body.light-mode .card.reference-info {
 .spinner { border-top-color: var(--a-red); }
 
 </style>
+<style>
+/* ✅ 프리랜서 계약서 (패치 64) */
+#contractCard .ct-doc{max-height:46vh; overflow:auto; margin:12px 0 4px; padding:12px 14px; border:1px solid var(--a-line,#2A3550); border-radius:10px; background:var(--a-sunken,#0F1726); color:var(--a-ink,#F1F4F9); font-size:13px; line-height:1.65; word-break:keep-all}
+#contractCard .ct-step{font-size:13px; font-weight:800; color:var(--a-ink,#F1F4F9); margin:14px 0 6px; display:flex; align-items:center; gap:8px}
+#contractCard .ct-step small{font-weight:600; color:var(--text-secondary)}
+#contractCard .ct-l{display:block; font-size:12px; font-weight:700; color:var(--text-secondary); margin-bottom:8px}
+#contractCard .ct-i{display:block; width:100%; box-sizing:border-box; min-height:44px; margin-top:4px; padding:0 12px; border-radius:10px; border:1px solid var(--a-line-strong,#62708C); background:var(--a-sunken,#0F1726); color:var(--a-ink,#F1F4F9); font-size:16px; font-family:inherit}
+#contractCard .ct-agree{display:flex; align-items:center; gap:8px; font-size:14px; font-weight:700; color:var(--a-ink,#F1F4F9); margin:6px 0}
+#contractCard .ct-agree input{width:20px; height:20px; flex:none}
+#contractCard .ct-pad{display:block; width:100%; height:150px; box-sizing:border-box; border-radius:10px; border:2px dashed var(--a-line-strong,#62708C); background:#fff; touch-action:none}
+#contractCard .ct-clear{margin-left:auto; min-height:32px; padding:0 12px; border-radius:16px; border:1px solid var(--a-line-strong,#62708C); background:transparent; color:var(--a-ink,#F1F4F9); font-size:12.5px; font-weight:700; font-family:inherit}
+#contractCard .ct-err{margin-top:8px; color:#f59e0b; font-weight:700; font-size:13.5px}
+#contractCard .ct-done{margin:12px 0 8px; font-weight:800; color:#4ade80}
+#contractCard .ct-hint{margin-top:8px; font-size:12.5px; color:var(--text-secondary); line-height:1.5}
+body.light-mode #contractCard .ct-err{color:#b45309}
+body.light-mode #contractCard .ct-done{color:#15803D}
+</style>
 </head>
 <body>
     <!-- ==================== 저장 실패 띠 (setSaveFail로 표시, 누르면 해결 방법) ==================== -->
@@ -2101,6 +2118,9 @@ body.light-mode .card.reference-info {
                     </button>
                 </div>
             </div>
+
+            <!-- 📝 프리랜서 계약서 (패치 64 contract.inc.js) -->
+            <div class="card" id="contractCard" style="margin-bottom: 14px;"></div>
 
             <!-- 📖 사용 가이드 -->
             <div class="card" style="margin-bottom: 14px;">
@@ -6368,7 +6388,7 @@ body.light-mode .card.reference-info {
             const KINDS = [['k1', '🏠 서비스 안내', '문의 고객'], ['k2', '💳 예약금 요청', '예약 직전'], ['k3', '📢 필독 안내문', '점검 전 공지'],
                 ['k4', '★ 예약 안내문', '예약금 입금 후'], ['k5', '🧾 정산·잔금', '점검 후'], ['k6', '🔁 사후점검', '단지 공지'],
                 ['k7', '⏰ 전날 안내', '내일 점검 고객'], ['k8', '💰 미입금', '잔금 재안내'], ['k9', '⚠️ 확인 필요', '빠진 것·보고서'],
-                ['k10', '📩 하자접수 완료 안내', '접수완료 체크된 고객 (모바일접수대행 시트)'], ['k11', '🔐 직원 로그인 기록', '누가 언제 로그인했는지 · PIN 틀림·잠금']];
+                ['k10', '📩 하자접수 완료 안내', '접수완료 체크된 고객 (모바일접수대행 시트)'], ['k11', '🔐 직원 로그인 기록', '누가 언제 로그인했는지 · PIN 틀림·잠금 · 계약서 서명']];
             // 로그인 서버(Apps Script)가 남기는 기록 + 직원관리코드(이름·소속·상태만, PIN 칸은 읽지 않음) — 둘 다 대표님 계정 소유, 읽기만
             const LOG_SHEET = '1WVZXXrjPumWThhnonMYbQM4z_sYDgynfXU0gyFwDpI8', STAFF_SHEET = '1djnGAm8nlGbHgRuxxORGK-cqI_CTYOKrSwZuPtMzl2s';
             const SUB_SHEET = '1jfYZNb9aIsWY6nQOoHjSUE8a2NTGXoD1aPVrVzqRGO8'; // 더홈점검_모바일접수대행_공유 — 아이디·비밀번호 칸은 요청하지 않음 (필요한 칸만 골라 읽음)
@@ -6615,12 +6635,14 @@ body.light-mode .card.reference-info {
             }
             async function loadLogin() {
                 const sv = (id, rng, raw) => gget('https://sheets.googleapis.com/v4/spreadsheets/' + id + '/values/' + rq(rng) + (raw ? '?valueRenderOption=UNFORMATTED_VALUE&dateTimeRenderOption=SERIAL_NUMBER' : ''));
-                const [lg, sf] = await Promise.all([sv(LOG_SHEET, "'시트1'!A2:D", true), sv(STAFF_SHEET, "'시트1'!A2:D", false)]);
+                const [lg, sf, cs] = await Promise.all([sv(LOG_SHEET, "'시트1'!A2:D", true), sv(STAFF_SHEET, "'시트1'!A2:D", false),
+                    sv(LOG_SHEET, "'계약서명'!A2:E", true).catch(() => ({ values: [] }))]); // 계약서명 탭은 첫 서명 때 서버가 만듦 → 없으면 빈 목록
                 // 시트 날짜 숫자(일 단위, 시트 시간대 기준) → 휴대폰 시각 (둘 다 한국 시간)
                 const toDate = n => { const u = new Date(Math.round((Number(n) - 25569) * 86400000)); return new Date(u.getUTCFullYear(), u.getUTCMonth(), u.getUTCDate(), u.getUTCHours(), u.getUTCMinutes(), u.getUTCSeconds()); };
                 const rows = (lg.values || []).filter(r => r && typeof r[0] === 'number' && r[1]).map(r => ({ at: toDate(r[0]), name: String(r[1]).trim(), act: String(r[2] || ''), res: String(r[3] || '') }));
                 const staff = (sf.values || []).filter(r => r && String(r[0] || '').trim()).map(r => ({ name: String(r[0]).trim(), team: String(r[2] || '').trim(), active: String(r[3] || '').trim() === '활성' }));
-                return { rows: rows.sort((a, b) => b.at - a.at), staff: staff };
+                const signs = (cs.values || []).filter(r => r && typeof r[0] === 'number' && r[1]).map(r => ({ at: toDate(r[0]), name: String(r[1]).trim(), ver: typeof r[2] === 'number' ? dKey(toDate(r[2])) : String(r[2] || ''), code: String(r[3] || ''), signer: String(r[4] || '').trim() }));
+                return { rows: rows.sort((a, b) => b.at - a.at), staff: staff, signs: signs };
             }
             async function loadReports() {
                 const since = new Date(); since.setDate(since.getDate() - 45);
@@ -6770,6 +6792,13 @@ body.light-mode .card.reference-info {
                             + act.map(x => { const days = x.at ? Math.floor((now - new Date(x.at.getFullYear(), x.at.getMonth(), x.at.getDate())) / 86400000) : -1;
                                 return '<div class="adm-row"><div class="w"><b>' + E(x.s.name) + '</b><small>' + E(x.s.team || '') + '</small></div><small style="flex:none;' + (days < 0 || days >= 7 ? 'color:#f59e0b;font-weight:700;' : '') + '">'
                                     + (x.at ? md(x.at) + ' ' + hm(x.at) + (days > 0 ? ' · ' + days + '일 전' : ' · 오늘') : '기록 없음') + '</small></div>'; }).join('');
+                        // 계약서 서명 (데이터 탭 📝 프리랜서 계약서 → 로그인 서버 '계약서명' 탭): 활성 직원 중 안 한 사람 먼저
+                        const lastSign = {};
+                        lg.signs.forEach(s => { if (!lastSign[s.name] || s.at > lastSign[s.name].at) lastSign[s.name] = s; });
+                        const sg = lg.staff.filter(s => s.active).map(s => ({ s: s, g: lastSign[s.name] || null })).sort((a, b) => (a.g ? 1 : 0) - (b.g ? 1 : 0) || a.s.name.localeCompare(b.s.name, 'ko'));
+                        h += '<div class="adm-step">📝 계약서 서명 <small>활성 ' + sg.length + '명 중 ' + sg.filter(x => x.g).length + '명 서명</small></div>'
+                            + sg.map(x => '<div class="adm-row"><div class="w"><b>' + E(x.s.name) + '</b><small>' + (x.g ? '버전 ' + E(x.g.ver) + ' · 확인코드 ' + E(x.g.code) + (x.g.signer && x.g.signer !== x.s.name ? ' · 적은 성명 ' + E(x.g.signer) : '') : E(x.s.team || ''))
+                                + '</small></div><small style="flex:none;' + (x.g ? '' : 'color:#f59e0b;font-weight:700;') + '">' + (x.g ? md(x.g.at) + ' ' + hm(x.g.at) : '미서명') + '</small></div>').join('');
                     }
                     saveSt();
                     box.innerHTML = card(h);
@@ -7044,6 +7073,262 @@ body.light-mode .card.reference-info {
                         const ds = [v.d1, v.d2].filter(Boolean); if (ds.every(isoD)) ds.sort();
                         v.d1 = ds[0] || ''; v.d2 = ds[1] || ''; lsSet(K6_KEY, k6in); render();
                     }
+                });
+            });
+        })();
+        // ✅ 프리랜서 계약서 (패치 64, 대표님 10-19): 데이터 탭에서 계약서 읽기 → 을 정보 입력 → 손가락 서명 → PDF
+        //    → 📥 내 휴대폰에 저장 + 📤 회사로 보내기(공유창 → 문자·카톡). 앱·서버 어디에도 개인정보를 남기지 않음 (서명 날짜만 이 휴대폰에)
+        //    원문: 구글 드라이브 '표준프리랜서계약서/표준_프리랜서_계약서_수정본' (주민등록번호 칸은 생년월일로 — 앱·문자로 주민번호가 오가지 않게)
+        (function() {
+            const CT_VER = '2026-01-06'; // 원문 구글 문서 수정일 — 문서를 고치면 이 글도 함께 고침
+            const CT_TO = '010-9985-0128'; // 서명본을 받을 회사 번호
+            const CT_KEY = 'th_contract_v1'; // { ver, at, sent } — 이름·연락처 등은 저장 안 함
+            const Q = s => s.replace(/"([^"]*)"/g, '“$1”');
+            const ART = [
+                ['제1조 [목적]', [Q('본 계약은 "갑"이 "을"에게 아파트사전점검 대행업무를 의뢰함에 있어 필요한 사항을 정하는 것을 목적으로 한다.')]],
+                ['제2조 [계약업무]', [Q('"을"은 "갑"이 의뢰한 다음 각 호의 과업을 수행하여야 한다.'), '1. 아파트사전점검 대행 서비스']],
+                ['제3조 [계약기간]', [Q('계약기간은 2026년 1월 1일로부터 2027년 12월 31일까지로 하며, "갑"과 "을"의 합의 하에 본 계약기간은 연장되거나 해지될 수 있다.')]],
+                ['제4조 [근무시간 및 장소]', [Q('"을"은 "갑"이 지정하는 근무시간 및 근무장소에서 업무를 성실히 수행하여야 한다. 다만, "갑"과 합의하여 근무시간과 근무장소를 조정할 수 있다.')]],
+                ['제5조 [계약금액]', ['① 총 계약금액은 일당 1만~50만 원으로 한다.(업무에 따라 지급비용이 다름)', Q('② "갑"은 "을"에게 아파트사전점검 업무 완료 시 "을" 명의의 계좌로 이체한다.(7일 이내)'),
+                    Q('③ "갑"은 전 항의 보수 중 사업소득세율(3.3%)에 따라 원천징수의무를 이행한 후 남은 금액을 "을"에게 지급한다.')]],
+                ['제6조 [양 당사자의 권리와 의무]', [Q('① "갑"은 "을"이 과업하는 데 필요한 자료 및 정보 등을 제공하여야 하며, 과업수행을 위한 "을"의 요청이 있는 경우 이에 적극적으로 협조하여야 한다.'),
+                    Q('② "을"은 본 계약상 부담하는 모든 사항을 "갑"과 합의한 대로 이행하여야 하며, 신의성실의 원칙에 따라 계약 내용을 이행하여야 한다.'),
+                    Q('③ "갑"은 "을"의 과업과 관련하여 협의할 사항이 있는 경우 "을"에게 협의를 요청할 수 있고 "을"은 이러한 "갑"의 요구에 최대한 협조한다.'),
+                    Q('④ "을"은 본 계약 종료 후 지체 없이 "갑"으로부터 제공받은 서류, 정보, 데이터 기타 모든 형태의 자료를 "갑"에게 반환하여야 하고, 반환이 어려운 경우 이를 파기하고 "갑"의 승인을 받아야 한다.')]],
+                ['제7조 [비밀유지 및 지식재산권의 귀속]', [Q('① "을"은 본 계약 및 과업과 관련하여 알게 된 일체의 정보를 외부에 누설하거나 유출해서는 아니 되며, 이로 인해 발생하는 손해에 대해 책임을 지기로 한다.'),
+                    Q('② "을"은 창조, 개선, 작성, 생산한 모든 결과물의 저작권에 대한 책임을 보증하며, 본 계약에 의한 결과물의 권리는 "갑"의 소유가 된다.')]],
+                ['제8조 [근무조건]', ['① 본 계약상의 업무를 수행하기 위하여 필요한 기타사항은 자율에 맡긴다.',
+                    Q('② 본 계약 내용 외에도 다른 필요한 업무가 필요한 경우 "갑"은 "을"이 추가로 작업을 수행하는 부분에 대한 인건비와 계약 기간은 상호 협의 하에 결정한다.')]],
+                ['제9조 [권리의 이전·양도·처분·재위탁 금지]', [Q('"갑" 또는 "을"은 서로 상대방의 서면 동의가 있는 경우를 제외하고는 어떠한 이유로도 본 계약상 자신의 권리나 의무를 다른 제3자에게 이전·양도·처분·재위탁할 수 없다.')]],
+                ['제10조 [해지]', [Q('① "갑"과 "을"은 다음 각 호에 해당될 경우 본 계약을 해지할 수 있다.'), '1. 정당한 이유 없이 과업 진행이 이루어지지 않을 때', '2. 정당한 이유 없이 계약기간 내에 과업완료가 불가능하다고 판단될 때',
+                    '3. 상호 간에 계약을 해지하기로 서면합의한 때', '4. 회생절차, 파산절차의 개시신청, 채무자 회생 및 파산에 관한 법률에 의한 보전처분의 신청, 기타 이와 유사한 신청, 회사의 해산결의 등의 사유가 발생한 때',
+                    '5. 압류, 가압류, 가처분, 경매의 집행을 받거나 국세나 지방세 체납, 기타 공법상의 처분을 받고 7일 이내에 집행취소나 체납 등 처분의 취소를 받지 않은 때', '6. 기타 본 계약상의 과업을 수행하는 것이 불가능하다고 객관적으로 판단될 때',
+                    '② 본 조에 따른 계약의 해지는 계약기간 중 발생한 당사자 간의 권리의무에 따른 손해배상의 청구에 영향을 미치지 않는다.']],
+                ['제11조 [손해배상]', [Q('① "을"의 귀책사유로 인하여 본 계약이 불이행되었을 경우 "을"은 "갑"이 제시한 손해배상의 책임을 진다(이때, 손해배상액은 상호 협의한다).'),
+                    Q('② "을"의 귀책사유로 인하여 기타 제3자에게 손해가 발생하는 경우 이는 "을"이 부담하며, "갑"이 전부 또는 일부를 배상한 때에는 "갑"이 "을"에게 이를 구상할 수 있다.')]],
+                ['제12조 [일부무효]', ['본 계약의 일부 조항이 법령 또는 판결에 의하여 무효 또는 불법으로 판정되는 경우에도 본 계약 전체가 무효로 되는 것은 아니며, 무효로 되지 않는 다른 조항은 법령에 의하여 허용되는 한도에서 여전히 유효하게 존속하고, 무효 또는 불법조항이 포함되지 않았던 것처럼 해석한다.']],
+                ['제13조 [계약의 변경]', [Q('본 계약은 "갑"과 "을"의 서면합의에 따라 변경될 수 있다.')]],
+                ['제14조 [관할]', [Q('본 계약과 관련하여 분쟁이 발생한 경우 당사자의 상호 협의에 의한 해결을 모색하되, 분쟁에 관한 합의가 이루어지지 아니한 경우에는 "갑"의 본점 소재지 관할법원을 제1심 관할법원으로 하여 소송을 통해 분쟁을 해결하기로 한다.')]]
+            ];
+            const CLOSE = Q('각 당사자는 위 계약을 증명하기 위하여 본 계약서 2통을 작성하여, 각각 서명(또는 기명)날인 후 "갑"과 "을"이 각각 1통씩을 보관한다. (더홈점검 앱 전자서명)');
+            const SEAL = 'data:image/png;base64,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'; // 회사 도장 (tools/contract-seal.png → gen-contract.js 가 넣음, 대표님 10-19)
+            const GAP = [['대표자', '박지현 (더홈점검) (인)'], ['주소', '경기도 부천시 원미구 송내대로265번길23'], ['사업자번호', '531-42-01293'], ['연락처', '010-9127-7708']];
+            const E = s => escapeHtml(String(s == null ? '' : s));
+            const lsGet = () => { try { return JSON.parse(localStorage.getItem(CT_KEY) || 'null'); } catch (e) { return null; } };
+            const lsSet = v => { try { localStorage.setItem(CT_KEY, JSON.stringify(v)); } catch (e) {} };
+            const myName = () => { try { return String(JSON.parse(localStorage.getItem('dhLoginData') || '{}').name || '').trim(); } catch (e) { return ''; } };
+            const pad = n => String(n).padStart(2, '0');
+            const korDate = d => d.getFullYear() + '년 ' + (d.getMonth() + 1) + '월 ' + d.getDate() + '일';
+            const ct = { open: false, f: { name: '', birth: '', addr: '', phone: '' }, agree: false, ink: 0, err: '', busy: false, file: null, pages: 0, wipe: null, logged: null };
+
+            // 본문 HTML (화면·PDF 같은 글) — 을 이름은 입력값으로
+            function bodyBlocks(name) {
+                const b = ['<div style="text-align:center;font-size:23px;font-weight:800;letter-spacing:.06em;margin:4px 0 22px;">표준 프리랜서 계약서</div>',
+                    '<p style="margin:0 0 12px;">' + E(Q('[더홈점검](이하 "갑"이라 합니다)은 [' + (name || '        ') + '](이하 "을"이라 합니다)에게 아파트사전점검 대행업무를 의뢰하면서 다음과 같이 프리랜서 계약을 체결한다.')) + '</p>'];
+                ART.forEach(a => b.push('<div style="margin:0 0 10px;"><div style="font-weight:800;margin-bottom:2px;">' + E(a[0]) + '</div>' + a[1].map(t => '<div style="' + (/^\d\./.test(t) ? 'padding-left:14px;' : '') + '">' + E(t) + '</div>').join('') + '</div>'));
+                b.push('<p style="margin:14px 0 0;">' + E(CLOSE) + '</p>');
+                return b;
+            }
+            const plainText = name => ['표준 프리랜서 계약서', Q('[더홈점검](이하 "갑"이라 합니다)은 [' + name + '](이하 "을"이라 합니다)에게 아파트사전점검 대행업무를 의뢰하면서 다음과 같이 프리랜서 계약을 체결한다.')]
+                .concat(...ART.map(a => [a[0]].concat(a[1])), [CLOSE]).join('\n');
+
+            // PDF: 문단 단위로 A4(794×1123px)에 나눠 담고 페이지마다 그림으로 (앱 보고서와 같은 방식)
+            const PAGE_CSS = 'width:794px;height:1123px;box-sizing:border-box;padding:60px 70px 70px;position:relative;background:#fff;color:#000;'
+                + "font-family:'Malgun Gothic','Apple SD Gothic Neo','Noto Sans KR',sans-serif;font-size:13.5px;line-height:1.72;word-break:keep-all;";
+            function paginate(blocks) {
+                const probe = document.createElement('div');
+                probe.style.cssText = PAGE_CSS + 'height:auto;position:absolute;left:-9999px;top:0;';
+                document.body.appendChild(probe);
+                const pages = [];
+                let cur = [];
+                try {
+                    blocks.forEach(b => {
+                        probe.innerHTML = cur.concat(b).join('');
+                        if (probe.offsetHeight > 1123 - 20 && cur.length) { pages.push(cur); cur = [b]; } else cur.push(b);
+                    });
+                    if (cur.length) pages.push(cur);
+                } finally { probe.remove(); }
+                return pages;
+            }
+            const stamp = at => at.getFullYear() + '-' + pad(at.getMonth() + 1) + '-' + pad(at.getDate()) + ' ' + pad(at.getHours()) + ':' + pad(at.getMinutes()) + ':' + pad(at.getSeconds());
+            // 확인코드: 계약서 글·을 정보·서명 시각·서명 그림의 SHA-256 앞 16자리 → 나중에 같은 문서인지 대조 (PDF와 서버 기록에 같이)
+            async function signCode(sig, f, ds) {
+                try {
+                    const raw = JSON.stringify({ v: CT_VER, t: plainText(f.name), f: f, at: ds, s: sig });
+                    const h = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(raw));
+                    return Array.from(new Uint8Array(h)).map(x => x.toString(16).padStart(2, '0')).join('').slice(0, 16).toUpperCase().replace(/(.{4})(?!$)/g, '$1-');
+                } catch (e) { return '-'; }
+            }
+            // 서명 기록: 로그인 서버(로그인기록 파일 '계약서명' 탭)에 서버 시각·이름·버전·확인코드·성명만 (생년월일·주소·연락처는 안 보냄)
+            async function logSign(f, code) {
+                let L = {};
+                try { L = JSON.parse(localStorage.getItem('dhLoginData') || '{}'); } catch (e) { L = {}; }
+                if (typeof LOGIN_API_URL === 'undefined' || !LOGIN_API_URL || !L.code || !L.pin) return null;
+                const ctl = typeof AbortController === 'function' ? new AbortController() : null, t = ctl ? setTimeout(() => ctl.abort(), 12000) : 0;
+                try {
+                    const res = await fetch(LOGIN_API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, cache: 'no-store', signal: ctl ? ctl.signal : undefined,
+                        body: JSON.stringify({ action: 'contract', code: L.code, pin: L.pin, ver: CT_VER, sig: code, signer: f.name, ua: navigator.userAgent }) });
+                    const j = res.ok ? await res.json() : null;
+                    return j && j.status === 'ok' && j.at ? String(j.at) : null; // at 이 없으면 서버가 아직 예전 코드
+                } catch (e) { return null; } finally { clearTimeout(t); }
+            }
+            async function makePdf(sig, f, at, code, srv) {
+                const ds = stamp(at);
+                const line = (k, v) => '<div style="display:flex;gap:8px;"><span style="width:84px;flex:none;color:#333;">' + E(k) + '</span><span>' + v + '</span></div>';
+                const sign = '<div style="margin-top:18px;text-align:center;font-weight:800;font-size:15px;">' + E(korDate(at)) + '</div>'
+                    + '<div style="display:flex;gap:26px;margin-top:16px;">'
+                    + '<div style="flex:1;border:1px solid #999;border-radius:6px;padding:12px 14px;"><div style="font-weight:800;margin-bottom:6px;">“갑”</div>'
+                    + GAP.map(g => line(g[0], g[0] === '대표자' ? '박지현 (더홈점검) <span style="position:relative;display:inline-block;">(인)<img src="' + SEAL + '" style="position:absolute;left:-12px;top:-17px;width:54px;height:54px;opacity:.9;"></span>' : E(g[1]))).join('') + '</div>'
+                    + '<div style="flex:1;border:1px solid #999;border-radius:6px;padding:12px 14px;"><div style="font-weight:800;margin-bottom:6px;">“을”</div>'
+                    + line('성명', E(f.name) + ' <img src="' + sig + '" style="height:46px;vertical-align:middle;margin-left:6px;"> <span style="color:#555;">(서명)</span>')
+                    + line('주소', E(f.addr)) + line('생년월일', E(f.birth)) + line('연락처', E(f.phone)) + '</div></div>'
+                    + '<div style="margin-top:14px;font-size:11px;color:#444;line-height:1.6;border-top:1px solid #bbb;padding-top:8px;">전자서명: ' + E(ds) + ' (휴대폰 시각) · ' + (srv ? '서버 기록 ' + E(srv) : '서버 기록 없음') + ' · 앱 로그인 ' + E(myName() || '-')
+                    + ' · 계약서 버전 ' + E(CT_VER) + ' · 확인코드 ' + E(code) + '<br>더홈점검 앱에서 “을”이 계약서 전문을 확인하고 동의한 뒤 손으로 서명했습니다.</div>';
+                const pages = paginate(bodyBlocks(f.name).concat(sign));
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+                const pw = doc.internal.pageSize.getWidth(), ph = doc.internal.pageSize.getHeight();
+                for (let i = 0; i < pages.length; i++) {
+                    if (i) doc.addPage();
+                    await window.addHTMLPageToPDF(doc, '<div style="' + PAGE_CSS + '">' + pages[i].join('')
+                        + '<div style="position:absolute;left:70px;right:70px;bottom:28px;display:flex;justify-content:space-between;font-size:10.5px;color:#555;border-top:1px solid #ccc;padding-top:6px;"><span>더홈점검 표준 프리랜서 계약서 · ' + E(f.name) + '</span><span>' + (i + 1) + ' / ' + pages.length + '</span></div></div>', pw, ph);
+                }
+                const fn = ('프리랜서계약서_' + f.name + '_' + ds.slice(0, 10)).replace(/[\\/:*?"<>|\s\u0000-\u001f]+/g, '_') + '.pdf';
+                return { file: new File([doc.output('blob')], fn, { type: 'application/pdf' }), pages: pages.length };
+            }
+
+            // 서명칸: 손가락·펜·마우스 (터치 스크롤 막음). 화면 전체를 다시 그리면 서명이 지워지므로 열 때 한 번만 만들고 나머지는 부분만 고침
+            function bindPad(cv) {
+                const ctx = cv.getContext('2d'), r0 = cv.getBoundingClientRect(), dpr = Math.min(window.devicePixelRatio || 1, 3);
+                cv.width = Math.round(r0.width * dpr); cv.height = Math.round(r0.height * dpr);
+                ctx.scale(dpr, dpr); ctx.lineWidth = 2.6; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.strokeStyle = '#111';
+                const wipe = () => { ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, r0.width, r0.height); ct.ink = 0; };
+                wipe();
+                let down = false, last = null;
+                const pt = e => { const r = cv.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; };
+                cv.addEventListener('pointerdown', e => { down = true; last = pt(e); try { cv.setPointerCapture(e.pointerId); } catch (x) {} e.preventDefault(); });
+                cv.addEventListener('pointermove', e => {
+                    if (!down) return;
+                    const p = pt(e);
+                    ctx.beginPath(); ctx.moveTo(last.x, last.y); ctx.lineTo(p.x, p.y); ctx.stroke();
+                    ct.ink += Math.abs(p.x - last.x) + Math.abs(p.y - last.y); last = p; e.preventDefault();
+                    if (ct.file) { ct.file = null; upd(); } // 서명을 고치면 만든 PDF는 버림
+                });
+                const up = () => { down = false; };
+                cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up); cv.addEventListener('pointerleave', up);
+                ct.wipe = wipe;
+            }
+            const status = () => { const d = lsGet(); return d ? '✓ 서명 ' + d.at + (d.sent ? ' · 회사로 보냄' : '') : '처음 한 번 · 읽고 서명 → 내 폰 저장 + 회사로 보내기'; };
+            function render() {
+                const box = document.getElementById('contractCard');
+                if (!box) return;
+                let h = '<button type="button" class="btn btn-secondary" data-ct="toggle" style="display:flex;align-items:center;gap:10px;width:100%;text-align:left;">'
+                    + '<span style="font-size:22px;">📝</span><span style="flex:1;"><b style="font-size:15px;">프리랜서 계약서</b><br><small class="ct-st" style="color:var(--text-secondary);">' + E(status()) + '</small></span><span>' + (ct.open ? '▲' : '▼') + '</span></button>';
+                if (ct.open) {
+                    const f = ct.f;
+                    const inp = (k, lab, ph, extra) => '<label class="ct-l">' + lab + '<input class="ct-i" data-ct-f="' + k + '" value="' + E(f[k]) + '" placeholder="' + ph + '" ' + (extra || '') + '></label>';
+                    h += '<div class="ct-doc">' + bodyBlocks(f.name).join('') + '<div style="margin-top:12px;color:var(--text-secondary);font-size:12.5px;">“갑” 대표자 박지현 (더홈점검) · 부천시 원미구 송내대로265번길23 · 사업자번호 531-42-01293</div></div>'
+                        + '<div class="ct-step">“을” 정보</div>'
+                        + inp('name', '성명', '홍길동', 'autocomplete="name"') + inp('birth', '생년월일', '1985.03.15', 'inputmode="numeric"')
+                        + inp('addr', '주소', '시·구·동까지', 'autocomplete="street-address"') + inp('phone', '연락처', '010-0000-0000', 'inputmode="tel" autocomplete="tel"')
+                        + '<label class="ct-agree"><input type="checkbox" data-ct-f="agree"' + (ct.agree ? ' checked' : '') + '> 위 계약서 내용을 모두 읽고 동의합니다</label>'
+                        + '<div class="ct-step">서명 <small>손가락으로 이름을 써 주세요</small><button type="button" class="ct-clear" data-ct="clear">지우기</button></div>'
+                        + '<canvas class="ct-pad" aria-label="서명칸"></canvas>'
+                        + '<div class="ct-err" hidden></div>'
+                        + '<button type="button" class="btn btn-primary" data-ct="make" style="width:100%;margin-top:10px;"></button>'
+                        + '<div class="ct-out"></div>';
+                }
+                box.innerHTML = h;
+                const cv = box.querySelector('.ct-pad');
+                if (cv) bindPad(cv);
+                upd();
+            }
+            // 부분만 고침: 상태 글·오류·만들기 버튼·결과(저장·보내기)
+            function upd() {
+                const box = document.getElementById('contractCard');
+                if (!box) return;
+                const q = s => box.querySelector(s), st = q('.ct-st'), er = q('.ct-err'), mk = q('[data-ct="make"]'), out = q('.ct-out');
+                if (st) st.textContent = status();
+                if (er) { er.textContent = ct.err; er.hidden = !ct.err; }
+                if (mk) { mk.disabled = ct.busy; mk.textContent = ct.busy ? '⏳ 계약서 PDF 만드는 중...' : '✍️ 서명 완료 · 계약서 PDF 만들기'; }
+                if (out) out.innerHTML = !ct.file ? '' : '<div class="ct-done">✅ 서명한 계약서 PDF를 만들었어요 (' + ct.pages + '쪽)</div>'
+                    + (ct.logged ? '<div class="ct-hint" style="margin:-4px 0 10px;">🗂 서명 기록을 회사에 남겼어요 (' + E(ct.logged) + ')</div>'
+                        : '<div class="ct-err" style="margin:-4px 0 10px;">⚠ 서명 기록을 회사에 못 남겼어요 — 인터넷 연결 후 다시 만들어 주세요 (PDF는 그대로 보내도 됩니다)</div>')
+                    + '<button type="button" class="btn btn-secondary" data-ct="save" style="width:100%;margin-bottom:8px;">📥 내 휴대폰에 저장 (본인 보관용)</button>'
+                    + '<button type="button" class="btn btn-primary" data-ct="send" style="width:100%;">📤 회사로 보내기 (문자·카톡)</button>'
+                    + '<div class="ct-hint">공유 창에서 <b>문자</b>를 고르고 받는 사람에 <b>' + CT_TO + '</b> (더홈점검)을 넣어 보내 주세요. 카톡으로 보내도 됩니다.</div>';
+            }
+            function check() {
+                const f = ct.f;
+                if (!f.name.trim()) return '성명을 적어 주세요.';
+                if (!/^(19|20)\d{2}[.\-/\s]?\d{1,2}[.\-/\s]?\d{1,2}$/.test(f.birth.trim())) return '생년월일을 1985.03.15처럼 적어 주세요.';
+                if (f.addr.trim().length < 5) return '주소를 적어 주세요.';
+                if (!(window.isValidKrPhone ? window.isValidKrPhone(f.phone.replace(/\D/g, '')) : /^01\d{8,9}$/.test(f.phone.replace(/\D/g, '')))) return '연락처를 확인해 주세요.';
+                if (!ct.agree) return '계약서 내용 동의에 체크해 주세요.';
+                if (ct.ink < 40) return '서명칸에 손가락으로 서명해 주세요.';
+                return '';
+            }
+            async function make() {
+                if (ct.busy) return;
+                ct.err = check();
+                if (ct.err) { upd(); return; }
+                const cv = document.querySelector('#contractCard .ct-pad'), sig = cv.toDataURL('image/png');
+                const f = { name: ct.f.name.trim(), birth: ct.f.birth.trim(), addr: ct.f.addr.trim(), phone: window.formatPhoneNumber ? window.formatPhoneNumber(ct.f.phone.replace(/\D/g, '')) : ct.f.phone.trim() };
+                ct.busy = true; ct.file = null; upd();
+                try {
+                    const at = new Date(), code = await signCode(sig, f, stamp(at));
+                    ct.logged = await logSign(f, code);
+                    const r = await makePdf(sig, f, at, code, ct.logged);
+                    ct.file = r.file; ct.pages = r.pages;
+                    lsSet({ ver: CT_VER, at: (at.getMonth() + 1) + '/' + at.getDate(), sent: false });
+                } catch (e) { console.error('계약서 PDF 실패:', e); ct.err = '계약서 PDF를 만들지 못했어요. 앱을 다시 열고 시도해 주세요.'; }
+                ct.busy = false; upd();
+                if (ct.file) { const b = document.querySelector('#contractCard [data-ct="save"]'); if (b) b.scrollIntoView({ block: 'center' }); }
+            }
+            function save() {
+                const url = URL.createObjectURL(ct.file), a = document.createElement('a');
+                a.href = url; a.download = ct.file.name; a.style.display = 'none';
+                document.body.appendChild(a); a.click();
+                setTimeout(() => { try { a.remove(); } catch (e) {} }, 100);
+                setTimeout(() => { try { URL.revokeObjectURL(url); } catch (e) {} }, 60000); // 아이폰은 저장 창이 뜬 뒤 파일을 읽음
+                showToast('📥 ' + ct.file.name + ' 저장 — 파일·다운로드에서 볼 수 있어요');
+            }
+            async function send() {
+                // 공유창은 버튼을 누른 직후에만 열림 → PDF는 미리 만들어 두고 여기선 바로 엶. 파일만 보냄(글자를 같이 넣으면 카톡에서 파일이 빠짐)
+                let ok = false;
+                try { ok = !!(navigator.share && navigator.canShare && navigator.canShare({ files: [ct.file] })); } catch (e) { ok = false; }
+                if (ok) {
+                    try {
+                        await navigator.share({ files: [ct.file] });
+                        const d = lsGet(); if (d) { d.sent = true; lsSet(d); }
+                        showToast('📤 회사(' + CT_TO + ')로 보내졌는지 확인해 주세요');
+                        upd();
+                        return;
+                    } catch (err) { if (err && (err.name === 'AbortError' || err.name === 'InvalidStateError')) return; }
+                }
+                save();
+                alert('이 휴대폰은 바로 보내기를 지원하지 않아 파일로 저장했어요.\n문자나 카톡에서 저장한 계약서 PDF를 첨부해 ' + CT_TO + '(더홈점검)로 보내 주세요.');
+            }
+            document.addEventListener('DOMContentLoaded', () => {
+                const box = document.getElementById('contractCard');
+                if (!box) return;
+                render();
+                box.addEventListener('click', e => {
+                    const b = e.target.closest && e.target.closest('[data-ct]');
+                    if (!b) return;
+                    const a = b.getAttribute('data-ct');
+                    if (a === 'toggle') { ct.open = !ct.open; if (ct.open && !ct.f.name) ct.f.name = myName(); render(); }
+                    else if (a === 'clear') { if (ct.wipe) ct.wipe(); if (ct.file) { ct.file = null; upd(); } }
+                    else if (a === 'make') make();
+                    else if (a === 'save' && ct.file) save();
+                    else if (a === 'send' && ct.file) send();
+                });
+                // 입력값은 메모리에만 (화면을 다시 그려도 그대로), 고치면 만든 PDF는 버림
+                box.addEventListener('input', e => {
+                    const k = e.target.getAttribute && e.target.getAttribute('data-ct-f');
+                    if (!k) return;
+                    if (k === 'agree') ct.agree = e.target.checked; else ct.f[k] = e.target.value;
+                    if (ct.err || ct.file) { ct.err = ''; ct.file = null; upd(); }
                 });
             });
         })();
