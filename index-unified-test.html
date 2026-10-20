@@ -1863,7 +1863,7 @@ body.light-mode .card.reference-info {
         </button>
         
         <h1>🏠 더홈점검</h1>
-        <p id="appVersionTag" style="color:#fde68a;font-weight:700;">🧪 테스트판 · 업데이트 2026.10.19</p>
+        <p id="appVersionTag" style="color:#fde68a;font-weight:700;">🧪 테스트판 · 업데이트 2026.10.20</p>
     </div>
 
     <div class="container">
@@ -6753,10 +6753,15 @@ body.light-mode .card.reference-info {
                 return { day: day, on: on, issues: issues, unpaid: unpaid, soon: soon, noRep: noRep,
                     today: rows.filter(r => on(r, 0)).length, tom: rows.filter(r => on(r, 1)).length, week: rows.filter(r => within(r, 0, 6)).length };
             }
+            // 예약 안내문(k4, 대표님 10-20): 결재확인된 세대(점검 끝나고 정산까지 된 세대)·지난 날짜는 빼고, 단지는 시트에 예약이 적힌 순서대로
+            const k4Skip = (r, today) => r.paid || (r.date && r.date < today);
+            const rowOrder = r => r.tab + '|' + String(r.row).padStart(6, '0'); // 예약일정_2026 → _2027 순, 그 안은 행 순서
             function groups() {
-                const k6 = st.kind === 'k6', m = new Map();
+                const k6 = st.kind === 'k6', k4 = st.kind === 'k4', m = new Map();
+                const today = new Date(); today.setHours(0, 0, 0, 0);
                 data.rows.forEach(r => {
                     if (k6 && r.after) return;
+                    if (k4 && k4Skip(r, today)) return;
                     const key = k6 ? baseKey(r.site) : r.key;
                     let g = m.get(key);
                     if (!g) m.set(key, g = { key: key, name: k6 ? r.site.replace(/\s*\(사후\)\s*/g, '') : r.site, rows: [] });
@@ -6764,6 +6769,7 @@ body.light-mode .card.reference-info {
                 });
                 const now = new Date(); now.setHours(0, 0, 0, 0);
                 const gs = Array.from(m.values());
+                if (k4) return gs; // 처음 나온 행 순서 그대로 (Map 은 넣은 순서 유지, data.rows 는 시트 순서)
                 gs.forEach(g => { g.d = Math.min.apply(null, g.rows.map(r => r.date ? Math.abs(r.date - now) : 9e15)); });
                 return gs.sort((a, b) => a.d - b.d || a.name.localeCompare(b.name, 'ko'));
             }
@@ -6891,14 +6897,14 @@ body.light-mode .card.reference-info {
                     box.innerHTML = card(h);
                     return;
                 } else {
-                    h += '<div class="adm-step">② ' + (st.kind === 'k6' ? '단지 · 사후점검 지정일' : '단지 · 날짜') + '</div>';
+                    h += '<div class="adm-step">② ' + (st.kind === 'k6' ? '단지 · 사후점검 지정일' : '단지 · 날짜') + (st.kind === 'k4' ? ' <small>시트 순서 · 결재확인·지난 날짜 빼고</small>' : '') + '</div>';
                     h += '<select class="adm-sel" data-f="group">' + gs.map(x => '<option value="' + E(x.key) + '"' + (g && x.key === g.key ? ' selected' : '') + '>' + E(x.name) + ' (' + x.rows.length + ')</option>').join('') + '</select>';
                 }
                 if (cross) {} else if (g && st.kind !== 'k6') {
                     const ds = datesOf(g);
                     if (!ds.list.some(o => o.k === st.date)) st.date = ds.best;
                     h += '<select class="adm-sel" data-f="date">' + ds.list.map(o => '<option value="' + o.k + '"' + (o.k === st.date ? ' selected' : '') + '>' + dLabel(o.date) + ' · ' + o.n + '세대</option>').join('') + '</select>';
-                    cur = g.rows.filter(r => dKey(r.date) === st.date).sort((a, b) => tMin(a.time) - tMin(b.time));
+                    cur = g.rows.filter(r => dKey(r.date) === st.date).sort(st.kind === 'k4' ? (a, b) => rowOrder(a) < rowOrder(b) ? -1 : 1 : (a, b) => tMin(a.time) - tMin(b.time)); // 예약 안내문은 시트 순서
                 } else if (g) {
                     const v = k6in[g.key] || {}, picked = [v.d1, v.d2].filter(Boolean);
                     // 간편 선택: 내일부터 4주 화·수·목 (한 줄 = 한 주). 금~일이면 다음 주부터
