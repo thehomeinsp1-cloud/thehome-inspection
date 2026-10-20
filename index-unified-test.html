@@ -2105,17 +2105,15 @@ body.light-mode .card.reference-info {
             <!-- 📋 매니저: 점검 끝나면 순서대로 -->
             <div class="card" style="margin-bottom: 14px; border: 2px solid #D23B3B;">
                 <h2 style="font-size: 17px; margin-bottom: 12px; color: var(--role-mgr-text, #FF8080);">📋 매니저 · 점검 끝나면 순서대로</h2>
-                <button class="btn btn-secondary" onclick="openEquipmentDriveSheet()" style="display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; margin-bottom: 8px; padding: 12px 14px; font-size: 15px;">
-                    <span style="display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: #D23B3B; color: #FFFFFF; font-size: 13px; font-weight: 800; flex-shrink: 0;">1</span> 📥 장비점검 합치기 (소장님이 보낸 것)
+                <button id="mgrStep1" class="btn btn-secondary" onclick="openEquipmentDriveSheet()" style="display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; margin-bottom: 8px; padding: 12px 14px; font-size: 15px;">
+                    <span class="mgr-n" style="display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: #D23B3B; color: #FFFFFF; font-size: 13px; font-weight: 800; flex-shrink: 0;">1</span> 📥 장비점검 합치기 (소장님이 보낸 것)
                 </button>
-                <button id="driveUploadBtn" class="btn btn-primary" onclick="uploadProjectToDrive()" style="display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; margin-bottom: 8px; padding: 13px 14px; font-size: 15.5px;">
-                    <span style="display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: #FFFFFF; color: #D23B3B; font-size: 13px; font-weight: 800; flex-shrink: 0;">2</span> ☁️ 공유드라이브에 저장하기 (보고서 자동 포함)
+                <button id="driveUploadBtn" class="btn btn-secondary" onclick="uploadProjectToDrive()" style="display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; margin-bottom: 8px; padding: 12px 14px; font-size: 15px;">
+                    <span class="mgr-n" style="display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: #D23B3B; color: #FFFFFF; font-size: 13px; font-weight: 800; flex-shrink: 0;">2</span> <span>☁️ 공유드라이브에 저장하기 (보고서 자동 포함)<br><small style="font-size: 12.5px; font-weight: 600; color: var(--text-secondary);">인터넷 필요 · 1~3분</small></span>
                 </button>
-                <div style="display: flex; align-items: center; gap: 10px; padding: 6px 14px 4px; font-size: 14.5px; font-weight: 700; word-break: keep-all;">
-                    <span style="display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: #D23B3B; color: #FFFFFF; font-size: 13px; font-weight: 800; flex-shrink: 0;">3</span> <span>저장이 끝나면 뜨는 창에서 📩 <b>고객에게 보고서 문자 보내기</b> (링크 포함)</span>
-                </div>
-                <div style="font-size: 12.5px; line-height: 1.5; color: var(--text-secondary); word-break: keep-all; margin: 2px 0 12px 48px;">인터넷 필요 · 1~3분</div>
-                <button id="resendReportBtn" class="btn btn-secondary" onclick="resendReportLink()" style="width: 100%; font-size: 13.5px; min-height: 40px; padding: 8px 12px; margin-bottom: 8px;">📩 고객에게 보고서 문자 다시 보내기 <span id="resendReportState" style="font-weight: 600; color: var(--text-secondary);"></span></button>
+                <button id="mgrStep3" class="btn btn-secondary" onclick="resendReportLink()" style="display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; margin-bottom: 12px; padding: 12px 14px; font-size: 15px; word-break: keep-all;">
+                    <span class="mgr-n" style="display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: #D23B3B; color: #FFFFFF; font-size: 13px; font-weight: 800; flex-shrink: 0;">3</span> <span>📩 고객에게 보고서 문자 보내기 <span id="resendReportState" style="font-weight: 600; color: var(--text-secondary);"></span><br><small style="font-size: 12.5px; font-weight: 600; color: var(--text-secondary);">저장이 끝나면 창이 자동으로 떠요 · 창을 닫았거나 다시 보낼 때 여기</small></span>
+                </button>
                 <button class="btn btn-secondary" onclick="generatePDF()" style="width: 100%; font-size: 13.5px; min-height: 40px; padding: 8px 12px;">📄 PDF 보고서만 받기 (확인용 · 카톡으로 직접 보낼 때)</button>
                 <input type="file" id="equipmentImportInput" accept=".txt,.json,text/plain,application/json" style="display: none;" onchange="mergeEquipmentFile(this)">
             </div>
@@ -2185,6 +2183,10 @@ body.light-mode .card.reference-info {
     <div id="loading" class="loading">
         <div class="spinner"></div>
         <p>처리 중...</p>
+        <div id="loadingProg" style="display: none; width: 230px; max-width: 70vw; margin-top: 12px;">
+            <div style="height: 8px; background: rgba(255,255,255,0.2); border-radius: 4px; overflow: hidden;"><i style="display: block; height: 100%; width: 0; background: #22c55e; transition: width 0.6s;"></i></div>
+            <div style="display: flex; justify-content: space-between; gap: 8px; margin-top: 6px; font-size: 12.5px; color: #e5e7eb; word-break: keep-all; text-align: left;"><span></span><b style="font-variant-numeric: tabular-nums;">0%</b></div>
+        </div>
     </div>
 
     <!-- ✅ 패치 66: 오래 걸리는 작업 중 안내 -->
@@ -3573,19 +3575,32 @@ body.light-mode .card.reference-info {
         }
 
         // ✅ 일시 오류(신호 끊김·서버 5xx·요청 과다 429)면 2초 뒤 한 번만 다시 시도 (정상 응답은 그대로 반환)
+        // ✅ 패치 70: options.onProgress 가 있으면 XHR 로 보내 보낸 양(0~1)을 알려줌. 응답은 fetch 처럼 ok·status·json()
+        function _xhrUpload(url, options) {
+            return new Promise((resolve, reject) => {
+                const x = new XMLHttpRequest();
+                x.open(options.method || 'POST', url);
+                Object.entries(options.headers || {}).forEach(([k, v]) => x.setRequestHeader(k, v));
+                x.upload.onprogress = e => { if (e.lengthComputable && e.total) { try { options.onProgress(e.loaded / e.total); } catch (er) {} } };
+                x.onload = () => resolve({ ok: x.status >= 200 && x.status < 300, status: x.status, json: async () => JSON.parse(x.responseText) });
+                x.onerror = x.onabort = x.ontimeout = () => reject(new TypeError('Failed to fetch'));
+                x.send(options.body);
+            });
+        }
         async function fetchUploadWithRetry(url, options) {
+            const send = () => (options && typeof options.onProgress === 'function') ? _xhrUpload(url, options) : fetch(url, options);
             let response = null;
             try {
-                response = await fetch(url, options);
+                response = await send();
             } catch (netErr) {
                 console.warn('업로드 요청 실패 → 2초 후 다시 시도:', netErr);
             }
             if (response && response.status !== 429 && response.status < 500) return response;
             await new Promise(r => setTimeout(r, 2000));
-            return fetch(url, options);
+            return send();
         }
 
-        async function uploadFileToDrive(folderId, blob, fileName, mimeType) {
+        async function uploadFileToDrive(folderId, blob, fileName, mimeType, onProgress) {
             try {
                 const form = new FormData();
                 form.append('metadata', new Blob([JSON.stringify({
@@ -3600,7 +3615,8 @@ body.light-mode .card.reference-info {
                     headers: {
                         'Authorization': 'Bearer ' + accessToken
                     },
-                    body: form
+                    body: form,
+                    onProgress: onProgress // ✅ 패치 70: 사진 ZIP 만 (진행바)
                 });
 
                 if (!response.ok) {
@@ -4441,7 +4457,7 @@ body.light-mode .card.reference-info {
                             
                             showToast('📤 사진 ZIP 업로드 중...');
                             const zipFileName = `${projectName}_사진.zip`;
-                            await uploadFileToDrive(projectFolderId, zipBlob, zipFileName, 'application/zip');
+                            await uploadFileToDrive(projectFolderId, zipBlob, zipFileName, 'application/zip', window._upProgFrac);
                         } catch (zipError) {
                             console.error('ZIP 생성/업로드 실패:', zipError);
                             failedParts.push('사진 ZIP');
@@ -4860,7 +4876,7 @@ body.light-mode .card.reference-info {
                         
                         showToast('📤 사진 ZIP 업로드 중...');
                         const zipFileName = `${projectName}_사진.zip`;
-                        await uploadFileToDrive(projectFolderId, zipBlob, zipFileName, 'application/zip');
+                        await uploadFileToDrive(projectFolderId, zipBlob, zipFileName, 'application/zip', window._upProgFrac);
                         
                     } catch (zipError) {
                         console.error('ZIP 생성/업로드 실패:', zipError);
@@ -6185,6 +6201,7 @@ body.light-mode .card.reference-info {
 
         // 진행률 업데이트
         function updateProgress() {
+            try { if (window._mgrSteps) window._mgrSteps(); } catch (e) {} // ✅ 패치 70
             let progress = 0;
             const weights = {
                 project: 20,
@@ -6334,7 +6351,68 @@ body.light-mode .card.reference-info {
             return d && !isNaN(d) ? '<span style="font-size: 11px; font-weight: 700; color: #93c5fd; white-space: nowrap;">📩 ' + (d.getMonth() + 1) + '/' + d.getDate() + ' ' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0') + '</span>'
                 : '<span style="font-size: 11px; font-weight: 800; color: #fca5a5; white-space: nowrap;">📩 문자 전</span>';
         }
+        // ✅ 패치 70: 매니저 순서 카드 — 끝난 단계 ✓(초록), 지금 할 단계만 빨간 번호·테두리, 나머지 회색
+        window._mgrSteps = function() {
+            const p = (typeof getCurrentProject === 'function') ? getCurrentProject() : null;
+            const up = !!p && isUploadUpToDate(p);
+            // 1: 업로드가 '장비 있음'으로 치는 것과 같은 기준 (사진 하나라도) — 빈 장비 칸만 만든 세대는 아직
+            const eq = !!p && (p.equipment || []).some(e => (e.photos && typeof e.photos === 'object') ? Object.values(e.photos).some(x => x !== null) : e.photo);
+            // 3: 이번 저장 뒤에 문자를 열었는지 (예전 저장 때 보낸 것은 안 침) · 링크 없는 세대는 알 수 없음 → null(회색)
+            const sent = up && p._rptLink ? !!p._rptSentAt && p._rptSentAt > (p.uploadedAt || '') : up ? null : false;
+            const done = [eq || up, up, sent];
+            const next = done.indexOf(false);
+            ['mgrStep1', 'driveUploadBtn', 'mgrStep3'].forEach((id, i) => {
+                const el = document.getElementById(id), n = el && el.querySelector('.mgr-n');
+                if (!n) return;
+                el.style.outline = i === next ? '2px solid #D23B3B' : '';
+                el.style.outlineOffset = '-2px';
+                n.textContent = done[i] === true ? '✓' : String(i + 1);
+                n.style.background = done[i] === true ? '#16a34a' : i === next ? '#D23B3B' : '#6b7280';
+            });
+        };
+        // ✅ 패치 70: 드라이브 저장 진행바 — '📁 폴더 생성'(저장 시작)부터 단계 안내를 따라 채움, 줄지 않음
+        // 장비만 세대: 3 → 5 → 35 → 75 → 85 / 하자 세대: 3 → 5 → 35·40 → 50 → 75 → 85 / 사진 ZIP 전송은 실제 보낸 양으로 85 → 99
+        (function() {
+            const ST = [[/폴더 생성 중/, 3], [/PDF 보고서 생성 중/, 5], [/PDF 업로드 중/, 35], [/엑셀 파일 생성 중/, 40], [/장비점검 보고서 생성 중/, 5],
+                [/장비점검 보고서 업로드 중/, 35], [/엑셀 업로드 중/, 50], [/사진 ZIP 생성 중/, 75], [/사진 ZIP 업로드 중/, 85]];
+            let pct = -1, timer = null, real = false, def = false; // def: 하자 세대(📄 PDF 보고서 생성이 옴) — 장비만 세대는 엑셀 단계(40·50)가 없음
+            const paint = t => {
+                const b = document.getElementById('loadingProg');
+                if (!b) return;
+                b.style.display = 'block';
+                b.querySelector('i').style.width = pct + '%';
+                b.querySelector('b').textContent = Math.floor(pct) + '%';
+                if (t) b.querySelector('span').textContent = t;
+            };
+            window._upProg = function(msg) {
+                msg = String(msg);
+                const i = ST.findIndex(s => s[0].test(msg));
+                if (i < 0 || (i > 0 && pct < 0)) return; // 다른 작업(PDF만 받기 등)에서는 안 뜸
+                if (i === 0) { pct = 0; real = false; def = false; }
+                if (i === 1) def = true;
+                pct = Math.max(pct, ST[i][1]);
+                paint(msg.replace(/\.+$/, ''));
+                // ponytail: 단계 사이는 시간으로 다음 단계 직전까지 천천히 (사진 ZIP 전송만 실제 바이트)
+                if (!timer) timer = setInterval(() => {
+                    if (real) return;
+                    const cap = Math.min(100, ...ST.map(s => s[1]).filter(v => v > pct && (def || (v !== 40 && v !== 50)))) - 1;
+                    if (pct < cap) { pct = Math.min(cap, pct + Math.max(0.2, (cap - pct) * 0.04)); paint(); }
+                }, 700);
+            };
+            window._upProgFrac = function(f) { // 사진 ZIP 전송 진행률 0~1 → 85~99%
+                if (pct < 0) return;
+                real = true;
+                pct = Math.max(pct, 85 + 14 * Math.min(1, Math.max(0, f)));
+                paint();
+            };
+            window._upProgEnd = function() {
+                pct = -1; real = false; clearInterval(timer); timer = null;
+                const b = document.getElementById('loadingProg');
+                if (b) b.style.display = 'none';
+            };
+        })();
         function _rptBtnState() {
+            try { window._mgrSteps(); } catch (e) {}
             const el = document.getElementById('resendReportState');
             if (!el) return;
             const p = (typeof getCurrentProject === 'function') ? getCurrentProject() : null, d = p && p._rptSentAt ? new Date(p._rptSentAt) : null;
@@ -7254,7 +7332,7 @@ body.light-mode .card.reference-info {
                 if (!box) return;
                 const msg = (t, bad) => '<div class="adm-msg' + (bad ? ' adm-err' : '') + '">' + t + '</div>';
                 let h = '<button type="button" class="btn btn-secondary" data-sd="toggle" style="display:flex;align-items:center;gap:10px;width:100%;text-align:left;">'
-                    + '<span style="font-size:22px;">📩</span><span style="flex:1;"><b style="font-size:15px;">하자접수 완료 문자</b><br><small style="color:var(--text-secondary);">접수 끝난 고객에게 · 지난 ' + SD_DAYS + '일</small></span><span>' + (sd.open ? '▲' : '▼') + '</span></button>';
+                    + '<span style="font-size:22px;">📩</span><span style="flex:1;"><b style="font-size:15px;">하자접수 완료 문자</b> <small style="font-size:11.5px;font-weight:600;color:var(--text-secondary);">(하자접수자만 사용)</small><br><small style="color:var(--text-secondary);">접수 끝난 고객에게 · 지난 ' + SD_DAYS + '일</small></span><span>' + (sd.open ? '▲' : '▼') + '</span></button>';
                 if (sd.open) {
                     if (!accessToken) h += msg('위 🔐 로그인(구글)을 먼저 해 주세요.');
                     else if (sd.loading) h += msg('⏳ 모바일접수대행 시트 불러오는 중...');
@@ -7692,6 +7770,7 @@ body.light-mode .card.reference-info {
         // Toast 메시지
         // ✅ 타입별 색상 지원: 'success'(초록), 'error'(빨강), 'warning'(주황), 'info'(파랑)
         function showToast(message, type = 'success') {
+            try { if (window._upProg) window._upProg(message); } catch (e) {} // ✅ 패치 70: 드라이브 저장 단계 → 진행바
             try { if (window.__thErrLog && /^\s*(❌|⚠)|실패|오류/.test(String(message)) && !/^\s*📶/.test(String(message))) window.__thErrLog.add('toast', String(message), ''); } catch (e) {}
             const toast = document.getElementById('toast');
             toast.textContent = message;
@@ -7719,6 +7798,7 @@ body.light-mode .card.reference-info {
         }
 
         function hideLoading() {
+            try { if (window._upProgEnd) window._upProgEnd(); } catch (e) {} // ✅ 패치 70
             document.getElementById('loading').classList.remove('active');
         }
 
@@ -15795,7 +15875,7 @@ body.light-mode .card.reference-info {
     }
     
     // ✅ 패치 69: 새 배포 확인 — 이 화면의 판 번호(APP_BUILD) vs 사이트의 version.json(정식)·version-test.json(테스트)
-    const APP_BUILD = '9398d341eac3'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
+    const APP_BUILD = 'b66d49fda002'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
     (function() {
         const url = /index-unified-test\.html$/.test(location.pathname) ? 'version-test.json' : 'version.json';
         let busy = false;
