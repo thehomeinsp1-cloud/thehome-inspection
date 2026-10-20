@@ -1212,55 +1212,75 @@ body.light-mode .et-pill.sent{border-color:rgba(21,128,61,.55); color:#15803D; b
 </style>
 <style>
 /* ✅ 관리자 탭 (패치 59) */
-#admin .adm-h{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:4px}
-#admin .adm-h h2{margin:0}
-#admin .adm-sub{font-size:12px; color:var(--text-secondary); margin-bottom:12px}
-#admin .adm-re{flex:none; min-height:36px; padding:0 12px; border-radius:18px; border:1px solid var(--a-line-strong,#62708C); background:var(--a-raised,#212C42); color:var(--a-ink,#F1F4F9); font-size:12.5px; font-weight:800; font-family:inherit}
-#admin .adm-msg{font-size:14px; line-height:1.6; color:var(--text-secondary); padding:10px 0}
-#admin .adm-err{color:#f59e0b; font-weight:700}
-#admin .adm-step{font-size:13px; font-weight:800; color:var(--a-ink,#F1F4F9); margin:14px 0 8px; display:flex; justify-content:space-between; align-items:baseline; gap:8px}
-#admin .adm-step small{font-size:12px; font-weight:600; color:var(--text-secondary)}
-#admin .adm-kinds{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:6px}
-#admin .adm-kind{min-height:52px; border-radius:10px; border:1px solid var(--a-line,#2A3550); background:var(--a-sunken,#0F1726); color:var(--a-ink,#F1F4F9); font-size:12.5px; font-weight:700; line-height:1.25; padding:6px 4px; font-family:inherit}
-#admin .adm-kind span{display:block; font-size:10.5px; font-weight:600; color:var(--text-secondary); margin-top:2px}
-#admin .adm-kind.wide{grid-column:1 / -1; min-height:46px}
-#admin .adm-kind.on{background:var(--a-ink,#F1F4F9); color:var(--a-on-ink,#141D2E); border-color:var(--a-ink,#F1F4F9)}
-#admin .adm-kind.on span{color:var(--a-on-ink,#141D2E); opacity:.75}
-#admin .adm-sel{display:block; width:100%; box-sizing:border-box; min-height:46px; padding:0 12px; border-radius:10px; border:1px solid var(--a-line-strong,#62708C); background:var(--a-sunken,#0F1726); color:var(--a-ink,#F1F4F9); font-size:15px; font-weight:700; margin-bottom:6px; font-family:inherit}
-#admin .adm-dates{display:flex; gap:6px; align-items:center}
-#admin .adm-dates .adm-sel{flex:1; min-width:0; font-size:14px}
-#admin input[type=date].adm-sel{color-scheme:dark; -webkit-appearance:none; appearance:none; line-height:46px}
-body.light-mode #admin input[type=date].adm-sel{color-scheme:light}
-#admin .adm-hint{font-size:12px; color:var(--text-secondary); margin:2px 0 6px; line-height:1.4}
-#admin .adm-hint b{color:var(--a-ink,#F1F4F9)}
-#admin .adm-days{display:grid; grid-template-columns:repeat(3,1fr); gap:6px; margin-bottom:8px}
-#admin .adm-day{min-height:40px; border-radius:10px; border:1px solid var(--a-line,#2A3550); background:var(--a-sunken,#0F1726); color:var(--a-ink,#F1F4F9); font-size:13.5px; font-weight:700; font-family:inherit; font-variant-numeric:tabular-nums}
-#admin .adm-day.on{background:var(--a-ink,#F1F4F9); color:var(--a-on-ink,#141D2E); border-color:var(--a-ink,#F1F4F9)}
-#admin .adm-bar{height:6px; border-radius:3px; background:var(--a-line,#2A3550); overflow:hidden; margin-bottom:8px}
-#admin .adm-bar i{display:block; height:100%; background:#4ade80}
-#admin .adm-row{display:flex; align-items:center; gap:10px; padding:10px 0; border-top:1px solid var(--a-line,#2A3550)}
-#admin .adm-row .t{flex:none; width:44px; font-size:12.5px; font-weight:800; color:var(--text-secondary); font-variant-numeric:tabular-nums}
-#admin .adm-row .w{flex:1; min-width:0; line-height:1.3}
-#admin .adm-row .w b{display:block; font-size:15px; color:var(--a-ink,#F1F4F9)}
-#admin .adm-row .w small{display:block; font-size:12px; color:var(--text-secondary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
-#admin .warn{color:#f59e0b; font-weight:700}
-#admin .adm-send{flex:none; min-height:40px; padding:0 12px; border-radius:20px; border:none; background:#D23B3B; color:#fff; font-size:13px; font-weight:800; font-family:inherit; white-space:nowrap}
-#admin .adm-done{flex:none; min-height:36px; padding:0 10px; border-radius:18px; border:1px solid rgba(74,222,128,.7); color:#4ade80; background:rgba(74,222,128,.10); font-size:12.5px; font-weight:800; font-family:inherit; white-space:nowrap}
-#admin .adm-off{flex:none; min-height:36px; padding:0 10px; border-radius:18px; border:1px dashed var(--a-line-strong,#62708C); color:var(--text-secondary); background:transparent; font-size:12px; font-weight:700; font-family:inherit; white-space:nowrap}
-#admin .adm-next{width:100%; min-height:52px; margin-top:12px; border:none; border-radius:12px; background:#D23B3B; color:#fff; font-size:16px; font-weight:800; font-family:inherit}
-#admin .adm-sum{display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:6px; margin-bottom:2px}
-#admin .adm-chip{min-height:56px; border-radius:10px; border:1px solid var(--a-line,#2A3550); background:var(--a-sunken,#0F1726); color:var(--text-secondary); font-size:11.5px; font-weight:700; font-family:inherit; padding:4px 2px; line-height:1.2}
-#admin .adm-chip b{display:block; font-size:19px; font-weight:800; color:var(--a-ink,#F1F4F9); font-variant-numeric:tabular-nums}
-#admin .adm-chip.hot{border-color:rgba(245,158,11,.7)}
-#admin .adm-chip.hot b{color:#f59e0b}
-body.light-mode #admin .adm-chip.hot b{color:#b45309}
-#admin .adm-row small.warn{white-space:normal}
-#admin .adm-grp{margin:12px 0 4px; padding:8px 10px; border-radius:8px; font-size:12.5px; line-height:1.5; color:var(--a-ink,#F1F4F9)}
-#admin .adm-grp.info{background:rgba(74,222,128,.10); border:1px solid rgba(74,222,128,.45)}
-#admin .adm-grp.ad{background:rgba(245,158,11,.12); border:1px solid rgba(245,158,11,.55)}
-body.light-mode #admin .adm-done{border-color:rgba(21,128,61,.55); color:#15803D; background:rgba(21,128,61,.08)}
-body.light-mode #admin .adm-bar i{background:#16a34a}
-body.light-mode #admin .warn, body.light-mode #admin .adm-err{color:#b45309}
+:is(#admin,#staffDone) .adm-h{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:4px}
+:is(#admin,#staffDone) .adm-h h2{margin:0}
+:is(#admin,#staffDone) .adm-sub{font-size:12px; color:var(--text-secondary); margin-bottom:12px}
+:is(#admin,#staffDone) .adm-re{flex:none; min-height:36px; padding:0 12px; border-radius:18px; border:1px solid var(--a-line-strong,#62708C); background:var(--a-raised,#212C42); color:var(--a-ink,#F1F4F9); font-size:12.5px; font-weight:800; font-family:inherit}
+:is(#admin,#staffDone) .adm-msg{font-size:14px; line-height:1.6; color:var(--text-secondary); padding:10px 0}
+:is(#admin,#staffDone) .adm-err{color:#f59e0b; font-weight:700}
+:is(#admin,#staffDone) .adm-step{font-size:13px; font-weight:800; color:var(--a-ink,#F1F4F9); margin:14px 0 8px; display:flex; justify-content:space-between; align-items:baseline; gap:8px}
+:is(#admin,#staffDone) .adm-step small{font-size:12px; font-weight:600; color:var(--text-secondary)}
+:is(#admin,#staffDone) .adm-kinds{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:6px}
+:is(#admin,#staffDone) .adm-kind{min-height:52px; border-radius:10px; border:1px solid var(--a-line,#2A3550); background:var(--a-sunken,#0F1726); color:var(--a-ink,#F1F4F9); font-size:12.5px; font-weight:700; line-height:1.25; padding:6px 4px; font-family:inherit}
+:is(#admin,#staffDone) .adm-kind span{display:block; font-size:10.5px; font-weight:600; color:var(--text-secondary); margin-top:2px}
+:is(#admin,#staffDone) .adm-kind.wide{grid-column:1 / -1; min-height:46px}
+:is(#admin,#staffDone) .adm-kind.on{background:var(--a-ink,#F1F4F9); color:var(--a-on-ink,#141D2E); border-color:var(--a-ink,#F1F4F9)}
+:is(#admin,#staffDone) .adm-kind.on span{color:var(--a-on-ink,#141D2E); opacity:.75}
+:is(#admin,#staffDone) .adm-sel{display:block; width:100%; box-sizing:border-box; min-height:46px; padding:0 12px; border-radius:10px; border:1px solid var(--a-line-strong,#62708C); background:var(--a-sunken,#0F1726); color:var(--a-ink,#F1F4F9); font-size:15px; font-weight:700; margin-bottom:6px; font-family:inherit}
+:is(#admin,#staffDone) .adm-dates{display:flex; gap:6px; align-items:center}
+:is(#admin,#staffDone) .adm-dates .adm-sel{flex:1; min-width:0; font-size:14px}
+:is(#admin,#staffDone) input[type=date].adm-sel{color-scheme:dark; -webkit-appearance:none; appearance:none; line-height:46px}
+body.light-mode :is(#admin,#staffDone) input[type=date].adm-sel{color-scheme:light}
+:is(#admin,#staffDone) .adm-hint{font-size:12px; color:var(--text-secondary); margin:2px 0 6px; line-height:1.4}
+:is(#admin,#staffDone) .adm-hint b{color:var(--a-ink,#F1F4F9)}
+:is(#admin,#staffDone) .adm-days{display:grid; grid-template-columns:repeat(3,1fr); gap:6px; margin-bottom:8px}
+:is(#admin,#staffDone) .adm-day{min-height:40px; border-radius:10px; border:1px solid var(--a-line,#2A3550); background:var(--a-sunken,#0F1726); color:var(--a-ink,#F1F4F9); font-size:13.5px; font-weight:700; font-family:inherit; font-variant-numeric:tabular-nums}
+:is(#admin,#staffDone) .adm-day.on{background:var(--a-ink,#F1F4F9); color:var(--a-on-ink,#141D2E); border-color:var(--a-ink,#F1F4F9)}
+:is(#admin,#staffDone) .adm-bar{height:6px; border-radius:3px; background:var(--a-line,#2A3550); overflow:hidden; margin-bottom:8px}
+:is(#admin,#staffDone) .adm-bar i{display:block; height:100%; background:#4ade80}
+:is(#admin,#staffDone) .adm-row{display:flex; align-items:center; gap:10px; padding:10px 0; border-top:1px solid var(--a-line,#2A3550)}
+:is(#admin,#staffDone) .adm-row .t{flex:none; width:44px; font-size:12.5px; font-weight:800; color:var(--text-secondary); font-variant-numeric:tabular-nums}
+:is(#admin,#staffDone) .adm-row .w{flex:1; min-width:0; line-height:1.3}
+:is(#admin,#staffDone) .adm-row .w b{display:block; font-size:15px; color:var(--a-ink,#F1F4F9)}
+:is(#admin,#staffDone) .adm-row .w small{display:block; font-size:12px; color:var(--text-secondary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+:is(#admin,#staffDone) .warn{color:#f59e0b; font-weight:700}
+:is(#admin,#staffDone) .adm-send{flex:none; min-height:40px; padding:0 12px; border-radius:20px; border:none; background:#D23B3B; color:#fff; font-size:13px; font-weight:800; font-family:inherit; white-space:nowrap}
+:is(#admin,#staffDone) .adm-done{flex:none; min-height:36px; padding:0 10px; border-radius:18px; border:1px solid rgba(74,222,128,.7); color:#4ade80; background:rgba(74,222,128,.10); font-size:12.5px; font-weight:800; font-family:inherit; white-space:nowrap}
+:is(#admin,#staffDone) .adm-fail{flex:none; min-height:36px; padding:0 10px; border-radius:18px; border:1px solid #f59e0b; color:#f59e0b; background:rgba(245,158,11,.12); font-size:12.5px; font-weight:800; font-family:inherit; white-space:nowrap}
+body.light-mode :is(#admin,#staffDone) .adm-fail{color:#b45309; border-color:#b45309}
+:is(#admin,#staffDone) .adm-off{flex:none; min-height:36px; padding:0 10px; border-radius:18px; border:1px dashed var(--a-line-strong,#62708C); color:var(--text-secondary); background:transparent; font-size:12px; font-weight:700; font-family:inherit; white-space:nowrap}
+:is(#admin,#staffDone) .adm-next{width:100%; min-height:52px; margin-top:12px; border:none; border-radius:12px; background:#D23B3B; color:#fff; font-size:16px; font-weight:800; font-family:inherit}
+:is(#admin,#staffDone) .adm-sum{display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:6px; margin-bottom:2px}
+:is(#admin,#staffDone) .adm-chip{min-height:56px; border-radius:10px; border:1px solid var(--a-line,#2A3550); background:var(--a-sunken,#0F1726); color:var(--text-secondary); font-size:11.5px; font-weight:700; font-family:inherit; padding:4px 2px; line-height:1.2}
+:is(#admin,#staffDone) .adm-chip b{display:block; font-size:19px; font-weight:800; color:var(--a-ink,#F1F4F9); font-variant-numeric:tabular-nums}
+:is(#admin,#staffDone) .adm-chip.hot{border-color:rgba(245,158,11,.7)}
+:is(#admin,#staffDone) .adm-chip.hot b{color:#f59e0b}
+body.light-mode :is(#admin,#staffDone) .adm-chip.hot b{color:#b45309}
+:is(#admin,#staffDone) .adm-row small.warn{white-space:normal}
+:is(#admin,#staffDone) .adm-grp{margin:12px 0 4px; padding:8px 10px; border-radius:8px; font-size:12.5px; line-height:1.5; color:var(--a-ink,#F1F4F9)}
+:is(#admin,#staffDone) .adm-grp.info{background:rgba(74,222,128,.10); border:1px solid rgba(74,222,128,.45)}
+:is(#admin,#staffDone) .adm-grp.ad{background:rgba(245,158,11,.12); border:1px solid rgba(245,158,11,.55)}
+body.light-mode :is(#admin,#staffDone) .adm-done{border-color:rgba(21,128,61,.55); color:#15803D; background:rgba(21,128,61,.08)}
+body.light-mode :is(#admin,#staffDone) .adm-bar i{background:#16a34a}
+body.light-mode :is(#admin,#staffDone) .warn, body.light-mode :is(#admin,#staffDone) .adm-err{color:#b45309}
+#staffDone .adm-re{min-height:46px}
+</style>
+<style>
+/* ✅ 프리랜서 계약서 (패치 64) */
+#contractCard .ct-doc{max-height:46vh; overflow:auto; margin:12px 0 4px; padding:12px 14px; border:1px solid var(--a-line,#2A3550); border-radius:10px; background:var(--a-sunken,#0F1726); color:var(--a-ink,#F1F4F9); font-size:13px; line-height:1.65; word-break:keep-all}
+#contractCard .ct-step{font-size:13px; font-weight:800; color:var(--a-ink,#F1F4F9); margin:14px 0 6px; display:flex; align-items:center; gap:8px}
+#contractCard .ct-step small{font-weight:600; color:var(--text-secondary)}
+#contractCard .ct-l{display:block; font-size:12px; font-weight:700; color:var(--text-secondary); margin-bottom:8px}
+#contractCard .ct-i{display:block; width:100%; box-sizing:border-box; min-height:44px; margin-top:4px; padding:0 12px; border-radius:10px; border:1px solid var(--a-line-strong,#62708C); background:var(--a-sunken,#0F1726); color:var(--a-ink,#F1F4F9); font-size:16px; font-family:inherit}
+#contractCard .ct-agree{display:flex; align-items:center; gap:8px; font-size:14px; font-weight:700; color:var(--a-ink,#F1F4F9); margin:6px 0}
+#contractCard .ct-agree input{width:20px; height:20px; flex:none}
+#contractCard .ct-pad{display:block; width:100%; height:150px; box-sizing:border-box; border-radius:10px; border:2px dashed var(--a-line-strong,#62708C); background:#fff; touch-action:none}
+#contractCard .ct-clear{margin-left:auto; min-height:32px; padding:0 12px; border-radius:16px; border:1px solid var(--a-line-strong,#62708C); background:transparent; color:var(--a-ink,#F1F4F9); font-size:12.5px; font-weight:700; font-family:inherit}
+#contractCard .ct-err{margin-top:8px; color:#f59e0b; font-weight:700; font-size:13.5px}
+#contractCard .ct-done{margin:12px 0 8px; font-weight:800; color:#4ade80}
+#contractCard .ct-hint{margin-top:8px; font-size:12.5px; color:var(--text-secondary); line-height:1.5}
+body.light-mode #contractCard .ct-err{color:#b45309}
+body.light-mode #contractCard .ct-done{color:#15803D}
 </style>
 <style id="designA">
 /* =====================================================================
@@ -1720,23 +1740,6 @@ body.light-mode .card.reference-info {
 .spinner { border-top-color: var(--a-red); }
 
 </style>
-<style>
-/* ✅ 프리랜서 계약서 (패치 64) */
-#contractCard .ct-doc{max-height:46vh; overflow:auto; margin:12px 0 4px; padding:12px 14px; border:1px solid var(--a-line,#2A3550); border-radius:10px; background:var(--a-sunken,#0F1726); color:var(--a-ink,#F1F4F9); font-size:13px; line-height:1.65; word-break:keep-all}
-#contractCard .ct-step{font-size:13px; font-weight:800; color:var(--a-ink,#F1F4F9); margin:14px 0 6px; display:flex; align-items:center; gap:8px}
-#contractCard .ct-step small{font-weight:600; color:var(--text-secondary)}
-#contractCard .ct-l{display:block; font-size:12px; font-weight:700; color:var(--text-secondary); margin-bottom:8px}
-#contractCard .ct-i{display:block; width:100%; box-sizing:border-box; min-height:44px; margin-top:4px; padding:0 12px; border-radius:10px; border:1px solid var(--a-line-strong,#62708C); background:var(--a-sunken,#0F1726); color:var(--a-ink,#F1F4F9); font-size:16px; font-family:inherit}
-#contractCard .ct-agree{display:flex; align-items:center; gap:8px; font-size:14px; font-weight:700; color:var(--a-ink,#F1F4F9); margin:6px 0}
-#contractCard .ct-agree input{width:20px; height:20px; flex:none}
-#contractCard .ct-pad{display:block; width:100%; height:150px; box-sizing:border-box; border-radius:10px; border:2px dashed var(--a-line-strong,#62708C); background:#fff; touch-action:none}
-#contractCard .ct-clear{margin-left:auto; min-height:32px; padding:0 12px; border-radius:16px; border:1px solid var(--a-line-strong,#62708C); background:transparent; color:var(--a-ink,#F1F4F9); font-size:12.5px; font-weight:700; font-family:inherit}
-#contractCard .ct-err{margin-top:8px; color:#f59e0b; font-weight:700; font-size:13.5px}
-#contractCard .ct-done{margin:12px 0 8px; font-weight:800; color:#4ade80}
-#contractCard .ct-hint{margin-top:8px; font-size:12.5px; color:var(--text-secondary); line-height:1.5}
-body.light-mode #contractCard .ct-err{color:#b45309}
-body.light-mode #contractCard .ct-done{color:#15803D}
-</style>
 </head>
 <body>
     <!-- ==================== 저장 실패 띠 (setSaveFail로 표시, 누르면 해결 방법) ==================== -->
@@ -1860,7 +1863,7 @@ body.light-mode #contractCard .ct-done{color:#15803D}
         </button>
         
         <h1>🏠 더홈점검</h1>
-        <p id="appVersionTag">업데이트 2026.10.19</p>
+        <p id="appVersionTag">업데이트 2026.10.20</p>
     </div>
 
     <div class="container">
@@ -2105,6 +2108,9 @@ body.light-mode #contractCard .ct-done{color:#15803D}
                 <button class="btn btn-secondary" onclick="generatePDF()" style="width: 100%; font-size: 13.5px; min-height: 40px; padding: 8px 12px;">📄 PDF 보고서만 받기 (확인용 · 카톡으로 직접 보낼 때)</button>
                 <input type="file" id="equipmentImportInput" accept=".txt,.json,text/plain,application/json" style="display: none;" onchange="mergeEquipmentFile(this)">
             </div>
+
+            <!-- 📩 하자접수 완료 문자 (직원 모두 · 패치 59 admin-tab.inc.js sdRender) -->
+            <div class="card" id="staffDone" style="margin-bottom: 14px;"></div>
 
             <!-- 📁 기타 자료 -->
             <div class="card" style="margin-bottom: 14px;">
@@ -6392,6 +6398,7 @@ body.light-mode #contractCard .ct-done{color:#15803D}
             // 로그인 서버(Apps Script)가 남기는 기록 + 직원관리코드(이름·소속·상태만, PIN 칸은 읽지 않음) — 둘 다 대표님 계정 소유, 읽기만
             const LOG_SHEET = '1WVZXXrjPumWThhnonMYbQM4z_sYDgynfXU0gyFwDpI8', STAFF_SHEET = '1djnGAm8nlGbHgRuxxORGK-cqI_CTYOKrSwZuPtMzl2s';
             const SUB_SHEET = '1jfYZNb9aIsWY6nQOoHjSUE8a2NTGXoD1aPVrVzqRGO8'; // 더홈점검_모바일접수대행_공유 — 아이디·비밀번호 칸은 요청하지 않음 (필요한 칸만 골라 읽음)
+            const SUBURL = 'https://sheets.googleapis.com/v4/spreadsheets/' + SUB_SHEET;
             const MK = k => k === 'k8' ? 'k5' : k; // 미입금 목록은 정산(⑤)처럼 금액 확인·잔금 표시 (문자는 정중한 재안내 msgK8)
             const L = a => a.join('\n');
             const MSG = {
@@ -6468,7 +6475,7 @@ body.light-mode #contractCard .ct-done{color:#15803D}
                     '✅ 접수 ' + (r.cnt ? r.cnt + '건' : '완료') + (r.app ? ' · ' + r.app : ''), '',
                     '· ' + (r.app ? r.app + '(시공사 하자접수 시스템)' : '시공사 하자접수 시스템(앱)') + '에 접속하셔서 접수 내역을 꼭 확인해 주세요.',
                     '· 접수 사항이 누락되었거나 오류가 보이면 이 번호로 문자 남겨주세요.', '',
-                    '이용해 주셔서 감사합니다. 문의 010-9985-0128']);
+                    '궁금하신 점도 이 문자로 답장 주시면 됩니다. 이용해 주셔서 감사합니다.']); // 직원 휴대폰으로 보내므로 회사 번호 대신 보낸 번호로 (대표님 10-19)
             }
             function msgK7(r) {
                 const now = new Date(); now.setHours(0, 0, 0, 0);
@@ -6601,37 +6608,96 @@ body.light-mode #contractCard .ct-done{color:#15803D}
             }
 
             // 보고서 못 받은 고객: 드라이브의 '…_동_호_작성자_YYYY-MM-DD_하자점검보고서.pdf'(최근 45일) 이름을 읽어 동·호·날짜(±2일)로 맞춤 (읽기만)
-            // 하자접수 완료 고객: '모바일접수대행_YYYY' 탭에서 접수완료 체크된 지난 90일 (머리글 행을 찾아 필요한 칸만 읽음)
-            async function loadSub() {
-                const sget = path => gget('https://sheets.googleapis.com/v4/spreadsheets/' + SUB_SHEET + path);
-                const tabs = ((await sget('?fields=sheets.properties.title')).sheets || []).map(x => x.properties.title).filter(t => /^모바일접수대행_\d{4}$/.test(t)).sort();
-                if (!tabs.length) throw Object.assign(new Error('no tab'), { msg: "모바일접수대행 시트에서 '모바일접수대행_연도' 탭을 찾지 못했어요" });
-                // 머리글 행은 한 줄씩 읽다가 찾으면 멈춤 (여러 줄을 한 번에 읽으면 아래 고객 행의 아이디·비밀번호까지 받아짐)
-                const tab = tabs[tabs.length - 1];
-                let hr = -1, h = [];
-                for (let i = 1; i <= 8 && hr < 0; i++) {
-                    const row = (((await sget('/values/' + rq("'" + tab + "'!" + i + ':' + i))).values || [])[0] || []).map(norm);
-                    if (row.indexOf('현장명') >= 0) { hr = i - 1; h = row; }
-                }
-                const ix = n => h.indexOf(n);
-                const need = { site: ix('현장명'), day: ix('일'), dong: ix('동'), ho: ix('호수'), name: ix('이름'), phone: ix('연락처'), app: ix('시공사앱'), who: ix('접수담당'), cnt: ix('접수건수'), done: ix('접수완료'), iso: ix('날짜변환(자동)') };
-                if (['site', 'dong', 'ho', 'name', 'phone', 'done'].some(k => need[k] < 0)) throw Object.assign(new Error('head'), { msg: "'" + tab + "' 탭 머리글(현장명·동·호수·이름·연락처·접수완료)을 찾지 못했어요" });
-                const keys = Object.keys(need).filter(k => need[k] >= 0), start = hr + 2;
-                const bg = await sget('/values:batchGet?majorDimension=COLUMNS&' + keys.map(k => 'ranges=' + rq("'" + tab + "'!" + colL(need[k]) + start + ':' + colL(need[k]))).join('&'));
-                const C = {}; keys.forEach((k, j) => { C[k] = (((bg.valueRanges || [])[j] || {}).values || [])[0] || []; });
-                const n = Math.max.apply(null, keys.map(k => C[k].length)), y0 = parseInt(tab.slice(-4), 10), out = [];
+            // 하자접수 완료 고객: '모바일접수대행_YYYY' 탭(해가 바뀌어도 12월 건이 보이게 마지막 두 해)에서 접수완료 체크된 지난 90일
+            // 머리글 행은 A열(현장명)만 읽어 찾고 그 한 줄만 읽음. 고객 행을 줄째로 받으면 아이디·비밀번호 칸까지 오므로 고객 행은 필요한 칸(열)만
+            async function loadSub(days) {
+                days = days || 90; // 관리자 탭 90일, 직원 데이터 탭 3일
+                const sget = path => gget(SUBURL + path);
+                const all = ((await sget('?fields=sheets.properties.title')).sheets || []).map(x => x.properties.title).filter(t => /^모바일접수대행_\d{4}$/.test(t)).sort();
+                if (!all.length) throw Object.assign(new Error('no tab'), { msg: "모바일접수대행 시트에서 '모바일접수대행_연도' 탭을 찾지 못했어요" });
                 const now = new Date(); now.setHours(0, 0, 0, 0);
-                for (let i = 0; i < n; i++) {
-                    const g = k => String((C[k] || [])[i] == null ? '' : C[k][i]).trim();
-                    if (!g('site') || !/TRUE/i.test(g('done'))) continue;
-                    const a = /(\d{4})-(\d{1,2})-(\d{1,2})/.exec(g('iso')) || /(\d{4})\.\s*(\d{1,2})\.\s*(\d{1,2})/.exec(g('day'));
-                    const b = a ? null : /(?:(\d{4})\s*년\s*)?(\d{1,2})\s*월\s*(\d{1,2})\s*일/.exec(g('day'));
-                    const date = a ? new Date(+a[1], +a[2] - 1, +a[3]) : b ? new Date(b[1] ? +b[1] : y0, +b[2] - 1, +b[3]) : null;
-                    if (!date || date < now.getTime() - 90 * 86400000 || date > now) continue;
-                    out.push({ site: g('site').replace(/\s+/g, ' '), key: norm(g('site')), date: date, dong: g('dong'), ho: g('ho'), name: g('name').replace(/\s*\n\s*/g, ' / '),
-                        phones: phonesOf(g('phone')), app: g('app'), who: g('who'), cnt: num(g('cnt')) });
+                const from = now.getTime() - days * 86400000;
+                // 보는 기간이 지난해로 넘어갈 때만(1월 초) 지난해 탭도 읽음 — 평소엔 올해 탭 하나 (요청 4번)
+                const tabs = all.slice(new Date(from).getFullYear() < parseInt(all[all.length - 1].slice(-4), 10) ? -2 : -1);
+                const out = [];
+                let newest = null;
+                for (const tab of tabs) {
+                    const head = ((await sget('/values/' + rq("'" + tab + "'!A1:A8"))).values || []).map(x => norm((x || [])[0])).indexOf('현장명') + 1;
+                    if (!head) continue;
+                    const h = (((await sget('/values/' + rq("'" + tab + "'!" + head + ':' + head))).values || [])[0] || []).map(norm);
+                    const ix = n => h.indexOf(n);
+                    const need = { site: ix('현장명'), day: ix('일'), dong: ix('동'), ho: ix('호수'), name: ix('이름'), phone: ix('연락처'), app: ix('시공사앱'), who: ix('접수담당'), cnt: ix('접수건수'), done: ix('접수완료'), iso: ix('날짜변환(자동)'),
+                        sent: ix('완료문자') }; // 완료문자: 대표님이 맨 끝에 추가한 칸 — 보내면 '10/19 14:05 김기홍' 기록 (없으면 보냄 표시는 휴대폰에만)
+                    if (['site', 'dong', 'ho', 'name', 'phone', 'done'].some(k => need[k] < 0)) continue;
+                    const T = { tab: tab, cols: need, head: head }; // 행마다 붙여 둠 → 확인·기록은 그 행의 탭·칸으로
+                    newest = T;
+                    const keys = Object.keys(need).filter(k => need[k] >= 0), start = head + 1;
+                    const bg = await sget('/values:batchGet?majorDimension=COLUMNS&' + keys.map(k => 'ranges=' + rq("'" + tab + "'!" + colL(need[k]) + start + ':' + colL(need[k]))).join('&'));
+                    const C = {}; keys.forEach((k, j) => { C[k] = (((bg.valueRanges || [])[j] || {}).values || [])[0] || []; });
+                    const n = Math.max.apply(null, keys.map(k => C[k].length)), y0 = parseInt(tab.slice(-4), 10);
+                    for (let i = 0; i < n; i++) {
+                        const g = k => String((C[k] || [])[i] == null ? '' : C[k][i]).trim();
+                        if (!g('site') || !/TRUE/i.test(g('done'))) continue;
+                        const a = /(\d{4})-(\d{1,2})-(\d{1,2})/.exec(g('iso')) || /(\d{4})\.\s*(\d{1,2})\.\s*(\d{1,2})/.exec(g('day'));
+                        const b = a ? null : /(?:(\d{4})\s*년\s*)?(\d{1,2})\s*월\s*(\d{1,2})\s*일/.exec(g('day'));
+                        let date = a ? new Date(+a[1], +a[2] - 1, +a[3]) : b ? new Date(b[1] ? +b[1] : y0, +b[2] - 1, +b[3]) : null;
+                        if (b && !b[1] && date > now) date = new Date(y0 - 1, +b[2] - 1, +b[3]); // 새해 탭에 연도 없이 적은 12월 → 지난해
+                        if (!date || date < from || date > now) continue;
+                        out.push({ site: g('site').replace(/\s+/g, ' '), key: norm(g('site')), date: date, dong: g('dong'), ho: g('ho'), name: g('name').replace(/\s*\n\s*/g, ' / '),
+                            phones: phonesOf(g('phone')), app: g('app'), who: g('who'), cnt: num(g('cnt')), row: start + i, mark: g('sent'), t: T });
+                    }
                 }
-                return { rows: out.sort((x, z) => z.date - x.date) };
+                if (!newest) throw Object.assign(new Error('head'), { msg: "'" + tabs[tabs.length - 1] + "' 탭 머리글(현장명·동·호수·이름·연락처·접수완료)을 찾지 못했어요" });
+                return { rows: out.sort((x, z) => z.date - x.date), hasMark: newest.cols.sent >= 0 };
+            }
+            const hasSubMark = r => !!(r.t && r.t.cols.sent >= 0);
+            const shortMark = m => String(m).replace(/\s\d{1,2}:\d{2}(?=\s)/, ''); // 버튼엔 '10/18 이조왕'
+            // 보내기 전·기록 직전에 그 행을 다시 읽어 같은 고객인지(행 밀림)·칸 위치가 그대로인지(머리글)·누가 이미 보냈는지 확인 — 그 칸들만 읽음
+            const SUB_HEAD = { site: '현장명', dong: '동', ho: '호수', name: '이름', sent: '완료문자' };
+            async function subCheck(r) {
+                const T = r.t, ks = Object.keys(SUB_HEAD).filter(k => T.cols[k] >= 0);
+                const rg = ks.map(k => colL(T.cols[k]) + r.row).concat(ks.map(k => colL(T.cols[k]) + T.head));
+                const bg = await gget(SUBURL + '/values:batchGet?majorDimension=COLUMNS&' + rg.map(x => 'ranges=' + rq("'" + T.tab + "'!" + x)).join('&'));
+                const cell = j => { const x = (((bg.valueRanges || [])[j] || {}).values || [])[0] || []; return String(x[0] == null ? '' : x[0]).trim(); };
+                const v = {};
+                ks.forEach((k, j) => { v[k] = cell(j); });
+                if (ks.some((k, j) => norm(cell(ks.length + j)) !== SUB_HEAD[k]) || norm(v.site) !== r.key || v.dong !== r.dong || v.ho !== r.ho || v.name.replace(/\s*\n\s*/g, ' / ') !== r.name)
+                    throw Object.assign(new Error('moved'), { msg: '그사이 시트가 바뀌었어요. ↻ 다시 불러온 뒤 보내 주세요.' });
+                return v.sent || '';
+            }
+            // 완료문자 칸에 쓰기 — 쓰기 직전에 다시 확인 (미리보기를 보는 사이 행·칸이 바뀌었으면 쓰지 않음). 문자앱으로 넘어가도 끝나도록 keepalive
+            const putSub = (r, txt) => subCheck(r).then(() => fetch(SUBURL + '/values/' + rq("'" + r.t.tab + "'!" + colL(r.t.cols.sent) + r.row) + '?valueInputOption=RAW', { method: 'PUT', keepalive: true,
+                headers: { Authorization: 'Bearer ' + accessToken, 'Content-Type': 'application/json' }, body: JSON.stringify({ values: [[txt]] }) }))
+                .then(res => { if (!res.ok) throw Object.assign(new Error('google ' + res.status), { status: res.status }); });
+            // 보냄 기록 '10/19 14:05 이름'. 실패하면 그 행에 '⚠ 기록 실패 · 다시' (문자앱에 가 있는 동안 뜬 알림은 못 볼 수 있어 행에 남김)
+            function markSub(r, who, done) {
+                const d = new Date(), prev = r.mark, txt = (d.getMonth() + 1) + '/' + d.getDate() + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + ' ' + who;
+                r.mark = txt; r.markFail = false;
+                putSub(r, txt).catch(() => { r.mark = prev; r.markFail = true; showToast('시트에 보냄 기록을 못 남겼어요 — 목록의 ⚠ 버튼으로 다시 기록', 'warning'); })
+                    .then(() => { if (done) done(); });
+            }
+            const subErr = (e, def) => e && e.msg ? e.msg : e && e.status === 401 ? '구글 로그인이 만료됐어요. 다시 로그인해 주세요.'
+                : e && (e.status === 403 || e.status === 404) ? '이 구글 계정은 모바일접수대행 시트를 볼 수 없어요. 대표님께 공유를 요청해 주세요.' : def;
+            const myName = () => { try { return String(JSON.parse(localStorage.getItem('dhLoginData') || '{}').name || '').trim(); } catch (e) { return ''; } };
+            const subKey = r => 'k10|' + r.key + '|' + dKey(r.date) + '|' + unitPart(r.dong, '동') + '|' + unitPart(r.ho, '호'); // 관리자 탭 하자접수 완료의 휴대폰 표시와 같은 열쇠
+            // 보내기 전 확인 (직원·관리자 공통): 행 확인 → 이미 보냈으면 '다시 보낼까요?' → 아니오면 (지울 수 있는 표시일 때) '표시를 지울까요?'
+            // 돌려주는 값: 'send' 보냄 / 'stop' 그만 / 'auth' 구글 로그인 만료
+            async function subBefore(r, mine) {
+                const clearLocal = () => { delete sent[subKey(r)]; lsSet(SENT_KEY, sent); };
+                if (!hasSubMark(r)) { // 시트에 완료문자 칸이 없으면 휴대폰 표시로만
+                    if (!sent[subKey(r)] || confirm('이 휴대폰에서 이미 보낸 고객이에요.\n다시 보낼까요?')) return 'send';
+                    if (confirm("그럼 '보냄' 표시를 지울까요?")) clearLocal();
+                    return 'stop';
+                }
+                let m;
+                try { m = await subCheck(r); } catch (e) { alert(subErr(e, '시트를 확인하지 못했어요. 인터넷 연결을 확인해 주세요.')); return e && e.status === 401 ? 'auth' : 'stop'; }
+                r.mark = m; r.markFail = false;
+                if (!m || confirm('이미 보낸 고객이에요 (' + m + ').\n다시 보낼까요?')) return 'send';
+                if (mine(m) && confirm("그럼 '보냄' 표시를 지울까요?\n(문자를 실제로 안 보냈을 때만)")) {
+                    try { await putSub(r, ''); r.mark = ''; clearLocal(); showToast('보냄 표시를 지웠어요'); }
+                    catch (e) { alert(subErr(e, '표시를 지우지 못했어요. 다시 시도해 주세요.')); }
+                }
+                return 'stop';
             }
             async function loadLogin() {
                 const sv = (id, rng, raw) => gget('https://sheets.googleapis.com/v4/spreadsheets/' + id + '/values/' + rq(rng) + (raw ? '?valueRenderOption=UNFORMATTED_VALUE&dateTimeRenderOption=SERIAL_NUMBER' : ''));
@@ -6687,10 +6753,15 @@ body.light-mode #contractCard .ct-done{color:#15803D}
                 return { day: day, on: on, issues: issues, unpaid: unpaid, soon: soon, noRep: noRep,
                     today: rows.filter(r => on(r, 0)).length, tom: rows.filter(r => on(r, 1)).length, week: rows.filter(r => within(r, 0, 6)).length };
             }
+            // 예약 안내문(k4, 대표님 10-20): 결재확인된 세대(점검 끝나고 정산까지 된 세대)·지난 날짜는 빼고, 단지는 시트에 예약이 적힌 순서대로
+            const k4Skip = (r, today) => r.paid || (r.date && r.date < today);
+            const rowOrder = r => r.tab + '|' + String(r.row).padStart(6, '0'); // 예약일정_2026 → _2027 순, 그 안은 행 순서
             function groups() {
-                const k6 = st.kind === 'k6', m = new Map();
+                const k6 = st.kind === 'k6', k4 = st.kind === 'k4', m = new Map();
+                const today = new Date(); today.setHours(0, 0, 0, 0);
                 data.rows.forEach(r => {
                     if (k6 && r.after) return;
+                    if (k4 && k4Skip(r, today)) return;
                     const key = k6 ? baseKey(r.site) : r.key;
                     let g = m.get(key);
                     if (!g) m.set(key, g = { key: key, name: k6 ? r.site.replace(/\s*\(사후\)\s*/g, '') : r.site, rows: [] });
@@ -6698,6 +6769,7 @@ body.light-mode #contractCard .ct-done{color:#15803D}
                 });
                 const now = new Date(); now.setHours(0, 0, 0, 0);
                 const gs = Array.from(m.values());
+                if (k4) return gs; // 처음 나온 행 순서 그대로 (Map 은 넣은 순서 유지, data.rows 는 시트 순서)
                 gs.forEach(g => { g.d = Math.min.apply(null, g.rows.map(r => r.date ? Math.abs(r.date - now) : 9e15)); });
                 return gs.sort((a, b) => a.d - b.d || a.name.localeCompare(b.name, 'ko'));
             }
@@ -6825,14 +6897,14 @@ body.light-mode #contractCard .ct-done{color:#15803D}
                     box.innerHTML = card(h);
                     return;
                 } else {
-                    h += '<div class="adm-step">② ' + (st.kind === 'k6' ? '단지 · 사후점검 지정일' : '단지 · 날짜') + '</div>';
+                    h += '<div class="adm-step">② ' + (st.kind === 'k6' ? '단지 · 사후점검 지정일' : '단지 · 날짜') + (st.kind === 'k4' ? ' <small>시트 순서 · 결재확인·지난 날짜 빼고</small>' : '') + '</div>';
                     h += '<select class="adm-sel" data-f="group">' + gs.map(x => '<option value="' + E(x.key) + '"' + (g && x.key === g.key ? ' selected' : '') + '>' + E(x.name) + ' (' + x.rows.length + ')</option>').join('') + '</select>';
                 }
                 if (cross) {} else if (g && st.kind !== 'k6') {
                     const ds = datesOf(g);
                     if (!ds.list.some(o => o.k === st.date)) st.date = ds.best;
                     h += '<select class="adm-sel" data-f="date">' + ds.list.map(o => '<option value="' + o.k + '"' + (o.k === st.date ? ' selected' : '') + '>' + dLabel(o.date) + ' · ' + o.n + '세대</option>').join('') + '</select>';
-                    cur = g.rows.filter(r => dKey(r.date) === st.date).sort((a, b) => tMin(a.time) - tMin(b.time));
+                    cur = g.rows.filter(r => dKey(r.date) === st.date).sort(st.kind === 'k4' ? (a, b) => rowOrder(a) < rowOrder(b) ? -1 : 1 : (a, b) => tMin(a.time) - tMin(b.time)); // 예약 안내문은 시트 순서
                 } else if (g) {
                     const v = k6in[g.key] || {}, picked = [v.d1, v.d2].filter(Boolean);
                     // 간편 선택: 내일부터 4주 화·수·목 (한 줄 = 한 주). 금~일이면 다음 주부터
@@ -6854,7 +6926,9 @@ body.light-mode #contractCard .ct-done{color:#15803D}
                     g.rows.forEach(r => { const uk = unitKey(r.site, r.dong, r.ho); if (!seen[uk]) { seen[uk] = 1; cur.push(Object.assign({}, r, { pkg: flagged.has(uk) || !!(data.pkg && data.pkg.has(uk)), booked: booked.has(uk) })); } });
                     cur.sort((a, b) => (b.pkg - a.pkg) || (num(a.dong) - num(b.dong)) || (num(a.ho) - num(b.ho)));
                 }
-                const done = cur.filter(r => sent[sentKey(r)]).length;
+                const subOn = r => st.kind === 'k10' && hasSubMark(r); // 하자접수 완료: 완료문자 칸이 있으면 시트 기준 (직원이 보낸 것 포함)
+                const isDone = r => subOn(r) ? !!r.mark : !!sent[sentKey(r)];
+                const done = cur.filter(isDone).length;
                 h += '<div class="adm-step">③ 보낼 고객 <small>' + cur.length + '명 중 ' + done + '명 보냄</small></div><div class="adm-bar"><i style="width:' + (cur.length ? Math.round(done * 100 / cur.length) : 0) + '%"></i></div>';
                 const row = (r, i) => {
                     const at = sent[sentKey(r)], lock = lockOf(r);
@@ -6867,7 +6941,9 @@ body.light-mode #contractCard .ct-done{color:#15803D}
                     if (st.kind === 'k6' && r.booked) info += ' · 사후 예약됨';
                     const left = st.kind === 'k6' ? '' : '<div class="t">' + (st.kind === 'k8' || st.kind === 'k10' ? E((r.date.getMonth() + 1) + '/' + r.date.getDate()) : E(r.time || '-')) + '</div>';
                     return '<div class="adm-row">' + left + '<div class="w"><b>' + E(dh(r)) + ' · ' + E(r.name || '이름 없음') + '</b>' + (cross ? '<small>' + E(r.site) + '</small>' : '') + '<small>' + info + '</small></div>'
-                        + (at ? '<button type="button" class="adm-done" data-act="unsent" data-i="' + i + '">' + sentLabel(at) + '</button>'
+                        + (subOn(r) && r.markFail ? '<button type="button" class="adm-fail" data-act="retry" data-i="' + i + '">⚠ 기록 실패 · 다시</button>'
+                            : subOn(r) && r.mark ? '<button type="button" class="adm-done" data-act="open" data-i="' + i + '">✓ ' + E(shortMark(r.mark)) + '</button>'
+                            : at && !subOn(r) ? '<button type="button" class="adm-done" data-act="unsent" data-i="' + i + '">' + sentLabel(at) + '</button>'
                             : lock ? '<button type="button" class="adm-off" disabled>' + E(lock) + '</button>'
                             : '<button type="button" class="adm-send" data-act="open" data-i="' + i + '">📩 보내기</button>') + '</div>';
                 };
@@ -6881,7 +6957,7 @@ body.light-mode #contractCard .ct-done{color:#15803D}
                 } else {
                     h += cur.map(row).join('') || '<div class="adm-msg">' + (st.kind === 'k8' ? '미입금 고객이 없어요 👍' : '이 날짜에 고객이 없어요.') + '</div>';
                 }
-                const nx = cur.findIndex(r => !sent[sentKey(r)] && !lockOf(r));
+                const nx = cur.findIndex(r => !isDone(r) && !lockOf(r));
                 if (nx >= 0) h += '<button type="button" class="adm-next" data-act="open" data-i="' + nx + '">▶ 다음 사람 보내기 (' + E(cur[nx].name || dh(cur[nx])) + ')</button>';
                 saveSt();
                 if (['k1', 'k2', 'k3'].indexOf(st.kind) >= 0) h += '<div class="adm-step">번호 직접 입력 <small>시트에 없는 고객</small></div><div class="adm-dates"><input class="adm-sel" data-f="direct" inputmode="tel" placeholder="010-0000-0000"><button type="button" class="adm-send" data-act="direct">📩 보내기</button></div>';
@@ -6913,19 +6989,19 @@ body.light-mode #contractCard .ct-done{color:#15803D}
                 return MSG[st.kind];
             }
             window._admGo = url => { window.location.href = url; };
-            function sheet(title, text, phones, onSent, src) {
+            function sheet(title, text, phones, onSent, src, label) { // label: 관리자 탭 밖(직원 데이터 탭)에서 쓸 때 제목
                 const old = document.getElementById('admSheet');
                 if (old) old.remove();
                 let pick = phones[0];
                 const n = Array.from(text).length;
-                const note = ({ k1: '점검서비스 안내 이미지는 문자앱에서 직접 첨부하세요.', k2: '명함·자주묻는질문 이미지는 문자앱에서 직접 첨부하세요.', k4: "시트의 '" + (src || '예약안내문') + "' 칸 그대로입니다." }[st.kind] || '')
+                const note = (label ? '' : { k1: '점검서비스 안내 이미지는 문자앱에서 직접 첨부하세요.', k2: '명함·자주묻는질문 이미지는 문자앱에서 직접 첨부하세요.', k4: "시트의 '" + (src || '예약안내문') + "' 칸 그대로입니다." }[st.kind] || '')
                     + (n > 1000 ? ' 1,000자가 넘어 채팅+가 아닌 일반 문자로는 잘릴 수 있어요(카톡 복사도 가능).' : '');
                 const w = document.createElement('div');
                 w.id = 'admSheet';
                 w.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;z-index:99990;background:rgba(13,20,32,0.55);display:flex;align-items:flex-end;';
                 w.innerHTML = '<div style="width:100%;max-width:480px;margin:0 auto;background:#fff;border-radius:16px 16px 0 0;overflow:hidden;color:#1f2733;padding-bottom:env(safe-area-inset-bottom,0px);">'
                     + '<div style="background:#141d2e;color:#fff;padding:12px 16px;border-bottom:3px solid #E84848;display:flex;justify-content:space-between;align-items:center;gap:10px;">'
-                    + '<div style="min-width:0;"><div style="font-size:11px;color:#8e98b2;font-weight:700;letter-spacing:.08em;">' + E((KINDS.find(k => k[0] === st.kind) || [])[1]) + ' · 미리보기</div><div style="font-size:16px;font-weight:800;">' + E(title) + '</div></div>'
+                    + '<div style="min-width:0;"><div style="font-size:11px;color:#8e98b2;font-weight:700;letter-spacing:.08em;">' + E(label || (KINDS.find(k => k[0] === st.kind) || [])[1]) + ' · 미리보기</div><div style="font-size:16px;font-weight:800;">' + E(title) + '</div></div>'
                     + '<button type="button" data-a="close" aria-label="닫기" style="flex:none;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.25);color:#fff;width:40px;height:40px;border-radius:50%;font-size:17px;">✕</button></div>'
                     + '<div style="padding:12px 16px 14px;">'
                     + '<div style="white-space:pre-wrap;word-break:break-all;font-size:13px;line-height:1.5;background:#f4f6f9;border:1px solid #e2e5ea;border-radius:10px;padding:10px 12px;max-height:38vh;overflow:auto;">' + E(text) + '</div>'
@@ -6933,7 +7009,7 @@ body.light-mode #contractCard .ct-done{color:#15803D}
                     + (phones.length > 1 ? '<div data-ph style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;">' + phones.map((p, i) => '<button type="button" data-a="ph" data-p="' + p + '" style="min-height:36px;padding:0 12px;border-radius:18px;border:1px solid ' + (i ? '#c9d0da;background:#fff;color:#141d2e' : '#141d2e;background:#141d2e;color:#fff') + ';font-size:13px;font-weight:700;">' + E(fmtPh(p)) + '</button>').join('') + '</div>' : '')
                     + '<button type="button" data-a="sms" style="width:100%;min-height:50px;margin-bottom:8px;border:none;border-radius:12px;background:#D23B3B;color:#fff;font-size:15.5px;font-weight:800;">📩 문자앱으로 보내기 (<span data-n>' + E(fmtPh(pick)) + '</span>)</button>'
                     + '<button type="button" data-a="copy" style="width:100%;min-height:44px;border:1px solid #c9d0da;border-radius:12px;background:#fff;color:#141d2e;font-size:14.5px;font-weight:700;">📋 복사 (카톡에 붙여넣기)</button>'
-                    + (onSent ? '<div style="font-size:12px;color:#5b6472;margin-top:8px;line-height:1.5;">누르면 \'✓ 보냄\'으로 표시돼요. 잘못 눌렀으면 목록의 초록 버튼을 누르면 지워집니다.</div>' : '')
+                    + (onSent ? '<div style="font-size:12px;color:#5b6472;margin-top:8px;line-height:1.5;">누르면 \'✓ 보냄\'으로 표시돼요. 잘못 눌렀으면 목록의 초록 버튼을 눌러 지울 수 있어요.</div>' : '')
                     + '</div></div>';
                 const close = () => { try { w.remove(); } catch (e) {} };
                 w.addEventListener('click', async e => {
@@ -6957,6 +7033,12 @@ body.light-mode #contractCard .ct-done{color:#15803D}
                 if (!r || lockOf(r)) return;
                 if (st.kind === 'k6') { const v = k6in[st.group] || {}; if (!v.d1) { alert('사후점검 지정일을 먼저 입력해 주세요.'); return; } }
                 const key = sentKey(r), kind = st.kind; // 시트를 읽는 사이 종류를 바꿔도 보냄 표시는 누른 종류로
+                if (kind === 'k10') { // 직원이 이미 보냈는지·행이 밀렸는지 시트에서 다시 확인 (직원 화면과 같은 확인)
+                    const go = await subBefore(r, () => true);
+                    if (go === 'auth') err = '구글 로그인이 만료됐어요. 다시 로그인해 주세요.';
+                    if (go !== 'send') { if (isAdmin) render(); return; }
+                    if (st.kind !== kind) return;
+                }
                 if (kind === 'k4') showToast('📄 예약안내문 불러오는 중...');
                 let text = '';
                 try { text = await textFor(r); }
@@ -6972,7 +7054,9 @@ body.light-mode #contractCard .ct-done{color:#15803D}
                     const now = new Date().toISOString(), k5 = 'k5' + key.slice(2);
                     sent[key] = now;
                     if (kind === 'k8' && !sent[k5]) sent[k5] = now; // 미입금 재안내(잔금·계좌 포함)를 보냈으면 정산 목록에도 표시 → 정산 문자 중복 방지
-                    lsSet(SENT_KEY, sent); render();
+                    lsSet(SENT_KEY, sent);
+                    if (kind === 'k10' && hasSubMark(r)) markSub(r, myName() || '대표', () => { if (isAdmin) render(); });
+                    render();
                 }, src);
             }
 
@@ -7009,6 +7093,80 @@ body.light-mode #contractCard .ct-done{color:#15803D}
                     e => { d.reports = { err: e && e.status === 401 ? '구글 로그인이 만료돼 보고서를 확인하지 못했어요.' : '드라이브 보고서를 확인하지 못했어요. ↻ 새로 불러오기로 다시 시도해 주세요.' }; })
                     .then(() => { if (data === d && isAdmin) render(); });
             }
+            // ── 직원용 (데이터 탭 '📩 하자접수 완료 문자', 대표님 10-19 B안) ──
+            //    접수담당은 그때그때 바뀌어 이름으로 거르지 않음 → 접수완료 체크된 지난 3일(점검일 기준, 대표님 10-19) 고객을 모든 직원에게 안 보낸 것·최근 순으로.
+            //    보내면 시트 완료문자 칸에 '10/19 14:05 이름' → 다른 직원·관리자 탭에도 보냄. 목록의 번호는 가운데를 가림
+            const SD_DAYS = 3;
+            const sd = { open: false, data: null, loading: false, err: '', site: '', email: '', cur: [] };
+            const maskPh = d => { const p = fmtPh(d), m = /^(\d{2,3})-\d{3,4}-(\d{4})$/.exec(p); return m ? m[1] + '-****-' + m[2] : p; };
+            function sdRender() {
+                const box = document.getElementById('staffDone');
+                if (!box) return;
+                const msg = (t, bad) => '<div class="adm-msg' + (bad ? ' adm-err' : '') + '">' + t + '</div>';
+                let h = '<button type="button" class="btn btn-secondary" data-sd="toggle" style="display:flex;align-items:center;gap:10px;width:100%;text-align:left;">'
+                    + '<span style="font-size:22px;">📩</span><span style="flex:1;"><b style="font-size:15px;">하자접수 완료 문자</b><br><small style="color:var(--text-secondary);">접수 끝난 고객에게 · 지난 ' + SD_DAYS + '일</small></span><span>' + (sd.open ? '▲' : '▼') + '</span></button>';
+                if (sd.open) {
+                    if (!accessToken) h += msg('위 🔐 로그인(구글)을 먼저 해 주세요.');
+                    else if (sd.loading) h += msg('⏳ 모바일접수대행 시트 불러오는 중...');
+                    else if (sd.err) h += msg(E(sd.err), true) + (/로그인/.test(sd.err) ? '<button type="button" class="btn btn-primary" data-sd="login" style="width:100%;">🔐 구글 다시 로그인</button>'
+                        : '<button type="button" class="adm-re" data-sd="reload">↻ 다시 불러오기</button>');
+                    else if (sd.data) {
+                        const rows = sd.data.rows, sites = [];
+                        rows.forEach(r => { if (sites.indexOf(r.site) < 0) sites.push(r.site); });
+                        if (sd.site && sites.indexOf(sd.site) < 0) sd.site = '';
+                        // 보냄: 완료문자 칸이 있으면 시트 기준(다른 직원이 보낸 것·지운 것 그대로), 없으면 이 휴대폰 표시
+                        const doneOf = r => r.markFail ? '' : hasSubMark(r) ? (r.mark ? '✓ ' + shortMark(r.mark) : '') : sent[subKey(r)] ? sentLabel(sent[subKey(r)]) : '';
+                        sd.cur = rows.filter(r => !sd.site || r.site === sd.site).sort((a, b) => (!!doneOf(a) - !!doneOf(b)) || (b.date - a.date));
+                        if (!sd.data.hasMark) h += '<div class="adm-grp ad">시트에 \'완료문자\' 칸이 없어 보냄 표시가 이 휴대폰에만 남아요. 대표님께 알려 주세요.</div>';
+                        h += '<div class="adm-dates" style="margin-top:10px;"><select class="adm-sel" data-sd="site" style="margin:0;"><option value="">전체 단지 (' + rows.length + '명)</option>'
+                            + sites.map(s => '<option value="' + E(s) + '"' + (s === sd.site ? ' selected' : '') + '>' + E(s) + '</option>').join('') + '</select><button type="button" class="adm-re" data-sd="reload" aria-label="다시 불러오기">↻</button></div>';
+                        h += '<div class="adm-step">보낼 고객 <small>' + sd.cur.length + '명 중 ' + sd.cur.filter(doneOf).length + '명 보냄</small></div>';
+                        h += sd.cur.map((r, i) => { const dn = doneOf(r);
+                            return '<div class="adm-row"><div class="t">' + E((r.date.getMonth() + 1) + '/' + r.date.getDate()) + '</div><div class="w"><b>' + E(dh(r)) + ' · ' + E(r.name || '이름 없음') + '</b><small>' + E(r.site) + '</small><small>'
+                                + (r.phones.length ? E(maskPh(r.phones[0])) : '<span class="warn">⚠ 연락처 없음</span>') + (r.app ? ' · ' + E(r.app) : '') + (r.cnt ? ' · 접수 ' + r.cnt + '건' : '') + (r.who ? ' · 담당 ' + E(r.who) : '') + '</small></div>'
+                                + (!r.phones.length ? '<button type="button" class="adm-off" disabled>연락처 없음</button>'
+                                    : r.markFail ? '<button type="button" class="adm-fail" data-sd="retry" data-i="' + i + '">⚠ 기록 실패 · 다시</button>'
+                                    : '<button type="button" class="' + (dn ? 'adm-done' : 'adm-send') + '" data-sd="send" data-i="' + i + '">' + (dn ? E(dn) : '📩 보내기') + '</button>') + '</div>'; }).join('')
+                            || msg('지난 ' + SD_DAYS + '일 접수완료 고객이 없어요.');
+                    }
+                }
+                box.innerHTML = h;
+            }
+            function sdLoad() {
+                if (!accessToken || sd.loading) return sdRender();
+                sd.loading = true; sd.err = ''; sd.email = currentUser && currentUser.email || ''; sdRender();
+                loadSub(SD_DAYS).then(s => { sd.data = s; }, e => { sd.data = null; sd.err = subErr(e, '모바일접수대행 시트를 불러오지 못했어요. 인터넷 연결을 확인해 주세요.'); })
+                    .then(() => { sd.loading = false; sdRender(); });
+            }
+            async function sdSend(i) {
+                const r = sd.cur[i];
+                if (!r || !r.phones.length) return;
+                const me = myName(), go = await subBefore(r, m => !!me && m.split(' ').pop() === me); // 표시 지우기는 내가 남긴 것만
+                if (go === 'auth') { sd.data = null; sd.err = '구글 로그인이 만료됐어요. 다시 로그인해 주세요.'; }
+                if (go !== 'send') return sdRender();
+                sheet(dh(r) + ' · ' + (r.name || ''), msgK10(r), r.phones, () => {
+                    sent[subKey(r)] = new Date().toISOString(); lsSet(SENT_KEY, sent);
+                    if (hasSubMark(r)) markSub(r, me || '직원', sdRender);
+                    sdRender();
+                }, '', '📩 하자접수 완료 안내');
+            }
+            document.addEventListener('DOMContentLoaded', () => {
+                const sbox = document.getElementById('staffDone');
+                if (!sbox) return;
+                sdRender();
+                sbox.addEventListener('click', e => {
+                    const b = e.target.closest && e.target.closest('[data-sd]');
+                    if (!b) return;
+                    const a = b.getAttribute('data-sd');
+                    if (a === 'toggle') { sd.open = !sd.open; if (sd.open && !sd.data && !sd.err) sdLoad(); else sdRender(); }
+                    else if (a === 'reload') sdLoad();
+                    else if (a === 'send') sdSend(+b.getAttribute('data-i'));
+                    else if (a === 'retry') { const r = sd.cur[+b.getAttribute('data-i')]; if (r) { markSub(r, myName() || '직원', sdRender); sdRender(); } }
+                    else if (a === 'login' && window.handleGoogleSignIn) window.handleGoogleSignIn();
+                });
+                sbox.addEventListener('change', e => { if (e.target.getAttribute('data-sd') === 'site') { sd.site = e.target.value; sdRender(); } });
+            });
+
             window.admOpen = () => start(false);
             window.admSyncTab = async function() {
                 let ok = false;
@@ -7019,6 +7177,10 @@ body.light-mode #contractCard .ct-done{color:#15803D}
                         ok = Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('') === ADM_HASH;
                     }
                 } catch (e) { ok = false; }
+                // 직원 데이터 탭: 로그아웃·계정 바뀌면 목록 비움, 열어 둔 채 로그인하면 바로 불러옴
+                const em2 = accessToken && currentUser && currentUser.email || '';
+                if (!em2 || em2 !== sd.email) { sd.data = null; sd.err = ''; }
+                if (sd.open && accessToken && !sd.data && !sd.loading) sdLoad(); else sdRender();
                 isAdmin = ok;
                 const btn = document.getElementById('adminTabBtn'), sec = document.getElementById('admin');
                 if (btn) btn.style.display = ok ? '' : 'none';
@@ -7040,6 +7202,7 @@ body.light-mode #contractCard .ct-done{color:#15803D}
                     if (a === 'kind') { st.kind = b.getAttribute('data-k'); return render(); }
                     if (a === 'jump') { st.kind = b.getAttribute('data-k'); if (b.getAttribute('data-d')) { st.d7 = b.getAttribute('data-d'); st.d7at = dKey(new Date()); } render(); box.scrollIntoView({ block: 'start' }); return; }
                     if (a === 'open') return openRow(+b.getAttribute('data-i'));
+                    if (a === 'retry') { const r = cur[+b.getAttribute('data-i')]; if (r) { markSub(r, myName() || '대표', () => { if (isAdmin) render(); }); render(); } return; }
                     if (a === 'k6day') { // 누른 날 넣기/빼기, 3번째를 누르면 가장 먼저 고른 날이 빠짐
                         const v = k6in[st.group] = k6in[st.group] || {}, k = b.getAttribute('data-d');
                         let ds = [v.d1, v.d2].filter(isoD);
