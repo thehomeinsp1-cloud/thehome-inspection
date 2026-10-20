@@ -1264,6 +1264,13 @@ body.light-mode :is(#admin,#staffDone) .adm-done{border-color:rgba(21,128,61,.55
 body.light-mode :is(#admin,#staffDone) .adm-bar i{background:#16a34a}
 body.light-mode :is(#admin,#staffDone) .warn, body.light-mode :is(#admin,#staffDone) .adm-err{color:#b45309}
 #staffDone .adm-re{min-height:46px}
+:is(#admin,#staffDone) .adm-q{margin:10px 0 4px}
+:is(#admin,#staffDone) .adm-card{padding:10px 12px; margin:6px 0; border:1px solid var(--a-line,#2A3550); border-radius:10px; background:var(--a-sunken,#0F1726); color:var(--a-ink,#F1F4F9); line-height:1.5}
+:is(#admin,#staffDone) .adm-card b{font-size:15px}
+:is(#admin,#staffDone) .adm-card small{color:var(--text-secondary); font-size:12.5px}
+:is(#admin,#staffDone) .adm-card-l{font-size:13px; margin-top:3px}
+:is(#admin,#staffDone) .adm-card-b{display:flex; flex-wrap:wrap; gap:6px; margin-top:8px}
+:is(#admin,#staffDone) .adm-card-b .adm-re{min-height:34px; text-decoration:none; display:inline-flex; align-items:center}
 </style>
 <style>
 /* ✅ 프리랜서 계약서 (패치 64) */
@@ -1755,12 +1762,15 @@ body.light-mode .card.reference-info {
                 <span style="font-size: 20px;">🔄</span>
                 <div>
                     <div style="font-weight: bold; font-size: 14px;">새 버전이 있습니다!</div>
-                    <div style="font-size: 12px; opacity: 0.9;">업데이트하려면 버튼을 눌러주세요</div>
+                    <div style="font-size: 12px; opacity: 0.9;">점검 중인 세대를 마친 뒤 눌러 주세요</div>
                 </div>
             </div>
+            <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
             <button onclick="applyUpdate()" style="background: white; color: #1d4ed8; border: none; padding: 8px 16px; border-radius: 20px; font-weight: bold; font-size: 13px; cursor: pointer;">
                 업데이트
             </button>
+            <button onclick="hideUpdateBanner()" aria-label="이번만 닫기" style="background: rgba(255,255,255,0.18); color: #fff; border: 1px solid rgba(255,255,255,0.4); width: 34px; height: 34px; border-radius: 50%; font-size: 15px; cursor: pointer;">✕</button>
+            </div>
         </div>
     </div>
     
@@ -2105,6 +2115,7 @@ body.light-mode .card.reference-info {
                     <span style="display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: #D23B3B; color: #FFFFFF; font-size: 13px; font-weight: 800; flex-shrink: 0;">3</span> <span>저장이 끝나면 뜨는 창에서 📩 <b>고객에게 보고서 문자 보내기</b> (링크 포함)</span>
                 </div>
                 <div style="font-size: 12.5px; line-height: 1.5; color: var(--text-secondary); word-break: keep-all; margin: 2px 0 12px 48px;">인터넷 필요 · 1~3분</div>
+                <button id="resendReportBtn" class="btn btn-secondary" onclick="resendReportLink()" style="width: 100%; font-size: 13.5px; min-height: 40px; padding: 8px 12px; margin-bottom: 8px;">📩 고객에게 보고서 문자 다시 보내기 <span id="resendReportState" style="font-weight: 600; color: var(--text-secondary);"></span></button>
                 <button class="btn btn-secondary" onclick="generatePDF()" style="width: 100%; font-size: 13.5px; min-height: 40px; padding: 8px 12px;">📄 PDF 보고서만 받기 (확인용 · 카톡으로 직접 보낼 때)</button>
                 <input type="file" id="equipmentImportInput" accept=".txt,.json,text/plain,application/json" style="display: none;" onchange="mergeEquipmentFile(this)">
             </div>
@@ -2175,6 +2186,15 @@ body.light-mode .card.reference-info {
         <div class="spinner"></div>
         <p>처리 중...</p>
     </div>
+
+    <!-- ✅ 패치 66: 오래 걸리는 작업 중 안내 -->
+    <div id="keepAwakeNote" hidden style="position:fixed;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top, 0px) + 10px);z-index:100001;max-width:92vw;background:#141d2e;color:#fff;border:1px solid #4f6fd1;border-radius:20px;padding:9px 16px;font-size:13.5px;font-weight:700;box-shadow:0 4px 14px rgba(0,0,0,.35);pointer-events:none;text-align:center;">🔆 끝날 때까지 화면을 켜 둔 채 기다려 주세요</div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const o = window.sendEquipmentToDrive; // 📤 장비점검 보내기 (작업 잠금 목록 밖) — 화면 꺼짐만 막음
+            if (typeof o === 'function') window.sendEquipmentToDrive = async function() { window.keepAwakeOn(); try { return await o.apply(this, arguments); } finally { window.keepAwakeOff(); } };
+        });
+    </script>
 
     <!-- Toast -->
     <div id="toast" class="toast"></div>
@@ -4936,6 +4956,34 @@ body.light-mode .card.reference-info {
         // 업로드·보고서·ZIP·엑셀 생성 중에는 같은 작업의 재실행과 세대 전환을 막음
         // (보고서 페이지가 '지금 열린 프로젝트'를 읽기 때문에, 생성 중 전환하면 다른 세대 내용이 섞임)
         // 각 함수 본문은 건드리지 않고, 화면이 준비되면(DOMContentLoaded) 바깥에서 감쌈
+        // ✅ 패치 66: 오래 걸리는 작업 중 화면 꺼짐 막기 (켤 때마다 n+1, 끌 때 n-1 → 0이면 해제). 화면이 다시 보이면 다시 잡음
+        window._wl = { n: 0, lock: null, t: 0, asking: false };
+        function _wlGet() {
+            const w = window._wl;
+            if (w.lock || w.asking || w.n <= 0 || !navigator.wakeLock || document.visibilityState !== 'visible') return;
+            w.asking = true; // 요청 중에 또 켜도 한 번만 (두 개를 잡으면 하나가 안 풀림)
+            navigator.wakeLock.request('screen').then(l => {
+                w.asking = false;
+                if (w.n <= 0) { l.release().catch(() => {}); return; }
+                w.lock = l;
+                l.addEventListener('release', () => { if (w.lock === l) w.lock = null; });
+            }).catch(() => { w.asking = false; });
+        }
+        window.keepAwakeOn = function() {
+            const w = window._wl;
+            w.n++;
+            _wlGet();
+            if (w.n === 1) { clearTimeout(w.t); w.t = setTimeout(() => { if (window._wl.n > 0) { const el = document.getElementById('keepAwakeNote'); if (el) el.hidden = false; } }, 2000); }
+        };
+        window.keepAwakeOff = function() {
+            const w = window._wl;
+            if (--w.n > 0) return;
+            w.n = 0; clearTimeout(w.t);
+            const el = document.getElementById('keepAwakeNote'); if (el) el.hidden = true;
+            const l = w.lock; w.lock = null;
+            if (l) l.release().catch(() => {});
+        };
+        document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') _wlGet(); });
         window._appBusySince = 0;
         function isAppBusy() {
             // ponytail: 15분 넘게 안 끝난 작업은 멈춘 것으로 보고 잠금 해제 (영구 잠금 방지)
@@ -4952,9 +5000,11 @@ body.light-mode .card.reference-info {
                     }
                     const _myStamp = Date.now();
                     window._appBusySince = _myStamp;
+                    window.keepAwakeOn(); // ✅ 패치 66
                     try {
                         return await orig.apply(this, arguments);
                     } finally {
+                        window.keepAwakeOff();
                         if (window._appBusySince === _myStamp) window._appBusySince = 0; // 내가 건 잠금만 해제
                     }
                 };
@@ -5297,9 +5347,9 @@ body.light-mode .card.reference-info {
                             ${seqBadge}
                             <div style="flex: 1; min-width: 0;">
                                 <div style="font-size: ${aptFontSize}px; font-weight: 800; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${isActive ? '▶ ' : ''}${escapeHtml(aptName)}</div>
-                                <div style="display: flex; align-items: baseline; gap: 8px; margin-top: 2px;">
+                                <div style="display: flex; align-items: baseline; gap: 2px 8px; margin-top: 2px; flex-wrap: wrap;">
                                     <span style="font-size: 18px; font-weight: 800; color: #fff; white-space: nowrap;">${escapeHtml(dongHo)}</span>
-                                    <span style="font-size: 11px; font-weight: 700; color: ${statusColor}; white-space: nowrap;">● ${statusText}</span>
+                                    <span style="font-size: 11px; font-weight: 700; color: ${statusColor}; white-space: nowrap;">● ${statusText}</span>${_rptBadge(project)}
                                 </div>
                                 <div style="font-size: 12px; color: rgba(255,255,255,0.7); margin-top: 4px;">
                                     하자 ${project.defects.length} · 장비 ${project.equipment ? project.equipment.length : 0} · 공기질 ${(project.airQuality || []).filter(r => r && [r.radon, r.formaldehyde, r.vocs].some(v => v !== '' && v != null && !isNaN(parseFloat(v)))).length}${authorInfo}
@@ -5690,13 +5740,19 @@ body.light-mode .card.reference-info {
             if (msg) { b.dataset.msg = msg; b.firstElementChild.textContent = msg.split('\n')[0]; }
             b.style.display = msg ? 'block' : 'none';
             // 상단 고정 탭·화면 위쪽이 띠에 가리지 않게 띠 높이만큼 내림
-            const h = msg ? b.offsetHeight : 0;
-            const tabs = document.querySelector('.tabs');
-            if (tabs) tabs.style.top = h ? h + 'px' : '';
-            const ub = document.getElementById('updateBanner');
-            document.body.style.paddingTop = h ? h + 'px' : (ub && ub.style.display !== 'none' ? '70px' : '');
+            if (window._layoutTopBars) window._layoutTopBars(); // ✅ 패치 69: 파란 새 버전 띠와 같이 계산
         }
         window.setSaveFail = setSaveFail;
+        // ✅ 패치 69: 위쪽 띠 쌓기 — 빨간 '저장 안 됨'(위) + 파란 '새 버전'(그 아래) → 고정 탭·본문은 두 띠 높이만큼 아래로
+        window._layoutTopBars = function() {
+            const sf = document.getElementById('saveFailBanner'), ub = document.getElementById('updateBanner');
+            const h1 = sf && sf.style.display !== 'none' ? sf.offsetHeight : 0;
+            if (ub) ub.style.top = h1 + 'px';
+            const h = h1 + (ub && ub.style.display === 'block' ? ub.offsetHeight : 0);
+            const tabs = document.querySelector('.tabs');
+            if (tabs) tabs.style.top = h ? h + 'px' : '';
+            document.body.style.paddingTop = h ? h + 'px' : '';
+        };
 
         async function saveProjectsToLocalStorage() {
             // ✅ 시작 시 저장 데이터를 불러오지 못한 상태면 저장하지 않음 (빈/사진 없는 데이터로 기존 데이터 덮어쓰기 방지)
@@ -6271,6 +6327,56 @@ body.light-mode .card.reference-info {
                 viaCopy();
             }
         };
+        // ✅ 패치 68: 목록 📩 표시 (링크가 있는 세대만) — 문자앱을 연 시각이라 '문자 열음' (실제 전송 여부는 앱이 모름)
+        function _rptBadge(p) {
+            if (!p || !p._rptLink) return '';
+            const d = p._rptSentAt ? new Date(p._rptSentAt) : null;
+            return d && !isNaN(d) ? '<span style="font-size: 11px; font-weight: 700; color: #93c5fd; white-space: nowrap;">📩 ' + (d.getMonth() + 1) + '/' + d.getDate() + ' ' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0') + '</span>'
+                : '<span style="font-size: 11px; font-weight: 800; color: #fca5a5; white-space: nowrap;">📩 문자 전</span>';
+        }
+        function _rptBtnState() {
+            const el = document.getElementById('resendReportState');
+            if (!el) return;
+            const p = (typeof getCurrentProject === 'function') ? getCurrentProject() : null, d = p && p._rptSentAt ? new Date(p._rptSentAt) : null;
+            el.textContent = !p || !p._rptLink ? '' : d && !isNaN(d) ? '(문자 열음 ' + (d.getMonth() + 1) + '/' + d.getDate() + ')' : '(아직 안 보냄)';
+        }
+        document.addEventListener('DOMContentLoaded', () => { // 목록이 다시 그려질 때마다 버튼 옆 상태도
+            const o = window.renderProjectList;
+            if (typeof o === 'function') window.renderProjectList = function() { const r = o.apply(this, arguments); try { _rptBtnState(); } catch (e) {} return r; };
+            try { _rptBtnState(); } catch (e) {}
+        });
+        // 데이터 탭 '📩 다시 보내기': 처음 올린 보고서 링크 그대로 문자·복사 (다시 올리지 않음 → 폴더 중복 없음)
+        window.resendReportLink = function() {
+            const p = getCurrentProject();
+            if (!p || !p._rptLink) { alert('이 세대는 아직 고객용 보고서 링크가 없어요.\n먼저 ☁️ 공유드라이브에 저장하기를 해 주세요.'); return; }
+            if (p._rptSig && p._rptSig !== getUploadSig(p)) { alert('보고서를 올린 뒤 바뀐 내용이 있어요.\n☁️ 공유드라이브에 다시 저장한 뒤 그 창에서 보내 주세요.'); return; } // 예전 보고서가 나가지 않게
+            const text = buildReportMessage(p, p._rptLink), _pd = String(p.customerPhone || '').replace(/[^0-9]/g, ''), smsNum = window.isValidKrPhone(_pd) ? _pd : '';
+            const mark = () => { p._rptSentAt = new Date().toISOString(); try { saveWithDebounce(); renderProjectList(); } catch (e) {} };
+            const old = document.getElementById('reportShareSheet'); if (old) old.remove();
+            const wrap = document.createElement('div');
+            wrap.id = 'reportShareSheet';
+            wrap.style.cssText = 'position:fixed;left:0;right:0;bottom:0;z-index:99990;padding:12px 12px calc(12px + env(safe-area-inset-bottom, 0px));background:rgba(13,20,32,0.35);';
+            wrap.innerHTML = '<div style="max-width:480px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 -6px 30px rgba(0,0,0,0.3);overflow:hidden;color:#1f2733;">'
+                + '<div style="background:#141d2e;color:#fff;padding:12px 16px;border-bottom:3px solid #E84848;display:flex;justify-content:space-between;align-items:center;gap:10px;">'
+                + '<div><div style="font-size:11px;color:#8e98b2;font-weight:700;letter-spacing:.08em;">보고서 다시 보내기</div><div style="font-size:15px;font-weight:800;">📩 ' + escapeHtml(_dongHoText(p) || '') + '</div></div>'
+                + '<button type="button" data-act="close" aria-label="닫기" style="background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.25);color:#fff;width:40px;height:40px;border-radius:50%;font-size:17px;cursor:pointer;">✕</button></div>'
+                + '<div style="padding:12px 16px 14px;">'
+                + '<div style="font-size:12.5px;color:#5b6472;margin-bottom:8px;word-break:break-all;">' + escapeHtml(p._rptName || '') + ' · 처음 올린 보고서 링크 그대로</div>'
+                + (smsNum ? '<button type="button" data-act="sms" style="width:100%;min-height:48px;margin-bottom:8px;border:none;border-radius:12px;background:#D23B3B;color:#fff;font-size:15px;font-weight:800;cursor:pointer;">📩 고객에게 보고서 문자 보내기 (' + escapeHtml(String(p.customerPhone || '').trim()) + ')</button>'
+                    : '<div style="font-size:12.5px;line-height:1.5;color:#7a4b00;background:#fdf3e1;padding:8px 10px;border-radius:8px;margin-bottom:8px;">고객 연락처가 없어 문자 버튼을 띄울 수 없어요. 아래 안내 문구를 복사해 보내 주세요.</div>')
+                + '<button type="button" data-act="copy" style="width:100%;min-height:44px;border:1px solid #c9d0da;border-radius:12px;background:#fff;color:#141d2e;font-size:14.5px;font-weight:700;cursor:pointer;">📋 안내 문구 복사 (카톡에 붙여넣기)</button>'
+                + '</div></div>';
+            const close = () => { try { wrap.remove(); } catch (e) {} };
+            wrap.addEventListener('click', async e => {
+                const b = e.target.closest && e.target.closest('[data-act]');
+                if (!b) { if (e.target === wrap) close(); return; }
+                const a = b.getAttribute('data-act');
+                if (a === 'close') return close();
+                if (a === 'sms') { mark(); close(); window.location.href = 'sms:' + smsNum + (window.IS_IOS_DEVICE ? '&' : '?') + 'body=' + encodeURIComponent(text); return; }
+                if (a === 'copy') { if (await copyTextSafe(text, '📋 안내 문구가 복사되었습니다')) { mark(); close(); } }
+            });
+            document.body.appendChild(wrap);
+        };
         // 보고서 저장 직후 아래쪽 '보내기' 창 (기존 저장 동작은 그대로, 이 창은 추가 안내)
         window.offerReportShare = function(blob, filename, kind, link, retryLink, opt) {
             try {
@@ -6278,6 +6384,10 @@ body.light-mode .card.reference-info {
                 const project = (opt && opt.project) || getCurrentProject(); // 링크 문자: 업로드한 그 세대 (세대를 바꾼 뒤 다시 만들기에도)
                 const text = buildReportMessage(project, link);
                 const plain = !!(opt && opt.plain); // 소장 → 매니저 전달용: 고객 안내 문구 없이 파일만
+                // ✅ 패치 68: 고객 링크를 세대에 기억 (새 링크면 '문자 전'부터) → 데이터 탭 '📩 다시 보내기'
+                if (link && !plain && project) { if (project._rptLink !== link) { project._rptLink = link; project._rptName = filename; project._rptSentAt = ''; } project._rptSig = getUploadSig(project); try { saveWithDebounce(); renderProjectList(); } catch (e) {} }
+                else if (link === null && !plain && project && project._rptLink) { project._rptLink = ''; project._rptSentAt = ''; project._rptSig = ''; try { saveWithDebounce(); renderProjectList(); } catch (e) {} } // 새로 올렸는데 링크를 못 만들면 예전 보고서 링크는 버림
+                const _markSent = () => { if (!link || plain || !project) return; project._rptSentAt = new Date().toISOString(); try { saveWithDebounce(); renderProjectList(); } catch (e) {} };
                 // 고객 연락처가 휴대폰·유선 번호 형식이면 '문자로 보내기' 버튼 표시
                 const _pd = String(project.customerPhone || '').replace(/[^0-9]/g, '');
                 const smsNum = window.isValidKrPhone(_pd) ? _pd : '';
@@ -6317,14 +6427,16 @@ body.light-mode .card.reference-info {
                     if (act === 'retry') { close(); if (retryLink) retryLink(); return; }
                     if (act === 'sms') {
                         // 문자앱을 열고 고객 번호·안내 문구를 채움 (PDF 첨부는 문자앱 구조상 불가 → 보내기 버튼으로)
+                        _markSent(); // ✅ 패치 68
                         const body = encodeURIComponent(text);
                         window.location.href = 'sms:' + smsNum + (window.IS_IOS_DEVICE ? '&' : '?') + 'body=' + body;
                         return;
                     }
-                    if (act === 'copy') { const ok = await copyTextSafe(text, '📋 안내 문구가 복사되었습니다'); if (ok) { const t0 = btn.textContent; btn.textContent = '✅ 복사됨 — 카톡·문자에 붙여넣으세요'; setTimeout(() => { try { btn.textContent = t0; } catch (e) {} }, 2500); } return; }
+                    if (act === 'copy') { const ok = await copyTextSafe(text, '📋 안내 문구가 복사되었습니다'); if (ok) { _markSent(); /* ✅ 패치 68 */ const t0 = btn.textContent; btn.textContent = '✅ 복사됨 — 카톡·문자에 붙여넣으세요'; setTimeout(() => { try { btn.textContent = t0; } catch (e) {} }, 2500); } return; }
                     if (act === 'share') {
                         try {
                             await navigator.share(plain ? { files: [file] } : { files: [file], title: filename, text: text });
+                            _markSent(); // ✅ 패치 68
                             close();
                         } catch (err) {
                             if (err && err.name === 'AbortError') return; // 사용자가 공유창을 닫음
@@ -6732,6 +6844,43 @@ body.light-mode .card.reference-info {
             const DAY = 86400000, dd = s => String(s || '').replace(/\D/g, '');
             // 시트 동이 빈칸이면 호만으로 (날짜 ±2일)
             const repOf = r => data.reports.files.filter(f => r.date && Math.abs(f.date - r.date) <= 2 * DAY && f.ho === dd(r.ho) && (!dd(r.dong) || f.dong === dd(r.dong)));
+            // 🔎 고객 찾기 (대표님 10-20, 팀회의 4번): 이름·전화 뒷자리·동호수·현장명 → 일정·금액·보고서·보낸 문자 한 장. 시트는 읽기만, 검색어는 저장 안 함
+            let sq = '', sqRes = [];
+            const SQ_KINDS = [['k4', '예약 안내문'], ['k5', '정산'], ['k7', '전날 안내'], ['k8', '미입금 재안내']];
+            function sqFind(q) {
+                const raw = String(q || '').trim(), t = norm(raw).replace(/-/g, '').toLowerCase(), dig = t.replace(/\D/g, '');
+                if (t.length < 2) return [];
+                const today = new Date(); today.setHours(0, 0, 0, 0);
+                const near = (a, b) => (a.date ? Math.abs(a.date - today) : 9e15) - (b.date ? Math.abs(b.date - today) : 9e15);
+                // '101-1001' · '101 1001' · '101동 1001호' → 그 동·호만
+                const dh2 = /^(\d{1,4})\s*동?\s*[-\s\/]\s*(\d{1,4})\s*호?$/.exec(raw) || /^(\d{1,4})\s*동\s*(\d{1,4})\s*호?$/.exec(raw);
+                if (dh2) return data.rows.filter(r => unitPart(r.dong, '동') === dh2[1] && unitPart(r.ho, '호') === dh2[2]).sort(near).slice(0, 20);
+                return data.rows.filter(r => {
+                    if (norm(r.name).toLowerCase().indexOf(t) >= 0 || norm(r.site).toLowerCase().indexOf(t) >= 0) return true;
+                    if (dig.length >= 3 && dig === t && r.phones.some(p => p.slice(-dig.length) === dig || (dig.length >= 7 && p.indexOf(dig) >= 0))) return true; // 전화: 뒷자리 (가운데는 7자리 이상)
+                    const u = unitPart(r.dong, '동') + '동' + unitPart(r.ho, '호') + '호';
+                    return u.indexOf(t) >= 0 || (dig.length >= 3 && dig === t && unitPart(r.ho, '호') === dig);
+                }).sort(near).slice(0, 20);
+            }
+            function sqHtml() {
+                if (norm(sq).length < 2) return '';
+                sqRes = sqFind(sq);
+                if (!sqRes.length) return '<div class="adm-msg">찾는 고객이 없어요. (올해 예약일정 시트 기준)</div>';
+                const md = d => (d.getMonth() + 1) + '/' + d.getDate();
+                const mark = (k, r) => { const at = sent[k + '|' + r.key + '|' + dKey(r.date) + '|' + unitPart(r.dong, '동') + '|' + unitPart(r.ho, '호')]; return at ? md(new Date(at)) : ''; };
+                return '<div class="adm-step">🔎 찾은 고객 <small>' + sqRes.length + '명' + (sqRes.length >= 20 ? ' (20명까지)' : '') + '</small></div>' + sqRes.map((r, i) => {
+                    const sentL = [['k4', '예약안내문'], ['k5', '정산'], ['k7', '전날 안내']].map(x => { const m = mark(x[0], r); return m ? x[1] + ' ✓' + m : ''; }).filter(Boolean).join(' · ');
+                    const rep = data.reports && data.reports.files ? (repOf(r).length ? '📄 보고서 있음' : r.date && r.date < Date.now() - DAY ? '📄 보고서 없음' : '') : '';
+                    const due = r.total ? '총 ' + won(r.total) + (r.dep ? ' · 예약금 ' + won(r.dep) : '') + ' · 잔금 ' + won(r.total - r.dep) + (r.paid ? ' <span style="color:#4ade80;">입금확인</span>' : ' <span class="warn">미입금</span>') : '금액 없음';
+                    return '<div class="adm-card">'
+                        + '<b>' + E(r.name || '이름 없음') + '</b> <small>' + E(r.site) + ' ' + E(dh(r)) + '</small>'
+                        + '<div class="adm-card-l">📅 ' + E(r.date ? dLabel(r.date) : '날짜 없음') + ' ' + E(r.time || '') + (r.boss || r.mgr ? ' · ' + E([r.boss && '소장 ' + r.boss, r.mgr && '매니저 ' + r.mgr].filter(Boolean).join(' / ')) : '') + '</div>'
+                        + '<div class="adm-card-l">💰 ' + due + '</div>'
+                        + (rep || sentL ? '<div class="adm-card-l">' + E([rep, sentL].filter(Boolean).join(' · ')) + '</div>' : '')
+                        + '<div class="adm-card-b">' + (r.phones[0] ? '<a class="adm-re" href="tel:' + r.phones[0] + '">📞 ' + E(fmtPh(r.phones[0])) + '</a>' : '<span class="warn">연락처 없음</span>')
+                        + SQ_KINDS.map(k => '<button type="button" class="adm-re" data-act="sq-send" data-k="' + k[0] + '" data-i="' + i + '">' + k[1] + '</button>').join('') + '</div></div>';
+                }).join('');
+            }
             function views() {
                 const now = new Date(); now.setHours(0, 0, 0, 0);
                 const day = n => now.getTime() + n * 86400000, rows = data.rows.filter(r => r.date);
@@ -6818,6 +6967,7 @@ body.light-mode .card.reference-info {
                 const chip = (lab, n, k, d, hot) => '<button type="button" class="adm-chip' + (hot && n ? ' hot' : '') + '" data-act="jump" data-k="' + k + '"' + (d != null ? ' data-d="' + d + '"' : '') + '><b>' + n + '</b>' + lab + '</button>';
                 let h = '<div class="adm-sum">' + chip('오늘', V.today, 'k7', dKey(new Date(V.day(0)))) + chip('내일', V.tom, 'k7', dKey(new Date(V.day(1)))) + chip('7일', V.week, 'k9')
                     + chip('미입금', V.unpaid.length, 'k8', null, true) + chip('확인 필요', repNote ? V.soon.length + '+' : nCheck, 'k9', null, true) + '</div>';
+                h += '<input class="adm-sel adm-q" data-f="q" type="search" placeholder="🔎 고객 찾기 · 이름 · 전화 뒷자리 · 동호수" value="' + E(sq) + '" autocomplete="off"><div id="admSearchOut">' + sqHtml() + '</div>';
                 h += '<div class="adm-step">① 문자 종류</div><div class="adm-kinds">'
                     + KINDS.map(k => '<button type="button" class="adm-kind' + (k[0] === st.kind ? ' on' : '') + (k[0] === 'k10' || k[0] === 'k11' ? ' wide' : '') + '" data-act="kind" data-k="' + k[0] + '">' + k[1] + '<span>' + k[2] + '</span></button>').join('') + '</div>';
                 const gs = cross ? [] : groups();
@@ -7185,7 +7335,7 @@ body.light-mode .card.reference-info {
                 const btn = document.getElementById('adminTabBtn'), sec = document.getElementById('admin');
                 if (btn) btn.style.display = ok ? '' : 'none';
                 if (!ok) {
-                    data = null; err = null; cur = [];
+                    data = null; err = null; cur = []; sq = ''; sqRes = []; // 로그아웃하면 찾던 고객도 지움
                     if (sec) { if (sec.classList.contains('active')) { const pb = document.querySelector(".tab[onclick*=\"'project'\"]"); switchTab('project'); if (pb) pb.classList.add('active'); } sec.innerHTML = ''; }
                     const s = document.getElementById('admSheet'); if (s) s.remove();
                 } else if (sec && sec.classList.contains('active')) start(false);
@@ -7202,6 +7352,18 @@ body.light-mode .card.reference-info {
                     if (a === 'kind') { st.kind = b.getAttribute('data-k'); return render(); }
                     if (a === 'jump') { st.kind = b.getAttribute('data-k'); if (b.getAttribute('data-d')) { st.d7 = b.getAttribute('data-d'); st.d7at = dKey(new Date()); } render(); box.scrollIntoView({ block: 'start' }); return; }
                     if (a === 'open') return openRow(+b.getAttribute('data-i'));
+                    if (a === 'sq-send') { // 찾은 고객 → 그 문자 종류·단지·날짜 목록으로 옮긴 뒤 바로 보내기 창
+                        const r = sqRes[+b.getAttribute('data-i')], k = b.getAttribute('data-k');
+                        if (!r) return;
+                        st.kind = k;
+                        if (k === 'k7') { st.d7 = dKey(r.date); st.d7at = dKey(new Date()); } else if (k !== 'k8') { st.group = r.key; st.date = dKey(r.date); }
+                        sq = ''; render();
+                        const i = cur.indexOf(r);
+                        if (i < 0) { alert(k === 'k4' ? '예약 안내문 목록에 없는 고객이에요. (결재확인됐거나 지난 날짜)' : k === 'k8' ? '미입금 목록에 없는 고객이에요. (입금확인·기간 밖)' : '이 문자 목록에 없는 고객이에요.'); return; }
+                        if (lockOf(r)) { alert('보낼 수 없어요: ' + lockOf(r)); return; }
+                        box.scrollIntoView({ block: 'start' });
+                        return openRow(i);
+                    }
                     if (a === 'retry') { const r = cur[+b.getAttribute('data-i')]; if (r) { markSub(r, myName() || '대표', () => { if (isAdmin) render(); }); render(); } return; }
                     if (a === 'k6day') { // 누른 날 넣기/빼기, 3번째를 누르면 가장 먼저 고른 날이 빠짐
                         const v = k6in[st.group] = k6in[st.group] || {}, k = b.getAttribute('data-d');
@@ -7223,6 +7385,12 @@ body.light-mode .card.reference-info {
                         if (!ph.length) { alert('전화번호를 확인해 주세요.'); return; }
                         sheet(fmtPh(ph[0]) + (ph.length > 1 ? ' 외 ' + (ph.length - 1) + '명' : ''), MSG[st.kind], ph, null);
                     }
+                });
+                box.addEventListener('input', e => {
+                    if (!(e.target.getAttribute && e.target.getAttribute('data-f') === 'q')) return;
+                    sq = e.target.value;
+                    const out = document.getElementById('admSearchOut');
+                    if (out && data) out.innerHTML = sqHtml();
                 });
                 box.addEventListener('change', e => {
                     const f = e.target.getAttribute && e.target.getAttribute('data-f');
@@ -7874,10 +8042,44 @@ body.light-mode .card.reference-info {
             }
             return out;
         }
+        // ✅ 패치 67: 장비 빠진 곳 — 욕실·발코니마다 물고임(배수경사·물고임·물빠짐 결과 + 사진) 기록이 먼저(대표님: 물고임 사진 필수), 다음 공간·점검결과
+        //    같은 방을 두 폰이 다른 이름으로 적은 경우(장비 '욕실1' ↔ 하자 '공용욕실')는 같은 종류의 다른 이름 물고임으로 인정
+        //    욕실이 하나만 나오면 '욕실 2개 세대면 다른 욕실도?'를 물음 (세대를 나가면 다시 못 찍음 · 막지 않고 묻기만)
+        const _EQ_WET = /욕실|화장실|발코니|베란다/, _EQ_WATER = /배수|구배|물\s*고|물\s*빠짐/;
+        const _wetKind = s => /욕실|화장실/.test(s) ? '욕실' : '발코니';
+        function equipGaps(project) {
+            const water = [], rest = [], eq = (Array.isArray(project && project.equipment) ? project.equipment : []);
+            const hasPh = e => !!((e.photos && typeof e.photos === 'object' && Object.values(e.photos).some(x => x)) || e.photo);
+            eq.forEach((e, i) => {
+                if (!e || !(hasPh(e) || String(e.inspection || '').trim())) return;
+                const sp = (e.spaces || []).join('·');
+                if (!sp) rest.push('장비 ' + (i + 1) + '번: 공간 없음');
+                if (!String(e.inspection || '').trim()) rest.push('장비 ' + (i + 1) + '번' + (sp ? ' (' + sp + ')' : '') + ': 점검결과 없음');
+            });
+            const wet = (list, set) => list.forEach(x => (x && x.spaces || []).forEach(s => { if (_EQ_WET.test(s)) set.add(s); }));
+            const eqWet = new Set(), defWet = new Set(), done = new Set();
+            wet(eq, eqWet); wet(Array.isArray(project && project.defects) ? project.defects : [], defWet);
+            eq.forEach(e => { if (e && hasPh(e) && _EQ_WATER.test(String(e.inspection || ''))) (e.spaces || []).forEach(s => { if (_EQ_WET.test(s)) done.add(s); }); });
+            const spare = { '욕실': [...done].filter(n => !defWet.has(n) && _wetKind(n) === '욕실'), '발코니': [...done].filter(n => !defWet.has(n) && _wetKind(n) === '발코니') };
+            const all = new Set([...eqWet, ...defWet]);
+            all.forEach(s => {
+                if (done.has(s)) return;
+                if (!eqWet.has(s) && spare[_wetKind(s)].length) { spare[_wetKind(s)].shift(); return; } // 하자에만 나온 이름 → 다른 이름으로 찍은 같은 방
+                water.push(s + ': 물고임 사진 없음');
+            });
+            const kindSeen = k => [...all].some(s => _wetKind(s) === k);
+            if (!kindSeen('욕실')) water.push('욕실: 물고임 사진 없음');
+            if (!kindSeen('발코니')) water.push('발코니: 물고임 사진 없음');
+            if ([...all].filter(s => _wetKind(s) === '욕실').length === 1 && [...done].some(s => _wetKind(s) === '욕실'))
+                water.push('욕실이 2개면 다른 욕실 물고임도 찍었나요? (욕실 1개 세대면 그대로)');
+            return water.concat(rest);
+        }
+        window.equipGaps = equipGaps;
         function getMissingItems(project, defectsOnly) {
             const items = [];
             if (!project) return items;
             items.push(..._projectInfoIssues(project)); // 세대 정보(보고서 제목·표지에 들어감) — 현장출력도 확인
+            const _infoN = items.length; // ✅ 패치 67: 장비 빠진 곳(물고임)은 여기 끼움 → 확인창 8줄 제한에 안 묻힘
             (Array.isArray(project.defects) ? project.defects : []).forEach((d, i) => {
                 if (!d) return;
                 const ph = d.photos || [];
@@ -7899,6 +8101,10 @@ body.light-mode .card.reference-info {
                 const hasPhoto = (e.photos && typeof e.photos === 'object' && Object.values(e.photos).some(p => p)) || e.photo;
                 if (!hasPhoto) items.push({ no: 0, text: `장비 NO ${i + 1}: 사진 없음` });
             });
+            // ✅ 패치 67: 장비가 하나도 없으면 합치기 확인, 있으면 빠진 곳(물고임 먼저) — 세대 정보 바로 뒤에
+            const _eqHas = (Array.isArray(project.equipment) ? project.equipment : []).some(e => e && ((e.photos && typeof e.photos === 'object' && Object.values(e.photos).some(p => p)) || e.photo));
+            const _gap = !_eqHas ? [{ no: 0, text: '장비점검 0건 — 소장님 장비를 📥 장비점검 합치기 했나요?' }] : equipGaps(project).map(t => ({ no: 0, text: t }));
+            items.splice(_infoN, 0, ..._gap);
             return items;
         }
 
@@ -11155,6 +11361,13 @@ body.light-mode .card.reference-info {
         window.shareEquipmentData = async function() {
             const pl = _equipPayload();
             if (!pl) return;
+            { const g = equipGaps(pl.p); // ✅ 패치 67: 확인창 뒤엔 공유창이 막힐 수 있어 → 알려 주고, 1분 안에 다시 누르면 그대로 보냄
+              if (g.length && !(window._eqGapAck && Date.now() - window._eqGapAck < 60000)) {
+                  window._eqGapAck = Date.now();
+                  alert('⚠️ 보내기 전에 확인해 주세요\n\n' + g.slice(0, 8).map(x => '· ' + x).join('\n') + (g.length > 8 ? '\n· 외 ' + (g.length - 8) + '건' : '') + '\n\n그래도 보내려면 [파일로 보내기]를 한 번 더 누르세요.');
+                  return;
+              }
+              window._eqGapAck = 0; }
             const text = pl.text, name = pl.name + '.txt';
             // 공유창은 버튼을 누른 직후에만 열림 → 위에서 기다리는 작업 없이 바로 엶
             // 파일만 보냄 (글자를 같이 넣으면 카톡 등에서 파일이 빠지고 글자만 가는 경우가 있음)
@@ -11393,6 +11606,8 @@ body.light-mode .card.reference-info {
             if (_eqSendingAt && Date.now() - _eqSendingAt < 600000) { showToast('⏳ 장비점검을 보내는 중입니다. 잠시만 기다려주세요', 'warning'); return; }
             const pl = _equipPayload(); // 세대·사진 확인 + 보낼 내용 (파일로 보내기와 같음)
             if (!pl) return;
+            { const g = equipGaps(pl.p); // ✅ 패치 67: 빠진 곳 (막지 않고 묻기만)
+              if (g.length && !confirm('⚠️ 보내기 전에 확인해 주세요\n\n' + g.slice(0, 8).map(x => '· ' + x).join('\n') + (g.length > 8 ? '\n· 외 ' + (g.length - 8) + '건' : '') + '\n\n세대를 나가면 다시 찍기 어려워요.\n그래도 보낼까요?')) return; }
             const stamp = _eqSendingAt = Date.now();
             try {
                 showToast('☁️ 확인 중...', 'info');
@@ -15524,10 +15739,15 @@ body.light-mode .card.reference-info {
         const banner = document.getElementById('updateBanner');
         if (banner) {
             banner.style.display = 'block';
-            // body에 패딩 추가 (배너 높이만큼)
-            document.body.style.paddingTop = '70px';
+            if (window._layoutTopBars) window._layoutTopBars(); // ✅ 패치 69: 빨간 띠 아래에 놓고 탭·본문을 두 띠 높이만큼 내림
         }
     }
+    window.hideUpdateBanner = function() { // ✕: 이번 실행 동안만 닫음 (다음에 앱을 열면 다시 확인)
+        const banner = document.getElementById('updateBanner');
+        if (banner) banner.style.display = 'none';
+        window._updateDismissed = true;
+        if (window._layoutTopBars) window._layoutTopBars();
+    };
     
     async function applyUpdate() {
         if (window._projectsLoaded === false) { showToast('⏳ 데이터를 불러오는 중입니다. 잠시 후 다시 눌러주세요', 'warning'); return; }
@@ -15574,6 +15794,30 @@ body.light-mode .card.reference-info {
         }
     }
     
+    // ✅ 패치 69: 새 배포 확인 — 이 화면의 판 번호(APP_BUILD) vs 사이트의 version.json(정식)·version-test.json(테스트)
+    const APP_BUILD = '9398d341eac3'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
+    (function() {
+        const url = /index-unified-test\.html$/.test(location.pathname) ? 'version-test.json' : 'version.json';
+        let busy = false;
+        async function check() {
+            if (busy || window._updateDismissed || APP_BUILD.indexOf('__') === 0 || navigator.onLine === false || document.visibilityState !== 'visible') return;
+            const ub = document.getElementById('updateBanner');
+            if (ub && ub.style.display === 'block') return;
+            busy = true;
+            try {
+                const ctl = typeof AbortController === 'function' ? new AbortController() : null, t = ctl ? setTimeout(() => ctl.abort(), 8000) : 0;
+                const res = await fetch(url, Object.assign({ cache: 'no-store' }, ctl ? { signal: ctl.signal } : {}));
+                clearTimeout(t);
+                const j = res.ok ? await res.json() : null;
+                if (j && j.v && j.v !== APP_BUILD) showUpdateBanner();
+            } catch (e) { /* 신호 약함·파일 없음 → 다음에 */ } finally { busy = false; }
+        }
+        window.checkNewDeploy = check;
+        document.addEventListener('DOMContentLoaded', () => setTimeout(check, 8000));
+        setInterval(check, 10 * 60 * 1000);
+        document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') setTimeout(check, 1500); });
+    })();
+
     // 페이지 로드 시 버전 체크
     document.addEventListener('DOMContentLoaded', function() {
         checkForUpdates();
