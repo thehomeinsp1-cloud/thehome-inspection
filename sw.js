@@ -59,6 +59,9 @@ self.addEventListener('fetch', (event) => {
 
   const url = new URL(req.url);
 
+  // 새 버전 확인 파일은 SW 개입 없이 통과 — 실패하면 실패로 (예전 저장본을 주면 신호 약할 때 가짜 '새 버전' 띠가 뜸, 10-21 검수 2번)
+  if (/\/version(-test)?\.json$/.test(url.pathname)) return;
+
   // 실시간 데이터/인증은 SW 개입 없이 통과
   if (BYPASS_HOSTS.some(h => url.hostname === h || url.hostname.endsWith('.' + h))) return;
 
