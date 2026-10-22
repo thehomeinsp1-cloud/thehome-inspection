@@ -14979,10 +14979,10 @@ body.light-mode .card.reference-info {
                 <div style="height:3px;background:#E84848;"></div>
                 <div style="flex:1;padding:30px 44px 0;display:flex;flex-direction:column;">
 
-                    <div style="display:grid;grid-template-columns:1fr 1.2fr 1.2fr 1fr 1fr;border:1px solid #e2e5ea;border-radius:10px;overflow:hidden;margin-bottom:${[20, 16, 12, 10][L]}px;">
+                    <div style="display:grid;grid-template-columns:${['1fr', criticalCount ? '1.2fr' : '', poolCount ? '1.2fr' : '', '1fr', '1fr'].filter(Boolean).join(' ')};border:1px solid #e2e5ea;border-radius:10px;overflow:hidden;margin-bottom:${[20, 16, 12, 10][L]}px;">
                         <div style="padding:${TP}px 10px;text-align:center;border-right:1px solid #e2e5ea;"><div style="font-size:11.5px;color:#8a919d;margin-bottom:8px;">총 하자</div><div style="font-size:${TF}px;font-weight:800;color:#141d2e;">${totalDefects}</div></div>
-                        <div style="padding:${TP}px 10px;text-align:center;border-right:1px solid #e2e5ea;background:#141d2e;"><div style="font-size:11.5px;color:#E84848;margin-bottom:8px;font-weight:700;">우선 보수 권장</div><div style="font-size:${TF}px;font-weight:800;color:#fff;">${criticalCount}</div><div style="font-size:10.5px;color:#c9d1e3;margin-top:4px;line-height:1.4;">${criticalCount ? window.fmtNosBeon(criticalNumList, 5) : '누수 흔적 없음'}</div></div>
-                        <div style="padding:${TP}px 10px;text-align:center;border-right:1px solid #e2e5ea;background:#f4f6fa;"><div style="font-size:11.5px;color:#33415c;margin-bottom:8px;font-weight:700;">바닥물고임</div><div style="font-size:${TF}px;font-weight:800;color:#141d2e;">${poolCount}</div><div style="font-size:10.5px;color:#5b6472;margin-top:4px;line-height:1.4;">${poolCount ? window.fmtNosBeon(poolNumList, 5) : '없음'}</div></div>
+                        ${criticalCount ? `<div style="padding:${TP}px 10px;text-align:center;border-right:1px solid #e2e5ea;background:#141d2e;"><div style="font-size:11.5px;color:#E84848;margin-bottom:8px;font-weight:700;">우선 보수 권장</div><div style="font-size:${TF}px;font-weight:800;color:#fff;">${criticalCount}</div><div style="font-size:10.5px;color:#c9d1e3;margin-top:4px;line-height:1.4;">${window.fmtNosBeon(criticalNumList, 5)}</div></div>` : ''}
+                        ${poolCount ? `<div style="padding:${TP}px 10px;text-align:center;border-right:1px solid #e2e5ea;background:#f4f6fa;"><div style="font-size:11.5px;color:#33415c;margin-bottom:8px;font-weight:700;">바닥물고임</div><div style="font-size:${TF}px;font-weight:800;color:#141d2e;">${poolCount}</div><div style="font-size:10.5px;color:#5b6472;margin-top:4px;line-height:1.4;">${window.fmtNosBeon(poolNumList, 5)}</div></div>` : ''}
                         <div style="padding:${TP}px 10px;text-align:center;border-right:1px solid #e2e5ea;"><div style="font-size:11.5px;color:#8a919d;margin-bottom:8px;">일반하자</div><div style="font-size:${TF}px;font-weight:800;color:#141d2e;">${normalCount}</div></div>
                         <div style="padding:${TP}px 10px;text-align:center;"><div style="font-size:11.5px;color:#8a919d;margin-bottom:8px;">촬영 사진</div><div style="font-size:${TF}px;font-weight:800;color:#141d2e;">${totalPhotos}</div></div>
                     </div>
@@ -15002,8 +15002,7 @@ body.light-mode .card.reference-info {
                             ${spaceRows}
                             <div style="margin-top:14px;border-top:1px solid #eef0f3;padding-top:10px;font-size:10.5px;color:#8a919d;line-height:1.6;">
                                 ※ 막대 오른쪽 숫자는 <b style="color:#5b6472;">건수 · 전체 대비 비율</b>입니다.<br>
-                                ※ 공종 분류는 점검 내용을 바탕으로 더홈점검이 자동 정리한 참고 분류입니다 (기간: 공동주택관리법 시행령 별표4).<br>
-                                ※ <b style="color:#5b6472;">우선 보수 권장</b>은 누수 흔적이 확인된 항목입니다. 번호는 하자 목록의 NO와 같습니다.${_both ? '<br>※ 누수와 바닥물고임이 함께 있는 ' + _both + '건은 두 칸에 모두 셌습니다.' : ''}
+                                ※ 공종 분류는 점검 내용을 바탕으로 더홈점검이 자동 정리한 참고 분류입니다 (기간: 공동주택관리법 시행령 별표4).${criticalCount ? '<br>※ <b style="color:#5b6472;">우선 보수 권장</b>은 누수 흔적이 확인된 항목입니다. 번호는 하자 목록의 NO와 같습니다.' : (poolCount ? '<br>※ 번호는 하자 목록의 NO와 같습니다.' : '')}${_both ? '<br>※ 누수와 바닥물고임이 함께 있는 ' + _both + '건은 두 칸에 모두 셌습니다.' : ''}
                             </div>
                         </div>
                     </div>
@@ -15986,7 +15985,7 @@ body.light-mode .card.reference-info {
     }
     
     // ✅ 패치 69: 새 배포 확인 — 이 화면의 판 번호(APP_BUILD) vs 사이트의 version.json(정식)·version-test.json(테스트)
-    const APP_BUILD = 'c2ee77036a06'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
+    const APP_BUILD = 'c2132c768eb2'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
     (function() {
         const url = /index-unified-test\.html$/.test(location.pathname) ? 'version-test.json' : 'version.json';
         let busy = false;
