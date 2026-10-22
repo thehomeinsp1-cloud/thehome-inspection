@@ -14905,6 +14905,9 @@ body.light-mode .card.reference-info {
         const normalCount = projectData.defects.filter(d => !window.isPriorityDefect(d) && !window.isWaterPoolDefect(d)).length;
         const _both = criticalNumList.filter(n => poolNumList.indexOf(n) >= 0).length; // 누수이면서 바닥물고임 (두 칸에 모두 셈)
         const TP = [18, 14, 12, 10][L], TF = [33, 30, 28, 26][L];
+        // 점검 기준일 (대표님 10-22: 점검일 기준 내용이며 이후 생기는 하자는 포함되지 않음을 분명히)
+        const _dm = /^(\d{4})-(\d{1,2})-(\d{1,2})/.exec(String(projectData.inspectionDate || ''));
+        const _inspDay = _dm ? '(' + _dm[1] + '년 ' + (+_dm[2]) + '월 ' + (+_dm[3]) + '일)' : '';
         // 점검 항목 상자: 실제로 한 점검만 (공기질 수치·장비 사진이 없으면 '이번 점검에 포함되지 않음')
         const _hasAQ = (projectData.airQuality || []).some(r => r && (r.radon || r.formaldehyde || r.vocs));
         const _hasEq = (projectData.equipment || []).some(e => e && (e.photos && typeof e.photos === 'object' ? Object.values(e.photos).some(p => p) : e.photo));
@@ -15013,8 +15016,8 @@ body.light-mode .card.reference-info {
                     </div>
 
                     <div style="border-left:3px solid #E84848;background:#f8f9fb;padding:14px 18px;">
-                        <div style="font-size:12.5px;font-weight:800;color:#141d2e;margin-bottom:5px;">사후 관리 안내</div>
-                        <div style="font-size:11.5px;color:#5b6472;line-height:1.65;">하자사항은 준공 이후에도 주기적으로 발생할 수 있으므로, 하자담보책임기간 내 정기적인 점검·관리를 권장드립니다. 입주 후 계절 변화에 따른 결로·균열 등 추가 하자 발생 여부를 확인하시기 바랍니다.</div>
+                        <div style="font-size:12.5px;font-weight:800;color:#141d2e;margin-bottom:5px;">점검 기준일 안내</div>
+                        <div style="font-size:11.5px;color:#5b6472;line-height:1.65;">이 보고서는 <b style="color:#141d2e;">점검일${_inspDay} 기준</b>으로 육안·기능 점검과 장비 측정 범위에서 확인된 내용입니다. 점검 이후 사용이나 계절 변화로 새로 생기는 하자(결로·균열·수축 등)는 이 보고서에 포함되지 않으며, 하자담보책임기간 안에서는 시공사에 무상 보수를 요청하실 수 있습니다.</div>
                     </div>
                 </div>
                 <div style="margin-top:auto;padding:14px 44px;border-top:1px solid #e8eaee;display:flex;justify-content:space-between;align-items:center;font-size:11px;color:#9aa1ad;font-weight:700;letter-spacing:.05em;"><span>THE HOME INSPECTION</span><span>1668-5322</span></div>
@@ -15181,7 +15184,8 @@ body.light-mode .card.reference-info {
         // ── 각주 (촘촘한 단계일수록 줄임)
         var notes = ['· 번호는 하자 목록·사진의 NO와 같습니다. 보수 접수 때 이 번호와 사진을 함께 전달하시면 됩니다.',
             '· 보증기간은 집 안은 열쇠를 받은 날(인도일), 외벽·공용 배관 등 공용부분은 사용검사일부터 시작되며, 기간 내에는 무상보수가 원칙입니다. 누수·방수는 원인 부위에 따라 3~5년입니다.'];
-        if (L === 0) notes.push('· 위 내용은 <b style="color:#5b6472">점검일 기준</b>으로 확인된 사항이며, 결로·균열·수축 등은 계절 변화에 따라 이후 새로 나타날 수 있습니다.');
+        notes.push(L === 0 ? '· 위 내용은 <b style="color:#5b6472">점검일 기준</b>으로 확인된 사항이며, 결로·균열·수축 등은 계절 변화에 따라 이후 새로 나타날 수 있습니다.'
+            : '· <b style="color:#5b6472">점검일 기준</b> 내용이며, 이후 새로 생기는 하자는 포함되지 않습니다.'); // 대표님 10-22: 모든 세대에 빠짐없이
         if (L <= 2) notes.push('· 이사·인테리어·사용 부주의로 생긴 파손, 보수 중 2차 손상 등 <b style="color:#5b6472">사용자 과실 생활하자</b>는 담보책임기간과 무관하게 제외될 수 있습니다.');
         if (L <= 1 && !tight) notes.push('· 표기된 보증기간은 공동주택(아파트) 기준이며, 오피스텔·집합건물·단독주택·상업시설 등은 관계 법령에 따라 다를 수 있습니다.');
         notes.push('※ 공종 분류는 점검 내용을 바탕으로 더홈점검이 자동 정리한 참고 분류이며, 기간은 공동주택관리법 시행령 별표4 기준입니다'
@@ -15982,7 +15986,7 @@ body.light-mode .card.reference-info {
     }
     
     // ✅ 패치 69: 새 배포 확인 — 이 화면의 판 번호(APP_BUILD) vs 사이트의 version.json(정식)·version-test.json(테스트)
-    const APP_BUILD = '4d69ad918bcb'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
+    const APP_BUILD = 'c2ee77036a06'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
     (function() {
         const url = /index-unified-test\.html$/.test(location.pathname) ? 'version-test.json' : 'version.json';
         let busy = false;
