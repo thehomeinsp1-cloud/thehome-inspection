@@ -1873,7 +1873,7 @@ body.light-mode .card.reference-info {
         </button>
         
         <h1>🏠 더홈점검</h1>
-        <p id="appVersionTag" style="color:#fde68a;font-weight:700;">🧪 테스트판 · 업데이트 2026.10.22</p>
+        <p id="appVersionTag" style="color:#fde68a;font-weight:700;">🧪 테스트판 · 업데이트 2026.10.23</p>
     </div>
 
     <div class="container">
@@ -4502,110 +4502,8 @@ body.light-mode .card.reference-info {
                 const pageWidth = 210;
                 const pageHeight = 297;
 
-                // PDF 페이지들 생성
-                const firstPageHTML = window.createSummaryFirstPage();
-                await window.addHTMLPageToPDF(doc, firstPageHTML, pageWidth, pageHeight);
-
-                // 프로젝트 요약 페이지
-                // 목차 페이지
-                doc.addPage();
-                const tocHTML = window.createTableOfContentsPage();
-                await window.addHTMLPageToPDF(doc, tocHTML, pageWidth, pageHeight);
-
-                doc.addPage();
-                const summaryPageHTML = window.createProjectSummaryPage();
-                await window.addHTMLPageToPDF(doc, summaryPageHTML, pageWidth, pageHeight);
-
-                // 공종별 하자 판단기준 페이지 (신규)
-                doc.addPage();
-                await window.addHTMLPageToPDF(doc, window.createGongJongCriteriaPage(), pageWidth, pageHeight);
-
-                // 하자 목록 페이지
-                if (projectData.defects.length > 0) {
-                    const _defectPlan = window.planDefectPages();
-                    for (let _pi = 0; _pi < _defectPlan.length; _pi++) {
-                        doc.addPage();
-                        const listPageHTML = window.createDefectListPage(_defectPlan[_pi].start, _defectPlan[_pi].count, _pi + 1, _defectPlan.length);
-                        await window.addHTMLPageToPDF(doc, listPageHTML, pageWidth, pageHeight);
-                    }
-                }
-
-                // 하자 상세 사진 페이지
-                if (projectData.defects.length > 0) {
-                    const defectsWithPhotos = projectData.defects.filter(d => d.photos && d.photos.length > 0);
-                    if (defectsWithPhotos.length > 0) {
-                        for (let i = 0; i < defectsWithPhotos.length; i += 3) {
-                            doc.addPage();
-                            const batch = defectsWithPhotos.slice(i, i + 3);
-                            const detailHTML = await window.createDefectDetailPage(batch, i, true);
-                            await window.addHTMLPageToPDF(doc, detailHTML, pageWidth, pageHeight);
-                        }
-                    }
-                }
-
-                // 장비점검 페이지
-                if (projectData.equipment && projectData.equipment.length > 0) {
-                    const equipmentWithPhotos = projectData.equipment.filter(e => {
-                        if (e.photos && typeof e.photos === 'object') {
-                            return Object.values(e.photos).some(photo => photo !== null);
-                        }
-                        return e.photo;
-                    });
-                    
-                    if (equipmentWithPhotos.length > 0) {
-                        equipmentWithPhotos.forEach((item, i) => item._originalIndex = i + 1);
-                        for (let i = 0; i < equipmentWithPhotos.length; i++) {
-                            doc.addPage();
-                            const equipmentHTML = await window.createEquipmentPage([equipmentWithPhotos[i]]);
-                            await window.addHTMLPageToPDF(doc, equipmentHTML, pageWidth, pageHeight);
-                        }
-                    }
-                }
-
-                // 공기질 페이지
-
-                // 열화상 단열 안내 페이지 (토글 ON일 때만)
-                if ((localStorage.getItem('thermalNoticeGlobal') === 'on') && projectData.equipment && projectData.equipment.some(e => (e.photos && typeof e.photos === 'object' && Object.values(e.photos).some(p => p)) || e.photo)) {
-                    doc.addPage();
-                    const thermalHTML = window.createThermalNoticePage();
-                    await window.addHTMLPageToPDF(doc, thermalHTML, pageWidth, pageHeight);
-                }
-
-                const airQualityWithData = projectData.airQuality.filter(room => 
-                    room.radon || room.formaldehyde || room.vocs
-                );
-                if (airQualityWithData.length > 0) {
-                    doc.addPage();
-                    const airQualityHTML = window.createAirQualityDetailPage();
-                    await window.addHTMLPageToPDF(doc, airQualityHTML, pageWidth, pageHeight);
-                }
-
-                // 견적서 페이지
-                doc.addPage();
-                const quotationPage = window.createQuotationPage(projectData.apartmentName, projectData.dong, projectData.ho, projectData.inspectionDate || new Date().toLocaleDateString('ko-KR'));
-                await window.addHTMLPageToPDF(doc, quotationPage, pageWidth, pageHeight);
-
-                // 가이드 페이지들
-                doc.addPage();
-                const serviceGuidePage = window.createServiceGuidePage();
-                await window.addHTMLPageToPDF(doc, serviceGuidePage, pageWidth, pageHeight);
-
-                doc.addPage();
-                const warrantyPage1 = window.createWarrantyGuidePage1();
-                await window.addHTMLPageToPDF(doc, warrantyPage1, pageWidth, pageHeight);
-
-                doc.addPage();
-                const airQualityGuide = window.createAirQualityManagementGuidePage();
-                await window.addHTMLPageToPDF(doc, airQualityGuide, pageWidth, pageHeight);
-
-                doc.addPage();
-                const condensationGuide = window.createCondensationGuidePage();
-                await window.addHTMLPageToPDF(doc, condensationGuide, pageWidth, pageHeight);
-
-                // 입주 전 체크리스트 페이지
-                doc.addPage();
-                const moveInChecklistHTML = window.createMoveInChecklistPage();
-                await window.addHTMLPageToPDF(doc, moveInChecklistHTML, pageWidth, pageHeight);
+                // ✅ 패치 73: 보고서 쪽 조립은 한 함수로 (드라이브 저장·전체 내려받기·PDF만 받기 같은 순서·쪽 번호)
+                await window.buildCustomerReportPDF(doc, pageWidth, pageHeight);
 
                 // PDF Blob 생성
                 const pdfBlob = doc.output('blob');
@@ -10627,6 +10525,16 @@ body.light-mode .card.reference-info {
                 defect.description = description;
             }
         }
+        // ✅ 패치 73: 자동으로 만든 설명 문장 (하자 목록 '상세 내용' 칸 — 설명이 이것과 같으면 상세위치만 보여 공간·위치·유형 반복을 없앰)
+        window._autoDescOf = function(d) {
+            const sp = d.spaces || [], lo = d.locations || [], ty = d.types || [];
+            let s = '';
+            if (sp.length) s += sortSpacesForKorean(sp.slice()).join(', ');
+            if (lo.length) { if (s) s += ' '; s += sortLocationsForKorean(lo.slice()); }
+            if (d.detailLocation) { if (s) s += ' '; s += d.detailLocation; }
+            if (ty.length) { if (s) s += ' '; s += ty.join(', '); }
+            return s;
+        };
         
         // 한글 문법에 맞게 위치를 정렬하는 함수
         // 공간 정렬: 부속 공간(발코니·팬트리 등)을 뒤로 보내 자연스러운 표현으로
@@ -10844,112 +10752,9 @@ body.light-mode .card.reference-info {
                 const pageWidth = 210;
                 const pageHeight = 297;
 
-                // PDF 페이지들 생성
-                const firstPageHTML = window.createSummaryFirstPage();
-                await window.addHTMLPageToPDF(doc, firstPageHTML, pageWidth, pageHeight);
+                // ✅ 패치 73: 보고서 쪽 조립은 한 함수로 (드라이브 저장·전체 내려받기·PDF만 받기 같은 순서·쪽 번호)
+                await window.buildCustomerReportPDF(doc, pageWidth, pageHeight);
 
-                // 프로젝트 요약 페이지
-                // 목차 페이지
-                doc.addPage();
-                const tocHTML = window.createTableOfContentsPage();
-                await window.addHTMLPageToPDF(doc, tocHTML, pageWidth, pageHeight);
-
-                doc.addPage();
-                const summaryPageHTML = window.createProjectSummaryPage();
-                await window.addHTMLPageToPDF(doc, summaryPageHTML, pageWidth, pageHeight);
-
-                // 공종별 하자 판단기준 페이지 (신규)
-                doc.addPage();
-                await window.addHTMLPageToPDF(doc, window.createGongJongCriteriaPage(), pageWidth, pageHeight);
-
-                // 2페이지~: 하자 목록 (18개씩, 0번부터 시작)
-                if (projectData.defects.length > 0) {
-                    const _defectPlan = window.planDefectPages();
-                    for (let _pi = 0; _pi < _defectPlan.length; _pi++) {
-                        doc.addPage();
-                        const listPageHTML = window.createDefectListPage(_defectPlan[_pi].start, _defectPlan[_pi].count, _pi + 1, _defectPlan.length);
-                        await window.addHTMLPageToPDF(doc, listPageHTML, pageWidth, pageHeight);
-                    }
-                }
-
-                // 하자 상세 사진 페이지 (3개씩, 사진 2장씩)
-                if (projectData.defects.length > 0) {
-                    const defectsWithPhotos = projectData.defects.filter(d => d.photos && d.photos.length > 0);
-                    
-                    if (defectsWithPhotos.length > 0) {
-                        for (let i = 0; i < defectsWithPhotos.length; i += 3) {
-                            doc.addPage();
-                            const batch = defectsWithPhotos.slice(i, i + 3);
-                            const detailHTML = await window.createDefectDetailPage(batch, i, true);
-                            await window.addHTMLPageToPDF(doc, detailHTML, pageWidth, pageHeight);
-                        }
-                    }
-                }
-
-                if (projectData.equipment && projectData.equipment.length > 0) {
-                    const equipmentWithPhotos = projectData.equipment.filter(e => {
-                        if (e.photos && typeof e.photos === 'object') {
-                            return Object.values(e.photos).some(photo => photo !== null);
-                        }
-                        return e.photo;
-                    });
-                    
-                    if (equipmentWithPhotos.length > 0) {
-                        // _originalIndex 설정 (장비점검 번호 표시용)
-                        equipmentWithPhotos.forEach((item, i) => item._originalIndex = i + 1);
-                        
-                        // 1개씩 페이지에 표시 (PDF 보고서 생성과 동일)
-                        for (let i = 0; i < equipmentWithPhotos.length; i++) {
-                            doc.addPage();
-                            const equipmentHTML = await window.createEquipmentPage([equipmentWithPhotos[i]]);
-                            await window.addHTMLPageToPDF(doc, equipmentHTML, pageWidth, pageHeight);
-                        }
-                    }
-                }
-
-
-                // 열화상 단열 안내 페이지 (토글 ON일 때만)
-                if ((localStorage.getItem('thermalNoticeGlobal') === 'on') && projectData.equipment && projectData.equipment.some(e => (e.photos && typeof e.photos === 'object' && Object.values(e.photos).some(p => p)) || e.photo)) {
-                    doc.addPage();
-                    const thermalHTML = window.createThermalNoticePage();
-                    await window.addHTMLPageToPDF(doc, thermalHTML, pageWidth, pageHeight);
-                }
-
-                const airQualityWithData = projectData.airQuality.filter(room => 
-                    room.radon || room.formaldehyde || room.vocs
-                );
-                if (airQualityWithData.length > 0) {
-                    doc.addPage();
-                    const airQualityHTML = window.createAirQualityDetailPage();
-                    await window.addHTMLPageToPDF(doc, airQualityHTML, pageWidth, pageHeight);
-                }
-
-                // 견적서 페이지 추가 (실내공기질측정결과 바로 다음)
-                doc.addPage();
-                const quotationPage = window.createQuotationPage(projectData.apartmentName, projectData.dong, projectData.ho, projectData.inspectionDate || new Date().toLocaleDateString('ko-KR'));
-                await window.addHTMLPageToPDF(doc, quotationPage, pageWidth, pageHeight);
-
-                doc.addPage();
-                const serviceGuidePage = window.createServiceGuidePage();
-                await window.addHTMLPageToPDF(doc, serviceGuidePage, pageWidth, pageHeight);
-
-                doc.addPage();
-                const warrantyPage1 = window.createWarrantyGuidePage1();
-                await window.addHTMLPageToPDF(doc, warrantyPage1, pageWidth, pageHeight);
-
-                doc.addPage();
-                const airQualityGuide = window.createAirQualityManagementGuidePage();
-                await window.addHTMLPageToPDF(doc, airQualityGuide, pageWidth, pageHeight);
-
-                doc.addPage();
-                const condensationGuide = window.createCondensationGuidePage();
-                await window.addHTMLPageToPDF(doc, condensationGuide, pageWidth, pageHeight);
-
-                // 입주 전 체크리스트 페이지
-                doc.addPage();
-                const moveInChecklistHTML = window.createMoveInChecklistPage();
-                await window.addHTMLPageToPDF(doc, moveInChecklistHTML, pageWidth, pageHeight);
-                
                 // PDF를 Blob으로 변환하여 ZIP에 추가
                 const pdfBlob = doc.output('blob');
                 
@@ -12005,6 +11810,18 @@ body.light-mode .card.reference-info {
             return html;
         };
 
+        // ✅ 패치 72·73: 공종 → 보증기간 칸 · 배지 · 고객용 이름 (판단기준·하자 목록·사진 카드가 같이 씀)
+        window.GJ_BUCKET = { '골조':'5', '방수':'35', '미장':'2', '타일':'2', '석공사':'2', '유리':'3', 'PL창호':'3', '철재방화문':'3', '금속':'3', '목창호':'3', '수장':'2', '도장':'2', '도배':'2', '가구':'2',
+            '바닥재':'2', '실리콘':'2', '기계설비':'3', '전기':'3', '잡공사':'3', '준공청소':'0', '기타공종':'chk' };
+        window.WBK = { '35': { badge: '3~5년', bg: '#E84848' }, '5': { badge: '5년', bg: '#E84848' }, '3': { badge: '3년', bg: '#33415c' }, '2': { badge: '2년', bg: '#8a919d' },
+            'chk': { badge: '확인 필요', bg: '#a3aab6' }, '0': { badge: '해당 없음', bg: '#c3c8d0' } };
+        window.gjLabel = function(g) { return ({ '방수': '누수/방수', '목창호': '방문' })[g] || g; }; // 대표님 10-23: 목창호 → 방문 (보고서 화면만 — 엑셀 공종구분은 그대로)
+        window.warrantyBucketOf = function(d) { return window.GJ_BUCKET[detectGongJong(d)] || 'chk'; };
+        window.warrantyBadgeHTML = function(d, small) {
+            const B = window.WBK[window.warrantyBucketOf(d)];
+            return '<span style="display:inline-block;background:' + B.bg + ';color:#fff;font-size:' + (small ? 10 : 10.5) + 'px;font-weight:700;padding:' + (small ? '2px 7px' : '3px 9px') + ';border-radius:11px;white-space:nowrap;line-height:1.35;">' + B.badge + '</span>';
+        };
+
         // ✅ 패치 72 (10-22 회의 1번): 공종 자동 분류 — 위치 버튼으로 먼저 가르고, 기존 키워드 규칙(_detectGongJongBase)은 그대로 뒤에서
         //    실제 1,037세대 61,400건으로 재 보니 약 6%가 다른 기간으로 붙었음 (가구 문짝 3년·창 작동 2년·현관문 2년·중문 옆 벽지 3년 등)
         //    같은 함수를 쓰는 하자점검리스트 엑셀 '공종구분'도 같이 바뀜 (하자접수 자동화는 이 칸을 읽지 않음 — 10-22 확인)
@@ -12015,7 +11832,7 @@ body.light-mode .card.reference-info {
             const base = _detectGongJongBase(def), d = def.description || '', r = (defect.spaces || []).join(' ');
             if (/누수/.test(d) || base === '방수') return base;                                     // 누수·방수는 기존 그대로
             if (has('가구')) return base === '기계설비' ? '기계설비' : '가구';                        // 가구 문짝은 가구(2년) — '문·짝이면 방문' 규칙보다 먼저
-            if (has('코킹')) return base;
+            if (has('코킹')) return (has('문') || has('틀') || has('짝')) && !has('창') && ['목창호', '철재방화문'].indexOf(base) >= 0 ? '실리콘' : base; // 대표님 10-23: 문틀 코킹 = 코킹 마감(2년)
             // 창 작동·유격·누락도 창호(3년) — 창 둘레 도배·마감판·타일·줄눈·도장은 그 공사 그대로 (10-22 검토)
             if (has('창') && !has('도장') && !has('도배') && !has('마감판') && !has('타일') && !has('줄눈') && ['기타공종', '목창호'].indexOf(base) >= 0) return 'PL창호';
             if ((has('문') || ((has('짝') || has('틀')) && !has('창'))) && !has('도장') && !has('마감판') && !has('타일') && !has('도배')) {
@@ -12023,7 +11840,11 @@ body.light-mode .card.reference-info {
                 return base;
             }
             if ((has('도배') || has('마감판')) && /중문/.test(d) && base === '목창호') return has('도배') ? '도배' : '수장'; // 중문 옆 벽지·마감판
+            // 대표님 10-23: 발코니 벽·천장 균열(크랙) = 도장 마감 균열(2년) — 직원이 골조·옹벽·철근이라고 쓴 것은 구조로 그대로
+            if (/균열|크랙/.test(d) && !/골조|옹벽|철근/.test(d) && /발코니/.test(r) && (has('벽') || has('천장')) && (base === '기타공종' || base === '골조')) return '도장';
             if (base === '기타공종') {
+                // 대표님 10-23: 일반 오염 = 준공 청소 미흡 — 긁힘·틈새 등 손상이 같이 적힌 것은 청소로 보지 않음 (검토 10-23)
+                if (/오염/.test(d) && !/파손|들뜸|균열|틈새|단차|수평|개폐|고정|긁힘|찍힘|찢|미시공|돌출|타카|피스커버|접합부/.test(d)) return '준공청소';
                 if (/전등/.test(d)) return '전기';
                 if (/건조대|수건걸이|스토퍼/.test(d)) return '잡공사';
                 if (/조절기/.test(d)) return '기계설비';                                  // 온도·난방 조절기
@@ -13295,69 +13116,57 @@ body.light-mode .card.reference-info {
         // ==================== 목차 페이지 ====================
         window.THEHOME_LOGO = 'data:image/png;base64,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';
 
-        window.createTableOfContentsPage = function() {
-            const hasDefects = projectData.defects && projectData.defects.length > 0;
-            const hasEquipment = projectData.equipment && projectData.equipment.some(e => e.photos && Object.values(e.photos).some(p => p));
-            const hasAirQuality = projectData.airQuality && projectData.airQuality.some(r => r.radon || r.formaldehyde || r.vocs);
-
-            const sections = [];
-            // numbered: true = 자동 순번, false = 순번 없이 참고 표시
-            sections.push({numbered: true, title: '프로젝트 요약', desc: '점검 대상 아파트 정보 및 점검 개요'});
-            sections.push({numbered: true, title: '하자 판단기준 안내', desc: '보증기간별 해당 번호 · 공종별 확인 상태 안내'});
-            if (hasDefects) {
-                sections.push({numbered: true, title: '하자 점검 목록', desc: '육안 점검으로 발견된 하자 항목 리스트'});
-                sections.push({numbered: true, title: '하자 상세 리포트', desc: '하자별 원경/근경 사진 및 상세 내용'});
-            }
-            if (hasEquipment) {
-                sections.push({numbered: true, title: '장비 점검 결과', desc: '열화상 카메라, 레이저 레벨기 등 장비 점검 결과'});
-            } else {
-                sections.push({numbered: false, title: '장비 점검 보고서', desc: '별도 생성된 장비점검 보고서를 참고해 주세요'});
-            }
-            if (hasAirQuality) {
-                sections.push({numbered: true, title: '실내 공기질 측정 결과', desc: '라돈, 포름알데히드, 총VOCs 측정 및 분석 그래프'});
-            }
-            sections.push({numbered: true, title: '홈케어서비스 견적서', desc: '입주 청소, 줄눈, 코팅 등 홈케어 서비스 비용 안내'});
-            sections.push({numbered: true, title: '홈케어서비스 시공안내', desc: '입주 시 필요한 시공 서비스 상세 안내'});
-            sections.push({numbered: true, title: '공기질 관리 가이드', desc: '환기, 베이크아웃 등 실내 공기질 관리 방법'});
-            sections.push({numbered: true, title: '결로 현상 안내', desc: '결로 원인 및 예방 생활 습관 안내'});
-            sections.push({numbered: true, title: '하자보수 청구 및 보증기간', desc: '하자담보 책임기간 및 보수 청구 절차 안내'});
-            sections.push({numbered: true, title: '입주 전 체크리스트', desc: '입주 준비부터 입주 당일까지 확인사항'});
-
-            let sectionHTML = '';
-            let autoNum = 0;
-            sections.forEach(function(s) {
-                if (s.numbered) {
-                    autoNum++;
-                    var numColor = autoNum % 2 === 0 ? '#141d2e' : '#E84848';
-                    sectionHTML += '<div style="display:flex;align-items:center;padding:15px 0;border-bottom:1px solid #eef0f3;">'
-                        + '<div style="width:44px;height:44px;background:' + numColor + ';color:#fff;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:800;flex-shrink:0;">' + String(autoNum).padStart(2,'0') + '</div>'
-                        + '<div style="margin-left:16px;">'
-                            + '<div style="font-size:15px;font-weight:800;color:#141d2e;">' + s.title + '</div>'
-                            + '<div style="font-size:12px;color:#8a919d;margin-top:3px;">' + s.desc + '</div>'
-                        + '</div>'
+        // ✅ 패치 73 (10-23 회의 1·4번): 목차 — 실제 조립 순서·쪽 제목 그대로, 줄마다 시작 쪽 (buildCustomerReportPDF 가 window._rptPlan 에 넣어 둠)
+        window.createTableOfContentsPage = function() { return window._fitPage(_tocHTML, 2); };
+        function _tocHTML(L) {
+            const plan = window._rptPlan || null, st = plan && plan.start ? plan.start : null;
+            const defects = projectData.defects || [];
+            const withPhotos = defects.filter(d => d.photos && d.photos.length > 0).length;
+            const hasEquipment = (projectData.equipment || []).some(e => e && (e.photos && typeof e.photos === 'object' ? Object.values(e.photos).some(p => p) : e.photo));
+            const hasAirQuality = (projectData.airQuality || []).some(r => r.radon || r.formaldehyde || r.vocs);
+            const pg = k => { if (!st || !st[k]) return ''; const a = st[k][0], b = st[k][1]; return a === b ? a + '쪽' : a + '~' + b + '쪽'; };
+            const S = [];
+            S.push({ k: 'summary', title: '프로젝트 요약', desc: '하자 건수, 우선 보수 권장 항목, 공종·공간별 하자 현황' });
+            S.push({ k: 'criteria', title: '하자 판단기준 안내', desc: '보증기간별 해당 번호 · 공종별 확인 상태' });
+            if (defects.length) S.push({ k: 'list', title: '하자 점검 목록', desc: '발견된 하자 ' + defects.length + '건 · 번호마다 보증기간과 사진이 있는 쪽' });
+            if (withPhotos) S.push({ k: 'photos', title: '하자 상세 리포트 (사진)', desc: '번호 순서대로 위치 사진 · 확대 사진 (한 쪽에 3건)' });
+            if (hasEquipment) S.push({ k: 'equip', title: '장비 점검 리포트', desc: '열화상 카메라, 레이저 레벨기 등 장비 점검 결과' });
+            else S.push({ k: '', off: true, title: '장비 점검 보고서', desc: '별도 생성된 장비점검 보고서를 참고해 주세요' });
+            if (st && st.thermal) S.push({ k: 'thermal', title: '열화상 단열 점검 안내', desc: '점검일 열화상 단열 판독 범위와 입주 후 확인 방법' });
+            if (hasAirQuality) S.push({ k: 'aq', title: '실내 공기질 측정 결과', desc: '라돈, 포름알데히드, 총VOCs 측정 결과' });
+            S.push({ k: 'warranty', title: '하자보수 청구 & 담보책임 가이드', desc: '보수 청구 절차와 하자담보책임기간 안내' });
+            S.push({ k: 'checklist', title: '입주 전 체크리스트', desc: '입주 준비부터 입주 당일까지 확인사항' });
+            S.push({ k: 'living', title: '생활 관리 가이드 (공기질 · 결로)', desc: '베이크아웃 · 실내공기질 기준 · 결로 예방과 대처' });
+            S.push({ k: 'quote', title: '홈케어서비스 견적서', desc: '입주 청소, 줄눈, 코팅 등 부가 서비스 비용 안내' });
+            S.push({ k: 'service', title: '홈케어서비스 시공안내', desc: '부가 서비스 시공 상세 안내' });
+            const PAD = [14, 10, 7][L], BOX = [44, 38, 32][L];
+            let num = 0;
+            const rows = S.map(function(s) {
+                const off = !!s.off;
+                if (!off) num++;
+                const color = off ? '#c9ced6' : (num % 2 === 0 ? '#141d2e' : '#E84848');
+                return '<div style="display:flex;align-items:center;padding:' + PAD + 'px 0;border-bottom:1px solid #eef0f3;">'
+                    + '<div style="width:' + BOX + 'px;height:' + BOX + 'px;background:' + color + ';color:#fff;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:' + (off ? 13 : 16) + 'px;font-weight:800;flex-shrink:0;">' + (off ? '별도' : String(num).padStart(2, '0')) + '</div>'
+                    + '<div style="margin-left:16px;flex:1;min-width:0;">'
+                    +   '<div style="font-size:15px;font-weight:800;color:' + (off ? '#c9ced6' : '#141d2e') + ';">' + s.title + '</div>'
+                    +   '<div style="font-size:12px;color:' + (off ? '#c9ced6' : '#8a919d') + ';margin-top:3px;">' + s.desc + '</div>'
+                    + '</div>'
+                    + (s.k && pg(s.k) ? '<div style="font-size:15px;font-weight:800;color:#141d2e;white-space:nowrap;margin-left:12px;">' + pg(s.k).replace('쪽', '<span style="font-size:11px;color:#8a919d;font-weight:700;">쪽</span>') + '</div>' : '')
                     + '</div>';
-                } else {
-                    sectionHTML += '<div style="display:flex;align-items:center;padding:15px 0;border-bottom:1px solid #eef0f3;">'
-                        + '<div style="width:44px;height:44px;background:#c9ced6;color:#fff;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;">별도</div>'
-                        + '<div style="margin-left:16px;">'
-                            + '<div style="font-size:15px;font-weight:800;color:#c9ced6;">' + s.title + '</div>'
-                            + '<div style="font-size:12px;color:#c9ced6;margin-top:3px;">' + s.desc + '</div>'
-                        + '</div>'
-                    + '</div>';
-                }
-            });
-
+            }).join('');
+            const top = plan && plan.total ? '<div style="background:#f4f6fa;border-radius:8px;padding:10px 16px;margin-bottom:' + [10, 8, 6][L] + 'px;font-size:12px;color:#4b5563;">보고서 전체 <b style="color:#141d2e;">' + plan.total + '쪽</b> · 쪽 번호는 각 쪽 <b style="color:#141d2e;">아래 가운데</b>에 있습니다.</div>' : '';
+            const howto = plan && st && st.photos && st.list ? '<div style="border-left:3px solid #E84848;background:#f8f9fb;padding:11px 16px;margin-top:' + [14, 10, 8][L] + 'px;font-size:12px;color:#4b5563;line-height:1.6;"><b style="color:#141d2e;">사진 찾는 방법</b> · ' + pg('list') + ' 하자 점검 목록의 맨 오른쪽 <b style="color:#141d2e;">사진</b> 칸에 그 하자의 사진이 있는 쪽이 적혀 있습니다.</div>' : '';
             return '<div style="width:794px;height:1123px;background:#fff;font-family:\'Pretendard\',\'Malgun Gothic\',sans-serif;display:flex;flex-direction:column;overflow:hidden;box-sizing:border-box;">'
                 + '<div style="background:#141d2e;padding:20px 44px;display:flex;justify-content:space-between;align-items:center;">'
-                    + '<div style="display:flex;align-items:center;gap:11px;"><div style="width:42px;height:42px;background-color:#fff;border-radius:10px;background-image:url(' + window.THEHOME_LOGO + ');background-size:28px;background-repeat:no-repeat;background-position:center;"></div>'
-                    + '<div><div style="font-size:9px;letter-spacing:.16em;color:#7c86a0;font-weight:700;">더홈점검 · REPORT</div><div style="font-size:17px;font-weight:800;color:#fff;">목차 · CONTENTS</div></div></div>'
-                    + '<div style="font-size:12px;color:#9aa6c2;font-weight:600;">' + projectData.apartmentName + ' ' + projectData.dong + '동 ' + projectData.ho + '호</div>'
+                +   '<div style="display:flex;align-items:center;gap:11px;"><div style="width:42px;height:42px;background-color:#fff;border-radius:10px;background-image:url(' + window.THEHOME_LOGO + ');background-size:28px;background-repeat:no-repeat;background-position:center;"></div>'
+                +   '<div><div style="font-size:9px;letter-spacing:.16em;color:#7c86a0;font-weight:700;">더홈점검 · REPORT</div><div style="font-size:17px;font-weight:800;color:#fff;">목차 · CONTENTS</div></div></div>'
+                +   '<div style="font-size:12px;color:#9aa6c2;font-weight:600;">' + projectData.apartmentName + ' ' + projectData.dong + '동 ' + projectData.ho + '호</div>'
                 + '</div>'
                 + '<div style="height:3px;background:#E84848;"></div>'
-                + '<div style="flex:1;padding:34px 50px 0;">' + sectionHTML + '</div>'
+                + '<div style="flex:1;padding:' + [26, 20, 16][L] + 'px 50px 0;">' + top + rows + howto + '</div>'
                 + '<div style="margin-top:auto;padding:14px 44px;border-top:1px solid #e8eaee;display:flex;justify-content:space-between;align-items:center;font-size:11px;color:#9aa1ad;font-weight:700;letter-spacing:.05em;"><span>THE HOME INSPECTION</span><span>1668-5322 · 010-9985-0128</span></div>'
-            + '</div>';
-        };
+                + '</div>';
+        }
 
         // ==================== 장비점검 요약 페이지 ====================
         window.createEquipmentSummaryPage = function() {
@@ -13591,7 +13400,7 @@ body.light-mode .card.reference-info {
                 + '<div style="margin-top:18px;border:1px solid #e2e5ea;border-radius:10px;overflow:hidden;">'
                     + '<div style="background:#141d2e;padding:11px 18px;font-size:13px;font-weight:800;color:#fff;">입주 후 하자 발견 시 대응 요령</div>'
                     + '<div style="display:grid;grid-template-columns:1fr 1fr;">'
-                        + '<div style="padding:12px 18px;border-right:1px solid #eef0f3;border-bottom:1px solid #eef0f3;"><div style="font-size:12.5px;font-weight:700;color:#141d2e;margin-bottom:3px;"><span style="color:#E84848;">01</span> 즉시 사진 촬영</div><div style="font-size:11.5px;color:#5b6472;line-height:1.55;">원경(위치)+근경(하자) 2장, 발견 날짜·위치 메모</div></div>'
+                        + '<div style="padding:12px 18px;border-right:1px solid #eef0f3;border-bottom:1px solid #eef0f3;"><div style="font-size:12.5px;font-weight:700;color:#141d2e;margin-bottom:3px;"><span style="color:#E84848;">01</span> 즉시 사진 촬영</div><div style="font-size:11.5px;color:#5b6472;line-height:1.55;">위치 사진(멀리서)+확대 사진(가까이) 2장, 발견 날짜·위치 메모</div></div>'
                         + '<div style="padding:12px 18px;border-bottom:1px solid #eef0f3;"><div style="font-size:12.5px;font-weight:700;color:#141d2e;margin-bottom:3px;"><span style="color:#E84848;">02</span> 관리사무소 접수</div><div style="font-size:11.5px;color:#5b6472;line-height:1.55;">입주지원센터/시공사 앱으로 하자보수 신청서 제출</div></div>'
                         + '<div style="padding:12px 18px;border-right:1px solid #eef0f3;"><div style="font-size:12.5px;font-weight:700;color:#141d2e;margin-bottom:3px;"><span style="color:#E84848;">03</span> 계절별 재점검</div><div style="font-size:11.5px;color:#5b6472;line-height:1.55;">겨울 결로·여름 곰팡이 등 계절 변화 하자 추가 확인</div></div>'
                         + '<div style="padding:12px 18px;"><div style="font-size:12.5px;font-weight:700;color:#141d2e;margin-bottom:3px;"><span style="color:#E84848;">04</span> 보증기간 관리</div><div style="font-size:11.5px;color:#5b6472;line-height:1.55;">기간 만료 전 일괄 재점검, A/S 접수일·담당자 기록</div></div>'
@@ -13630,7 +13439,7 @@ body.light-mode .card.reference-info {
                     + '</div>'
                 + '</div>'
 
-                + '<div style="position:absolute;bottom:20px;left:30px;right:30px;padding-top:12px;border-top:1px solid #ddd;font-size:11px;color:#000;text-align:center;">'
+                + '<div style="position:absolute;bottom:40px;left:30px;right:30px;padding-top:12px;border-top:1px solid #ddd;font-size:11px;color:#000;text-align:center;">'
                     + '<div>더홈점검 | 대표: 1668-5322 / 직통: 010-9985-0128 | 사전점검 전문업체</div>'
                 + '</div>'
             + '</div>';
@@ -14782,6 +14591,71 @@ body.light-mode .card.reference-info {
 
 
 
+    // ✅ 패치 73 (10-23 회의 1·4번): 고객 보고서 쪽 조립 — 드라이브 저장·PDF만 받기·전체 내려받기 세 경로가 이것 하나만 씀
+    //   순서: 결과(요약·판단기준·목록·사진·장비·열화상·공기질) → 접수 방법(하자보수 가이드·입주 체크리스트) → 생활 관리 → 부가 서비스(견적·시공 안내)
+    //   그리기 전에 쪽 계획을 세워 목차 시작 쪽·하자 목록 '사진 N쪽'을 넣고, 다 그린 뒤 표지 빼고 모든 쪽 아래 가운데에 'n / N'
+    window.pairEquipmentPages = function(eq) {
+        const nPhotos = e => e && e.photos && typeof e.photos === 'object' ? Object.values(e.photos).filter(Boolean).length : (e && e.photo ? 1 : 0);
+        const noImg = h => h.replace(/src="data:[^"]*"/g, 'src=""'); // 재기만 할 때는 사진을 다시 풀지 않음 (아이폰 메모리)
+        const pages = [];
+        for (let i = 0; i < eq.length; ) {
+            const a = eq[i], b = eq[i + 1];
+            let two = false;
+            if (b && nPhotos(a) <= 2 && nPhotos(b) <= 2) { try { two = !window._pageOverflows(noImg(window.createEquipmentPage([a, b]))); } catch (e) { two = false; } }
+            if (two) { pages.push([a, b]); i += 2; } else { pages.push([a]); i += 1; }
+        }
+        return pages;
+    };
+    window.stampPageNumbers = function(doc, W, H) {
+        const n = doc.getNumberOfPages();
+        for (let i = 2; i <= n; i++) {
+            doc.setPage(i);
+            try { doc.setFont('helvetica', 'normal'); } catch (e) {}
+            doc.setFontSize(8); doc.setTextColor(150, 157, 170);
+            doc.text(i + ' / ' + n, W / 2, H - 5.3, { align: 'center' });
+        }
+        doc.setPage(n);
+    };
+    window.buildCustomerReportPDF = async function(doc, W, H) {
+        const P = projectData, defects = P.defects || [];
+        const withPhotos = defects.filter(d => d.photos && d.photos.length > 0);
+        const eq = (P.equipment || []).filter(e => e && (e.photos && typeof e.photos === 'object' ? Object.values(e.photos).some(p => p) : e.photo));
+        eq.forEach((item, i) => item._originalIndex = i + 1);
+        let thermalOn = false; try { thermalOn = localStorage.getItem('thermalNoticeGlobal') === 'on'; } catch (e) {}
+        const hasAQ = (P.airQuality || []).some(r => r.radon || r.formaldehyde || r.vocs);
+        window._rptPlan = { photoPageOf: {}, photoRange: withPhotos.length ? '000~000쪽' : '' }; // 목록 쪽 수는 실제와 같은 모양('사진' 칸·1쪽 안내 문장 가장 긴 꼴)으로 잼
+        try {
+            const listPlan = defects.length ? window.planDefectPages() : [];
+            const eqPages = window.pairEquipmentPages(eq);
+            const order = [['cover', 1], ['toc', 1], ['summary', 1], ['criteria', 1], ['list', listPlan.length], ['photos', Math.ceil(withPhotos.length / 3)],
+                ['equip', eqPages.length], ['thermal', thermalOn && eq.length ? 1 : 0], ['aq', hasAQ ? 1 : 0], ['warranty', 1], ['checklist', 1], ['living', 1], ['quote', 1], ['service', 1]];
+            const start = {}; let p = 1;
+            order.forEach(([k, n]) => { if (n > 0) { start[k] = [p, p + n - 1]; p += n; } });
+            const total = p - 1, photoPageOf = {};
+            withPhotos.forEach((d, j) => { photoPageOf[defects.indexOf(d) + 1] = start.photos[0] + Math.floor(j / 3); });
+            window._rptPlan = { start, total, photoPageOf, photoRange: start.photos ? (start.photos[0] === start.photos[1] ? start.photos[0] + '쪽' : start.photos[0] + '~' + start.photos[1] + '쪽') : '' };
+            const add = async (html, first) => { if (!first) doc.addPage(); await window.addHTMLPageToPDF(doc, html, W, H); };
+            await add(window.createSummaryFirstPage(), true);
+            await add(window.createTableOfContentsPage());
+            await add(window.createProjectSummaryPage());
+            await add(window.createGongJongCriteriaPage());
+            for (let i = 0; i < listPlan.length; i++) await add(window.createDefectListPage(listPlan[i].start, listPlan[i].count, i + 1, listPlan.length));
+            for (let i = 0; i < withPhotos.length; i += 3) await add(await window.createDefectDetailPage(withPhotos.slice(i, i + 3), i, true));
+            for (const pg of eqPages) await add(await window.createEquipmentPage(pg));
+            if (start.thermal) await add(window.createThermalNoticePage());
+            if (start.aq) await add(window.createAirQualityDetailPage());
+            await add(window.createWarrantyGuidePage1());
+            await add(window.createMoveInChecklistPage());
+            await add(window.createLivingGuidePage());
+            await add(window.createQuotationPage(P.apartmentName, P.dong, P.ho, P.inspectionDate || new Date().toLocaleDateString('ko-KR')));
+            await add(window.createServiceGuidePage());
+            if (doc.getNumberOfPages() !== total) console.warn('보고서 쪽 수가 계획과 다름', doc.getNumberOfPages(), total);
+            window.stampPageNumbers(doc, W, H);
+        } finally {
+            window._rptPlan = null;
+        }
+    };
+
     // 5. [PDF 생성 로직] (수정됨)
     window.generatePDF = async function() {
         if (!projectData.apartmentName) return alert('프로젝트 정보를 입력해주세요');
@@ -14808,79 +14682,8 @@ body.light-mode .card.reference-info {
             const doc = new jsPDF('p', 'mm', 'a4');
             const W = 210, H = 297;
 
-            // 1. 표지 (미니멀 모던 레드)
-            await window.addHTMLPageToPDF(doc, window.createSummaryFirstPage(), W, H);
-
-            // 목차 페이지
-            doc.addPage();
-            await window.addHTMLPageToPDF(doc, window.createTableOfContentsPage(), W, H);
-
-            // 프로젝트 요약 페이지
-            doc.addPage();
-            await window.addHTMLPageToPDF(doc, window.createProjectSummaryPage(), W, H);
-
-            // 공종별 하자 판단기준 페이지 (신규)
-            doc.addPage();
-            await window.addHTMLPageToPDF(doc, window.createGongJongCriteriaPage(), W, H);
-
-            // 2. 하자 목록 (18개씩, 0번부터)
-            if (projectData.defects.length > 0) {
-                const _defectPlan = window.planDefectPages();
-                for (let _pi = 0; _pi < _defectPlan.length; _pi++) {
-                    doc.addPage();
-                    await window.addHTMLPageToPDF(doc, window.createDefectListPage(_defectPlan[_pi].start, _defectPlan[_pi].count, _pi + 1, _defectPlan.length), W, H);
-                }
-            }
-
-            // 3. 하자 사진
-            const defectsWithPhotos = projectData.defects.filter(d => d.photos && d.photos.length > 0);
-            for (let i = 0; i < defectsWithPhotos.length; i += 3) {
-                doc.addPage();
-                await window.addHTMLPageToPDF(doc, await window.createDefectDetailPage(defectsWithPhotos.slice(i, i+3), i, true), W, H);
-            }
-
-            // 4. 장비 점검 (1페이지에 1개 항목씩)
-            const equipmentWithPhotos = projectData.equipment.filter(e => (e.photos && Object.values(e.photos).some(p=>p)) || e.photo);
-            
-            // 인덱스 부여 (표시용)
-            equipmentWithPhotos.forEach((item, i) => item._originalIndex = i + 1);
-            
-            // 각 장비를 독립적인 페이지에 표시
-            for (let i = 0; i < equipmentWithPhotos.length; i++) {
-                doc.addPage();
-                await window.addHTMLPageToPDF(doc, window.createEquipmentPage([equipmentWithPhotos[i]]), W, H);
-            }
-
-            // 열화상 단열 안내 페이지 (토글 ON일 때만)
-            if ((localStorage.getItem('thermalNoticeGlobal') === 'on') && projectData.equipment && projectData.equipment.some(e => (e.photos && typeof e.photos === 'object' && Object.values(e.photos).some(p => p)) || e.photo)) {
-                doc.addPage();
-                const thermalNoticeHTML = window.createThermalNoticePage();
-                await window.addHTMLPageToPDF(doc, thermalNoticeHTML, W, H);
-            }
-
-            // 4-1. 공기질 측정 페이지 추가
-            const airQualityWithData = projectData.airQuality.filter(room => 
-                room.radon || room.formaldehyde || room.vocs
-            );
-            if (airQualityWithData.length > 0) {
-                doc.addPage();
-                const airQualityHTML = window.createAirQualityDetailPage();
-                await window.addHTMLPageToPDF(doc, airQualityHTML, W, H);
-            }
-
-            // 견적서 페이지 추가 (실내공기질측정결과 바로 다음)
-            doc.addPage(); await window.addHTMLPageToPDF(doc, window.createQuotationPage(projectData.apartmentName, projectData.dong, projectData.ho, projectData.inspectionDate || new Date().toLocaleDateString('ko-KR')), W, H);
-
-            // 시공안내 페이지 추가 (견적서 다음)
-            doc.addPage(); await window.addHTMLPageToPDF(doc, window.createServiceGuidePage(), W, H);
-
-            // 5. 가이드 페이지 추가
-            doc.addPage(); await window.addHTMLPageToPDF(doc, window.createWarrantyGuidePage1(), W, H);
-            doc.addPage(); await window.addHTMLPageToPDF(doc, window.createAirQualityManagementGuidePage(), W, H);
-            doc.addPage(); await window.addHTMLPageToPDF(doc, window.createCondensationGuidePage(), W, H);
-
-            // 입주 전 체크리스트 페이지
-            doc.addPage(); await window.addHTMLPageToPDF(doc, window.createMoveInChecklistPage(), W, H);
+            // ✅ 패치 73: 보고서 쪽 조립은 한 함수로 (드라이브 저장·전체 내려받기·PDF만 받기 같은 순서·쪽 번호)
+            await window.buildCustomerReportPDF(doc, W, H);
 
             const filename = `더홈점검_${projectData.apartmentName}_${projectData.dong}${projectData.ho}.pdf`;
             doc.save(filename);
@@ -14952,7 +14755,7 @@ body.light-mode .card.reference-info {
         const totForG = sortedTypes.reduce((a,b)=>a+b[1],0);
         const maxG = sortedTypes.length ? sortedTypes[0][1] : 0;
         let gongRows = sortedTypes.length
-            ? sortedTypes.slice(0,10).map((it,i)=>barRow(it[0], it[1], totForG, maxG, NAVY[i%NAVY.length], 62)).join('')
+            ? sortedTypes.slice(0,10).map((it,i)=>barRow(window.gjLabel(it[0]), it[1], totForG, maxG, NAVY[i%NAVY.length], 62)).join('')
                 + (sortedTypes.length > 10 ? '<div style="font-size:10.5px;color:#8a919d;margin-top:5px;">외 ' + (sortedTypes.length-10) + '개 공종 ' + sortedTypes.slice(10).reduce((a,b)=>a+b[1],0) + '건</div>' : '')
             : '<div style="text-align:center;color:#8a919d;font-size:12px;padding:24px 0;">등록된 하자가 없습니다</div>';
         const totForS = sortedSpaces.reduce((a,b)=>a+b[1],0);
@@ -15070,7 +14873,7 @@ body.light-mode .card.reference-info {
         // 상태문구용: 필러 제외 + 가벼운 순화 (증상 단어는 그대로)
         var FILLER = { '전체':1, '다수':1, '불량':1 };
         var SOFT = { '마감':'마감 상태','작동':'작동 확인','고정':'고정 상태','수평/수직':'수평·수직','누락':'마감 누락','돌출':'돌출' };
-        function meta(g){ return GJ_META[g] || GJ_DEFAULT; }
+        function meta(g){ var m = GJ_META[g] || GJ_DEFAULT; return { b: window.GJ_BUCKET[g] || 'chk', law: m.law, desc: m.desc }; } // 기간 칸은 한 곳(GJ_BUCKET)에서
         function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
 
         // 집계 (번호 = 하자 목록·사진의 NO = 전체 하자 순서 i+1)
@@ -15173,7 +14976,7 @@ body.light-mode .card.reference-info {
                   + '<span style="font-size:' + RDFS + 'px;color:#6b7280;flex:1;min-width:0;">번호 <b style="color:' + (isLeak ? '#E84848' : '#141d2e') + ';">' + nos + '</b></span>'
                   + '</div>';
             return '<tr style="border-bottom:1px solid #eef0f3;line-height:1.3;' + (isLeak ? 'background:#fff7f7;' : '') + '">'
-                + '<td style="padding:' + RPAD + 'px 12px;font-weight:700;color:#141d2e;font-size:' + RFS + 'px;white-space:nowrap;">' + (g === '방수' ? '누수/방수' : g) + '</td>'
+                + '<td style="padding:' + RPAD + 'px 12px;font-weight:700;color:#141d2e;font-size:' + RFS + 'px;white-space:nowrap;">' + window.gjLabel(g) + '</td>'
                 + '<td style="padding:' + RPAD + 'px 8px;text-align:center;color:#141d2e;font-weight:700;font-size:' + RFS + 'px;" class="num">' + a.cnt + '건</td>'
                 + '<td style="padding:' + RPAD + 'px 12px;color:#5b6472;font-size:' + RFS + 'px;">' + cell + '</td>'
                 + '<td style="padding:' + RPAD + 'px 10px;text-align:center;">' + badgeHTML(m.b, L >= 2 || tight) + '</td>'
@@ -15287,48 +15090,71 @@ body.light-mode .card.reference-info {
         }
         return Math.max(1, count);
     };
+    // ✅ 패치 73: 한 쪽에 들어가는 하자 줄 수를 실제로 재서 정함 (글자 수 어림 대신 — 칸이 늘어도·글이 길어도 안 잘림)
+    window._fitListCount = function(start) {
+        const len = (projectData.defects || []).length;
+        if (start >= len) return 0;
+        const fits = n => !window._pageOverflows(window.createDefectListPage(start, n, start === 0 ? 1 : 2, 2));
+        let lo = 1, hi = Math.min(len - start, 30);
+        try {
+            if (fits(hi)) return hi;
+            while (lo < hi) { const mid = Math.ceil((lo + hi) / 2); if (fits(mid)) lo = mid; else hi = mid - 1; }
+            return lo;
+        } catch (e) { return window.fitDefectRows(start); }
+    };
     window.planDefectPages = function() {
         var plan = [], i = 0, len = (projectData.defects || []).length;
-        while (i < len) { var n = window.fitDefectRows(i); plan.push({ start: i, count: n }); i += n; }
+        while (i < len) { var n = window._fitListCount(i) || 1; plan.push({ start: i, count: n }); i += n; }
         if (plan.length === 0) plan.push({ start: 0, count: 0 });
         return plan;
     };
 
+    // ✅ 패치 73 (10-23 회의 1·3번): 하자 목록 — '보증' 칸, '사진' 쪽 칸, 상세 내용은 상세위치만(자동 설명이면), 제목은 목차와 같게
     window.createDefectListPage = function(startIndex, count, pageNum, totalPages) {
-        if (!count) count = window.fitDefectRows(startIndex);
+        if (!count) count = window._fitListCount(startIndex);
+        const plan = window._rptPlan, showPhoto = !!(plan && plan.photoPageOf);
         let defectRows = '';
-        const defectsToDisplay = projectData.defects.slice(startIndex, startIndex + count);
-        defectsToDisplay.forEach((defect, index) => {
-            const globalIndex = startIndex + index + 1;
+        projectData.defects.slice(startIndex, startIndex + count).forEach((defect, index) => {
+            const no = startIndex + index + 1;
             const spaces = defect.spaces ? defect.spaces.join(', ') : (defect.space || '-');
             const locations = defect.locations ? defect.locations.join(', ') : (defect.location || '-');
             const types = defect.types ? defect.types.join(', ') : (defect.type || '-');
-            const description = defect.description || '-';
-            const isCritical = window.isPriorityDefect(defect); // ✅ 패치 72
-            defectRows += `<tr style="border-bottom:1px solid #eef0f3;background:${isCritical?'rgba(232,72,72,0.06)':'transparent'};"><td style="padding:11px 8px;text-align:center;vertical-align:top;font-weight:800;color:${isCritical?'#E84848':'#141d2e'};">${String(globalIndex).padStart(2,'0')}</td><td style="padding:11px 10px;vertical-align:top;color:#141d2e;font-weight:600;word-break:break-word;">${spaces}</td><td style="padding:11px 10px;vertical-align:top;color:#5b6472;word-break:break-word;">${locations}</td><td style="padding:11px 10px;vertical-align:top;color:#5b6472;word-break:break-word;">${types}</td><td style="padding:11px 12px;vertical-align:top;line-height:1.45;color:${isCritical?'#c0392b':'#141d2e'};font-weight:${isCritical?'700':'400'};word-break:break-word;">${isCritical?`<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#E84848;margin-right:7px;vertical-align:middle;"></span>`:''}${description}</td></tr>`;
+            const desc0 = defect.description || '';
+            const detail = (!desc0 || (window._autoDescOf && desc0 === window._autoDescOf(defect))) ? (defect.detailLocation || '-') : desc0;
+            const isCritical = window.isPriorityDefect(defect);
+            const pp = showPhoto ? plan.photoPageOf[no] : null;
+            defectRows += `<tr style="border-bottom:1px solid #eef0f3;background:${isCritical?'rgba(232,72,72,0.06)':'transparent'};">`
+                + `<td style="padding:10px 6px;text-align:center;vertical-align:top;font-weight:800;color:${isCritical?'#E84848':'#141d2e'};">${String(no).padStart(2,'0')}</td>`
+                + `<td style="padding:10px 8px;vertical-align:top;color:#141d2e;font-weight:600;word-break:break-word;">${spaces}</td>`
+                + `<td style="padding:10px 8px;vertical-align:top;color:#5b6472;word-break:break-word;">${locations}</td>`
+                + `<td style="padding:10px 8px;vertical-align:top;color:#5b6472;word-break:break-word;">${types}</td>`
+                + `<td style="padding:10px 8px;vertical-align:top;line-height:1.45;color:${isCritical?'#c0392b':'#141d2e'};font-weight:${isCritical?'700':'400'};word-break:break-word;">${isCritical?`<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#E84848;margin-right:6px;vertical-align:middle;"></span>`:''}${detail}</td>`
+                + `<td style="padding:9px 4px;vertical-align:top;text-align:center;">${window.warrantyBadgeHTML(defect, true)}</td>`
+                + (showPhoto ? `<td style="padding:10px 4px;vertical-align:top;text-align:center;font-size:11.5px;font-weight:700;color:${isCritical?'#E84848':'#33415c'};white-space:nowrap;">${pp ? pp + '쪽' : '-'}</td>` : '')
+                + `</tr>`;
         });
-        if (!pageNum || !totalPages) {
-            var _plan = window.planDefectPages();
-            totalPages = _plan.length; pageNum = 1;
-            for (var _pi = 0; _pi < _plan.length; _pi++) { if (_plan[_pi].start === startIndex) { pageNum = _pi + 1; break; } }
-        }
-        const currentPage = pageNum;
+        const photoRange = showPhoto && plan.photoRange ? plan.photoRange : '';
+        const note = (pageNum || 1) === 1
+            ? `<div style="display:flex;align-items:center;gap:10px;background:#f4f6fa;border-radius:8px;padding:9px 14px;margin-bottom:12px;font-size:11.5px;color:#4b5563;">`
+              + `<span style="flex:1;">번호는 사진·판단기준 쪽의 번호와 같습니다.${photoRange ? ' 하자 사진은 <b style="color:#141d2e;">' + photoRange + '</b>에 번호 순서대로 있습니다 (맨 오른쪽 <b style="color:#141d2e;">사진</b> 칸).' : ''}</span>`
+              + `<span style="white-space:nowrap;color:#E84848;font-weight:700;">● 누수 등 우선 보수</span></div>`
+            : '';
         return `<div style="width:794px;height:1123px;background:#fff;font-family:'Pretendard','Malgun Gothic',sans-serif;display:flex;flex-direction:column;overflow:hidden;box-sizing:border-box;">
             <div style="background:#141d2e;padding:20px 44px;display:flex;justify-content:space-between;align-items:center;">
-                <div style="display:flex;align-items:center;gap:11px;"><div style="width:42px;height:42px;background-color:#fff;border-radius:10px;background-image:url(${window.THEHOME_LOGO});background-size:28px;background-repeat:no-repeat;background-position:center;"></div><div><div style="font-size:9px;letter-spacing:.16em;color:#7c86a0;font-weight:700;">더홈점검 · REPORT</div><div style="font-size:17px;font-weight:800;color:#fff;">하자 점검 내역 상세</div></div></div>
+                <div style="display:flex;align-items:center;gap:11px;"><div style="width:42px;height:42px;background-color:#fff;border-radius:10px;background-image:url(${window.THEHOME_LOGO});background-size:28px;background-repeat:no-repeat;background-position:center;"></div><div><div style="font-size:9px;letter-spacing:.16em;color:#7c86a0;font-weight:700;">더홈점검 · REPORT</div><div style="font-size:17px;font-weight:800;color:#fff;">하자 점검 목록</div></div></div>
                 <div style="font-size:12px;color:#9aa6c2;font-weight:600;">${projectData.apartmentName} ${projectData.dong}동 ${projectData.ho}호</div>
             </div>
             <div style="height:3px;background:#E84848;"></div>
-            <div style="flex:1;padding:26px 44px 0;">
-                <table style="width:100%;border-collapse:collapse;font-size:13.5px;table-layout:fixed;">
-                    <thead><tr style="background:#141d2e;color:#fff;"><th style="padding:12px 8px;width:42px;font-weight:700;font-size:12.5px;">NO</th><th style="padding:12px 10px;text-align:left;width:100px;font-weight:700;font-size:12.5px;">공간</th><th style="padding:12px 10px;text-align:left;width:96px;font-weight:700;font-size:12.5px;">위치</th><th style="padding:12px 10px;text-align:left;width:128px;font-weight:700;font-size:12.5px;">유형</th><th style="padding:12px 12px;text-align:left;font-weight:700;font-size:12.5px;">상세 내용</th></tr></thead>
+            <div style="flex:1;padding:22px 44px 0;">
+                ${note}
+                <table style="width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed;">
+                    <thead><tr style="background:#141d2e;color:#fff;"><th style="padding:11px 6px;width:38px;font-weight:700;font-size:12px;">NO</th><th style="padding:11px 8px;text-align:left;width:76px;font-weight:700;font-size:12px;">공간</th><th style="padding:11px 8px;text-align:left;width:92px;font-weight:700;font-size:12px;">위치</th><th style="padding:11px 8px;text-align:left;width:122px;font-weight:700;font-size:12px;">유형</th><th style="padding:11px 8px;text-align:left;font-weight:700;font-size:12px;">상세 내용</th><th style="padding:11px 4px;width:60px;font-weight:700;font-size:12px;">보증</th>${showPhoto ? '<th style="padding:11px 4px;width:46px;font-weight:700;font-size:12px;">사진</th>' : ''}</tr></thead>
                     <tbody>${defectRows}</tbody>
                 </table>
             </div>
-            <div style="margin-top:auto;padding:14px 44px;border-top:1px solid #e8eaee;display:flex;justify-content:space-between;align-items:center;font-size:11px;color:#9aa1ad;font-weight:700;letter-spacing:.05em;"><span>THE HOME INSPECTION</span><span>1668-5322 · Page ${currentPage} / ${totalPages}</span></div>
+            <div style="margin-top:auto;padding:14px 44px;border-top:1px solid #e8eaee;display:flex;justify-content:space-between;align-items:center;font-size:11px;color:#9aa1ad;font-weight:700;letter-spacing:.05em;"><span>THE HOME INSPECTION</span><span>1668-5322</span></div>
         </div>`;
     }
-
     window.createDefectDetailPage = async function(defects, startIndex, isPdf) {
         let contentHTML = '';
         for (let idx = 0; idx < defects.length; idx++) {
@@ -15338,12 +15164,12 @@ body.light-mode .card.reference-info {
             const globalIndex = _oi >= 0 ? _oi + 1 : startIndex + idx + 1;
             const dongHo = `${projectData.dong}동${projectData.ho}호`;
             // isPdf=true(보고서)면 워터마크 없이 원본 사용, ZIP/드라이브는 기존대로 워터마크 적용
-            const farPhoto = defect.photos && defect.photos[0] ? await window.addWatermarkToPhoto(defect.photos[0], `${dongHo}_${String(globalIndex).padStart(2, '0')} 원경`, isPdf) : '';
-            const closePhoto = defect.photos && defect.photos[1] ? await window.addWatermarkToPhoto(defect.photos[1], `${dongHo}_${String(globalIndex).padStart(2, '0')} 근경`, isPdf) : '';
+            const farPhoto = defect.photos && defect.photos[0] ? await window.addWatermarkToPhoto(defect.photos[0], `${dongHo}_${String(globalIndex).padStart(2, '0')} 위치 사진`, isPdf) : '';
+            const closePhoto = defect.photos && defect.photos[1] ? await window.addWatermarkToPhoto(defect.photos[1], `${dongHo}_${String(globalIndex).padStart(2, '0')} 확대 사진`, isPdf) : '';
             const spaces = defect.spaces ? defect.spaces.join(', ') : '-';
             const description = defect.description || '-';
             const isCritical = window.isPriorityDefect(defect); // ✅ 패치 72
-            contentHTML += `<div style="border:1px solid ${isCritical?'#E84848':'#e2e5ea'};border-radius:10px;overflow:hidden;break-inside:avoid;"><div style="display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid #eef0f3;background:${isCritical?'rgba(232,72,72,0.07)':'#fff'};"><span style="background:#141d2e;color:#fff;font-weight:800;font-size:12px;padding:4px 11px;border-radius:6px;">#${String(globalIndex).padStart(2,'0')}</span><span style="font-size:13px;font-weight:800;color:#141d2e;">${spaces}</span>${isCritical?`<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#E84848;"></span>`:''}<span style="width:1px;height:14px;background:#d5d9df;"></span><span style="font-size:13px;color:${isCritical?'#b3261e':'#111827'};font-weight:${isCritical?'800':'700'};flex:1;">${description}</span></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:2px;background:#eef0f3;"><div style="position:relative;height:256px;background:#f4f5f7;">${farPhoto?`<img src="${farPhoto}" style="width:100%;height:100%;object-fit:contain;"/>`:`<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#c9ced6;font-size:12px;">사진 없음</div>`}<div style="position:absolute;bottom:10px;left:10px;background:#141d2e;color:white;font-size:11px;padding:3px 10px;border-radius:5px;font-weight:700;">원경</div></div><div style="position:relative;height:256px;background:#f4f5f7;">${closePhoto?`<img src="${closePhoto}" style="width:100%;height:100%;object-fit:contain;"/>`:`<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#c9ced6;font-size:12px;">사진 없음</div>`}<div style="position:absolute;bottom:10px;left:10px;background:#E84848;color:white;font-size:11px;padding:3px 10px;border-radius:5px;font-weight:700;">근경</div></div></div></div>`;
+            contentHTML += `<div style="border:1px solid ${isCritical?'#E84848':'#e2e5ea'};border-radius:10px;overflow:hidden;break-inside:avoid;"><div style="display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid #eef0f3;background:${isCritical?'rgba(232,72,72,0.07)':'#fff'};"><span style="background:#141d2e;color:#fff;font-weight:800;font-size:12px;padding:4px 11px;border-radius:6px;">#${String(globalIndex).padStart(2,'0')}</span><span style="font-size:13px;font-weight:800;color:#141d2e;">${spaces}</span>${isCritical?`<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#E84848;"></span>`:''}<span style="width:1px;height:14px;background:#d5d9df;"></span><span style="font-size:13px;color:${isCritical?'#b3261e':'#111827'};font-weight:${isCritical?'800':'700'};flex:1;">${description}</span>${window.warrantyBadgeHTML(defect, true)}</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:2px;background:#eef0f3;"><div style="position:relative;height:256px;background:#f4f5f7;">${farPhoto?`<img src="${farPhoto}" style="width:100%;height:100%;object-fit:contain;"/>`:`<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#c9ced6;font-size:12px;">사진 없음</div>`}<div style="position:absolute;bottom:10px;left:10px;background:#141d2e;color:white;font-size:11px;padding:3px 10px;border-radius:5px;font-weight:700;">위치 사진</div></div><div style="position:relative;height:256px;background:#f4f5f7;">${closePhoto?`<img src="${closePhoto}" style="width:100%;height:100%;object-fit:contain;"/>`:`<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#c9ced6;font-size:12px;">사진 없음</div>`}<div style="position:absolute;bottom:10px;left:10px;background:#E84848;color:white;font-size:11px;padding:3px 10px;border-radius:5px;font-weight:700;">확대 사진</div></div></div></div>`;
         }
         return `<div style="width:794px;height:1123px;background:#fff;font-family:'Pretendard','Malgun Gothic',sans-serif;display:flex;flex-direction:column;overflow:hidden;box-sizing:border-box;"><div style="background:#141d2e;padding:20px 44px;display:flex;justify-content:space-between;align-items:center;"><div style="display:flex;align-items:center;gap:11px;"><div style="width:42px;height:42px;background-color:#fff;border-radius:10px;background-image:url(${window.THEHOME_LOGO});background-size:28px;background-repeat:no-repeat;background-position:center;"></div><div><div style="font-size:9px;letter-spacing:.16em;color:#7c86a0;font-weight:700;">더홈점검 · REPORT</div><div style="font-size:17px;font-weight:800;color:#fff;">하자 상세 리포트 (사진)</div></div></div><div style="font-size:12px;color:#9aa6c2;font-weight:600;">${projectData.apartmentName} ${projectData.dong}동 ${projectData.ho}호</div></div><div style="height:3px;background:#E84848;"></div><div style="flex:1;padding:26px 44px 0;display:flex;flex-direction:column;gap:18px;">${contentHTML}</div><div style="margin-top:auto;padding:14px 44px;border-top:1px solid #e8eaee;display:flex;justify-content:space-between;align-items:center;font-size:11px;color:#9aa1ad;font-weight:700;letter-spacing:.05em;"><span>THE HOME INSPECTION</span><span>1668-5322</span></div></div>`;
     }
@@ -15386,7 +15212,7 @@ body.light-mode .card.reference-info {
                             <div style="display: inline-block; width: 32px; height: 32px; background: #141d2e; color: white; border-radius: 50%; font-size: 14px; font-weight: 700; line-height: 32px; margin-bottom: 12px;">1</div>
                             <div style="font-size: 15px; font-weight: 700; color: #333; margin-bottom: 10px;">기록 및 촬영</div>
                             <div style="font-size: 12px; color: #666; line-height: 1.7;">
-                                <strong style="color: #141d2e;">원경(위치확인)</strong> + <strong style="color: #141d2e;">근경(하자식별)</strong><br>
+                                <strong style="color: #141d2e;">위치 사진</strong>(멀리서) + <strong style="color: #141d2e;">확대 사진</strong>(가까이)<br>
                                 자/볼펜 등으로 크기 비교<br>
                                 발견 날짜, 위치, 현상 메모
                             </div>
@@ -15575,6 +15401,67 @@ body.light-mode .card.reference-info {
             </div>
         `;
     }
+
+    // ✅ 패치 73 (10-23 회의 4번): 생활 관리 가이드 — 공기질 관리 + 결로 예방을 한 쪽으로 (쪽 수 줄이기, 내용은 두 쪽 그대로 간추림)
+    window.createLivingGuidePage = function() {
+        const header = getGuideHeaderHTML("생활 관리 가이드 (공기질 · 결로)", "#141d2e");
+        const sec = (n, t) => '<div style="font-size:16px;font-weight:700;color:#1f2937;margin-bottom:9px;padding-bottom:6px;border-bottom:2px solid #141d2e;display:flex;align-items:center;gap:9px;">'
+            + '<span style="width:24px;height:24px;background:#141d2e;color:white;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;">' + n + '</span>' + t + '</div>';
+        const step = (n, t, d) => '<div style="text-align:center;flex:1;"><div style="width:32px;height:32px;background:#141d2e;color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;margin:0 auto 6px;">' + n + '</div>'
+            + '<div style="font-size:14px;font-weight:700;color:#141d2e;margin-bottom:3px;">' + t + '</div><div style="font-size:11px;color:#666;line-height:1.45;">' + d + '</div></div>';
+        const arrow = '<span style="font-size:20px;color:#141d2e;font-weight:bold;">→</span>';
+        const tr = (a, b, c, last) => '<tr><td style="padding:8px 12px;text-align:center;' + (last ? '' : 'border-bottom:1px solid #e5e7eb;') + 'font-weight:600;color:#333;">' + a + '</td><td style="padding:8px 12px;text-align:center;' + (last ? '' : 'border-bottom:1px solid #e5e7eb;') + 'color:#141d2e;font-weight:700;">' + b + '</td><td style="padding:8px 12px;text-align:center;' + (last ? '' : 'border-bottom:1px solid #e5e7eb;') + 'color:#666;font-size:12px;">' + c + '</td></tr>';
+        const li = (b, t) => '<li style="font-size:12px;color:#555;padding:4px 0 4px 16px;position:relative;line-height:1.45;"><span style="position:absolute;left:0;color:#141d2e;font-weight:bold;">•</span><b style="color:#141d2e;">' + b + ':</b> ' + t + '</li>';
+        const card = (n, t, d) => '<div style="flex:1;background:white;border:1px solid #fecaca;border-radius:8px;padding:10px;text-align:center;"><div style="width:22px;height:22px;background:#ef4444;color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;margin:0 auto 5px;">' + n + '</div>'
+            + '<div style="font-size:13px;font-weight:700;color:#333;margin-bottom:2px;">' + t + '</div><div style="font-size:10.5px;color:#666;line-height:1.4;">' + d + '</div></div>';
+        return `
+            <div style="width:794px;height:1123px;overflow:hidden;background:white;font-family:'Malgun Gothic',sans-serif;padding:45px;box-sizing:border-box;position:relative;">
+                ${header}
+                <div style="margin-bottom:14px;">
+                    ${sec('01', '베이크아웃 (Bake-Out) 표준 레시피')}
+                    <p style="font-size:12px;color:#666;margin:0 0 9px;line-height:1.6;"><strong style="color:#141d2e;">실내 유해물질 제거의 핵심</strong> — 난방으로 실내 온도를 높여 건축 자재 속 유해물질(포름알데히드 등)을 강제로 배출시키는 방법입니다.</p>
+                    <div style="display:flex;align-items:center;justify-content:center;gap:8px;background:#f8f9fb;padding:13px 16px;border-radius:10px;">
+                        ${step(1, '밀폐', '창문 모두 닫기<br>수납장 문 열기')}${arrow}${step(2, '가열', '35~40℃ 유지<br>6~10시간 지속')}${arrow}${step(3, '환기', '모든 문 열기<br>1~2시간 환기')}${arrow}
+                        <div style="background:#141d2e;color:white;border-radius:9px;padding:11px 15px;text-align:center;"><div style="font-size:13px;font-weight:700;">3회 이상</div><div style="font-size:11px;opacity:0.9;">반복 실시</div></div>
+                    </div>
+                </div>
+                <div style="margin-bottom:14px;">
+                    ${sec('02', '실내공기질 관리법 권고기준 (신축 공동주택)')}
+                    <table style="width:100%;border-collapse:collapse;font-size:13px;">
+                        <thead><tr><th style="background:#141d2e;color:white;padding:8px 12px;text-align:center;font-weight:600;">물질명</th><th style="background:#141d2e;color:white;padding:8px 12px;text-align:center;font-weight:600;">기준치</th><th style="background:#141d2e;color:white;padding:8px 12px;text-align:center;font-weight:600;">인체 영향</th></tr></thead>
+                        <tbody>${tr('라돈 (Rn)', '148 Bq/m³ 이하', '폐암 유발 (1급 발암물질)')}${tr('포름알데히드', '0.21 mg/m³ 이하', '눈/코/목 자극, 알레르기')}${tr('총휘발성유기화합물', '0.5 mg/m³ 이하', '두통, 현기증, 피로감', true)}</tbody>
+                    </table>
+                </div>
+                <div style="margin-bottom:14px;">
+                    ${sec('03', '결로란?')}
+                    <p style="font-size:12.5px;color:#444;line-height:1.65;margin:0;">실내외 온도 차이가 심할 때, 실내의 따뜻하고 습한 공기가 차가운 벽면이나 창문에 닿아 물방울로 변하는 현상입니다. 방치하면 <strong style="color:#E84848;">곰팡이의 원인</strong>이 됩니다.</p>
+                </div>
+                <div style="margin-bottom:14px;">
+                    ${sec('04', '결로 예방 및 적정 환경')}
+                    <div style="display:flex;gap:14px;">
+                        <div style="flex:1.4;background:#f8fafb;border-radius:10px;padding:12px 16px;border:1px solid #e5e7eb;">
+                            <div style="font-size:13px;font-weight:700;color:#141d2e;margin-bottom:6px;">예방 생활 수칙</div>
+                            <ul style="list-style:none;margin:0;padding:0;">${li('환기', '하루 2회 이상, 10분씩 창문 열기')}${li('빨래', '실내 건조 자제 (제습기 사용 권장)')}${li('가구', '외벽과 5cm 이상 띄워서 배치')}${li('요리/샤워', '환풍기 반드시 가동')}</ul>
+                        </div>
+                        <div style="flex:1;background:#f8fafb;border-radius:10px;padding:12px 16px;border:1px solid #e5e7eb;text-align:center;">
+                            <div style="font-size:13px;font-weight:700;color:#141d2e;margin-bottom:6px;">적정 실내 환경</div>
+                            <div style="padding:6px 0;border-bottom:1px solid #e5e7eb;"><div style="font-size:11.5px;color:#666;">온도</div><div style="font-size:21px;font-weight:700;color:#141d2e;">20 ~ 22℃</div></div>
+                            <div style="padding:6px 0;"><div style="font-size:11.5px;color:#666;">습도</div><div style="font-size:21px;font-weight:700;color:#141d2e;">40 ~ 60%</div></div>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    ${sec('05', '결로 발생 시 대처법')}
+                    <div style="background:#fef2f2;border:1px solid #fecaca;border-left:4px solid #ef4444;border-radius:6px;padding:12px 14px;">
+                        <div style="display:flex;gap:10px;">${card(1, '닦아내기', '마른 수건으로<br>물기 즉시 제거')}${card(2, '건조하기', '헤어드라이어,<br>선풍기로 말리기')}${card(3, '제거하기', '곰팡이는<br>알코올/락스로 닦기')}</div>
+                    </div>
+                </div>
+                <div style="position:absolute;bottom:40px;left:45px;right:45px;border-top:1px solid #e5e7eb;padding-top:15px;display:flex;justify-content:space-between;align-items:center;font-size:11px;color:#9aa1ad;">
+                    <div style="letter-spacing:1px;">THE HOME INSPECTION GUIDE</div><div style="font-weight:600;color:#141d2e;">더홈점검</div>
+                </div>
+            </div>
+        `;
+    };
 
     // 3. [결로 예방 가이드] (이모티콘 제거 버전)
     window.createCondensationGuidePage = function() {
@@ -15985,7 +15872,7 @@ body.light-mode .card.reference-info {
     }
     
     // ✅ 패치 69: 새 배포 확인 — 이 화면의 판 번호(APP_BUILD) vs 사이트의 version.json(정식)·version-test.json(테스트)
-    const APP_BUILD = 'c2132c768eb2'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
+    const APP_BUILD = 'dff5dff14a93'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
     (function() {
         const url = /index-unified-test\.html$/.test(location.pathname) ? 'version-test.json' : 'version.json';
         let busy = false;
