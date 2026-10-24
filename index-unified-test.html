@@ -1873,7 +1873,7 @@ body.light-mode .card.reference-info {
         </button>
         
         <h1>🏠 더홈점검</h1>
-        <p id="appVersionTag" style="color:#fde68a;font-weight:700;">🧪 테스트판 · 업데이트 2026.10.23</p>
+        <p id="appVersionTag" style="color:#fde68a;font-weight:700;">🧪 테스트판 · 업데이트 2026.10.24</p>
     </div>
 
     <div class="container">
@@ -11806,11 +11806,24 @@ body.light-mode .card.reference-info {
 
         // ✅ 패치 72·73: 공종 → 보증기간 칸 · 배지 · 고객용 이름 (판단기준·하자 목록·사진 카드가 같이 씀)
         window.GJ_BUCKET = { '골조':'5', '방수':'35', '미장':'2', '타일':'2', '석공사':'2', '유리':'3', 'PL창호':'3', '철재방화문':'3', '금속':'3', '목창호':'3', '수장':'2', '도장':'2', '도배':'2', '가구':'2',
-            '바닥재':'2', '실리콘':'2', '기계설비':'3', '전기':'3', '잡공사':'3', '준공청소':'0', '기타공종':'chk' };
+            '바닥재':'2', '실리콘':'2', '창호실링':'3', '기계설비':'3', '전기':'3', '잡공사':'3', '준공청소':'0', '기타공종':'chk' };
         window.WBK = { '35': { badge: '3~5년', bg: '#E84848' }, '5': { badge: '5년', bg: '#E84848' }, '3': { badge: '3년', bg: '#33415c' }, '2': { badge: '2년', bg: '#8a919d' },
             'chk': { badge: '확인 필요', bg: '#a3aab6' }, '0': { badge: '해당 없음', bg: '#c3c8d0' } };
-        window.gjLabel = function(g) { return ({ '방수': '누수/방수', '목창호': '방문' })[g] || g; }; // 대표님 10-23: 목창호 → 방문 (보고서 화면만 — 엑셀 공종구분은 그대로)
-        window.warrantyBucketOf = function(d) { return window.GJ_BUCKET[detectGongJong(d)] || 'chk'; };
+        window.gjLabel = function(g) { return ({ '방수': '누수/방수', '목창호': '방문', '창호실링': '창호 코킹' })[g] || g; }; // 대표님 10-23: 목창호 → 방문 (보고서 화면만 — 엑셀 공종구분은 그대로)
+        // ✅ 패치 75 (10-24 검토): 창·문 둘레 코킹 = 고시 별표1 '창문틀 및 문짝공사 — 실링공사(창호주변)' → 창호 3년 (하심위 11659 창호 주변 실란트도 3년)
+        //    보고서(보증 배지·판단기준·요약)에서만 '창호실링'으로 — 엑셀 공종구분은 실리콘 그대로 (협력업체 나누기용)
+        //    위치 버튼이 벽·바닥·코킹뿐이어도 설명에 문틀·창틀·중문 등이 있으면 같음 (걸레받이·샤워부스 쪽은 빼고)
+        //    창 둘레 '방수 코킹'도 창호실링 — 고시 별표1 방수공사의 실링은 '창호에 시공되는 공사 제외' (누수가 적힌 것은 그대로)
+        //    거울 옆 벽지(위치 도배)는 도배 2년 — 원래 규칙이 '거울'로 유리에 보냄
+        window.reportGongJongOf = function(d) {
+            const g = detectGongJong(d), L = (d && d.locations) || [], t = (d && d.description) || '';
+            const wd = ['창', '문', '짝', '틀'].some(x => L.indexOf(x) >= 0) || (/창틀|문틀|창호|창문|샤시|새시|현관문|방화문|중문/.test(t) && !/걸레받이/.test(t));
+            if (g === '실리콘' && wd && !/샤워부스/.test(t)) return '창호실링';
+            if (g === '방수' && wd && L.indexOf('코킹') >= 0 && /실리콘|코킹|실링/.test(t) && !/누수/.test(t)) return '창호실링';
+            if (g === '유리' && /거울/.test(t) && L.indexOf('도배') >= 0) return '도배';
+            return g;
+        };
+        window.warrantyBucketOf = function(d) { return window.GJ_BUCKET[window.reportGongJongOf(d)] || 'chk'; };
         window.warrantyBadgeHTML = function(d, small) {
             const B = window.WBK[window.warrantyBucketOf(d)];
             return '<span style="display:inline-block;background:' + B.bg + ';color:#fff;font-size:' + (small ? 10 : 10.5) + 'px;font-weight:700;padding:' + (small ? '2px 7px' : '3px 9px') + ';border-radius:11px;white-space:nowrap;line-height:1.35;">' + B.badge + '</span>';
@@ -13129,6 +13142,7 @@ body.light-mode .card.reference-info {
             if (st && st.thermal) S.push({ k: 'thermal', title: '열화상 단열 점검 안내', desc: '점검일 열화상 단열 판독 범위와 입주 후 확인 방법' });
             if (hasAirQuality) S.push({ k: 'aq', title: '실내 공기질 측정 결과', desc: '라돈, 포름알데히드, 총VOCs 측정 결과' });
             S.push({ k: 'warranty', title: '하자보수 청구 & 담보책임 가이드', desc: '보수 청구 절차와 하자담보책임기간 안내' });
+            S.push({ k: 'wtable', title: '하자담보책임기간표', desc: '시행령 별표4 공사별 기간 전체 · 점검세대 하자 번호' });
             S.push({ k: 'checklist', title: '입주 전 체크리스트', desc: '입주 준비부터 입주 당일까지 확인사항' });
             S.push({ k: 'living', title: '생활 관리 가이드 (공기질 · 결로)', desc: '베이크아웃 · 실내공기질 기준 · 결로 예방과 대처' });
             S.push({ k: 'quote', title: '홈케어서비스 견적서', desc: '입주 청소, 줄눈, 코팅 등 부가 서비스 비용 안내' });
@@ -14621,7 +14635,7 @@ body.light-mode .card.reference-info {
             const listPlan = defects.length ? window.planDefectPages() : [];
             const eqPages = window.pairEquipmentPages(eq);
             const order = [['cover', 1], ['toc', 1], ['summary', 1], ['criteria', 1], ['list', listPlan.length], ['photos', Math.ceil(withPhotos.length / 3)],
-                ['equip', eqPages.length], ['thermal', thermalOn && eq.length ? 1 : 0], ['aq', hasAQ ? 1 : 0], ['warranty', 1], ['checklist', 1], ['living', 1], ['quote', 1], ['service', 1]];
+                ['equip', eqPages.length], ['thermal', thermalOn && eq.length ? 1 : 0], ['aq', hasAQ ? 1 : 0], ['warranty', 1], ['wtable', 1], ['checklist', 1], ['living', 1], ['quote', 1], ['service', 1]];
             const start = {}; let p = 1;
             order.forEach(([k, n]) => { if (n > 0) { start[k] = [p, p + n - 1]; p += n; } });
             const total = p - 1;
@@ -14637,6 +14651,7 @@ body.light-mode .card.reference-info {
             if (start.thermal) await add(window.createThermalNoticePage());
             if (start.aq) await add(window.createAirQualityDetailPage());
             await add(window.createWarrantyGuidePage1());
+            await add(window.createWarrantyTablePage());
             await add(window.createMoveInChecklistPage());
             await add(window.createLivingGuidePage());
             await add(window.createQuotationPage(P.apartmentName, P.dong, P.ho, P.inspectionDate || new Date().toLocaleDateString('ko-KR')));
@@ -14716,7 +14731,7 @@ body.light-mode .card.reference-info {
         // 공종별 집계 (기존 로직 유지)
         const typeCounts = {};
         projectData.defects.forEach(d => {
-            const gongJong = window.detectGongJong ? window.detectGongJong(d) : '기타공종';
+            const gongJong = window.reportGongJongOf ? window.reportGongJongOf(d) : '기타공종';
             typeCounts[gongJong] = (typeCounts[gongJong] || 0) + 1;
         });
         const sortedTypes = Object.entries(typeCounts).sort((a, b) => b[1] - a[1]);
@@ -14846,6 +14861,7 @@ body.light-mode .card.reference-info {
             '가구':      { b:'2',   law:'마감공사',           desc:'붙박이가구·수납 마감' },
             '바닥재':    { b:'2',   law:'마감공사',           desc:'마루·바닥 마감 상태' },
             '실리콘':    { b:'2',   law:'마감공사',           desc:'코킹(실리콘) 마감 상태' },
+            '창호실링':  { b:'3',   law:'창호공사',           desc:'창·문 둘레 코킹(실링) 상태' },
             '기계설비':  { b:'3',   law:'급·배수·난방 설비공사', desc:'급수·배수·난방·환기 설비' },
             '전기':      { b:'3',   law:'전기설비공사',       desc:'조명·스위치·콘센트 등 전기' },
             '잡공사':    { b:'3',   law:'잡공사',             desc:'방충망·점검구 등 기타 설치' },
@@ -14872,7 +14888,7 @@ body.light-mode .card.reference-info {
         var defs = projectData.defects || [], totalDefects = defs.length;
         var agg = {}, bnums = {}, prio = [], pool = [];
         defs.forEach(function(d, i){
-            var g = window.detectGongJong ? window.detectGongJong(d) : '기타공종', m = meta(g);
+            var g = window.reportGongJongOf ? window.reportGongJongOf(d) : '기타공종', m = meta(g);
             if (!agg[g]) agg[g] = { cnt:0, types:{}, nums:[], leak:false };
             agg[g].cnt++; agg[g].nums.push(i + 1);
             (bnums[m.b] = bnums[m.b] || []).push(i + 1);
@@ -14982,7 +14998,7 @@ body.light-mode .card.reference-info {
             : '· <b style="color:#5b6472">점검일 기준</b> 내용이며, 이후 새로 생기는 하자는 포함되지 않습니다.'); // 대표님 10-22: 모든 세대에 빠짐없이
         if (L <= 2) notes.push('· 이사·인테리어·사용 부주의로 생긴 파손, 보수 중 2차 손상 등 <b style="color:#5b6472">사용자 과실 생활하자</b>는 담보책임기간과 무관하게 제외될 수 있습니다.');
         if (L <= 1 && !tight) notes.push('· 표기된 보증기간은 공동주택(아파트) 기준이며, 오피스텔·집합건물·단독주택·상업시설 등은 관계 법령에 따라 다를 수 있습니다.');
-        notes.push('※ 공종 분류는 점검 내용을 바탕으로 더홈점검이 자동 정리한 참고 분류이며, 기간은 공동주택관리법 시행령 별표4 기준입니다'
+        notes.push('※ 공종 분류는 점검 내용을 바탕으로 더홈점검이 자동 정리한 참고 분류이며, 같은 부위라도 하자 유형·원인에 따라 적용 기간이 달라질 수 있습니다. 기간은 공동주택관리법 시행령 별표4 기준입니다'
             + (L >= 1 ? '(마감공사 2년 · 창호·설비·전기공사 3년 · 방수·철근콘크리트공사 5년)' : '') + '. 정확한 하자 여부·보수 범위는 시공사 확인 및 하자심사 절차를 따릅니다.');
 
         var secTitle = function(t, right, mb){
@@ -15123,7 +15139,7 @@ body.light-mode .card.reference-info {
         });
         const note = (pageNum || 1) === 1
             ? `<div style="display:flex;align-items:center;gap:10px;background:#f4f6fa;border-radius:8px;padding:9px 14px;margin-bottom:12px;font-size:11.5px;color:#4b5563;">`
-              + `<span style="flex:1;">번호는 사진·판단기준 쪽의 번호와 같습니다.</span>`
+              + `<span style="flex:1;">번호는 사진·판단기준 쪽과 같습니다. <b style="color:#141d2e;">보증</b> 칸은 참고 분류(하자 유형·원인에 따라 다름)</span>`
               + `<span style="white-space:nowrap;color:#E84848;font-weight:700;">● 누수 등 우선 보수</span></div>`
             : '';
         return `<div style="width:794px;height:1123px;background:#fff;font-family:'Pretendard','Malgun Gothic',sans-serif;display:flex;flex-direction:column;overflow:hidden;box-sizing:border-box;">
@@ -15449,6 +15465,110 @@ body.light-mode .card.reference-info {
             </div>
         `;
     };
+
+    // ✅ 패치 75 (대표님 10-24): 하자담보책임기간표 — 시행령 [별표 4] 전체 + 점검세대 하자 번호 (하자보수 가이드 다음 쪽)
+    //   기간은 하자가 난 부위가 속한 공사로 정함 — 표면 손상(찍힘·긁힘·시트지 들뜸)도 같은 공사면 같은 기간
+    //   (하심위: 문틀 시트지 10565·창틀 찍힘 10646 = 창호 3년, 냉장고장 찍힘 11678 = 옥내가구 2년)
+    //   '점검세대' 칸: 보고서 공종(reportGongJongOf) → 별표4 번호. 기계설비·전기는 낱말로 나눔 (어느 쪽이든 3년)
+    window.WT_ROWS = [
+        ['2년', '1', '마감공사', '미장 · 수장(건축물 내부 마무리) · 도장 · 도배 · 타일 · 석공사(건물 내부) · 옥내가구 · 주방기구 · 가전제품'],
+        ['3년', '2', '옥외급수·위생 관련 공사', '공동구 · 저수조(물탱크) · 옥외위생(정화조) 관련 · 옥외 급수 관련'],
+        ['3년', '3', '난방·냉방·환기, 공기조화 설비공사', '열원기기설비 · 공기조화기기설비 · 닥트설비 · 배관설비 · 보온 · 자동제어설비 · 온돌(세대 매립배관 포함) · 냉방설비'],
+        ['3년', '4', '급·배수 및 위생설비공사', '급수설비 · 온수공급설비 · 배수·통기설비 · 위생기구설비 · 철 및 보온 · 특수설비'],
+        ['3년', '5', '가스설비공사', '가스설비 · 가스저장시설'],
+        ['3년', '6', '목공사', '구조체 또는 바탕재 · 수장목'],
+        ['3년', '7', '창호공사', '창문틀 및 문짝 · 창호철물 · 창호유리 · 커튼월'],
+        ['3년', '8', '조경공사', '식재 · 조경시설물 · 관수 및 배수 · 조경포장 · 조경부대시설 · 잔디심기 · 조형물'],
+        ['3년', '9', '전기 및 전력설비공사', '배관·배선 · 피뢰침 · 동력설비 · 수·변전설비 · 수·배전 · 전기기기 · 발전설비 · 승강기설비 · 인양기설비 · 조명설비'],
+        ['3년', '10', '신재생 에너지 설비공사', '태양열설비 · 태양광설비 · 지열설비 · 풍력설비'],
+        ['3년', '11', '정보통신공사', '통신·신호설비 · TV공청설비 · 감시제어설비 · 가정자동화설비 · 정보통신설비'],
+        ['3년', '12', '지능형 홈네트워크 설비공사', '홈네트워크망 · 홈네트워크기기 · 단지공용시스템'],
+        ['3년', '13', '소방시설공사', '소화설비 · 제연설비 · 방재설비 · 자동화재탐지설비'],
+        ['3년', '14', '단열공사', '벽체, 천장 및 바닥의 단열'],
+        ['3년', '15', '잡공사', '옥내설비(우편함, 무인택배시스템 등) · 옥외설비(담장, 울타리, 안내시설물 등), 금속공사'],
+        ['5년', '16', '대지조성공사', '토공사 · 석축 · 옹벽(토목옹벽) · 배수 · 포장'],
+        ['5년', '17', '철근콘크리트공사', '일반철근콘크리트 · 특수콘크리트 · 프리캐스트콘크리트 · 옹벽(건축옹벽) · 콘크리트'],
+        ['5년', '18', '철골공사', '일반철골 · 철골부대 · 경량철골'],
+        ['5년', '19', '조적공사', '일반벽돌 · 점토벽돌 · 블록 · 석공사(건물 외부)'],
+        ['5년', '20', '지붕공사', '지붕 · 홈통 및 우수관'],
+        ['5년', '21', '방수공사', '방수'],
+        ['10년', '', '내력구조부 · 지반공사', '기둥·내력벽·바닥·보·지붕틀·주계단이 무너지거나 구조 안전을 해칠 정도로 금가거나 내려앉은 경우 (시행령 제36조·제37조) · 기초·지정 등 지반공사 (별표4 비고)']
+    ];
+    window.statuteRowOf = function(d) {
+        const g = window.reportGongJongOf ? window.reportGongJongOf(d) : '기타공종';
+        const L = (d && d.locations) || [], t = [(d && d.description) || '', ((d && d.types) || []).join(' '), (d && d.detailLocation) || '', L.join(' ')].join(' ');
+        // 스프링클러(S/P)·소화전은 소방 — 설비·잡공사·전기로 잡힌 것만 (도장 'S/P 주변 틈새' 같은 마감은 그대로)
+        if (['기계설비', '잡공사', '기타공종', '전기'].indexOf(g) >= 0 && /s\/p|스프링클러|스프링쿨러|소화전|소화기|소방/i.test(t)) return '13';
+        if (g === '기계설비') {
+            if (/콘센트|스위치/.test(t)) return '9';
+            if (L.indexOf('창') >= 0 && /물\s*빠짐|배수\s*(홈|홀|캡|커버)/.test(t)) return '7';   // 창틀 물빠짐 홈
+            return /가스/.test(t) && !/상판|타공/.test(t) ? '5' : /난방|환기|환풍|분배기|조절기|보일러|디퓨저|후드|에어컨|냉방|전열/.test(t) ? '3' : '4';
+        }
+        if (g === '방수') {
+            if (/도어체크|도어클로저/.test(t)) return '7';                                         // 문 철물 오일 '누수'
+            if (!/누수/.test(t)) {                                                                  // 결로·곰팡이는 단열·창호(3년) — 고시 제15조, 하심위 FAQ '결로 → 단열공사'
+                if (/결로배관|결로수|드레인|제습기|에어컨/.test(t)) return '3';
+                if (/결로|곰팡이|습기/.test(t)) return /욕실|샤워|세면|욕조/.test(t) ? '' : (L.some(x => x === '창' || x === '문') && !L.some(x => x === '벽' || x === '천장')) ? '7' : '14';
+            }
+            return /분배기|난방|보일러/.test(t) ? '3' : /수전|배관|배수|급수|하수|변기|세면|싱크|트랩|샤워|욕조/.test(t) ? '4' : '21'; // 누수: 설비 쪽이면 설비(3년) 줄
+        }
+        if (g === '전기') return /월패드|홈네트워크|홈넷|자석감지기|방범/.test(t) ? '12' : /인터폰|비디오폰|통신|단자|스피커|초인종/.test(t) ? '11' : /감지기|유도등/.test(t) ? '13'
+            : /에어컨|에어콘|디퓨저|공기청정|전열/.test(t) && !/콘센트|전선|전원|차단기|배선|스위치/.test(t) ? '3' : '9';
+        if (g === '잡공사') return /단열|결로저감/.test(t) ? '14' : /방충망|모헤어/.test(t) ? '7' : /센서/.test(t) ? '9' : '15';
+        if (g === '유리') return /난간/.test(t) ? '15' : '7';                                      // 유리난간은 금속·난간
+        return ({ '미장': '1', '타일': '1', '석공사': '1', '수장': '1', '도장': '1', '도배': '1', '가구': '1', '바닥재': '1', '실리콘': '1',
+            'PL창호': '7', '철재방화문': '7', '목창호': '7', '창호실링': '7', '금속': '15', '잡공사': '15', '골조': '17' })[g] || '';
+    };
+    window.createWarrantyTablePage = function() { return window._fitPage(_warrantyTableHTML, 3); };
+    function _warrantyTableHTML(L) {
+        L = L || 0;
+        const defs = projectData.defects || [], by = {};
+        let chk = 0, clean = 0;
+        defs.forEach((d, i) => {
+            const r = window.statuteRowOf(d);
+            if (r) (by[r] = by[r] || []).push(i + 1);
+            else if (window.warrantyBucketOf(d) === '0') clean++; else chk++;
+        });
+        const FS = [11, 11, 10.5, 10][L], PAD = [5, 5, 4, 3][L], MG = [5, 3, 2, 0][L]; // MG = 번호 묶음 수 (0이면 건수만)
+        const PC = { '2년': '#8a919d', '3년': '#33415c', '5년': '#E84848', '10년': '#9b1c1c' };
+        // 기간 칸은 rowspan 대신 줄마다 (html2canvas 1.4.1 이 rowspan 칸 위에 아래 줄 바탕색을 칠함) — 묶음 첫 줄에만 배지, 묶음 끝에 진한 선
+        const last = {};
+        window.WT_ROWS.forEach((r, i) => last[r[0]] = i);
+        const td = 'border-bottom:1px solid #eef0f3;vertical-align:top;padding:' + PAD + 'px 8px;';
+        const rows = window.WT_ROWS.map((r, i) => {
+            const per = r[0], no = r[1], nums = (no && by[no]) || [], on = nums.length > 0;
+            const top = i === 0 || window.WT_ROWS[i - 1][0] !== per, end = last[per] === i;
+            const first = '<td style="padding:' + PAD + 'px 4px;text-align:center;vertical-align:top;background:#f8f9fb;border-bottom:1px solid ' + (end ? '#d9dde3' : '#f8f9fb') + ';">'
+                + (top ? '<span style="display:inline-block;background:' + PC[per] + ';color:#fff;font-weight:800;font-size:' + (FS + 1) + 'px;padding:3px 10px;border-radius:11px;white-space:nowrap;">' + per + '</span>' : '') + '</td>';
+            const cell = on ? '<b style="color:#E84848;">' + nums.length + '건</b>' + (MG ? '<div style="font-size:' + (FS - 1.5) + 'px;color:#4b5563;line-height:1.35;margin-top:1px;">' + window.fmtNosBeon(nums, MG) + '</div>' : '')
+                : '<span style="color:#c3c8d0;">-</span>';
+            const bg = on ? 'background:rgba(232,72,72,0.05);' : '';
+            const line = end ? 'border-bottom:1px solid #d9dde3;' : '';
+            return '<tr>' + first
+                + '<td style="' + td + bg + line + 'font-weight:700;color:#141d2e;font-size:' + FS + 'px;line-height:1.35;">' + (no ? no + '. ' : '') + r[2] + '</td>'
+                + '<td style="' + td + bg + line + 'color:#4b5563;font-size:' + (FS - 0.5) + 'px;line-height:1.45;">' + r[3] + '</td>'
+                + '<td style="' + td + bg + line + 'text-align:center;font-size:' + FS + 'px;">' + cell + '</td></tr>';
+        }).join('');
+        const left = [chk ? '자동 분류가 안 된 ' + chk + '건' : '', clean ? '입주 청소 대상 ' + clean + '건' : ''].filter(Boolean).join(', ');
+        const note = (b, t) => '<div style="display:flex;gap:6px;"><span style="color:#141d2e;font-weight:700;">·</span><span><b style="color:#141d2e;">' + b + '</b> ' + t + '</span></div>';
+        return '<div style="width:794px;height:1123px;overflow:hidden;background:white;font-family:\'Malgun Gothic\',sans-serif;padding:45px 45px 40px;box-sizing:border-box;display:flex;flex-direction:column;">'
+            + getGuideHeaderHTML('하자담보책임기간표', '#141d2e')
+            // 대표님 10-24: 표 위 '표면 손상도 같은 기간(찍힘 3년)' 안내는 넣지 않음 — 표·번호만
+            + '<table style="width:100%;border-collapse:collapse;table-layout:fixed;">'
+            +   '<thead><tr style="background:#141d2e;color:#fff;font-size:12px;"><th style="padding:8px 4px;width:62px;font-weight:700;">기간</th><th style="padding:8px;width:170px;text-align:left;font-weight:700;">시설공사</th>'
+            +   '<th style="padding:8px;text-align:left;font-weight:700;">세부 공종</th><th style="padding:8px 4px;width:96px;font-weight:700;">점검세대</th></tr></thead>'
+            +   '<tbody>' + rows + '</tbody></table>'
+            + '<div style="margin-top:' + [12, 10, 8, 6][L] + 'px;font-size:' + [11, 10.5, 10.5, 10][L] + 'px;color:#4b5563;line-height:1.55;display:flex;flex-direction:column;gap:' + [3, 2, 1, 0][L] + 'px;">'
+            // 대표님 10-24: 분류는 하자 유형·원인에 따라 다를 수 있다는 안내 — 맨 위에
+            +   note('분류 안내', '보증 기간(점검세대 칸·보증 배지)은 하자 부위·유형으로 정리한 참고 분류입니다. 같은 부위라도 하자 유형·원인에 따라 기간이 달라질 수 있고 (예: 누수는 배관 3년·방수층 5년), 최종 판단은 시공사 확인과 하자심사 절차를 따릅니다. 기간이 애매하면 짧은 쪽 기간 안에 접수하세요.')
+            +   (defs.length ? note('점검세대 칸', '번호는 하자 점검 목록 번호와 같습니다. 누수는 설비(수전·배관·난방)면 3년, 그 밖은 방수(5년) 줄에, 결로는 단열·창호(3년) 줄에 넣었습니다.' + (left ? ' ' + left + '은 표에 넣지 않았습니다.' : '')) : '')
+            +   note('기간 시작', '우리 집 안(전유부분)은 인도일(주택인도증서 날짜, 보통 열쇠 받은 날), 공용부분은 사용검사일(임시·동별 사용검사를 받았으면 그날)부터 계산합니다 (공동주택관리법 제36조 제3항).')
+            +   note('출처', '공동주택관리법 시행령 제36조·[별표 4](별표 4는 2021. 1. 5. 개정, 2026. 10. 현재 시행본)의 공사 이름을 읽기 쉽게 줄였습니다.')
+            + '</div>'
+            + '<div style="margin-top:auto;border-top:1px solid #e5e7eb;padding-top:15px;display:flex;justify-content:space-between;align-items:center;font-size:11px;color:#9aa1ad;">'
+            +   '<div style="letter-spacing:1px;">THE HOME INSPECTION GUIDE</div><div style="font-weight:600;color:#141d2e;">더홈점검</div></div>'
+            + '</div>';
+    }
 
     // 3. [결로 예방 가이드] (이모티콘 제거 버전)
     window.createCondensationGuidePage = function() {
@@ -15859,7 +15979,7 @@ body.light-mode .card.reference-info {
     }
     
     // ✅ 패치 69: 새 배포 확인 — 이 화면의 판 번호(APP_BUILD) vs 사이트의 version.json(정식)·version-test.json(테스트)
-    const APP_BUILD = '6e642ae2da5f'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
+    const APP_BUILD = 'a273899e1dd5'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
     (function() {
         const url = /index-unified-test\.html$/.test(location.pathname) ? 'version-test.json' : 'version.json';
         let busy = false;
