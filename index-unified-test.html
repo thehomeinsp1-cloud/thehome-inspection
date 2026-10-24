@@ -9367,6 +9367,12 @@ body.light-mode .card.reference-info {
                     redrawMarkers();
                 };
                 
+                // ✅ 패치 78: 포인트 모양 — 짧은 변의 8% 반지름, 1.2% 굵기(최소 3px), 흰 테두리 → 사진 크기·화면과 무관하게 같은 모양
+                window._drawPointMarker = window._drawPointMarker || function(g, x, y, w, h) {
+                    const b = Math.min(w, h), r = b * 0.08, lw = Math.max(3, b * 0.012);
+                    g.beginPath(); g.arc(x, y, r, 0, 2 * Math.PI); g.strokeStyle = 'rgba(255,255,255,0.95)'; g.lineWidth = lw + Math.max(2, lw * 0.6); g.stroke();
+                    g.beginPath(); g.arc(x, y, r, 0, 2 * Math.PI); g.strokeStyle = '#ef4444'; g.lineWidth = lw; g.stroke();
+                };
                 // 마커 그리기 함수
                 const drawMarker = (nx, ny) => {
                     // nx,ny = 촬영 사진 정규화 = 화면에서 본 비율(s)과 동일.
@@ -9375,11 +9381,7 @@ body.light-mode .card.reference-info {
                     const cssH = parseFloat(markerCanvas.style.height) || markerCanvas.height;
                     const x = nx * cssW;
                     const y = ny * cssH;
-                    markerCtx.strokeStyle = '#ef4444'; // 빨강색
-                    markerCtx.lineWidth = 2;
-                    markerCtx.beginPath();
-                    markerCtx.arc(x, y, 30, 0, 2 * Math.PI);
-                    markerCtx.stroke();
+                    window._drawPointMarker(markerCtx, x, y, cssW, cssH); // ✅ 패치 78: 찍힐 사진과 같은 비율
                 };
                 
                 // 모든 마커 다시 그리기
@@ -9994,12 +9996,9 @@ body.light-mode .card.reference-info {
                     const scale = canvas.width / markerCanvasCSSWidth;
                     const radius = 30 * scale;
                     
-                    // 원형 마커
-                    ctx.strokeStyle = '#ef4444';
-                    ctx.lineWidth = 2 * scale;
-                    ctx.beginPath();
-                    ctx.arc(x, y, radius, 0, 2 * Math.PI);
-                    ctx.stroke();
+                    // 원형 마커 — ✅ 패치 78: 사진 짧은 변 기준 같은 모양 + 흰 테두리 (예전: 화면 크기 기준 30px·굵기 2px)
+                    if (window._drawPointMarker) window._drawPointMarker(ctx, x, y, canvas.width, canvas.height);
+                    else { ctx.strokeStyle = '#ef4444'; ctx.lineWidth = 2 * scale; ctx.beginPath(); ctx.arc(x, y, radius, 0, 2 * Math.PI); ctx.stroke(); }
                 });
                 
                 // 마커 초기화
@@ -12547,6 +12546,35 @@ body.light-mode .card.reference-info {
         }
 
 
+        // ✅ 패치 78: html2canvas 1.4.1 은 object-fit 을 지원하지 않아 사진을 칸 크기로 늘려 그림(세로 사진 찌그러짐·포인트 타원)
+        //   → 그리기 전에 object-fit(contain·cover) 사진을 칸 크기 캔버스에 비율 그대로 '다 보이게' 그려 바꿔 넣음. 여백은 칸 바탕색
+        //   cover(현장출력 썸네일)도 자르지 않음 — 잘면 사진 가장자리의 포인트 동그라미가 사라짐 (검토 10-24)
+        window._fitObjectImages = async function(root, scale) {
+            const imgs = Array.prototype.filter.call(root.querySelectorAll('img'), im => /contain|cover/.test(im.style.objectFit || ''));
+            const k = Math.min(3, Math.max(1, scale || 2));
+            for (const im of imgs) {
+                let c = null;
+                try {
+                    if (!im.complete) await new Promise(r => { im.onload = im.onerror = r; setTimeout(r, 5000); }); // 깨진 사진(이미 끝남)은 기다리지 않음
+                    const bw = im.clientWidth, bh = im.clientHeight, nw = im.naturalWidth, nh = im.naturalHeight;
+                    if (!bw || !bh || !nw || !nh) continue;
+                    c = document.createElement('canvas'); c.width = Math.round(bw * k); c.height = Math.round(bh * k);
+                    const g = c.getContext('2d');
+                    const bg = getComputedStyle(im.parentElement || root).backgroundColor;
+                    g.fillStyle = bg && /^rgb\(/.test(bg) ? bg : '#ffffff'; g.fillRect(0, 0, c.width, c.height); // 반투명·투명 바탕은 흰색 (JPEG 은 검게 됨)
+                    const f = Math.min(c.width / nw, c.height / nh);
+                    const dw = nw * f, dh = nh * f;
+                    g.drawImage(im, (c.width - dw) / 2, (c.height - dh) / 2, dw, dh);
+                    const url = c.toDataURL('image/jpeg', 0.92);
+                    if (url && url.length > 100) {
+                        const old = im.src; // 바꾼 사진이 안 열리면 예전대로(늘어나도 빈 칸보다는 낫게)
+                        const ok = await new Promise(r => { im.onload = () => r(true); im.onerror = () => r(false); im.src = url; setTimeout(() => r(false), 5000); });
+                        if (ok) im.style.objectFit = ''; else im.src = old;
+                    }
+                } catch (e) { console.warn('사진 비율 맞춤 실패(원래대로 그림):', e); }
+                finally { if (c) { c.width = 0; c.height = 0; } } // 아이폰 메모리
+            }
+        };
         window.addHTMLPageToPDF = async function(doc, htmlContent, pageWidth, pageHeight, scaleOverride) {
             const tempDiv = document.createElement('div');
             tempDiv.style.width = '794px';
@@ -12573,6 +12601,7 @@ body.light-mode .card.reference-info {
                 ignoreElements: (el) => (el.parentNode === document.body && el !== tempDiv) || el.id === 'designA'
             });
 
+            try { await window._fitObjectImages(tempDiv, _isIOS ? (scaleOverride || (_hasFloorplan ? 2 : 1.5)) : _scale); } catch (e) {} // ✅ 패치 78: 아이폰은 쪽 배율과 같게(1.5) — 보고서 하자 사진은 워터마크 캔버스를 안 거쳐 전체로는 더 빠름
             let canvas, imgData;
             const _divH = tempDiv.offsetHeight || 0; // 1123px 넘는 긴 페이지 판정용(비율 유지 축소)
             try {
@@ -15174,12 +15203,15 @@ body.light-mode .card.reference-info {
             const globalIndex = _oi >= 0 ? _oi + 1 : startIndex + idx + 1;
             const dongHo = `${projectData.dong}동${projectData.ho}호`;
             // isPdf=true(보고서)면 워터마크 없이 원본 사용, ZIP/드라이브는 기존대로 워터마크 적용
-            const farPhoto = defect.photos && defect.photos[0] ? await window.addWatermarkToPhoto(defect.photos[0], `${dongHo}_${String(globalIndex).padStart(2, '0')} 위치 사진`, isPdf) : '';
-            const closePhoto = defect.photos && defect.photos[1] ? await window.addWatermarkToPhoto(defect.photos[1], `${dongHo}_${String(globalIndex).padStart(2, '0')} 확대 사진`, isPdf) : '';
+            // ✅ 패치 78: 보고서(isPdf)는 사진에 글씨를 새기지 않고 칸 위에 같은 크기로 얹음 — 사진 크기·방향과 무관하게 글씨 크기가 같음
+            const _wm = t => `${dongHo}_${String(globalIndex).padStart(2, '0')} ${t}`;
+            const farPhoto = defect.photos && defect.photos[0] ? (isPdf ? defect.photos[0] : await window.addWatermarkToPhoto(defect.photos[0], _wm('위치 사진'), isPdf)) : '';
+            const closePhoto = defect.photos && defect.photos[1] ? (isPdf ? defect.photos[1] : await window.addWatermarkToPhoto(defect.photos[1], _wm('확대 사진'), isPdf)) : '';
+            const _tag = t => isPdf ? `<div style="position:absolute;top:8px;left:8px;background:rgba(0,0,0,0.6);color:#fff;font-size:10.5px;font-weight:700;padding:3px 8px;border-radius:4px;letter-spacing:.02em;">${_wm(t)}</div>` : '';
             const spaces = defect.spaces ? defect.spaces.join(', ') : '-';
             const description = defect.description || '-';
             const isCritical = window.isPriorityDefect(defect); // ✅ 패치 72
-            contentHTML += `<div style="border:1px solid ${isCritical?'#E84848':'#e2e5ea'};border-radius:10px;overflow:hidden;break-inside:avoid;"><div style="display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid #eef0f3;background:${isCritical?'rgba(232,72,72,0.07)':'#fff'};"><span style="background:#141d2e;color:#fff;font-weight:800;font-size:12px;padding:4px 11px;border-radius:6px;">#${String(globalIndex).padStart(2,'0')}</span><span style="font-size:13px;font-weight:800;color:#141d2e;">${spaces}</span>${isCritical?`<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#E84848;"></span>`:''}<span style="width:1px;height:14px;background:#d5d9df;"></span><span style="font-size:13px;color:${isCritical?'#b3261e':'#111827'};font-weight:${isCritical?'800':'700'};flex:1;">${description}</span>${window.warrantyBadgeHTML(defect, true)}</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:2px;background:#eef0f3;"><div style="position:relative;height:256px;background:#f4f5f7;">${farPhoto?`<img src="${farPhoto}" style="width:100%;height:100%;object-fit:contain;"/>`:`<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#c9ced6;font-size:12px;">사진 없음</div>`}<div style="position:absolute;bottom:10px;left:10px;background:#141d2e;color:white;font-size:11px;padding:3px 10px;border-radius:5px;font-weight:700;">위치 사진</div></div><div style="position:relative;height:256px;background:#f4f5f7;">${closePhoto?`<img src="${closePhoto}" style="width:100%;height:100%;object-fit:contain;"/>`:`<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#c9ced6;font-size:12px;">사진 없음</div>`}<div style="position:absolute;bottom:10px;left:10px;background:#E84848;color:white;font-size:11px;padding:3px 10px;border-radius:5px;font-weight:700;">확대 사진</div></div></div></div>`;
+            contentHTML += `<div style="border:1px solid ${isCritical?'#E84848':'#e2e5ea'};border-radius:10px;overflow:hidden;break-inside:avoid;"><div style="display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid #eef0f3;background:${isCritical?'rgba(232,72,72,0.07)':'#fff'};"><span style="background:#141d2e;color:#fff;font-weight:800;font-size:12px;padding:4px 11px;border-radius:6px;">#${String(globalIndex).padStart(2,'0')}</span><span style="font-size:13px;font-weight:800;color:#141d2e;">${spaces}</span>${isCritical?`<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#E84848;"></span>`:''}<span style="width:1px;height:14px;background:#d5d9df;"></span><span style="font-size:13px;color:${isCritical?'#b3261e':'#111827'};font-weight:${isCritical?'800':'700'};flex:1;">${description}</span>${window.warrantyBadgeHTML(defect, true)}</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:2px;background:#eef0f3;"><div style="position:relative;height:256px;background:#f4f5f7;">${farPhoto?`<img src="${farPhoto}" style="width:100%;height:100%;object-fit:contain;"/>${_tag('위치 사진')}`:`<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#c9ced6;font-size:12px;">사진 없음</div>`}<div style="position:absolute;bottom:10px;left:10px;background:#141d2e;color:white;font-size:11px;padding:3px 10px;border-radius:5px;font-weight:700;">위치 사진</div></div><div style="position:relative;height:256px;background:#f4f5f7;">${closePhoto?`<img src="${closePhoto}" style="width:100%;height:100%;object-fit:contain;"/>${_tag('확대 사진')}`:`<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#c9ced6;font-size:12px;">사진 없음</div>`}<div style="position:absolute;bottom:10px;left:10px;background:#E84848;color:white;font-size:11px;padding:3px 10px;border-radius:5px;font-weight:700;">확대 사진</div></div></div></div>`;
         }
         return `<div style="width:794px;height:1123px;background:#fff;font-family:'Pretendard','Malgun Gothic',sans-serif;display:flex;flex-direction:column;overflow:hidden;box-sizing:border-box;"><div style="background:#141d2e;padding:20px 44px;display:flex;justify-content:space-between;align-items:center;"><div style="display:flex;align-items:center;gap:11px;"><div style="width:42px;height:42px;background-color:#fff;border-radius:10px;background-image:url(${window.THEHOME_LOGO});background-size:28px;background-repeat:no-repeat;background-position:center;"></div><div><div style="font-size:9px;letter-spacing:.16em;color:#7c86a0;font-weight:700;">더홈점검 · REPORT</div><div style="font-size:17px;font-weight:800;color:#fff;">하자 상세 리포트 (사진)</div></div></div><div style="font-size:12px;color:#9aa6c2;font-weight:600;">${projectData.apartmentName} ${projectData.dong}동 ${projectData.ho}호</div></div><div style="height:3px;background:#E84848;"></div><div style="flex:1;padding:26px 44px 0;display:flex;flex-direction:column;gap:18px;">${contentHTML}</div><div style="margin-top:auto;padding:14px 44px;border-top:1px solid #e8eaee;display:flex;justify-content:space-between;align-items:center;font-size:11px;color:#9aa1ad;font-weight:700;letter-spacing:.05em;"><span>THE HOME INSPECTION</span><span>1668-5322</span></div></div>`;
     }
@@ -15996,7 +16028,7 @@ body.light-mode .card.reference-info {
     }
     
     // ✅ 패치 69: 새 배포 확인 — 이 화면의 판 번호(APP_BUILD) vs 사이트의 version.json(정식)·version-test.json(테스트)
-    const APP_BUILD = '35f7632a84c2'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
+    const APP_BUILD = 'ce6f2ff1be39'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
     (function() {
         const url = /index-unified-test\.html$/.test(location.pathname) ? 'version-test.json' : 'version.json';
         let busy = false;
