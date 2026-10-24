@@ -12549,6 +12549,22 @@ body.light-mode .card.reference-info {
         // ✅ 패치 78: html2canvas 1.4.1 은 object-fit 을 지원하지 않아 사진을 칸 크기로 늘려 그림(세로 사진 찌그러짐·포인트 타원)
         //   → 그리기 전에 object-fit(contain·cover) 사진을 칸 크기 캔버스에 비율 그대로 '다 보이게' 그려 바꿔 넣음. 여백은 칸 바탕색
         //   cover(현장출력 썸네일)도 자르지 않음 — 잘면 사진 가장자리의 포인트 동그라미가 사라짐 (검토 10-24)
+        // ✅ 패치 79: 사진에서 빨간 포인트·스티커가 가장 많이 모인 곳(가로 200px로 줄여 10×10 칸 중 빨간 점이 가장 많은 칸 둘레의 무게중심) — 없으면 null(가운데)
+        window._redFocus = function(im, nw, nh) {
+            let c = null;
+            try {
+                const W = 200, H = Math.max(1, Math.round(W * nh / nw)); c = document.createElement('canvas'); c.width = W; c.height = H;
+                const g = c.getContext('2d'); g.drawImage(im, 0, 0, W, H); const d = g.getImageData(0, 0, W, H).data;
+                const pts = [], cell = new Array(100).fill(0);
+                for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) { const i = (y * W + x) * 4, r = d[i], gr = d[i + 1], b = d[i + 2];
+                    if (r > 150 && r - gr > 80 && r - b > 70) { pts.push(x, y); cell[Math.min(9, Math.floor(y * 10 / H)) * 10 + Math.min(9, Math.floor(x * 10 / W))]++; } }
+                if (pts.length < 8) return null;
+                const best = cell.indexOf(Math.max.apply(null, cell)), cx = (best % 10 + 0.5) * W / 10, cy = (Math.floor(best / 10) + 0.5) * H / 10;
+                let sx = 0, sy = 0, n = 0;
+                for (let k = 0; k < pts.length; k += 2) if (Math.abs(pts[k] - cx) <= W * 0.25 && Math.abs(pts[k + 1] - cy) <= H * 0.25) { sx += pts[k]; sy += pts[k + 1]; n++; }
+                return n ? { x: sx / n * nw / W, y: sy / n * nh / H } : null;
+            } catch (e) { return null; } finally { if (c) { c.width = 0; c.height = 0; } }
+        };
         window._fitObjectImages = async function(root, scale) {
             const imgs = Array.prototype.filter.call(root.querySelectorAll('img'), im => /contain|cover/.test(im.style.objectFit || ''));
             const k = Math.min(3, Math.max(1, scale || 2));
@@ -12562,9 +12578,16 @@ body.light-mode .card.reference-info {
                     const g = c.getContext('2d');
                     const bg = getComputedStyle(im.parentElement || root).backgroundColor;
                     g.fillStyle = bg && /^rgb\(/.test(bg) ? bg : '#ffffff'; g.fillRect(0, 0, c.width, c.height); // 반투명·투명 바탕은 흰색 (JPEG 은 검게 됨)
-                    const f = Math.min(c.width / nw, c.height / nh);
+                    // ✅ 패치 79 (대표님 10-24): cover 는 칸을 꽉 채우고 넘치는 쪽을 잘라 냄 — 빨간 포인트·스티커가 남게 그쪽을 기준으로 (data-focus="center" 는 가운데)
+                    const cover = im.style.objectFit === 'cover';
+                    const f = cover ? Math.max(c.width / nw, c.height / nh) : Math.min(c.width / nw, c.height / nh);
                     const dw = nw * f, dh = nh * f;
-                    g.drawImage(im, (c.width - dw) / 2, (c.height - dh) / 2, dw, dh);
+                    let ox = (c.width - dw) / 2, oy = (c.height - dh) / 2;
+                    if (cover && im.getAttribute('data-focus') !== 'center') {
+                        const p = window._redFocus(im, nw, nh);
+                        if (p) { ox = Math.min(0, Math.max(c.width - dw, c.width / 2 - p.x * f)); oy = Math.min(0, Math.max(c.height - dh, c.height / 2 - p.y * f)); }
+                    }
+                    g.drawImage(im, ox, oy, dw, dh);
                     const url = c.toDataURL('image/jpeg', 0.92);
                     if (url && url.length > 100) {
                         const old = im.src; // 바꾼 사진이 안 열리면 예전대로(늘어나도 빈 칸보다는 낫게)
@@ -14533,7 +14556,7 @@ body.light-mode .card.reference-info {
                 photoGridHtml = `
                     <div style="display: flex; justify-content: center;">
                         <div style="flex: 1; background: white; position: relative; max-width: 550px; height: 400px;">
-                            <img src="${photos[0].src}" style="width: 100%; height: 100%; object-fit: contain;" />
+                            <img src="${photos[0].src}" style="width: 100%; height: 100%; object-fit: cover;" data-focus="center" />
                             <div style="position: absolute; bottom: 8px; left: 8px; background: rgba(44, 62, 80, 0.85); color: white; font-size: 11px; padding: 3px 8px; border-radius: 4px; font-weight: 700;">${photos[0].label}</div>
                         </div>
                     </div>
@@ -14544,7 +14567,7 @@ body.light-mode .card.reference-info {
                     <div style="display: flex; gap: 2px; background: ${R_THEME.border};">
                         ${photos.map((p, i) => `
                             <div style="flex: 1; background: white; position: relative; height: 350px;">
-                                <img src="${p.src}" style="width: 100%; height: 100%; object-fit: contain;" />
+                                <img src="${p.src}" style="width: 100%; height: 100%; object-fit: cover;" data-focus="center" />
                                 <div style="position: absolute; bottom: 8px; left: 8px; background: ${i === 0 ? 'rgba(44, 62, 80, 0.85)' : R_THEME.equipment}; color: white; font-size: 11px; padding: 3px 8px; border-radius: 4px; font-weight: 700;">${p.label}</div>
                             </div>
                         `).join('')}
@@ -14556,7 +14579,7 @@ body.light-mode .card.reference-info {
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2px; background: ${R_THEME.border};">
                         ${photos.map((p, i) => `
                             <div style="background: white; position: relative; height: 280px;">
-                                <img src="${p.src}" style="width: 100%; height: 100%; object-fit: contain;" />
+                                <img src="${p.src}" style="width: 100%; height: 100%; object-fit: cover;" data-focus="center" />
                                 <div style="position: absolute; bottom: 6px; left: 6px; background: ${i % 2 === 0 ? 'rgba(44, 62, 80, 0.85)' : R_THEME.equipment}; color: white; font-size: 10px; padding: 2px 6px; border-radius: 3px; font-weight: 700;">${p.label}</div>
                             </div>
                         `).join('')}
@@ -15175,8 +15198,7 @@ body.light-mode .card.reference-info {
         });
         const note = (pageNum || 1) === 1
             ? `<div style="display:flex;align-items:center;gap:10px;background:#f4f6fa;border-radius:8px;padding:9px 14px;margin-bottom:12px;font-size:11.5px;color:#4b5563;">`
-              + `<span style="flex:1;">번호는 사진·판단기준 쪽과 같습니다. <b style="color:#141d2e;">보증</b> 칸은 참고 분류(하자 유형·원인에 따라 다름)</span>`
-              + `<span style="white-space:nowrap;color:#E84848;font-weight:700;">● 누수 등 우선 보수</span></div>`
+              + `<span style="flex:1;"><b style="color:#141d2e;">보증</b> 칸은 참고 분류입니다 (하자 유형·원인에 따라 다를 수 있음).</span></div>` // 패치 79: 번호·누수 안내 뺌 (대표님 10-24)
             : '';
         return `<div style="width:794px;height:1123px;background:#fff;font-family:'Pretendard','Malgun Gothic',sans-serif;display:flex;flex-direction:column;overflow:hidden;box-sizing:border-box;">
             <div style="background:#141d2e;padding:20px 44px;display:flex;justify-content:space-between;align-items:center;">
@@ -15207,11 +15229,11 @@ body.light-mode .card.reference-info {
             const _wm = t => `${dongHo}_${String(globalIndex).padStart(2, '0')} ${t}`;
             const farPhoto = defect.photos && defect.photos[0] ? (isPdf ? defect.photos[0] : await window.addWatermarkToPhoto(defect.photos[0], _wm('위치 사진'), isPdf)) : '';
             const closePhoto = defect.photos && defect.photos[1] ? (isPdf ? defect.photos[1] : await window.addWatermarkToPhoto(defect.photos[1], _wm('확대 사진'), isPdf)) : '';
-            const _tag = t => isPdf ? `<div style="position:absolute;top:8px;left:8px;background:rgba(0,0,0,0.6);color:#fff;font-size:10.5px;font-weight:700;padding:3px 8px;border-radius:4px;letter-spacing:.02em;">${_wm(t)}</div>` : '';
+            const _tag = t => isPdf ? `<div style="position:absolute;top:8px;left:8px;background:rgba(0,0,0,0.6);color:#fff;font-size:10.5px;font-weight:700;padding:3px 8px;border-radius:4px;letter-spacing:.02em;">${dongHo}_${String(globalIndex).padStart(2, '0')}</div>` : ''; // 패치 79: 위치·확대 사진은 왼쪽 아래 배지에
             const spaces = defect.spaces ? defect.spaces.join(', ') : '-';
             const description = defect.description || '-';
             const isCritical = window.isPriorityDefect(defect); // ✅ 패치 72
-            contentHTML += `<div style="border:1px solid ${isCritical?'#E84848':'#e2e5ea'};border-radius:10px;overflow:hidden;break-inside:avoid;"><div style="display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid #eef0f3;background:${isCritical?'rgba(232,72,72,0.07)':'#fff'};"><span style="background:#141d2e;color:#fff;font-weight:800;font-size:12px;padding:4px 11px;border-radius:6px;">#${String(globalIndex).padStart(2,'0')}</span><span style="font-size:13px;font-weight:800;color:#141d2e;">${spaces}</span>${isCritical?`<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#E84848;"></span>`:''}<span style="width:1px;height:14px;background:#d5d9df;"></span><span style="font-size:13px;color:${isCritical?'#b3261e':'#111827'};font-weight:${isCritical?'800':'700'};flex:1;">${description}</span>${window.warrantyBadgeHTML(defect, true)}</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:2px;background:#eef0f3;"><div style="position:relative;height:256px;background:#f4f5f7;">${farPhoto?`<img src="${farPhoto}" style="width:100%;height:100%;object-fit:contain;"/>${_tag('위치 사진')}`:`<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#c9ced6;font-size:12px;">사진 없음</div>`}<div style="position:absolute;bottom:10px;left:10px;background:#141d2e;color:white;font-size:11px;padding:3px 10px;border-radius:5px;font-weight:700;">위치 사진</div></div><div style="position:relative;height:256px;background:#f4f5f7;">${closePhoto?`<img src="${closePhoto}" style="width:100%;height:100%;object-fit:contain;"/>${_tag('확대 사진')}`:`<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#c9ced6;font-size:12px;">사진 없음</div>`}<div style="position:absolute;bottom:10px;left:10px;background:#E84848;color:white;font-size:11px;padding:3px 10px;border-radius:5px;font-weight:700;">확대 사진</div></div></div></div>`;
+            contentHTML += `<div style="border:1px solid ${isCritical?'#E84848':'#e2e5ea'};border-radius:10px;overflow:hidden;break-inside:avoid;"><div style="display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid #eef0f3;background:${isCritical?'rgba(232,72,72,0.07)':'#fff'};"><span style="background:#141d2e;color:#fff;font-weight:800;font-size:12px;padding:4px 11px;border-radius:6px;">#${String(globalIndex).padStart(2,'0')}</span><span style="font-size:13px;font-weight:800;color:#141d2e;">${spaces}</span>${isCritical?`<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#E84848;"></span>`:''}<span style="width:1px;height:14px;background:#d5d9df;"></span><span style="font-size:13px;color:${isCritical?'#b3261e':'#111827'};font-weight:${isCritical?'800':'700'};flex:1;">${description}</span>${window.warrantyBadgeHTML(defect, true)}</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:2px;background:#eef0f3;"><div style="position:relative;height:256px;background:#f4f5f7;">${farPhoto?`<img src="${farPhoto}" style="width:100%;height:100%;object-fit:cover;"/>${_tag('위치 사진')}`:`<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#c9ced6;font-size:12px;">사진 없음</div>`}<div style="position:absolute;bottom:10px;left:10px;background:#141d2e;color:white;font-size:11px;padding:3px 10px;border-radius:5px;font-weight:700;">위치 사진</div></div><div style="position:relative;height:256px;background:#f4f5f7;">${closePhoto?`<img src="${closePhoto}" style="width:100%;height:100%;object-fit:cover;"/>${_tag('확대 사진')}`:`<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#c9ced6;font-size:12px;">사진 없음</div>`}<div style="position:absolute;bottom:10px;left:10px;background:#E84848;color:white;font-size:11px;padding:3px 10px;border-radius:5px;font-weight:700;">확대 사진</div></div></div></div>`;
         }
         return `<div style="width:794px;height:1123px;background:#fff;font-family:'Pretendard','Malgun Gothic',sans-serif;display:flex;flex-direction:column;overflow:hidden;box-sizing:border-box;"><div style="background:#141d2e;padding:20px 44px;display:flex;justify-content:space-between;align-items:center;"><div style="display:flex;align-items:center;gap:11px;"><div style="width:42px;height:42px;background-color:#fff;border-radius:10px;background-image:url(${window.THEHOME_LOGO});background-size:28px;background-repeat:no-repeat;background-position:center;"></div><div><div style="font-size:9px;letter-spacing:.16em;color:#7c86a0;font-weight:700;">더홈점검 · REPORT</div><div style="font-size:17px;font-weight:800;color:#fff;">하자 상세 리포트 (사진)</div></div></div><div style="font-size:12px;color:#9aa6c2;font-weight:600;">${projectData.apartmentName} ${projectData.dong}동 ${projectData.ho}호</div></div><div style="height:3px;background:#E84848;"></div><div style="flex:1;padding:26px 44px 0;display:flex;flex-direction:column;gap:18px;">${contentHTML}</div><div style="margin-top:auto;padding:14px 44px;border-top:1px solid #e8eaee;display:flex;justify-content:space-between;align-items:center;font-size:11px;color:#9aa1ad;font-weight:700;letter-spacing:.05em;"><span>THE HOME INSPECTION</span><span>1668-5322</span></div></div>`;
     }
@@ -16028,7 +16050,7 @@ body.light-mode .card.reference-info {
     }
     
     // ✅ 패치 69: 새 배포 확인 — 이 화면의 판 번호(APP_BUILD) vs 사이트의 version.json(정식)·version-test.json(테스트)
-    const APP_BUILD = 'e3d4dee1c43e'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
+    const APP_BUILD = '0d06f1f39e7d'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
     (function() {
         const url = /index-unified-test\.html$/.test(location.pathname) ? 'version-test.json' : 'version.json';
         let busy = false;
