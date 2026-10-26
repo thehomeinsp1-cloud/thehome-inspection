@@ -13861,7 +13861,7 @@ body.light-mode .card.reference-info {
                     + '</div>'
                     + '<div style="flex:1;font-size:14px;color:#333;line-height:1.75;">'
                         + '점검일은 실내외 온도차가 크지 않아 열화상 카메라로 <strong>단열 상태를 정확히 판독하기 어려웠습니다.</strong><br>'
-                        + '대신 <strong>벽체 수직·바닥 평활·바닥 난방 분포</strong> 위주로 점검했습니다.'
+                        + '대신 <strong>벽체 수직·바닥 평활·누수</strong> 등 위주로 점검했습니다.'
                     + '</div>'
                 + '</div>'
 
@@ -16430,7 +16430,7 @@ body.light-mode .card.reference-info {
     }
     
     // ✅ 패치 69: 새 배포 확인 — 이 화면의 판 번호(APP_BUILD) vs 사이트의 version.json(정식)·version-test.json(테스트)
-    const APP_BUILD = 'c972f7fc61ac'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
+    const APP_BUILD = 'cab9f296088f'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
     (function() {
         const url = /index-unified-test\.html$/.test(location.pathname) ? 'version-test.json' : 'version.json';
         let busy = false;
