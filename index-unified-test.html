@@ -1205,6 +1205,13 @@ body.light-mode .qd-chip.on small,body.light-mode .qd-chip.on i{color:#3A2600}
 </style>
 <style>
 /* ✅ 입실톡 칸 (패치 57): 하자점검 탭 맨 위 */
+#missingTools{grid-template-columns:1fr 1fr 96px; gap:6px; margin-bottom:12px}
+#missingTools>.btn{width:auto; min-width:0; min-height:42px; padding:6px 4px; font-size:14px; font-weight:800; white-space:nowrap}
+#missingOnlyBtn.btn-secondary{color:#F2A93B; border-color:rgba(245,158,11,.6)}
+body.light-mode #missingOnlyBtn.btn-secondary{color:#8A4B00}
+.tb-jump{display:flex; align-items:center; min-height:42px; border-radius:10px; border:1px solid var(--border,#2A3550); background:var(--a-sunken,#0F1726); overflow:hidden}
+.tb-jump input{width:100%; min-width:0; height:42px; border:0; background:transparent; color:var(--text-primary,#F1F4F9); font-size:15px; text-align:center; font-family:inherit}
+.tb-jump button{flex:none; width:38px; height:42px; border:0; border-left:1px solid var(--border,#2A3550); background:transparent; color:var(--text-primary,#F1F4F9); font-size:17px; font-weight:800; cursor:pointer}
 .et-bar{display:flex; align-items:center; gap:10px; margin:0 0 10px; padding:10px 12px; border-radius:10px; background:var(--a-sunken,#0F1726); border:1px solid var(--a-line,#2A3550)}
 .et-bar .u{flex:1; min-width:0; line-height:1.25}
 .et-bar .u small{display:block; font-size:12px; font-weight:600; color:var(--text-secondary,#A9B4C8); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
@@ -1880,7 +1887,7 @@ body.light-mode .card.reference-info {
         </button>
         
         <h1>🏠 더홈점검</h1>
-        <p id="appVersionTag" style="color:#fde68a;font-weight:700;">🧪 테스트판 · 업데이트 2026.10.25</p>
+        <p id="appVersionTag" style="color:#fde68a;font-weight:700;">🧪 테스트판 · 업데이트 2026.10.26</p>
     </div>
 
     <div class="container">
@@ -2004,21 +2011,15 @@ body.light-mode .card.reference-info {
 
         <!-- 하자 점검 섹션 -->
         <div id="defects" class="section">
-            <div class="card">
-                <div id="entryTalkBar" class="et-bar" style="display:none;"></div>
-                <p style="color: var(--text-secondary); font-size: 14px;">
-                    우측 하단의 ➕ 버튼을 눌러 하자를 추가하세요
-                </p>
-            </div>
+            <!-- ✅ 패치 82 (대표님 10-26): 위쪽 도구 4줄 → 2줄 (입실톡 줄 + 검토·자동 채우기·번호 이동 한 줄) -->
+            <div id="entryTalkBar" class="et-bar" style="display:none;"></div>
 
-            <!-- ✅ 하자 번호로 바로 가기 · 빠진 것만 보기 (하자가 있을 때만 표시) -->
-            <div id="missingTools" style="display: none; gap: 8px; align-items: center; margin-bottom: 12px; flex-wrap: wrap;">
-                <input type="text" id="jumpDefectNo" class="form-input" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" placeholder="번호" aria-label="이동할 하자 번호"
-                       style="width: 76px; flex: none; padding: 10px; text-align: center;"
-                       onkeydown="if(event.key==='Enter' && !event.isComposing){event.preventDefault();jumpToDefect();}">
-                <button type="button" class="btn btn-secondary" onclick="jumpToDefect()" style="width: auto; flex: none; padding: 10px 14px; font-size: 14px;">이동</button>
-                <button type="button" id="missingOnlyBtn" class="btn btn-secondary" aria-pressed="false" onclick="toggleMissingOnly()" style="width: auto; flex: 1; min-width: 0; padding: 10px 12px; font-size: 14px;">검토 필요만 보기 (0)</button>
-                <button type="button" id="afBtn" class="btn btn-secondary" onclick="AF.run()" style="width: auto; flex: 1 1 100%; padding: 10px 12px; font-size: 14px;">🤖 자동 채우기 · 사진 속 스티커 읽기 (시험)</button>
+            <!-- ✅ 검토 필요만 보기 · 자동 채우기 · 하자 번호로 바로 가기 (하자가 있을 때만 표시) -->
+            <div id="missingTools" style="display: none;">
+                <button type="button" id="missingOnlyBtn" class="btn btn-secondary" aria-pressed="false" onclick="toggleMissingOnly()">⚠️ 검토 0</button>
+                <button type="button" id="afBtn" class="btn btn-secondary" onclick="AF.run()" title="사진 속 하자 스티커를 읽어 위치·하자내용을 채웁니다 (시험)">🤖 자동 채우기</button>
+                <span class="tb-jump"><input type="text" id="jumpDefectNo" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" placeholder="번호" aria-label="이동할 하자 번호"
+                       onkeydown="if(event.key==='Enter' && !event.isComposing){event.preventDefault();jumpToDefect();}"><button type="button" onclick="jumpToDefect()" aria-label="그 번호 하자로 이동">→</button></span>
             </div>
             <div id="defectsList"></div>
         </div>
@@ -8127,8 +8128,8 @@ body.light-mode .card.reference-info {
                 if (_missingOnly && _missingPid !== currentProjectId) _missingOnly = false; // 다른 세대로 바뀌면 필터 해제
                 if (!_missingOnly) _missingKeep = null;
                 else { if (!_missingKeep) _missingKeep = new Set(); bad.forEach(no => { const d = defects[no - 1]; if (d) _missingKeep.add(d.id); }); }
-                bar.style.display = defects.length ? 'flex' : 'none';
-                btn.textContent = (_missingOnly ? '✓ ' : '') + `검토 필요만 보기 (${bad.size})`;
+                bar.style.display = defects.length ? 'grid' : 'none';
+                btn.textContent = (_missingOnly ? '✓ 검토 ' : '⚠️ 검토 ') + bad.size; // ✅ 패치 82: 짧게 (누르면 검토 필요한 하자만 보기)
                 btn.className = 'btn ' + (_missingOnly ? 'btn-primary' : 'btn-secondary');
                 btn.setAttribute('aria-pressed', _missingOnly ? 'true' : 'false');
                 const cards = list.children;
@@ -16417,7 +16418,7 @@ body.light-mode .card.reference-info {
     }
     
     // ✅ 패치 69: 새 배포 확인 — 이 화면의 판 번호(APP_BUILD) vs 사이트의 version.json(정식)·version-test.json(테스트)
-    const APP_BUILD = 'bd5e921fd286'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
+    const APP_BUILD = 'b4763d230fb6'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
     (function() {
         const url = /index-unified-test\.html$/.test(location.pathname) ? 'version-test.json' : 'version.json';
         let busy = false;
