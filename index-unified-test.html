@@ -958,6 +958,26 @@
         }
 
         /* 터치 버튼 스타일 */
+        /* ✅ 패치 84: 하자 카드 간소화 */
+        .touch-button-grid.tb5 { grid-template-columns: repeat(5, 1fr); gap: 5px; }
+        .tb5 .touch-btn { min-height: 42px; padding: 4px 1px; font-size: 13.5px; letter-spacing: -0.3px; white-space: normal; word-break: keep-all; line-height: 1.15; }
+        .sp-sum { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border); background: rgba(15, 23, 38, 0.5); }
+        .sp-sum b { font-size: 16px; } .sp-sum small { font-size: 11.5px; color: var(--text-secondary); }
+        .sp-sum button, .sp-fold { margin-left: auto; min-height: 32px; padding: 0 10px; border-radius: 8px; border: 1px solid var(--border); background: transparent; color: var(--text-secondary); font-size: 12.5px; font-weight: 700; cursor: pointer; }
+        .dc-del { margin-left: auto; min-height: 34px; padding: 4px 10px; border-radius: 8px; border: 1px solid rgba(239, 68, 68, 0.6); background: transparent; color: #f87171; font-size: 13px; font-weight: 700; cursor: pointer; }
+        body.light-mode .dc-del { color: #b91c1c; }
+        .dl-prev { display: none; margin-top: 5px; font-size: 12.5px; font-weight: 800; color: #4ade80; }
+        body.light-mode .dl-prev { color: #15803d; }
+        .dl-pick { display: none; margin-top: 8px; padding: 8px; border-radius: 10px; border: 1px dashed var(--border); background: rgba(15, 23, 38, 0.5); }
+        .dl-wrap:focus-within .dl-pick { display: block; }
+        .dl-pick small { display: block; font-size: 11px; color: var(--text-secondary); font-weight: 700; margin: 4px 0 4px; }
+        .dl-row { display: flex; flex-wrap: wrap; gap: 5px; }
+        .dl-two { display: flex; gap: 10px; align-items: flex-start; }
+        .dl-dir { display: grid; grid-template-columns: repeat(3, 44px); gap: 4px; }
+        .dl-c { min-height: 34px; padding: 0 10px; border-radius: 17px; border: 1px solid var(--border); background: var(--a-raised, #212C42); color: var(--text-primary); font-size: 13px; font-weight: 800; font-family: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+        .dl-dir .dl-c { border-radius: 8px; padding: 0; }
+        .desc-line { margin-top: 2px; padding: 9px 11px; border-radius: 8px; background: rgba(16, 185, 129, 0.06); font-size: 13px; line-height: 1.45; color: var(--text-primary); }
+        .desc-line span { font-size: 11.5px; color: var(--text-secondary); font-weight: 700; } .desc-line i { color: var(--text-secondary); font-style: normal; }
         .touch-button-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -8170,6 +8190,81 @@ body.light-mode .card.reference-info {
             setTimeout(() => { card.style.boxShadow = ''; }, 3000); // 긴 목록은 스크롤이 1~2초 걸려 넉넉히
         };
 
+        // ✅ 패치 84 (대표님 10-26): 하자 카드 간소화 + 상세위치 공통화
+        //   공간은 고른 뒤 한 줄로 접힘(바꾸기 ▾) · 상세위치 칸을 누르면 기준·방향·부위 버튼 · 줄임말·붙여쓰기 정리(창좌하걸레 → 창 좌측 하단 걸레받이)
+        //   되돌리기: patches/84-card-simple.json 을 빼고 node merge.js
+        (function () {
+            const DL = window.DL = { _open: new Set() };
+            // 방향 줄임말 → 정식 (단독·붙여쓰기 모두)
+            const DIRS = { 좌상: '좌측 상단', 우상: '우측 상단', 좌하: '좌측 하단', 우하: '우측 하단', 좌측: '좌측', 우측: '우측', 상단: '상단', 하단: '하단', 상부: '상부', 하부: '하부',
+                좌우: '좌우', 상하: '상하', 중앙: '중앙', 좌: '좌측', 우: '우측', 상: '상단', 하: '하단', 앞: '앞', 뒤: '뒤', 내: '내', 외: '외', 내측: '내측', 외측: '외측', 주위: '주위', 주변: '주변', 측면: '측면' };
+            const PARTFIX = { 걸레: '걸레받이', 몰: '몰딩', 걸받: '걸레받이' };
+            // 붙여 쓴 글을 자를 때 쓰는 낱말 (과거 하자기록 상세위치에서 많이 쓴 기준·부위)
+            const NOUNS = ['창', '문', '벽', '입구', '바닥', '천장', '틀', '짝', '창틀', '문틀', '중문', '걸레받이', '몰딩', '코너', '마루', '이음부', '아트월', '우물천장', '콘센트', '스위치',
+                '신발장', '디딤석', '스토퍼', '피스커버', '냉장고장', '하부장', '상부장', '상판', '아일랜드', '냉장고', '세면대', '욕조', '젠다이', '점검구', '샤워부스', '마블씰', '수전',
+                '옷장', '분합창', '선반', '가구', '그릴창', '배관', '실리콘', '코킹', '줄눈', '타일', '도배', '도장', '내창', '외창', '내외창', '창호', '방충망', '난간', '레일', '손잡이', '도어', '상하부장', '하틀', '상틀'];
+            // 내·외·앞·뒤 한 글자는 자르는 데 안 씀 (내외창·입구외·신발장내 처럼 붙어 쓰는 말이 많음)
+            const PIECES = new Set(NOUNS.concat(Object.keys(DIRS).filter(w => !/^(내|외|앞|뒤)$/.test(w)), Object.keys(PARTFIX)));
+            const better = (a, b) => { if (a.length !== b.length) return a.length < b.length; for (let k = 0; k < a.length; k++) if (a[k].length !== b[k].length) return a[k].length > b[k].length; return false; };
+            function seg(t) { // 가장 적은 조각으로 나누기 (못 나누면 null)
+                const n = t.length, best = new Array(n + 1).fill(null); best[0] = [];
+                for (let i = 0; i < n; i++) {
+                    if (!best[i]) continue;
+                    for (let j = Math.min(n, i + 5); j > i; j--) {
+                        const w = t.slice(i, j);
+                        if (!PIECES.has(w)) continue;
+                        const c = best[i].concat([w]);
+                        if (!best[j] || better(c, best[j])) best[j] = c; // 조각 수가 적은 것, 같으면 앞 조각이 긴 것(좌우+하 > 좌+우하)
+                    }
+                }
+                return best[n];
+            }
+            DL.norm = function (text) { // 창좌하걸레 → 창 좌측 하단 걸레받이 (모르는 낱말은 그대로)
+                const t0 = String(text || '').trim().replace(/(^|\s)좌\s*[,·]?\s*우(?=\s|$)/g, '$1좌우').replace(/(^|\s)상\s*[,·]?\s*하(?=\s|$)/g, '$1상하'); // '좌 우' = 좌우
+                return t0.split(/\s+/).map(tok => {
+                    if (!/^[가-힣]+$/.test(tok)) return tok;
+                    if (window.TD) { const f = TD.check(tok); if (f.length && f[0].word === tok) tok = f[0].fix; } // 오타 사전(패치 81)으로 먼저 바로잡기
+                    if (DIRS[tok] && tok.length <= 2) return DIRS[tok];
+                    if (PARTFIX[tok]) return PARTFIX[tok];
+                    const p = seg(tok);
+                    if (!p || p.length < 2 || !p.some(w => DIRS[w] || PARTFIX[w])) return tok; // 방향·줄임말이 섞인 것만 나눔 (창틀·냉장고장은 그대로)
+                    return p.map(w => DIRS[w] || PARTFIX[w] || w).join(' ');
+                }).join(' ').replace(/\s+/g, ' ');
+            };
+            DL.preview = function (id, v) {
+                const el = document.getElementById('dlPrev_' + id); if (!el) return;
+                const n = DL.norm(v), show = n && n !== String(v || '').trim().replace(/\s+/g, ' ');
+                el.textContent = show ? '✓ ' + n + ' 로 정리' : ''; el.style.display = show ? 'block' : 'none';
+            };
+            DL.commit = function (id, input) { // 버튼으로 바꾼 글(change 가 안 생김)을 칸을 벗어날 때 저장
+                const d = (projectData.defects || []).find(x => x.id === id); if (!d || !input) return;
+                const v = DL.norm(input.value);
+                if (v !== (d.detailLocation || '')) updateDefect(id, 'detailLocation', v);
+            };
+            DL.add = function (id, w) {
+                const el = document.getElementById('detailLocation_' + id); if (!el) return;
+                el.value = (el.value.trim() ? el.value.trim() + ' ' : '') + w; DL.preview(id, el.value);
+            };
+            const BASES = { 거실: ['창', '문', '입구', '아트월', '우물천장', '콘센트'], 주방: ['냉장고장', '하부장', '상부장', '상판', '아일랜드', '창'], 현관: ['신발장', '중문', '디딤석', '문', '입구', '스토퍼'],
+                욕실: ['세면대', '욕조', '젠다이', '점검구', '샤워부스', '문'], 침실: ['창', '문', '입구', '옷장', '분합창', '콘센트'], 드레스룸: ['선반', '문', '창', '입구', '가구'],
+                발코니: ['창', '문', '그릴창', '배관', '입구', '수전'], 복도: ['문', '입구', '중문', '디딤석', '콘센트'], 기타: ['창', '문', '입구', '콘센트'] };
+            const GROUP = s => /욕실/.test(s) ? '욕실' : /침실|안방|알파/.test(s) ? '침실' : /드레스|팬트리|파우더/.test(s) ? '드레스룸' : /발코니|실외기|대피|다용도/.test(s) ? '발코니' : /현관|외부/.test(s) ? '현관' : BASES[s] ? s : '기타';
+            const PARTS = ['걸레받이', '몰딩', '틀', '코너', '이음부', '마루', '실리콘', '피스커버'];
+            const DGRID = [['좌상', '좌측 상단'], ['상', '상단'], ['우상', '우측 상단'], ['좌', '좌측'], ['중앙', '중앙'], ['우', '우측'], ['좌하', '좌측 하단'], ['하', '하단'], ['우하', '우측 하단']];
+            const chip = (id, label, w) => `<button type="button" class="dl-c" onmousedown="event.preventDefault()" onclick="DL.add(${id}, '${w || label}')">${label}</button>`;
+            DL.picker = function (d) {
+                const b = BASES[GROUP((d.spaces || [])[0] || '')];
+                return `<div class="dl-pick"><small>기준</small><div class="dl-row">${b.map(w => chip(d.id, w)).join('')}</div>
+                    <div class="dl-two"><div><small>방향</small><div class="dl-dir">${DGRID.map(([l, w]) => chip(d.id, l, w)).join('')}</div></div>
+                    <div style="flex:1;min-width:0"><small>부위</small><div class="dl-row">${PARTS.map(w => chip(d.id, w)).join('')}</div></div></div>
+                    <small style="margin-top:6px">기준 · 방향 · 부위 순서로 누르면 '창 좌측 하단 걸레받이'</small></div>`;
+            };
+            // 공간: 고른 뒤엔 한 줄 (바꾸기 ▾) — 펼친 하자는 기억(화면만)
+            DL.spaceCollapsed = d => (d.spaces || []).length > 0 && !DL._open.has(d.id);
+            DL.spaceToggle = function (id) { if (DL._open.has(id)) DL._open.delete(id); else DL._open.add(id); renderDefects(); };
+            DL.spaceSummary = d => `<div class="sp-sum"><b>${(d.spaces || []).map(s => escapeHtml(s)).join(', ')}</b>${d.spacesAuto ? '<small>이전 하자 공간</small>' : ''}<button type="button" onclick="DL.spaceToggle(${d.id})">바꾸기 ▾</button></div>`;
+        })();
+
         function renderDefects() {
             if (typeof renderEntryTalkBar === 'function') renderEntryTalkBar(); // ✅ 패치 57
             const container = document.getElementById('defectsList');
@@ -8194,6 +8289,7 @@ body.light-mode .card.reference-info {
                             <button type="button" onclick="openDefectOrderMenu(${defect.id})" aria-label="하자 ${index + 1} 순서 바꾸기·끼워넣기" style="min-height: 34px; padding: 4px 10px; border-radius: 8px; border: 1px solid var(--border); background: transparent; color: var(--text-secondary); font-size: 13px; font-weight: 700; cursor: pointer;">⋯ 순서</button>
                             ${typeof AF !== 'undefined' ? AF.chip(defect) : ''}
                         </span>
+                        <button type="button" class="dc-del" onclick="deleteDefect(${defect.id})" aria-label="하자 ${index + 1} 삭제">🗑 삭제</button>
                         <select class="defect-status ${defect.status === 'completed' ? 'status-completed' : 'status-pending'}" 
                                 onchange="updateDefectStatus(${defect.id}, this.value)">
                             <option value="pending" ${defect.status === 'pending' ? 'selected' : ''}>미완료</option>
@@ -8324,7 +8420,7 @@ body.light-mode .card.reference-info {
                     </div>
 
                     <div class="form-field">
-                        <label class="form-label">공간 선택 (최대 4개)</label>
+                        ${DL.spaceCollapsed(defect) ? `<label class="form-label">공간</label>${DL.spaceSummary(defect)}` : `<label class="form-label" style="display:flex;justify-content:space-between;align-items:center;">공간 선택 (최대 4개)${defect.spaces.length ? `<button type="button" class="sp-fold" onclick="DL.spaceToggle(${defect.id})">접기 ▴</button>` : ''}</label>
                         <div class="selected-count">${defect.spaces.length}/4 선택됨${defect.spacesAuto ? ' · <b style="color:var(--a-red-text, var(--danger));">✓ 이전 하자 공간 자동 적용</b> (다른 공간을 누르면 바뀝니다)' : ''}</div>
                         <div class="touch-button-grid">
                             ${getSpaceButtons().map(space => `
@@ -8354,14 +8450,14 @@ body.light-mode .card.reference-info {
                                     💡 입력 후 엔터 또는 다른 곳 클릭
                                 </div>
                             </div>
-                        </details>
+                        </details>`}
                     </div>
 
                     ${typeof renderQuickDefects === 'function' ? renderQuickDefects(defect) : ''}
                     <div class="form-field">
                         <label class="form-label">위치 선택 (최대 4개)</label>
                         <div class="selected-count">${defect.locations.length}/4 선택됨${typeof AF !== 'undefined' ? AF.note(defect, 'loc') : ''}</div>
-                        <div class="touch-button-grid">
+                        <div class="touch-button-grid tb5">
                             ${['벽','바닥','천장','도배','가구','창','문','짝','틀','마감판','수전','타일','도장','줄눈','코킹'].map(location => `
                                 <button type="button" class="touch-btn ${defect.locations.includes(location) ? 'selected' : ''}" 
                                         ${defect.locations.length >= 4 && !defect.locations.includes(location) ? 'disabled' : ''}
@@ -8374,12 +8470,17 @@ body.light-mode .card.reference-info {
 
                     <div class="form-field">
                         <label class="form-label">📝 상세위치 (선택사항)</label>
-                        <input type="text" class="form-input" id="detailLocation_${defect.id}" 
-                               value="${escapeHtml(defect.detailLocation || '')}" 
-                               onchange="updateDefect(${defect.id}, 'detailLocation', this.value)"
-                               onblur="checkTypoOnBlur(${defect.id}, this.value)"
-                               placeholder="예: 좌측 상부 신발장, 우측 하단 등">
-                        <div id="typoAlert_${defect.id}" style="display: none; font-size: 12px; color: #dc2626; margin-top: 6px; padding: 10px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 6px;">
+                        <div class="dl-wrap">
+                        <input type="text" class="form-input" id="detailLocation_${defect.id}" autocomplete="off"
+                               value="${escapeHtml(defect.detailLocation || '')}"
+                               onchange="updateDefect(${defect.id}, 'detailLocation', DL.norm(this.value))"
+                               oninput="DL.preview(${defect.id}, this.value)"
+                               onblur="DL.commit(${defect.id}, this); checkTypoOnBlur(${defect.id}, this.value)"
+                               placeholder="예: 창 좌하 걸레받이 (기준 · 방향 · 부위)">
+                        <div class="dl-prev" id="dlPrev_${defect.id}"></div>
+                        ${DL.picker(defect)}
+                        </div>
+<div id="typoAlert_${defect.id}" style="display: none; font-size: 12px; color: #dc2626; margin-top: 6px; padding: 10px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 6px;">
                         </div>
                     </div>
 
@@ -8392,7 +8493,7 @@ body.light-mode .card.reference-info {
                             <div style="font-size: 11px; color: var(--text-secondary); margin-bottom: 6px; font-weight: 600;">
                                 하자 유형
                             </div>
-                            <div class="touch-button-grid">
+                            <div class="touch-button-grid tb5">
                                 ${['유격','틈새','단차','파손','긁힘','찍힘','들뜸','오염','마감','고정','수평/수직'].map(type => `
                                     <button type="button" class="touch-btn ${defect.types.includes(type) ? 'selected' : ''}" 
                                             ${defect.types.length >= 4 && !defect.types.includes(type) ? 'disabled' : ''}
@@ -8411,7 +8512,7 @@ body.light-mode .card.reference-info {
                             <div style="font-size: 11px; color: var(--text-secondary); margin-bottom: 6px; font-weight: 600;">
                                 상태 / 정도
                             </div>
-                            <div class="touch-button-grid">
+                            <div class="touch-button-grid tb5">
                                 ${['전체','다수','작동','돌출','불량','누락'].map(type => `
                                     <button type="button" class="touch-btn ${defect.types.includes(type) ? 'selected' : ''}" 
                                             ${defect.types.length >= 4 && !defect.types.includes(type) ? 'disabled' : ''}
@@ -8424,19 +8525,9 @@ body.light-mode .card.reference-info {
                     </div>
 
                     <div class="form-field">
-                        <label class="form-label">상세설명 (자동 생성)</label>
-                        <textarea class="form-input" rows="3" 
-                                  readonly
-                                  style="background: rgba(16, 185, 129, 0.05); cursor: default;"
-                                  placeholder="공간, 위치, 하자내용을 선택하면 자동으로 생성됩니다">${escapeHtml(defect.description || '')}</textarea>
-                        <div style="font-size: 11px; color: var(--text-secondary); margin-top: 5px;">
-                            💡 공간, 위치, 하자내용, 상세위치를 선택하면 자동으로 생성됩니다
-                        </div>
+                        <div class="desc-line">📄 <span>상세설명(자동)</span> ${escapeHtml(defect.description || '') || '<i>버튼을 고르면 자동으로 만들어집니다</i>'}</div>
                     </div>
 
-                    <button class="btn btn-danger" onclick="deleteDefect(${defect.id})">
-                        🗑️ 하자 삭제
-                    </button>
                 </div>
             `;
             }).join('');
@@ -16301,7 +16392,7 @@ body.light-mode .card.reference-info {
     }
     
     // ✅ 패치 69: 새 배포 확인 — 이 화면의 판 번호(APP_BUILD) vs 사이트의 version.json(정식)·version-test.json(테스트)
-    const APP_BUILD = '1651cffa6b74'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
+    const APP_BUILD = 'a9faae94a222'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
     (function() {
         const url = /index-unified-test\.html$/.test(location.pathname) ? 'version-test.json' : 'version.json';
         let busy = false;
