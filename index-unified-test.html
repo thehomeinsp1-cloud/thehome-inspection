@@ -12657,28 +12657,13 @@ body.light-mode .card.reference-info {
                 const pageWidth = 210;
                 const pageHeight = 297;
 
-                // 사진 없는 하자도 표에 포함('사진없음' 칸) → 표지 총 N건·중대하자 No.와 번호 일치
+                // ✅ 패치 83: 표지 + 목록 10건씩, 모든 쪽에 'n / 전체' (사진 없는 하자도 포함 → 번호 = 스티커 번호)
                 const defectsWithPhotos = (projectData.defects || []).slice();
-                
-                // 표지 (시공사 제출용)
-                const coverHTML = createFieldReportCoverPage();
-                await window.addHTMLPageToPDF(doc, coverHTML, pageWidth, pageHeight);
-
-                // 1페이지: 프로젝트 정보 + 첫 9개 하자
-                const firstPageDefects = defectsWithPhotos.slice(0, 9);
-                const firstPageHTML = createFieldReportFirstPage(firstPageDefects);
-                doc.addPage();
-                await window.addHTMLPageToPDF(doc, firstPageHTML, pageWidth, pageHeight);
-
-                // 2페이지~: 나머지 하자 (10개씩)
-                const itemsPerPage = 10;
-                const remainingDefects = defectsWithPhotos.slice(9);
-                
-                for (let i = 0; i < remainingDefects.length; i += itemsPerPage) {
+                const itemsPerPage = 10, pageTotal = 1 + Math.ceil(defectsWithPhotos.length / itemsPerPage);
+                await window.addHTMLPageToPDF(doc, createFieldReportCoverPage(pageTotal), pageWidth, pageHeight);
+                for (let i = 0; i < defectsWithPhotos.length; i += itemsPerPage) {
                     doc.addPage();
-                    const batch = remainingDefects.slice(i, i + itemsPerPage);
-                    const tableHTML = createFieldReportTablePage(batch, i + 9); // 인덱스는 9부터 시작
-                    await window.addHTMLPageToPDF(doc, tableHTML, pageWidth, pageHeight);
+                    await window.addHTMLPageToPDF(doc, createFieldReportTablePage(defectsWithPhotos.slice(i, i + itemsPerPage), i, 2 + i / itemsPerPage, pageTotal), pageWidth, pageHeight);
                 }
 
                 // 파일명 생성
@@ -12717,202 +12702,100 @@ body.light-mode .card.reference-info {
             }
         }
 
-        // 현장출력보고서 첫 페이지 생성 (프로젝트 정보 + 9개 하자, 사진 108x90)
-        // ==================== 현장출력보고서 표지 (시공사 제출용) ====================
-        function createFieldReportCoverPage() {
-            const apt = projectData.apartmentName || '';
-            const dongho = `${projectData.dong || ''}동 ${projectData.ho || ''}호`;
-            const date = projectData.inspectionDate || '';
-            const total = (projectData.defects || []).length;
-
-            // 중대하자 = 설명에 '누수' 포함된 하자의 번호(전체 하자 기준 No)
-            const criticalNums = [];
-            (projectData.defects || []).forEach((d, i) => {
-                if (window.isPriorityDefect(d)) criticalNums.push(i + 1); // ✅ 패치 72: 보고서와 같은 판정(설명·유형·상세위치의 누수)
-            });
-            const critTxt = criticalNums.length
-                ? criticalNums.map(n => 'No.' + n).join(', ')
-                : '';
-
-            // 계약자/연락처: 입력값 있으면 자동, 없으면 손글씨용 빈칸
-            const client = projectData.customerName || '';
-            const phone = projectData.customerPhone || '';
-
-            return `
-                <div style="width:794px;height:1123px;background:#fff;font-family:'Malgun Gothic',sans-serif;box-sizing:border-box;position:relative;padding:48px 52px;">
-                    <div style="position:absolute;inset:18px;border:1px solid #000;"></div>
-                    <div style="position:absolute;inset:24px;border:3px solid #000;"></div>
-                    <div style="position:relative;height:100%;display:flex;flex-direction:column;">
-                        <div style="text-align:center;margin-top:40px;">
-                            <div style="font-size:15px;letter-spacing:7px;color:#000;font-weight:bold;">THE HOME INSPECTION</div>
-                            <div style="width:46px;height:2px;background:#000;margin:16px auto;"></div>
-                        </div>
-                        <div style="text-align:center;margin-top:30px;">
-                            <div style="font-size:56px;font-weight:900;color:#000;letter-spacing:4px;line-height:1.2;">하자점검 리스트</div>
-                            <div style="display:inline-block;margin-top:22px;font-size:21px;font-weight:bold;color:#000;letter-spacing:6px;border:2px solid #000;padding:7px 30px;">시공사 제출용</div>
-                        </div>
-                        <div style="margin-top:60px;">
-                            <table style="width:100%;border-collapse:collapse;font-size:18px;">
-                                <tr><td style="border:1.5px solid #000;background:#ededed;padding:16px 18px;font-weight:bold;width:30%;text-align:center;">아파트명</td><td style="border:1.5px solid #000;padding:16px 22px;font-weight:bold;">${apt}</td></tr>
-                                <tr><td style="border:1.5px solid #000;background:#ededed;padding:16px 18px;font-weight:bold;text-align:center;">동 / 호수</td><td style="border:1.5px solid #000;padding:16px 22px;font-weight:bold;">${dongho}</td></tr>
-                                <tr><td style="border:1.5px solid #000;background:#ededed;padding:16px 18px;font-weight:bold;text-align:center;">점검일자</td><td style="border:1.5px solid #000;padding:16px 22px;font-weight:bold;">${date}</td></tr>
-                                <tr><td style="border:1.5px solid #000;background:#ededed;padding:16px 18px;font-weight:bold;text-align:center;">총 하자 건수</td><td style="border:1.5px solid #000;padding:16px 22px;font-weight:900;font-size:22px;">${total} 건</td></tr>
-                            </table>
-                        </div>
-                        <div style="margin-top:20px;border:2.5px solid #000;">
-                            <div style="display:flex;align-items:stretch;">
-                                <div style="background:#000;color:#fff;font-weight:bold;font-size:17px;padding:16px 20px;display:flex;align-items:center;letter-spacing:2px;white-space:nowrap;">중 대 하 자</div>
-                                <div style="flex:1;padding:16px 22px;font-size:20px;font-weight:900;display:flex;align-items:center;">${critTxt}</div>
-                            </div>
-                        </div>
-                        <div style="margin-top:38px;">
-                            <div style="font-size:14px;font-weight:bold;color:#000;margin-bottom:10px;letter-spacing:2px;">■ 계약자 확인</div>
-                            <table style="width:100%;border-collapse:collapse;font-size:18px;">
-                                <tr><td style="border:1.5px solid #000;background:#ededed;padding:22px 18px;font-weight:bold;width:30%;text-align:center;">계 약 자</td><td style="border:1.5px solid #000;padding:22px;font-weight:bold;">${client}</td></tr>
-                                <tr><td style="border:1.5px solid #000;background:#ededed;padding:22px 18px;font-weight:bold;text-align:center;">연 락 처</td><td style="border:1.5px solid #000;padding:22px;font-weight:bold;">${phone}</td></tr>
-                            </table>
-                        </div>
-                        <div style="margin-top:auto;text-align:center;font-size:13px;font-weight:bold;color:#000;letter-spacing:3px;padding-bottom:8px;">더홈점검</div>
-                    </div>
-                </div>
-            `;
+        // ==================== 현장출력보고서 (시공사 제출용) — ✅ 패치 83 (대표님 10-26): 흑백 인쇄에 맞춘 새 디자인 ====================
+        // 표지: 세대 정보·총 건수·누수(우선 보수)·공간별 건수·확인 서명란 / 목록: 쪽마다 10건, 상세위치를 크게(현장에서 스티커 찾기), 보수확인 칸
+        // 글자색은 모두 직접 지정 (앱 화면 테마의 표 글자색이 섞이면 흰 종이에 흐리게 찍힘)
+        const _FR = { ink: '#111', line: '#222', soft: '#f1f1f1', font: "'Malgun Gothic','Apple SD Gothic Neo',sans-serif" };
+        function _frEsc(v) { return escapeHtml(String(v == null ? '' : v)); }
+        function _frLoc(d) { // '벽·도배 / 들뜸·불량'
+            const L = (d.locations || []).join('·'); // 버튼 순서 그대로 (상세설명과 달리 짧게)
+            const T = (d.types || []).join('·');
+            return [L, T].filter(Boolean).join(' / ') || _frEsc(d.description || '-');
         }
-
-        function createFieldReportFirstPage(defects) {
-            const rowsHTML = defects.map((defect, idx) => {
-                const globalIndex = idx + 1;
-                const photo1 = defect.photos && defect.photos[0] ? defect.photos[0] : '';
-                const photo2 = defect.photos && defect.photos[1] ? defect.photos[1] : '';
-                
-                // 데이터 필드명 처리 (복수형/단수형 모두 지원)
-                const spaces = defect.spaces ? defect.spaces.join(', ') : (defect.space || '-');
-                const types = defect.types ? defect.types.join(', ') : (defect.type || '-');
-                const description = defect.description || defect.details || '-';
-                
-                return `
-                    <tr>
-                        <td style="padding: 5px; border: 1px solid #000; text-align: center; font-weight: bold; color: #000; font-size: 13px; background: #fff;">${globalIndex}</td>
-                        <td style="padding: 5px; border: 1px solid #000; text-align: center; color: #000; font-size: 13px; font-weight: bold; background: #fff;">${spaces}</td>
-                        <td style="padding: 5px; border: 1px solid #000; text-align: center; color: #000; font-size: 12px; font-weight: bold; background: #fff;">${types}</td>
-                        <td style="padding: 5px 8px; border: 1px solid #000; color: #000; font-size: 12px; font-weight: 600; line-height: 1.4; background: #fff;">
-                            ${description}
-                            ${defect.date ? `<div style="color: #000; font-size: 10px; margin-top: 3px; font-weight: bold;">${defect.date}</div>` : ''}
-                        </td>
-                        <td style="padding: 4px; border: 1px solid #000; text-align: center; background: #fff;">
-                            ${photo1 ? `<img src="${photo1}" style="width: 108px; height: 90px; object-fit: cover; display: block; margin: 0 auto; border: 1px solid #000;">` : '<div style="width: 108px; height: 90px; border: 1px solid #000; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #000; margin: 0 auto; font-weight: bold;">사진없음</div>'}
-                        </td>
-                        <td style="padding: 4px; border: 1px solid #000; text-align: center; background: #fff;">
-                            ${photo2 ? `<img src="${photo2}" style="width: 108px; height: 90px; object-fit: cover; display: block; margin: 0 auto; border: 1px solid #000;">` : '<div style="width: 108px; height: 90px; border: 1px solid #000; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #000; margin: 0 auto; font-weight: bold;">사진없음</div>'}
-                        </td>
-                    </tr>
-                `;
-            }).join('');
-
+        function _frFooter(pageNo, pageTotal) {
+            return `<div style="position:absolute;left:34px;right:34px;bottom:18px;display:flex;justify-content:space-between;align-items:center;border-top:1px solid ${_FR.line};padding-top:6px;font-size:10.5px;font-weight:700;color:${_FR.ink};">
+                <span>더홈점검 · 사전점검 전문 · 대표 1668-5322 · 직통 010-9985-0128</span><span>${pageNo} / ${pageTotal}</span></div>`;
+        }
+        function createFieldReportCoverPage(pageTotal) {
+            const p = projectData, D = p.defects || [];
+            const crit = []; D.forEach((d, i) => { if (window.isPriorityDefect(d)) crit.push({ no: i + 1, d }); });
+            // 공간별 건수 (처음 나온 순서)
+            const sp = [], spN = {};
+            D.forEach((d, i) => { const s = (d.spaces || [])[0] || '기타'; if (!spN[s]) { spN[s] = []; sp.push(s); } spN[s].push(i + 1); });
+            const range = a => { const out = []; let s = a[0], e = a[0]; for (let k = 1; k <= a.length; k++) { if (a[k] === e + 1) e = a[k]; else { out.push(s === e ? s : s + '~' + e); s = e = a[k]; } } return out.join(', '); };
+            const cell = (k, v, w) => `<td style="border:1px solid ${_FR.line};background:${_FR.soft};padding:9px 12px;font-weight:800;width:${w || 16}%;color:${_FR.ink};white-space:nowrap;">${k}</td><td style="border:1px solid ${_FR.line};padding:9px 14px;font-weight:700;color:${_FR.ink};">${v}</td>`;
+            const sign = (k, v) => `<td style="border:1px solid ${_FR.line};background:${_FR.soft};padding:16px 10px;font-weight:800;width:17%;white-space:nowrap;text-align:center;color:${_FR.ink};">${k}</td><td style="border:1px solid ${_FR.line};width:33%;padding:0 12px;font-weight:800;font-size:15px;color:${_FR.ink};">${_frEsc(v || '')}</td>`;
+            const spRows = sp.map(s => `<tr><td style="border:1px solid ${_FR.line};padding:5px 10px;font-weight:800;color:${_FR.ink};">${_frEsc(s)}</td><td style="border:1px solid ${_FR.line};padding:5px 10px;text-align:center;font-weight:800;color:${_FR.ink};">${spN[s].length}</td><td style="border:1px solid ${_FR.line};padding:5px 10px;font-weight:600;color:${_FR.ink};font-size:12px;">${range(spN[s])}</td></tr>`).join('');
+            const critHTML = crit.length
+                ? crit.map(c => `<div style="padding:3px 0;color:${_FR.ink};"><b>No.${c.no}</b> &nbsp;${_frEsc((c.d.spaces || [])[0] || '')} · ${_frEsc(c.d.detailLocation || _frLoc(c.d))}</div>`).join('')
+                : `<div style="color:${_FR.ink};">없음</div>`;
             return `
-                <div style="width: 794px; height: 1123px; background: white; font-family: 'Malgun Gothic', sans-serif; padding: 22px 18px; position: relative; box-sizing: border-box;">
-                    <!-- 헤더 -->
-                    <div style="border: 2px solid #000; padding: 15px; margin-bottom: 12px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
-                        <div>
-                            <h1 style="margin: 0 0 5px 0; font-size: 22px; color: #000; font-weight: bold;">하자점검리스트(제출용)</h1>
-                            <p style="margin: 0; font-size: 13px; color: #000; font-weight: 600;">${projectData.apartmentName} ${projectData.dong}동 ${projectData.ho}호 | ${projectData.inspectionDate || ''}</p>
-                        </div>
-                        <div style="text-align: right;">
-                            <span style="font-size: 15px; color: #000; font-weight: bold;">총 ${projectData.defects.length}건</span>
-                        </div>
+                <div style="width:794px;height:1123px;background:#fff;font-family:${_FR.font};box-sizing:border-box;position:relative;padding:40px 34px;color:${_FR.ink};">
+                    <div style="display:flex;justify-content:space-between;align-items:flex-end;border-bottom:3px solid ${_FR.ink};padding-bottom:12px;">
+                        <div><div style="font-size:12px;letter-spacing:4px;font-weight:800;">THE HOME INSPECTION</div>
+                            <div style="font-size:38px;font-weight:900;letter-spacing:1px;margin-top:6px;">하자점검 리스트</div></div>
+                        <div style="border:2px solid ${_FR.ink};padding:6px 16px;font-size:16px;font-weight:900;letter-spacing:4px;">시공사 제출용</div>
                     </div>
-
-                    ${defects.length > 0 ? `
-                    <!-- 테이블 -->
-                    <table style="width: 100%; border-collapse: collapse; font-size: 12px; border: 2px solid #000;">
-                        <thead>
-                            <tr style="background: #e8e8e8;">
-                                <th style="padding: 9px 5px; border: 1px solid #000; text-align: center; font-weight: bold; color: #000; width: 38px;">No</th>
-                                <th style="padding: 9px 5px; border: 1px solid #000; text-align: center; font-weight: bold; color: #000; width: 58px;">공간</th>
-                                <th style="padding: 9px 5px; border: 1px solid #000; text-align: center; font-weight: bold; color: #000; width: 68px;">하자</th>
-                                <th style="padding: 9px 5px; border: 1px solid #000; text-align: center; font-weight: bold; color: #000;">내용</th>
-                                <th style="padding: 9px 5px; border: 1px solid #000; text-align: center; font-weight: bold; color: #000; width: 116px;">원경</th>
-                                <th style="padding: 9px 5px; border: 1px solid #000; text-align: center; font-weight: bold; color: #000; width: 116px;">근접</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${rowsHTML}
-                        </tbody>
+                    <table style="width:100%;border-collapse:collapse;margin-top:18px;font-size:15px;">
+                        <tr>${cell('아파트', _frEsc(p.apartmentName))}${cell('동 / 호', _frEsc(p.dong) + '동 ' + _frEsc(p.ho) + '호')}</tr>
+                        <tr>${cell('점검일', _frEsc(p.inspectionDate))}${cell('점검자', _frEsc(p.author || ''))}</tr>
                     </table>
-                    ` : ''}
-
-                    <!-- 푸터 -->
-                    <div style="position: absolute; bottom: 12px; left: 18px; right: 18px; padding-top: 8px; border-top: 1px solid #000; font-size: 10px; color: #000; text-align: center; font-weight: bold;">
-                        더홈점검 | 대표: 1668-5322 / 직통: 010-9985-0128 | 사전점검 전문업체
+                    <div style="display:flex;gap:10px;margin-top:14px;">
+                        <div style="flex:1;border:2px solid ${_FR.ink};padding:10px 14px;"><div style="font-size:12px;font-weight:800;">총 하자</div><div style="font-size:34px;font-weight:900;line-height:1.1;">${D.length}<span style="font-size:16px;"> 건</span></div></div>
+                        <div style="flex:1;border:2px solid ${_FR.ink};padding:10px 14px;background:${_FR.ink};color:#fff;"><div style="font-size:12px;font-weight:800;">● 우선 보수 (누수)</div><div style="font-size:34px;font-weight:900;line-height:1.1;">${crit.length}<span style="font-size:16px;"> 건</span></div></div>
+                        <div style="flex:1;border:2px solid ${_FR.ink};padding:10px 14px;"><div style="font-size:12px;font-weight:800;">공간</div><div style="font-size:34px;font-weight:900;line-height:1.1;">${sp.length}<span style="font-size:16px;"> 곳</span></div></div>
                     </div>
-                </div>
-            `;
+                    <div style="display:flex;gap:14px;margin-top:16px;align-items:flex-start;">
+                        <div style="flex:1.1;"><div style="font-size:13px;font-weight:900;margin-bottom:6px;">■ 공간별 하자</div>
+                            <table style="width:100%;border-collapse:collapse;font-size:13px;"><tr style="background:${_FR.soft};"><th style="border:1px solid ${_FR.line};padding:5px;color:${_FR.ink};">공간</th><th style="border:1px solid ${_FR.line};padding:5px;width:48px;color:${_FR.ink};">건수</th><th style="border:1px solid ${_FR.line};padding:5px;color:${_FR.ink};">번호</th></tr>${spRows}</table></div>
+                        <div style="flex:1;"><div style="font-size:13px;font-weight:900;margin-bottom:6px;">■ 우선 보수 (누수)</div>
+                            <div style="border:2px solid ${_FR.ink};padding:8px 12px;font-size:13px;line-height:1.5;">${critHTML}</div>
+                            <div style="font-size:11.5px;font-weight:600;margin-top:10px;line-height:1.6;">· 번호는 현장 하자 스티커의 번호와 같습니다.<br>· 목록의 <b>상세위치</b>를 보고 스티커를 찾아 보수해 주세요.<br>· 보수 후 목록의 '보수확인' 칸에 표시해 주세요.</div></div>
+                    </div>
+                    <div style="position:absolute;left:34px;right:34px;bottom:58px;">
+                        <div style="font-size:13px;font-weight:900;margin-bottom:6px;">■ 확인</div>
+                        <table style="width:100%;border-collapse:collapse;font-size:14px;">
+                            <tr>${sign('계약자', p.customerName)}${sign('연락처', p.customerPhone)}</tr>
+                            <tr>${sign('시공사 접수자')}${sign('접수일 / 서명')}</tr>
+                        </table>
+                    </div>
+                    ${_frFooter(1, pageTotal)}
+                </div>`;
         }
-
-        // 현장출력보고서 테이블 페이지 생성 (10개씩, 사진 108x90, 흑백 출력 최적화)
-        function createFieldReportTablePage(defects, startIndex) {
-            const rowsHTML = defects.map((defect, idx) => {
-                const globalIndex = startIndex + idx + 1;
-                const photo1 = defect.photos && defect.photos[0] ? defect.photos[0] : '';
-                const photo2 = defect.photos && defect.photos[1] ? defect.photos[1] : '';
-                
-                // 데이터 필드명 처리 (복수형/단수형 모두 지원)
-                const spaces = defect.spaces ? defect.spaces.join(', ') : (defect.space || '-');
-                const types = defect.types ? defect.types.join(', ') : (defect.type || '-');
-                const description = defect.description || defect.details || '-';
-                
-                return `
-                    <tr>
-                        <td style="padding: 4px; border: 1px solid #000; text-align: center; font-weight: bold; color: #000; font-size: 13px; background: #fff;">${globalIndex}</td>
-                        <td style="padding: 4px; border: 1px solid #000; text-align: center; color: #000; font-size: 13px; font-weight: bold; background: #fff;">${spaces}</td>
-                        <td style="padding: 4px; border: 1px solid #000; text-align: center; color: #000; font-size: 12px; font-weight: bold; background: #fff;">${types}</td>
-                        <td style="padding: 4px 7px; border: 1px solid #000; color: #000; font-size: 12px; font-weight: 600; line-height: 1.3; background: #fff;">
-                            ${description}
-                            ${defect.date ? `<div style="color: #000; font-size: 10px; margin-top: 2px; font-weight: bold;">${defect.date}</div>` : ''}
-                        </td>
-                        <td style="padding: 3px; border: 1px solid #000; text-align: center; background: #fff;">
-                            ${photo1 ? `<img src="${photo1}" style="width: 108px; height: 90px; object-fit: cover; display: block; margin: 0 auto; border: 1px solid #000;">` : '<div style="width: 108px; height: 90px; border: 1px solid #000; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #000; margin: 0 auto; font-weight: bold;">사진없음</div>'}
-                        </td>
-                        <td style="padding: 3px; border: 1px solid #000; text-align: center; background: #fff;">
-                            ${photo2 ? `<img src="${photo2}" style="width: 108px; height: 90px; object-fit: cover; display: block; margin: 0 auto; border: 1px solid #000;">` : '<div style="width: 108px; height: 90px; border: 1px solid #000; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #000; margin: 0 auto; font-weight: bold;">사진없음</div>'}
-                        </td>
-                    </tr>
-                `;
+        // 목록 쪽 (10건). 번호는 전체 하자 기준
+        function createFieldReportTablePage(defects, startIndex, pageNo, pageTotal) {
+            const p = projectData, photo = src => src
+                ? `<img src="${src}" style="width:108px;height:80px;object-fit:cover;display:block;margin:0 auto;border:1px solid ${_FR.line};">`
+                : `<div style="width:108px;height:80px;border:1px dashed ${_FR.line};display:flex;align-items:center;justify-content:center;font-size:10px;color:${_FR.ink};margin:0 auto;">사진 없음</div>`;
+            const td = 'border:1px solid ' + _FR.line + ';color:' + _FR.ink + ';';
+            const rows = defects.map((d, i) => {
+                const no = startIndex + i + 1, pr = window.isPriorityDefect(d), ph = d.photos || [];
+                return `<tr style="height:92px;">
+                    <td style="${td}text-align:center;font-size:17px;font-weight:900;${pr ? 'background:' + _FR.ink + ';color:#fff;' : ''}">${no}</td>
+                    <td style="${td}text-align:center;font-size:13px;font-weight:800;padding:4px;">${_frEsc((d.spaces || []).join(', ') || '-')}</td>
+                    <td style="${td}padding:6px 8px;">
+                        <div style="font-size:15px;font-weight:900;line-height:1.3;">${_frEsc(d.detailLocation || '') || '<span style="font-weight:600;font-size:12px;">(상세위치 없음)</span>'}</div>
+                        <div style="font-size:12px;font-weight:700;margin-top:3px;line-height:1.35;">${_frLoc(d)}${pr ? ' &nbsp;<b>● 누수 우선 보수</b>' : ''}</div></td>
+                    <td style="${td}padding:3px;">${photo(ph[0])}</td>
+                    <td style="${td}padding:3px;">${photo(ph[1])}</td>
+                    <td style="${td}text-align:center;"><div style="width:18px;height:18px;border:1.5px solid ${_FR.ink};margin:0 auto;"></div></td>
+                </tr>`;
             }).join('');
-
+            const th = `border:1px solid ${_FR.line};background:${_FR.soft};color:${_FR.ink};padding:7px 4px;font-weight:900;font-size:12.5px;`;
             return `
-                <div style="width: 794px; height: 1123px; background: white; padding: 18px 16px; font-family: 'Malgun Gothic', sans-serif; box-sizing: border-box;">
-                    <!-- 헤더 -->
-                    <div style="margin-bottom: 10px; padding-bottom: 7px; border-bottom: 3px solid #000;">
-                        <h2 style="font-size: 15px; margin: 0; color: #000; font-weight: bold;">
-                            ${projectData.apartmentName} ${projectData.dong}동 ${projectData.ho}호 - 하자점검 목록
-                        </h2>
+                <div style="width:794px;height:1123px;background:#fff;font-family:${_FR.font};box-sizing:border-box;position:relative;padding:28px 34px;color:${_FR.ink};">
+                    <div style="display:flex;justify-content:space-between;align-items:flex-end;border-bottom:3px solid ${_FR.ink};padding-bottom:7px;margin-bottom:10px;">
+                        <div style="font-size:17px;font-weight:900;">하자점검 리스트 <span style="font-size:12px;font-weight:800;border:1.5px solid ${_FR.ink};padding:1px 7px;margin-left:6px;">시공사 제출용</span></div>
+                        <div style="font-size:13px;font-weight:800;text-align:right;line-height:1.35;">${_frEsc(p.apartmentName)} ${_frEsc(p.dong)}동 ${_frEsc(p.ho)}호 · ${_frEsc(p.inspectionDate || '')} · 총 ${(p.defects || []).length}건${p.customerPhone ? `<br><span style="font-size:12px;">계약자 ${_frEsc(p.customerName || '')} · ${_frEsc(p.customerPhone)}</span>` : ''}</div>
                     </div>
-
-                    <!-- 테이블 -->
-                    <table style="width: 100%; border-collapse: collapse; font-size: 12px; border: 2px solid #000;">
-                        <thead>
-                            <tr style="background: #e8e8e8;">
-                                <th style="padding: 9px 4px; border: 1px solid #000; text-align: center; font-weight: bold; color: #000; width: 38px;">No</th>
-                                <th style="padding: 9px 4px; border: 1px solid #000; text-align: center; font-weight: bold; color: #000; width: 58px;">공간</th>
-                                <th style="padding: 9px 4px; border: 1px solid #000; text-align: center; font-weight: bold; color: #000; width: 68px;">하자</th>
-                                <th style="padding: 9px 5px; border: 1px solid #000; text-align: center; font-weight: bold; color: #000;">내용</th>
-                                <th style="padding: 9px 4px; border: 1px solid #000; text-align: center; font-weight: bold; color: #000; width: 116px;">원경</th>
-                                <th style="padding: 9px 4px; border: 1px solid #000; text-align: center; font-weight: bold; color: #000; width: 116px;">근접</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${rowsHTML}
-                        </tbody>
+                    <table style="width:100%;border-collapse:collapse;table-layout:fixed;">
+                        <colgroup><col style="width:42px"><col style="width:70px"><col><col style="width:120px"><col style="width:120px"><col style="width:46px"></colgroup>
+                        <tr><th style="${th}">No</th><th style="${th}">공간</th><th style="${th}">상세위치 · 위치/하자</th><th style="${th}">원경</th><th style="${th}">근경</th><th style="${th}font-size:11px;">보수<br>확인</th></tr>
+                        ${rows}
                     </table>
-
-                    <!-- 푸터 -->
-                    <div style="position: absolute; bottom: 12px; left: 16px; right: 16px; text-align: right; font-size: 10px; color: #000; padding-top: 7px; border-top: 1px solid #000; font-weight: bold;">
-                        더홈점검 | 1668-5322
-                    </div>
-                </div>
-            `;
+                    ${_frFooter(pageNo, pageTotal)}
+                </div>`;
         }
-
 
         // ✅ 패치 78: html2canvas 1.4.1 은 object-fit 을 지원하지 않아 사진을 칸 크기로 늘려 그림(세로 사진 찌그러짐·포인트 타원)
         //   → 그리기 전에 object-fit(contain·cover) 사진을 칸 크기 캔버스에 비율 그대로 '다 보이게' 그려 바꿔 넣음. 여백은 칸 바탕색
@@ -16418,7 +16301,7 @@ body.light-mode .card.reference-info {
     }
     
     // ✅ 패치 69: 새 배포 확인 — 이 화면의 판 번호(APP_BUILD) vs 사이트의 version.json(정식)·version-test.json(테스트)
-    const APP_BUILD = 'b4763d230fb6'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
+    const APP_BUILD = '1651cffa6b74'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
     (function() {
         const url = /index-unified-test\.html$/.test(location.pathname) ? 'version-test.json' : 'version.json';
         let busy = false;
