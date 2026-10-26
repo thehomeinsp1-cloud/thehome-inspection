@@ -958,6 +958,27 @@
         }
 
         /* 터치 버튼 스타일 */
+        /* ✅ 패치 86: 공기질 표 입력 */
+        .aq-top { padding: 12px; margin-bottom: 10px; }
+        .aq-t { display: flex; align-items: center; gap: 8px; } .aq-t b { font-size: 16px; color: var(--text-primary); margin-right: auto; }
+        .aq-pill { font-size: 12px; font-weight: 800; border-radius: 14px; padding: 3px 9px; background: var(--a-raised, #212C42); color: var(--text-secondary); }
+        .aq-pill.bad { background: rgba(232, 72, 72, 0.18); color: var(--a-red-text, #FF8080); }
+        .aq-bar { height: 6px; border-radius: 3px; background: var(--a-raised, #212C42); margin-top: 8px; overflow: hidden; } .aq-bar i { display: block; height: 100%; width: 0; background: var(--text-primary); transition: width .2s; }
+        .aq-tip { margin-top: 8px; font-size: 11.5px; color: var(--text-secondary); line-height: 1.45; }
+        .aq-tbl { background: var(--card-bg); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; margin-bottom: 12px; }
+        .aq-hd, .aq-row { display: grid; grid-template-columns: 74px 1fr 1fr 1fr 28px; gap: 5px; align-items: center; padding: 6px 8px; }
+        .aq-hd { background: var(--a-sunken, #0F1726); font-size: 11.5px; font-weight: 800; color: var(--text-secondary); text-align: center; line-height: 1.25; }
+        .aq-hd small { display: block; font-weight: 700; font-size: 10.5px; opacity: .8; }
+        .aq-row { border-top: 1px solid var(--border); }
+        .aq-nm { font-size: 14px; font-weight: 800; color: var(--text-primary); word-break: keep-all; line-height: 1.2; }
+        .aq-in { width: 100%; min-width: 0; height: 42px; box-sizing: border-box; border: 1px solid var(--a-line-strong, #3a4866); background: var(--a-sunken, #0F1726); color: var(--text-primary); border-radius: 8px; text-align: center; font-size: 15px; font-weight: 800; font-variant-numeric: tabular-nums; font-family: inherit; padding: 0 2px; }
+        .aq-in:focus { outline: none; border: 2px solid var(--text-primary); }
+        .aq-in.bad { border-color: #E84848; color: var(--a-red-text, #FF8080); background: rgba(232, 72, 72, 0.10); }
+        .aq-in.no { display: flex; align-items: center; justify-content: center; border-style: dashed; color: var(--text-secondary); font-size: 11px; font-weight: 700; opacity: .7; background: repeating-linear-gradient(135deg, transparent 0 6px, rgba(127, 127, 127, 0.08) 6px 12px); }
+        .aq-x { height: 42px; border: none; background: transparent; color: var(--text-secondary); font-size: 18px; cursor: pointer; padding: 0; }
+        .aq-more { display: flex; gap: 6px; align-items: center; padding: 6px 8px 10px; } .aq-more .form-input { flex: 1; min-width: 0; margin: 0; } .aq-more .dc-del, .aq-more .sp-fold { margin-left: 0; }
+        .aq-chips { display: flex; flex-wrap: wrap; gap: 6px; padding: 10px 8px; border-top: 1px solid var(--border); }
+        .aq-chips button { min-height: 36px; border: 1px dashed var(--a-line-strong, #3a4866); background: transparent; border-radius: 18px; padding: 0 14px; font-size: 13.5px; font-weight: 800; color: var(--text-secondary); font-family: inherit; cursor: pointer; }
         /* ✅ 패치 85: 장비 점검 간소화 */
         .eq-top { display: flex; align-items: center; gap: 10px; padding: 10px 12px; margin-bottom: 10px; }
         .eq-top b { font-size: 16px; color: var(--text-primary); } .eq-top small { font-size: 12px; color: var(--text-secondary); font-weight: 700; }
@@ -2075,25 +2096,13 @@ body.light-mode .card.reference-info {
 
         <!-- 공기질 측정 섹션 -->
         <div id="airquality" class="section">
-            <div class="card">
-                <h2 style="color: var(--primary); margin-bottom: 20px;">🌬️ 공기질 측정</h2>
-                <p style="color: var(--text-secondary); margin-bottom: 20px; font-size: 14px;">
-                    실내 공기질을 측정하고 기록하세요
-                </p>
+            <div class="card aq-top">
+                <div class="aq-t"><span>🌬️</span><b>공기질 측정</b><span class="aq-pill" id="aqCount">0/0칸</span><span class="aq-pill" id="aqBad">초과 없음</span></div>
+                <div class="aq-bar"><i id="aqBar"></i></div>
+                <div class="aq-tip">숫자 입력 후 키보드 [다음] → 다음 칸 · 포름·VOCs는 128 → 0.128 자동 · 욕실은 라돈만</div>
             </div>
 
             <div id="airQualityList"></div>
-
-            <button class="air-add-btn" onclick="addAirQualityRoom()">
-                ➕ 방 추가
-            </button>
-
-            <div class="card reference-info">
-                <strong>📋 권고기준</strong><br>
-                라돈: 148 Bq/m³ 이하<br>
-                포름알데히드: 0.210 mg/m³ 이하<br>
-                총휘발성유기화합물: 0.500 mg/m³ 이하
-            </div>
         </div>
 
         <!-- 데이터 관리 섹션 -->
@@ -9062,9 +9071,59 @@ body.light-mode .card.reference-info {
         }
 
         // ==================== 공기질 측정 ====================
+        // ✅ 패치 86: 공기질 표 입력 (대표님 10-26) — 방 한 줄에 라돈·포름·VOCs, 욕실은 라돈만, 초과 바로 빨강, [다음]으로 칸 이동
+        const AQ = window.AQ = { _open: new Set(), STD: { radon: 148, formaldehyde: 0.210, vocs: 0.500 } };
+        AQ.has = v => v !== '' && v != null && !isNaN(parseFloat(v));
+        AQ.wet = r => /욕실/.test((r && r.name) || '');
+        // 욕실의 포름·VOCs: 비어 있으면 측정 대상 아님 (예전에 넣어 둔 값이 있으면 그대로 보여 줌)
+        AQ.skip = (r, f) => f !== 'radon' && AQ.wet(r) && !AQ.has(r[f]);
+        AQ.bad = (f, v) => AQ.has(v) && parseFloat(v) > AQ.STD[f];
+        AQ.sum = function () {
+            let all = 0, done = 0, bad = 0;
+            (projectData.airQuality || []).forEach(r => ['radon', 'formaldehyde', 'vocs'].forEach(f => {
+                if (AQ.skip(r, f)) return;
+                all++; if (AQ.has(r[f])) { done++; if (AQ.bad(f, r[f])) bad++; }
+            }));
+            const c = document.getElementById('aqCount'), b = document.getElementById('aqBad'), g = document.getElementById('aqBar');
+            if (c) c.textContent = done + '/' + all + '칸';
+            if (b) { b.textContent = bad ? '기준 초과 ' + bad : '초과 없음'; b.classList.toggle('bad', bad > 0); }
+            if (g) g.style.width = (all ? Math.round(done / all * 100) : 0) + '%';
+        };
+        // 포름·VOCs에 점 없이 2~3자리(128) → 0.128
+        AQ.fix = function (el, f) {
+            if (f === 'radon' || !/^\d{2,3}$/.test(el.value)) return;
+            const v = '0.' + el.value.padStart(3, '0');
+            showToast(el.value + ' → ' + v + ' 로 바꿨습니다', 'info');
+            el.value = v;
+        };
+        AQ.live = function (el, f) { el.classList.toggle('bad', AQ.bad(f, el.value)); };
+        AQ.next = function (e, el) {
+            if (e.key !== 'Enter' || e.isComposing) return;
+            e.preventDefault();
+            const ins = [...document.querySelectorAll('#airQualityList input.aq-in')], i = ins.indexOf(el);
+            if (ins[i + 1]) ins[i + 1].focus(); else el.blur();
+        };
+        AQ.more = function (id) { if (AQ._open.has(id)) AQ._open.delete(id); else AQ._open.add(id); renderAirQuality(); };
+        AQ.add = function (name) {
+            addAirQualityRoom();
+            const r = projectData.airQuality[projectData.airQuality.length - 1];
+            if (name) { r.name = name; saveWithDebounce(); } else AQ._open.add(r.id);
+            renderAirQuality();
+            if (!name) setTimeout(() => { const n = document.getElementById('aqName_' + r.id); if (n) { n.focus(); n.select(); } }, 50);
+        };
+        AQ.cell = function (r, f) {
+            if (AQ.skip(r, f)) return '<span class="aq-in no">측정 안 함</span>';
+            const dec = f !== 'radon';
+            return `<input type="number" class="aq-in${AQ.bad(f, r[f]) ? ' bad' : ''}" ${dec ? 'step="0.001"' : ''} inputmode="decimal" enterkeyhint="next"
+                value="${escapeHtml(r[f])}" placeholder="${dec ? '0.000' : '0'}" aria-label="${escapeHtml(r.name)} ${f === 'radon' ? '라돈' : f === 'vocs' ? '총VOCs' : '포름알데히드'}"
+                oninput="AQ.live(this, '${f}')" onkeydown="AQ.next(event, this)"
+                onchange="AQ.fix(this, '${f}'); AQ.live(this, '${f}'); updateAirQualityValue(${r.id}, '${f}', this.value, this.validity && this.validity.badInput); AQ.sum()"
+                onblur="checkAirQualityInput(this, ${r.id}, '${f}')">`;
+        };
+
         function renderAirQuality() {
             const container = document.getElementById('airQualityList');
-            
+
             if (projectData.airQuality.length === 0) {
                 projectData.airQuality = [
                     { id: 1, name: '거실', radon: '', formaldehyde: '', vocs: '' },
@@ -9079,49 +9138,26 @@ body.light-mode .card.reference-info {
                 project.lastAirQualityId = 6;
             }
 
-            container.innerHTML = projectData.airQuality.map((room) => `
-                <div class="air-quality-card">
-                    <div class="air-room-header">
-                        <input type="text" 
-                               class="air-room-name-input" 
-                               value="${escapeHtml(room.name)}" 
-                               onchange="updateAirRoomName(${room.id}, this.value)"
-                               placeholder="방 이름">
-                        <button class="air-room-delete" onclick="deleteAirRoom(${room.id})">×</button>
-                    </div>
-                    <div class="air-inputs">
-                        <div class="air-input-group">
-                            <label>라돈</label>
-                            <input type="number" 
-                                   value="${escapeHtml(room.radon)}" inputmode="decimal"
-                                   onchange="updateAirQualityValue(${room.id}, 'radon', this.value, this.validity && this.validity.badInput)"
-                                   onblur="checkAirQualityInput(this, ${room.id}, 'radon')"
-                                   placeholder="0">
-                            <span>Bq/m³</span>
-                        </div>
-                        <div class="air-input-group">
-                            <label>포름알데히드</label>
-                            <input type="number" 
-                                   step="0.001"
-                                   value="${escapeHtml(room.formaldehyde)}" inputmode="decimal"
-                                   onchange="updateAirQualityValue(${room.id}, 'formaldehyde', this.value, this.validity && this.validity.badInput)"
-                                   onblur="checkAirQualityInput(this, ${room.id}, 'formaldehyde')"
-                                   placeholder="0.000">
-                            <span>mg/m³</span>
-                        </div>
-                        <div class="air-input-group">
-                            <label>총VOCs</label>
-                            <input type="number" 
-                                   step="0.001"
-                                   value="${escapeHtml(room.vocs)}" inputmode="decimal"
-                                   onchange="updateAirQualityValue(${room.id}, 'vocs', this.value, this.validity && this.validity.badInput)"
-                                   onblur="checkAirQualityInput(this, ${room.id}, 'vocs')"
-                                   placeholder="0.000">
-                            <span>mg/m³</span>
-                        </div>
-                    </div>
+            const names = projectData.airQuality.map(r => r.name);
+            container.innerHTML = '<div class="aq-tbl">'
+                + '<div class="aq-hd"><span>공간</span><span>라돈<small>≤148 Bq</small></span><span>포름알데히드<small>≤0.210</small></span><span>총VOCs<small>≤0.500</small></span><span></span></div>'
+                + projectData.airQuality.map(r => `
+                <div class="aq-row">
+                    <span class="aq-nm">${escapeHtml(r.name)}</span>
+                    ${AQ.cell(r, 'radon')}${AQ.cell(r, 'formaldehyde')}${AQ.cell(r, 'vocs')}
+                    <button type="button" class="aq-x" onclick="AQ.more(${r.id})" aria-label="${escapeHtml(r.name)} 이름 바꾸기·삭제">⋯</button>
                 </div>
-            `).join('');
+                ${AQ._open.has(r.id) ? `<div class="aq-more">
+                    <input type="text" class="form-input" id="aqName_${r.id}" value="${escapeHtml(r.name)}" placeholder="공간 이름"
+                           onchange="updateAirRoomName(${r.id}, this.value); renderAirQuality(); AQ.sum()">
+                    <button type="button" class="dc-del" onclick="deleteAirRoom(${r.id})">🗑 삭제</button>
+                    <button type="button" class="sp-fold" onclick="AQ.more(${r.id})">닫기</button>
+                </div>` : ''}`).join('')
+                + '<div class="aq-chips">'
+                + ['침실4', '안방'].filter(n => !names.includes(n)).map(n => `<button type="button" onclick="AQ.add('${n}')">＋ ${n}</button>`).join('')
+                + '<button type="button" onclick="AQ.add()">＋ 직접</button></div>'
+                + '</div>';
+            AQ.sum();
         }
 
         window.addAirQualityRoom = function() {
@@ -13889,175 +13925,96 @@ body.light-mode .card.reference-info {
             + '</div>';
         };
 
+        // ✅ 패치 86: 공기질 보고서 새 디자인 — 항목별 요약 3칸 · 공간×항목 표 한 장(값+기준 막대) · 결과에 맞춘 조치 안내. 욕실 포름·VOCs = 측정 대상 아님
         window.createAirQualityDetailPage = function() {
-            const airQualityData = projectData.airQuality.filter(room => 
-                room.radon || room.formaldehyde || room.vocs
-            );
-            if (airQualityData.length === 0) return '';
+            const has = v => v !== '' && v != null && !isNaN(parseFloat(v));
+            const wet = r => /욕실/.test(r.name || '');
+            const rooms = (projectData.airQuality || []).filter(r => has(r.radon) || has(r.formaldehyde) || has(r.vocs));
+            if (rooms.length === 0) return '';
+            const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+            const NAVY = '#141d2e', RED = '#E84848', OK = '#16a085', MUTED = '#8a919d';
+            const ITEMS = [
+                { f: 'radon', name: '라돈', unit: 'Bq/m³', std: 148, fmt: v => String(Math.round(v)) },
+                { f: 'formaldehyde', name: '포름알데히드', unit: 'mg/m³', std: 0.210, fmt: v => v.toFixed(3) },
+                { f: 'vocs', name: '총VOCs', unit: 'mg/m³', std: 0.500, fmt: v => v.toFixed(3) }
+            ];
+            const n = rooms.length, rowH = n <= 6 ? 62 : n <= 9 ? 50 : n <= 12 ? 42 : 36;
 
-            const standards = { radon: 148, formaldehyde: 0.210, vocs: 0.500 };
-            const C = { safe: '#16a085', danger: '#e74c3c', barBg: '#f1f5f9', text: '#1e293b', muted: '#64748b' };
-            const n = airQualityData.length;
-
-            // ── 동적 사이즈 (방 수에 따라 자동 조절) ──
-            const S = {
-                barH:   n <= 6 ? 24 : n <= 8 ? 20 : n <= 10 ? 17 : 14,
-                barGap: n <= 6 ? 6  : n <= 8 ? 4  : n <= 10 ? 3  : 2,
-                barInH: n <= 6 ? 20 : n <= 8 ? 17 : n <= 10 ? 14 : 12,
-                tblPad: n <= 6 ? 7  : n <= 8 ? 5  : 4,
-                chartPad: n <= 6 ? 14 : n <= 8 ? 10 : 8,
-                secGap: n <= 8 ? 16 : n <= 10 ? 12 : 10,
+            // ── 항목별 요약 ──
+            const stat = ITEMS.map(it => {
+                const vals = rooms.filter(r => has(r[it.f])).map(r => ({ r, v: parseFloat(r[it.f]) }));
+                const over = vals.filter(x => x.v > it.std);
+                const max = vals.reduce((m, x) => (!m || x.v > m.v ? x : m), null);
+                return Object.assign({ cnt: vals.length, over: over.length, max }, it);
+            });
+            const card = s => {
+                const bad = s.over > 0, none = s.cnt === 0;
+                return '<div style="flex:1;border:1px solid ' + (bad ? '#f5c2c2' : '#e2e5ea') + ';border-top:4px solid ' + (none ? '#cbd5e1' : bad ? RED : OK) + ';border-radius:10px;padding:14px 16px;">'
+                    + '<div style="font-size:15px;font-weight:800;color:' + NAVY + ';white-space:nowrap;">' + s.name + '</div><div style="font-size:11px;color:' + MUTED + ';margin-top:2px;">기준 ' + s.fmt(s.std) + ' ' + s.unit + ' 이하</div>'
+                    + '<div style="font-size:24px;font-weight:800;margin-top:8px;color:' + (none ? MUTED : bad ? RED : OK) + ';">' + (none ? '측정 없음' : bad ? '초과 ' + s.over + '곳' : '모두 적합') + '</div>'
+                    + '<div style="font-size:12px;color:#555;margin-top:4px;">' + (none ? '&nbsp;' : '측정 ' + s.cnt + '곳 · 최고 ' + s.fmt(s.max.v) + ' (' + esc(s.max.r.name) + ')') + '</div>'
+                + '</div>';
             };
 
-            // ── 통계 ──
-            // 측정값 판정: 빈칸/미입력만 미측정, 0(0.000)은 측정값으로 처리
-            const _aqHas = v => v !== '' && v != null && !isNaN(parseFloat(v));
-            let total = 0, pass = 0;
-            airQualityData.forEach(r => {
-                if (_aqHas(r.radon)) { total++; if (parseFloat(r.radon) <= standards.radon) pass++; }
-                if (_aqHas(r.formaldehyde)) { total++; if (parseFloat(r.formaldehyde) <= standards.formaldehyde) pass++; }
-                if (_aqHas(r.vocs)) { total++; if (parseFloat(r.vocs) <= standards.vocs) pass++; }
-            });
-            const fail = total - pass;
-            const rate = total > 0 ? ((pass / total) * 100).toFixed(0) : 0;
-
-            // ── 막대 그래프 ──
-            function makeChart(title, emoji, unit, stdVal, key, maxMul) {
-                const mx = stdVal * maxMul;
-                const stdPct = (stdVal / mx) * 100;
-                let bars = '';
-                airQualityData.forEach(room => {
-                    if (!_aqHas(room[key])) return;
-                    const v = parseFloat(room[key]) || 0;
-                    const pct = Math.min((v / mx) * 100, 100);
-                    const over = v > stdVal;
-                    const bc = over ? C.danger : C.safe;
-
-                    bars += '<div style="display:flex;align-items:center;margin-bottom:' + S.barGap + 'px;height:' + S.barH + 'px;">'
-                        + '<div style="width:60px;font-size:12px;font-weight:700;color:' + C.text + ';text-align:right;padding-right:8px;flex-shrink:0;">' + room.name + '</div>'
-                        + '<div style="flex:1;position:relative;height:' + S.barInH + 'px;background:' + C.barBg + ';border-radius:4px;">'
-                            + '<div style="position:absolute;top:1px;left:1px;bottom:1px;width:calc(' + Math.max(pct, 2) + '% - 2px);min-width:2px;background:' + bc + ';border-radius:3px;"></div>'
-                            + '<div style="position:absolute;top:50%;transform:translateY(-50%);' + (pct > 35 ? 'right:' + (101 - pct) + '%;color:white;' : 'left:' + (pct + 2) + '%;color:' + C.text + ';') + 'font-size:11px;font-weight:700;white-space:nowrap;">' + v + '</div>'
-                            + '<div style="position:absolute;top:-2px;bottom:-2px;left:' + stdPct + '%;width:1.5px;background:' + C.danger + ';z-index:2;"></div>'
-                        + '</div>'
-                        + '<div style="width:42px;flex-shrink:0;text-align:center;margin-left:4px;">'
-                            + '<div style="display:inline-block;padding:2px 6px;border-radius:8px;font-size:10px;font-weight:700;background:' + (over ? '#fef2f2' : '#f0fdf4') + ';color:' + (over ? C.danger : C.safe) + ';border:1px solid ' + (over ? '#fecaca' : '#bbf7d0') + ';">' + (over ? '초과' : '적합') + '</div>'
-                        + '</div>'
-                    + '</div>';
-                });
-                if (!bars) return '';
-
-                return '<div style="flex:1;min-width:0;">'
-                    + '<div style="display:flex;align-items:center;margin-bottom:6px;">'
-                        + (emoji ? '<span style="font-size:14px;">' + emoji + '</span>' : '')
-                        + '<h4 style="margin:0 0 0 4px;font-size:13px;color:' + C.text + ';">' + title + '</h4>'
-                        + '<span style="margin-left:auto;font-size:10px;color:' + C.muted + ';white-space:nowrap;">기준 ' + stdVal + '</span>'
+            // ── 공간 × 항목 표 ──
+            const cell = (r, it) => {
+                if (!has(r[it.f])) {
+                    const why = it.f !== 'radon' && wet(r) ? '측정 대상 아님' : '-';
+                    return '<td style="padding:0 14px;border-left:1px solid #eef0f3;color:#a0a7b3;font-size:12px;text-align:center;">' + why + '</td>';
+                }
+                const v = parseFloat(r[it.f]), bad = v > it.std, pct = Math.min(v / it.std, 2) / 2 * 100;
+                return '<td style="padding:0 14px;border-left:1px solid #eef0f3;">'
+                    + '<div style="display:flex;align-items:baseline;justify-content:space-between;gap:6px;">'
+                        + '<span style="font-size:' + (rowH >= 50 ? 18 : 15) + 'px;font-weight:800;color:' + (bad ? RED : NAVY) + ';font-variant-numeric:tabular-nums;">' + it.fmt(v) + '</span>'
+                        + '<span style="font-size:11px;font-weight:800;padding:1px 7px;border-radius:9px;' + (bad ? 'background:#fdecec;color:#c62f2f;' : 'background:#e8f6f2;color:#0f7d67;') + '">' + (bad ? '초과' : '적합') + '</span>'
                     + '</div>'
-                    + '<div style="background:white;border:1px solid #e2e8f0;border-radius:8px;padding:' + S.chartPad + 'px 10px ' + (S.chartPad - 4) + 'px 10px;position:relative;">'
-                        + bars
+                    + '<div style="position:relative;height:6px;background:#eef0f3;border-radius:3px;margin-top:5px;">'
+                        + '<div style="width:' + pct.toFixed(1) + '%;height:100%;border-radius:3px;background:' + (bad ? RED : OK) + ';"></div>'
+                        + '<div style="position:absolute;left:50%;top:-3px;bottom:-3px;width:2px;background:' + NAVY + ';"></div>'
                     + '</div>'
-                + '</div>';
-            }
+                + '</td>';
+            };
+            const rows = rooms.map((r, i) => '<tr style="height:' + rowH + 'px;border-top:1px solid #eef0f3;' + (i % 2 ? 'background:#fafbfc;' : '') + '">'
+                + '<td style="padding:0 14px;font-size:14px;font-weight:800;color:' + NAVY + ';white-space:nowrap;">' + esc(r.name) + '</td>'
+                + ITEMS.map(it => cell(r, it)).join('') + '</tr>').join('');
 
-            // ── 측정 표 ──
-            let tableRows = '';
-            airQualityData.forEach(room => {
-                const rv = parseFloat(room.radon) || 0;
-                const fv = parseFloat(room.formaldehyde) || 0;
-                const vv = parseFloat(room.vocs) || 0;
-                const rs = _aqHas(room.radon) ? (rv <= standards.radon ? '적합' : '부적합') : '-';
-                const fs = _aqHas(room.formaldehyde) ? (fv <= standards.formaldehyde ? '적합' : '부적합') : '-';
-                const vs = _aqHas(room.vocs) ? (vv <= standards.vocs ? '적합' : '부적합') : '-';
-                const rsc = rv > standards.radon ? C.danger : C.safe;
-                const fsc = fv > standards.formaldehyde ? C.danger : C.safe;
-                const vsc = vv > standards.vocs ? C.danger : C.safe;
+            // ── 결과에 맞춘 조치 ──
+            const tips = [];
+            const S = f => stat.find(s => s.f === f);
+            if (S('radon').over) tips.push(['라돈', '환기를 자주 하면 크게 낮아집니다. 하루 2~3회, 30분 이상 맞통풍 환기를 해 주세요. 입주 후에도 높으면 재측정을 권장합니다.']);
+            if (S('formaldehyde').over || S('vocs').over) tips.push([S('formaldehyde').over && S('vocs').over ? '포름알데히드·VOCs' : S('formaldehyde').over ? '포름알데히드' : '총VOCs',
+                '입주 전 베이크아웃을 권장합니다. 창문을 닫고 난방을 높여(33~38℃) 8시간 → 2시간 환기, 3회 이상 반복하세요. 새 가구는 충분히 환기한 뒤 들이세요.']);
+            if (!tips.length) tips.push(['결과', '측정한 모든 항목이 권고기준 이하입니다. 입주 후에도 하루 2회 이상 환기를 유지해 주세요.']);
+            tips.push(['참고', '측정값은 측정 당시 온도·습도·환기 상태에 따라 달라질 수 있습니다.' + (rooms.some(wet) ? ' 욕실은 라돈만 측정합니다.' : '')]);
 
-                tableRows += '<tr style="border-bottom:1px solid #eee;">'
-                    + '<td style="padding:' + S.tblPad + 'px 8px;text-align:center;font-weight:700;background:#f8f9fa;color:#000;font-size:13px;">' + room.name + '</td>'
-                    + '<td style="padding:' + S.tblPad + 'px;text-align:center;color:#000;font-size:13px;">' + (room.radon || '-') + '</td>'
-                    + '<td style="padding:' + S.tblPad + 'px;text-align:center;color:' + rsc + ';font-weight:700;font-size:12px;">' + rs + '</td>'
-                    + '<td style="padding:' + S.tblPad + 'px;text-align:center;color:#000;font-size:13px;">' + (room.formaldehyde || '-') + '</td>'
-                    + '<td style="padding:' + S.tblPad + 'px;text-align:center;color:' + fsc + ';font-weight:700;font-size:12px;">' + fs + '</td>'
-                    + '<td style="padding:' + S.tblPad + 'px;text-align:center;color:#000;font-size:13px;">' + (room.vocs || '-') + '</td>'
-                    + '<td style="padding:' + S.tblPad + 'px;text-align:center;color:' + vsc + ';font-weight:700;font-size:12px;">' + vs + '</td>'
-                + '</tr>';
-            });
-
-            const radonChart = makeChart('라돈 (Bq/m³)', '', 'Bq/m³', standards.radon, 'radon', 2.5);
-            const hchoChart = makeChart('포름알데히드 (mg/m³)', '', 'mg/m³', standards.formaldehyde, 'formaldehyde', 3);
-            const vocsChart = makeChart('총VOCs (mg/m³)', '', 'mg/m³', standards.vocs, 'vocs', 3);
-
+            const sec = t => '<div style="font-size:16px;font-weight:800;color:#1f2937;margin:0 0 10px;padding-bottom:7px;border-bottom:2px solid ' + NAVY + ';">' + t + '</div>';
             return '<div style="width:794px;min-height:1123px;background:#fff;font-family:\'Pretendard\',\'Malgun Gothic\',sans-serif;position:relative;box-sizing:border-box;display:flex;flex-direction:column;">'
-                + '<div style="background:#141d2e;padding:20px 44px;display:flex;justify-content:space-between;align-items:center;"><div style="display:flex;align-items:center;gap:11px;"><div style="width:42px;height:42px;background-color:#fff;border-radius:10px;background-image:url(' + window.THEHOME_LOGO + ');background-size:28px;background-repeat:no-repeat;background-position:center;"></div><div><div style="font-size:9px;letter-spacing:.16em;color:#7c86a0;font-weight:700;">더홈점검 · REPORT</div><div style="font-size:17px;font-weight:800;color:#fff;">실내 공기질 측정 결과</div></div></div><div style="font-size:12px;color:#9aa6c2;font-weight:600;">' + (projectData.apartmentName||'') + ' ' + (projectData.dong||'') + '동 ' + (projectData.ho||'') + '호</div></div>'
-                + '<div style="height:3px;background:#E84848;"></div>'
-                + '<div style="flex:1;padding:26px 30px 70px;">'
-                // ── 요약 KPI (적합률 포함) ──
-                + '<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;border:1px solid #e2e5ea;border-radius:10px;overflow:hidden;margin-bottom:' + S.secGap + 'px;">'
-                    + '<div style="padding:14px 10px;text-align:center;border-right:1px solid #e2e5ea;background:#141d2e;"><div style="font-size:11px;color:#9aa6c2;margin-bottom:6px;font-weight:700;">종합 적합률</div><div style="font-size:28px;font-weight:800;color:#fff;">' + rate + '<span style="font-size:14px;">%</span></div></div>'
-                    + '<div style="padding:14px 10px;text-align:center;border-right:1px solid #e2e5ea;"><div style="font-size:11px;color:#8a919d;margin-bottom:6px;">총 측정</div><div style="font-size:26px;font-weight:800;color:#141d2e;">' + total + '</div></div>'
-                    + '<div style="padding:14px 10px;text-align:center;border-right:1px solid #e2e5ea;"><div style="font-size:11px;color:#16a085;margin-bottom:6px;font-weight:700;">적합</div><div style="font-size:26px;font-weight:800;color:#16a085;">' + pass + '</div></div>'
-                    + '<div style="padding:14px 10px;text-align:center;"><div style="font-size:11px;color:' + (fail>0?'#dc2626':'#8a919d') + ';margin-bottom:6px;font-weight:700;">부적합</div><div style="font-size:26px;font-weight:800;color:' + (fail>0?'#e74c3c':'#94a3b8') + ';">' + fail + '</div></div>'
-                + '</div>'
-
-                // ── 측정 데이터 표 ──
-                + '<div style="margin-bottom:' + S.secGap + 'px;">'
-                    + '<h3 style="margin:0 0 8px 0;font-size:15px;color:' + C.text + ';border-bottom:2px solid #E84848;padding-bottom:5px;">측정 데이터</h3>'
-                    + '<table style="width:100%;border-collapse:collapse;border:1px solid #e2e8f0;">'
-                        + '<thead><tr style="background:#f0fdfa;">'
-                            + '<th style="padding:7px;border:1px solid #e2e8f0;color:#000;font-size:12px;">공간</th>'
-                            + '<th style="padding:7px;border:1px solid #e2e8f0;color:#000;font-size:12px;">라돈<br>(Bq/m³)</th>'
-                            + '<th style="padding:7px;border:1px solid #e2e8f0;color:#000;font-size:12px;">판정</th>'
-                            + '<th style="padding:7px;border:1px solid #e2e8f0;color:#000;font-size:12px;">HCHO<br>(mg/m³)</th>'
-                            + '<th style="padding:7px;border:1px solid #e2e8f0;color:#000;font-size:12px;">판정</th>'
-                            + '<th style="padding:7px;border:1px solid #e2e8f0;color:#000;font-size:12px;">TVOCs<br>(mg/m³)</th>'
-                            + '<th style="padding:7px;border:1px solid #e2e8f0;color:#000;font-size:12px;">판정</th>'
-                        + '</tr></thead>'
-                        + '<tbody>' + tableRows + '</tbody>'
-                    + '</table>'
-                + '</div>'
-
-                // ── 그래프 섹션 ──
-                + '<div style="margin-bottom:' + S.secGap + 'px;">'
-                    + '<h3 style="margin:0 0 10px 0;font-size:15px;color:' + C.text + ';border-bottom:2px solid #E84848;padding-bottom:5px;">항목별 비교 분석</h3>'
-                    + '<div style="display:flex;gap:10px;">'
-                        + radonChart
-                        + hchoChart
-                        + vocsChart
+                + '<div style="background:' + NAVY + ';padding:20px 44px;display:flex;justify-content:space-between;align-items:center;"><div style="display:flex;align-items:center;gap:11px;"><div style="width:42px;height:42px;background-color:#fff;border-radius:10px;background-image:url(' + window.THEHOME_LOGO + ');background-size:28px;background-repeat:no-repeat;background-position:center;"></div><div><div style="font-size:9px;letter-spacing:.16em;color:#7c86a0;font-weight:700;">더홈점검 · REPORT</div><div style="font-size:17px;font-weight:800;color:#fff;">실내 공기질 측정 결과</div></div></div><div style="font-size:12px;color:#9aa6c2;font-weight:600;">' + esc(projectData.apartmentName) + ' ' + esc(projectData.dong) + '동 ' + esc(projectData.ho) + '호 · ' + esc(projectData.inspectionDate) + '</div></div>'
+                + '<div style="height:3px;background:' + RED + ';"></div>'
+                + '<div style="flex:1;padding:26px 36px 70px;">'
+                    + sec('항목별 결과')
+                    + '<div style="display:flex;gap:12px;margin-bottom:24px;">' + stat.map(card).join('') + '</div>'
+                    + sec('공간별 측정값')
+                    + '<table style="width:100%;border-collapse:collapse;border:1px solid #e2e5ea;border-radius:10px;overflow:hidden;table-layout:fixed;margin-bottom:8px;">'
+                        + '<colgroup><col style="width:120px"><col><col><col></colgroup>'
+                        + '<thead><tr style="background:' + NAVY + ';color:#fff;">'
+                            + '<th style="padding:9px 14px;text-align:left;font-size:12px;">공간</th>'
+                            + ITEMS.map(it => '<th style="padding:9px 14px;text-align:left;font-size:12px;border-left:1px solid #2a3550;">' + it.name + ' <span style="font-weight:600;color:#9aa6c2;">(' + it.unit + ')</span></th>').join('')
+                        + '</tr></thead><tbody>' + rows + '</tbody></table>'
+                    + '<div style="display:flex;gap:16px;justify-content:flex-end;font-size:11px;color:' + MUTED + ';margin-bottom:24px;">'
+                        + '<span><span style="display:inline-block;width:2px;height:10px;background:' + NAVY + ';vertical-align:middle;margin-right:4px;"></span>막대 가운데 선 = 권고기준</span>'
+                        + '<span><span style="display:inline-block;width:14px;height:6px;border-radius:3px;background:' + OK + ';vertical-align:middle;margin-right:4px;"></span>적합</span>'
+                        + '<span><span style="display:inline-block;width:14px;height:6px;border-radius:3px;background:' + RED + ';vertical-align:middle;margin-right:4px;"></span>기준 초과</span>'
                     + '</div>'
+                    + sec('결과 해석과 조치')
+                    + tips.map(t => '<div style="display:flex;gap:12px;padding:9px 0;border-bottom:1px solid #f0f1f4;font-size:13px;line-height:1.6;color:#444;">'
+                        + '<span style="flex:none;width:118px;font-weight:800;color:' + (t[0] === '참고' ? MUTED : t[0] === '결과' ? OK : RED) + ';">' + t[0] + '</span><span>' + t[1] + '</span></div>').join('')
                 + '</div>'
-
-                // ── 범례 + 기준 ──
-                + '<div style="display:flex;gap:10px;margin-bottom:10px;">'
-                    + '<div style="flex:1;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:6px;padding:10px;font-size:12px;color:#1b5e20;line-height:1.5;">'
-                        + '<strong style="font-size:13px;">권고기준</strong><br>'
-                        + '• 라돈: <strong>148 Bq/m³</strong> 이하<br>'
-                        + '• 포름알데히드: <strong>0.210 mg/m³</strong> 이하<br>'
-                        + '• 총VOCs: <strong>0.500 mg/m³</strong> 이하'
-                    + '</div>'
-                    + '<div style="flex:1;background:#fff9db;border:1px solid #fcc419;border-radius:6px;padding:10px;font-size:11px;color:#856404;line-height:1.5;">'
-                        + '<strong style="font-size:12px;">※ 참고사항</strong><br>'
-                        + '• 측정 결과는 당시 환경 조건에 따라 달라질 수 있습니다<br>'
-                        + '• 부적합 판정 시 환기 후 재측정을 권장합니다<br>'
-                        + '• 라돈 농도는 계절, 시간대에 따라 변동 가능합니다'
-                    + '</div>'
-                + '</div>'
-
-                // ── 범례 바 ──
-                + '<div style="display:flex;justify-content:center;gap:16px;padding:6px;background:#f8fafc;border-radius:6px;border:1px solid #e2e8f0;">'
-                    + '<div style="display:flex;align-items:center;gap:4px;font-size:11px;color:' + C.muted + ';"><div style="width:14px;height:9px;background:' + C.safe + ';border-radius:2px;"></div> 적합 (기준 이하)</div>'
-                    + '<div style="display:flex;align-items:center;gap:4px;font-size:11px;color:' + C.muted + ';"><div style="width:14px;height:9px;background:' + C.danger + ';border-radius:2px;"></div> 부적합 (기준 초과)</div>'
-                    + '<div style="display:flex;align-items:center;gap:4px;font-size:11px;color:' + C.muted + ';"><div style="width:1.5px;height:12px;background:' + C.danger + ';"></div> 권고기준선</div>'
-                + '</div>'
-
-                + '</div>'
-                // ── 푸터 ──
                 + '<div style="position:absolute;bottom:0;left:0;right:0;padding:14px 30px;border-top:1px solid #e8eaee;display:flex;justify-content:space-between;align-items:center;font-size:11px;color:#9aa1ad;font-weight:700;letter-spacing:.05em;">'
                     + '<span>THE HOME INSPECTION</span><span>1668-5322 · 010-9985-0128</span>'
                 + '</div>'
             + '</div>';
         }
-
-
 
         // ==================== IndexedDB 설정 ====================
         let db;
@@ -16430,7 +16387,7 @@ body.light-mode .card.reference-info {
     }
     
     // ✅ 패치 69: 새 배포 확인 — 이 화면의 판 번호(APP_BUILD) vs 사이트의 version.json(정식)·version-test.json(테스트)
-    const APP_BUILD = 'cab9f296088f'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
+    const APP_BUILD = 'ac3ff9ab3fbe'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
     (function() {
         const url = /index-unified-test\.html$/.test(location.pathname) ? 'version-test.json' : 'version.json';
         let busy = false;
