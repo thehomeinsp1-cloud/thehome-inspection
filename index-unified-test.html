@@ -958,6 +958,18 @@
         }
 
         /* 터치 버튼 스타일 */
+        /* ✅ 패치 85: 장비 점검 간소화 */
+        .eq-top { display: flex; align-items: center; gap: 10px; padding: 10px 12px; margin-bottom: 10px; }
+        .eq-top b { font-size: 16px; color: var(--text-primary); } .eq-top small { font-size: 12px; color: var(--text-secondary); font-weight: 700; }
+        .eq-tg { margin-left: auto; display: flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 800; color: #F2A93B; border: 1px solid rgba(245, 158, 11, 0.5); border-radius: 20px; padding: 4px 4px 4px 10px; cursor: pointer; }
+        body.light-mode .eq-tg { color: #b45309; }
+        .eq-sp { font-size: 15px; color: var(--text-primary); margin-left: 6px; }
+        .eq-res { display: flex; flex-direction: column; gap: 5px; margin-bottom: 8px; }
+        .eq-r { display: flex; align-items: center; gap: 8px; width: 100%; min-height: 44px; padding: 9px 10px; text-align: left; border-radius: 9px; border: 1px solid var(--border); background: var(--a-raised, #212C42); color: var(--text-primary); font-size: 14px; font-weight: 800; line-height: 1.3; font-family: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+        .eq-r i { flex: none; width: 18px; height: 18px; border-radius: 50%; border: 2px solid #62708C; }
+        .eq-r.on { background: #F1F4F9; color: #141D2E; border-color: #F1F4F9; }
+        .eq-r.on i { border-color: #D23B3B; background: radial-gradient(#D23B3B 45%, transparent 50%); }
+        body.light-mode .eq-r.on { background: #141D2E; color: #fff; border-color: #141D2E; }
         /* ✅ 패치 84: 하자 카드 간소화 */
         .touch-button-grid.tb5 { grid-template-columns: repeat(5, 1fr); gap: 5px; }
         .tb5 .touch-btn { min-height: 42px; padding: 4px 1px; font-size: 13.5px; letter-spacing: -0.3px; white-space: normal; word-break: keep-all; line-height: 1.15; }
@@ -2047,23 +2059,15 @@ body.light-mode .card.reference-info {
 
         <!-- 장비점검 섹션 -->
         <div id="equipment" class="section">
-            <div class="card">
-                <h2 style="color: var(--primary); margin-bottom: 20px;">📸 장비 점검 LIST</h2>
-                <p style="color: var(--text-secondary); font-size: 14px;">
-                    열화상 카메라 및 실물 사진 촬영 (우측 하단 ➕ 버튼)
-                </p>
-            </div>
-
-            <!-- 열화상 단열 안내 토글 -->
-            <div class="card" id="thermalNoticeToggleCard" style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;margin-bottom:10px;border-left:4px solid #f59e0b;">
-                <div>
-                    <div style="font-size:14px;font-weight:700;color:var(--text-primary);">🌡️ 실내외 온도차 적음 안내</div>
-                    <div style="font-size:12px;color:var(--text-secondary);margin-top:3px;">ON 시 보고서에 열화상 단열 판독 제한 안내 문구 삽입</div>
-                </div>
-                <label style="position:relative;display:inline-block;width:50px;height:28px;flex-shrink:0;margin-left:12px;">
+            <div class="card eq-top" id="thermalNoticeToggleCard">
+                <span style="font-size:20px;">📸</span>
+                <div><b>장비 점검</b><br><small><span id="eqCount">0</span>건 · ➕로 추가</small></div>
+                <label class="eq-tg" title="켜면 보고서에 열화상 단열 판독 제한 안내 1쪽이 들어갑니다">🌡️ 온도차 적음 안내
+                    <span style="position:relative;display:inline-block;width:50px;height:28px;flex-shrink:0;">
                     <input type="checkbox" id="thermalNoticeToggle" onchange="toggleThermalNotice(this.checked)" style="opacity:0;width:0;height:0;">
                     <span style="position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#ccc;border-radius:28px;transition:.3s;"></span>
-                    <span class="thermal-slider-dot" style="position:absolute;content:'';height:22px;width:22px;left:3px;bottom:3px;background:white;border-radius:50%;transition:.3s;"></span>
+                    <span class="thermal-slider-dot" style="position:absolute;height:22px;width:22px;left:3px;bottom:3px;background:white;border-radius:50%;transition:.3s;"></span>
+                    </span>
                 </label>
             </div>
 
@@ -8704,8 +8708,19 @@ body.light-mode .card.reference-info {
             }, 100);
         }
 
+        // ✅ 패치 85: 장비 공간 접이식 (하자 카드와 같은 설정 th_space_fold 를 씀)
+        const EQS = window.EQS = { _open: new Set() };
+        EQS.collapsed = it => DL.fold() && (it.spaces || []).length > 0 && !EQS._open.has(it.id);
+        EQS.toggle = function (id) { if (EQS._open.has(id)) EQS._open.delete(id); else EQS._open.add(id); renderEquipment(); };
+        EQS.setFold = function (on) { EQS._open.clear(); DL.setFold(on); renderEquipment(); };
+        EQS.head = it => DL.fold()
+            ? ((it.spaces || []).length ? `<button type="button" class="sp-fold" onclick="EQS.toggle(${it.id})">접기 ▴</button>` : '')
+            : `<button type="button" class="sp-fold" onclick="EQS.setFold(true)">접이식으로</button>`;
+        EQS.summary = it => `<div class="sp-sum"><b>${(it.spaces || []).map(s => escapeHtml(s)).join(', ')}</b><button type="button" onclick="EQS.toggle(${it.id})">바꾸기 ▾</button><button type="button" class="sp-all" onclick="EQS.setFold(false)">항상 펼침</button></div>`;
+
         function renderEquipment() {
             const container = document.getElementById('equipmentList');
+            const eqCnt = document.getElementById('eqCount'); if (eqCnt) eqCnt.textContent = (projectData.equipment || []).length;
             
             // equipment 배열이 없으면 초기화
             if (!projectData.equipment) {
@@ -8759,15 +8774,14 @@ body.light-mode .card.reference-info {
                 <div class="defect-card">
                     <div class="defect-header">
                         <span class="defect-number">NO ${index + 1}</span>
-                        <button class="btn btn-danger" onclick="deleteEquipment(${item.id})" style="width: auto; padding: 8px 16px; font-size: 12px;">
-                            🗑️ 삭제
-                        </button>
+                        <b class="eq-sp">${(item.spaces || []).map(s => escapeHtml(s)).join(', ')}</b>
+                        <button type="button" class="dc-del" onclick="deleteEquipment(${item.id})" aria-label="장비 ${index + 1} 삭제">🗑 삭제</button>
                     </div>
 
                     <div class="form-field">
-                        <label class="form-label">공간 선택 (최대 2개)</label>
-                        <div class="selected-count">${(item.spaces || []).length}/2 선택됨</div>
-                        <div class="touch-button-grid">
+                        ${EQS.collapsed(item) ? `<label class="form-label">공간</label>${EQS.summary(item)}` : `
+                        <label class="form-label" style="display:flex;justify-content:space-between;align-items:center;">공간 (최대 2개 · ${(item.spaces || []).length}/2)${EQS.head(item)}</label>
+                        <div class="touch-button-grid tb5">
                             ${getSpaceButtons().map(space => {
                                 const spaces = item.spaces || [];
                                 const isSelected = spaces.includes(space);
@@ -8799,18 +8813,18 @@ body.light-mode .card.reference-info {
                                     💡 입력 후 엔터 또는 다른 곳 클릭
                                 </div>
                             </div>
-                        </details>
+                        </details>`}
                     </div>
 
                     <div class="form-field">
                         <label class="form-label">점검결과</label>
-                        <div class="touch-button-grid" style="margin-bottom: 10px;">
+                        <div class="eq-res">
                             ${['벽체 수직도 및 바닥 평활도 양호','배수경사(구배)상태 양호','벽체수직 및 바닥수평 / 단열시공 양호','바닥 난방 열화상 결과 온도 분포 양호','바닥물고임 확인/이상없음'].map(result => {
                                 const escaped = result.replace(/'/g, '&apos;');
                                 return `
-                                <button type="button" class="touch-btn ${item.inspection === result ? 'selected' : ''}" 
+                                <button type="button" class="eq-r ${item.inspection === result ? 'on' : ''}" 
                                         onclick="updateEquipmentInspection(${item.id}, '${escaped}')">
-                                    ${result}
+                                    <i></i>${result}
                                 </button>
                             `}).join('')}
                         </div>
@@ -8821,14 +8835,14 @@ body.light-mode .card.reference-info {
 
                     <div class="form-field">
                         <label class="form-label">📷 위치별 사진 촬영/첨부 (${Object.values(item.photos).filter(p => p).length}/4)</label>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
                             ${locations.slice(0, 2).map(location => `
                                 <div style="border: 2px solid ${locationColors[location]}; border-radius: 8px; overflow: hidden;">
                                     <div style="background: ${locationColors[location]}; color: white; padding: 8px; text-align: center; font-weight: bold; font-size: 14px;">
                                         ${locationIcons[location]} ${location}
                                     </div>
                                     ${item.photos[location] ? `
-                                        <img src="${item.photos[location]}" style="width: 100%; height: 200px; object-fit: cover;">
+                                        <img src="${item.photos[location]}" style="width: 100%; height: 105px; object-fit: cover; display: block;">
                                         <div style="display: flex; border-top: 1px solid #ddd;">
                                             <button class="btn btn-secondary" onclick="openEquipmentLocationCamera(${item.id}, '${location}')" style="flex: 1; border-radius: 0; border: none; padding: 10px; font-size: 13px;">
                                                 🔄
@@ -8841,8 +8855,7 @@ body.light-mode .card.reference-info {
                                             </button>
                                         </div>
                                     ` : `
-                                        <div style="height: 200px; background: #f8f9fa; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;">
-                                            <div style="font-size: 32px; opacity: 0.3;">📷</div>
+                                        <div style="height: 105px; background: rgba(15,23,38,0.35); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;">
                                             <div style="display: flex; gap: 10px; width: 100%; padding: 0 12px;">
                                                 <button class="btn btn-primary" onclick="openEquipmentLocationCamera(${item.id}, '${location}')" style="flex: 1; padding: 10px; font-size: 13px; font-weight: bold; white-space: nowrap;">
                                                     📸 촬영
@@ -8864,7 +8877,7 @@ body.light-mode .card.reference-info {
                                         ${locationIcons[location]} ${location}
                                     </div>
                                     ${item.photos[location] ? `
-                                        <img src="${item.photos[location]}" style="width: 100%; height: 200px; object-fit: cover;">
+                                        <img src="${item.photos[location]}" style="width: 100%; height: 105px; object-fit: cover; display: block;">
                                         <div style="display: flex; border-top: 1px solid #ddd;">
                                             <button class="btn btn-secondary" onclick="openEquipmentLocationCamera(${item.id}, '${location}')" style="flex: 1; border-radius: 0; border: none; padding: 10px; font-size: 12px;">
                                                 🔄
@@ -8877,8 +8890,7 @@ body.light-mode .card.reference-info {
                                             </button>
                                         </div>
                                     ` : `
-                                        <div style="height: 200px; background: #f8f9fa; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;">
-                                            <div style="font-size: 32px; opacity: 0.3;">📷</div>
+                                        <div style="height: 105px; background: rgba(15,23,38,0.35); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;">
                                             <div style="display: flex; gap: 10px; width: 100%; padding: 0 12px;">
                                                 <button class="btn btn-primary" onclick="openEquipmentLocationCamera(${item.id}, '${location}')" style="flex: 1; padding: 10px; font-size: 13px; white-space: nowrap;">
                                                     📸 촬영
@@ -13822,33 +13834,57 @@ body.light-mode .card.reference-info {
         };
 
         // ==================== 열화상 단열 안내 페이지 ====================
+        // ✅ 패치 85: 열화상 단열 안내 — 보고서 안내쪽 디자인(네이비 머리 + 빨간 선 + 번호 제목)에 맞춰 간단히
         window.createThermalNoticePage = function() {
-            return '<div style="width:794px;min-height:1123px;background:white;font-family:\'Malgun Gothic\',sans-serif;padding:30px;position:relative;box-sizing:border-box;">'
-                + '<div style="background:linear-gradient(135deg,#d97706 0%,#f59e0b 100%);color:white;padding:20px;margin-bottom:30px;border-radius:8px;">'
-                    + '<h1 style="margin:0 0 6px 0;font-size:22px;">열화상 단열 점검 안내</h1>'
-                    + '<p style="margin:0;font-size:13px;opacity:0.9;">' + (projectData.apartmentName || '') + ' ' + (projectData.dong || '') + '동 ' + (projectData.ho || '') + '호 | ' + (projectData.inspectionDate || '') + '</p>'
+            const P = projectData, NAVY = '#141d2e', RED = '#E84848';
+            const sec = (no, t) => '<div style="font-size:18px;font-weight:700;color:#1f2937;margin:0 0 16px;padding-bottom:10px;border-bottom:2px solid ' + NAVY + ';display:flex;align-items:center;gap:10px;">'
+                + '<span style="width:26px;height:26px;background:' + NAVY + ';color:#fff;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:13px;">' + no + '</span>' + t + '</div>';
+            const step = (n, t, d) => '<div style="flex:1;background:#f8fafb;border:1px solid #e5e7eb;border-radius:12px;padding:18px 16px;">'
+                + '<div style="font-size:12px;font-weight:800;color:' + RED + ';margin-bottom:6px;">' + n + '</div>'
+                + '<div style="font-size:15px;font-weight:800;color:' + NAVY + ';margin-bottom:8px;">' + t + '</div>'
+                + '<div style="font-size:13px;color:#555;line-height:1.6;">' + d + '</div></div>';
+            return '<div style="width:794px;min-height:1123px;background:white;font-family:\'Malgun Gothic\',sans-serif;padding:45px;box-sizing:border-box;position:relative;">'
+                + '<div style="background:' + NAVY + ';color:#fff;padding:20px 44px;margin:-45px -45px 0 -45px;display:flex;justify-content:space-between;align-items:center;">'
+                    + '<div style="display:flex;align-items:center;gap:11px;">'
+                        + '<div style="width:42px;height:42px;background-color:#fff;border-radius:10px;background-image:url(' + (window.THEHOME_LOGO || '') + ');background-size:28px;background-repeat:no-repeat;background-position:center;"></div>'
+                        + '<div><div style="font-size:9px;letter-spacing:.16em;color:#7c86a0;font-weight:700;">THERMAL INSPECTION NOTICE</div><div style="font-size:17px;font-weight:800;">열화상 단열 점검 안내</div></div>'
+                    + '</div>'
+                    + '<div style="font-size:12px;color:#9aa6c2;font-weight:600;">' + (P.apartmentName || '') + ' ' + (P.dong || '') + '동 ' + (P.ho || '') + '호 · ' + (P.inspectionDate || '') + '</div>'
                 + '</div>'
+                + '<div style="height:3px;background:' + RED + ';margin:0 -45px 30px -45px;"></div>'
 
-                + '<div style="background:#fffbeb;border:2px solid #f59e0b;border-radius:12px;padding:28px;margin-bottom:24px;">'
-                    + '<h3 style="margin:0 0 16px 0;font-size:18px;color:#92400e;">열화상 카메라 단열 판독 안내</h3>'
-                    + '<p style="margin:0;font-size:15px;color:#78350f;line-height:1.8;">'
-                        + '점검일 기준 <strong>실내외 온도차이가 크지 않아</strong> 열화상 카메라의 단열 판독이 제한적입니다.<br><br>'
-                        + '입주 후 겨울철 <strong>결로나 냉기</strong>가 느껴지시면 <strong>시공사 A/S</strong>를 통해 단열 보완을 요청하시기 바랍니다.'
-                    + '</p>'
-                + '</div>'
-
-                + '<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:22px;">'
-                    + '<h4 style="margin:0 0 12px 0;font-size:15px;color:#334155;">참고사항</h4>'
-                    + '<div style="font-size:13px;color:#475569;line-height:1.8;">'
-                        + '• 열화상 단열 판독은 <strong>실내외 온도차 10°C 이상</strong>일 때 가장 정확합니다<br>'
-                        + '• 일반적으로 <strong>겨울철(12월~2월)</strong>이 가장 적합한 시기입니다<br>'
-                        + '• 현재 점검은 벽체·바닥 시공 품질 위주로 진행되었습니다<br>'
-                        + '• 신축 아파트의 경우 입주 후 1~2년간 건조 수축에 의한 미세 균열이 발생할 수 있으며,<br>'
-                        + '&nbsp;&nbsp;이는 시공사 하자보수 대상에 해당합니다'
+                + sec('01', '점검일 판독 결과')
+                + '<div style="display:flex;gap:18px;align-items:center;border:2px solid ' + NAVY + ';border-radius:12px;padding:22px 24px;margin-bottom:30px;">'
+                    + '<div style="flex:none;text-align:center;width:150px;padding-right:18px;border-right:1px solid #e5e7eb;">'
+                        + '<div style="font-size:12px;color:#666;font-weight:700;">단열 판독</div>'
+                        + '<div style="font-size:26px;font-weight:800;color:' + RED + ';margin-top:4px;">제한</div>'
+                        + '<div style="font-size:11.5px;color:#666;margin-top:4px;">실내외 온도차 적음</div>'
+                    + '</div>'
+                    + '<div style="flex:1;font-size:14px;color:#333;line-height:1.75;">'
+                        + '점검일은 실내외 온도차가 크지 않아 열화상 카메라로 <strong>단열 상태를 정확히 판독하기 어려웠습니다.</strong><br>'
+                        + '대신 <strong>벽체 수직·바닥 평활·바닥 난방 분포</strong> 위주로 점검했습니다.'
                     + '</div>'
                 + '</div>'
 
-                + '<div style="position:absolute;bottom:40px;left:30px;right:30px;padding-top:12px;border-top:1px solid #ddd;font-size:11px;color:#000;text-align:center;">'
+                + sec('02', '정확한 판독 조건')
+                + '<div style="margin-bottom:8px;display:flex;font-size:12px;font-weight:700;color:#666;"><span style="flex:1;">0℃</span><span style="flex:1;text-align:center;">5℃</span><span style="flex:1;text-align:right;">10℃ 이상</span></div>'
+                + '<div style="display:flex;height:16px;border-radius:8px;overflow:hidden;margin-bottom:8px;">'
+                    + '<div style="flex:2;background:#e5e7eb;"></div><div style="flex:1;background:#fcd9b6;"></div><div style="flex:1;background:' + NAVY + ';"></div>'
+                + '</div>'
+                + '<div style="display:flex;font-size:12.5px;color:#555;margin-bottom:30px;"><span style="flex:2;">판독 어려움</span><span style="flex:1;">일부 가능</span><span style="flex:1;text-align:right;font-weight:800;color:' + NAVY + ';">정확 (겨울철 12~2월)</span></div>'
+
+                + sec('03', '입주 후 이렇게 하세요')
+                + '<div style="display:flex;gap:14px;margin-bottom:30px;">'
+                    + step('STEP 1', '겨울철 확인', '난방을 켠 상태에서 외벽 모서리·창 주변·천장 끝을 손으로 만져 보세요.')
+                    + step('STEP 2', '사진 남기기', '결로·냉기·곰팡이가 보이면 날짜가 나오게 사진을 찍어 두세요.')
+                    + step('STEP 3', '시공사 A/S 요청', '단열·결로 하자는 <strong style="color:' + RED + ';">보증기간 3년</strong> 안에 관리사무소·시공사로 접수하세요.')
+                + '</div>'
+
+                + '<div style="background:#f8fafb;border-left:4px solid ' + NAVY + ';border-radius:0 8px 8px 0;padding:14px 18px;font-size:12.5px;color:#555;line-height:1.7;">'
+                    + '신축 아파트는 입주 후 1~2년 동안 건조 수축으로 미세 균열이 생길 수 있으며, 이 역시 시공사 하자보수 대상입니다.'
+                + '</div>'
+
+                + '<div style="position:absolute;bottom:20px;left:45px;right:45px;padding-top:12px;border-top:1px solid #ddd;font-size:11px;color:#000;text-align:center;">'
                     + '<div>더홈점검 | 대표: 1668-5322 / 직통: 010-9985-0128 | 사전점검 전문업체</div>'
                 + '</div>'
             + '</div>';
@@ -16395,7 +16431,7 @@ body.light-mode .card.reference-info {
     }
     
     // ✅ 패치 69: 새 배포 확인 — 이 화면의 판 번호(APP_BUILD) vs 사이트의 version.json(정식)·version-test.json(테스트)
-    const APP_BUILD = '05d8b84ec674'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
+    const APP_BUILD = '445232a67067'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
     (function() {
         const url = /index-unified-test\.html$/.test(location.pathname) ? 'version-test.json' : 'version.json';
         let busy = false;
