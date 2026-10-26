@@ -963,6 +963,7 @@
         .tb5 .touch-btn { min-height: 42px; padding: 4px 1px; font-size: 13.5px; letter-spacing: -0.3px; white-space: normal; word-break: keep-all; line-height: 1.15; }
         .sp-sum { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border); background: rgba(15, 23, 38, 0.5); }
         .sp-sum b { font-size: 16px; } .sp-sum small { font-size: 11.5px; color: var(--text-secondary); }
+        .sp-sum .sp-all { margin-left: 0; }
         .sp-sum button, .sp-fold { margin-left: auto; min-height: 32px; padding: 0 10px; border-radius: 8px; border: 1px solid var(--border); background: transparent; color: var(--text-secondary); font-size: 12.5px; font-weight: 700; cursor: pointer; }
         .dc-del { margin-left: auto; min-height: 34px; padding: 4px 10px; border-radius: 8px; border: 1px solid rgba(239, 68, 68, 0.6); background: transparent; color: #f87171; font-size: 13px; font-weight: 700; cursor: pointer; }
         body.light-mode .dc-del { color: #b91c1c; }
@@ -8260,9 +8261,15 @@ body.light-mode .card.reference-info {
                     <small style="margin-top:6px">기준 · 방향 · 부위 순서로 누르면 '창 좌측 하단 걸레받이'</small></div>`;
             };
             // 공간: 고른 뒤엔 한 줄 (바꾸기 ▾) — 펼친 하자는 기억(화면만)
-            DL.spaceCollapsed = d => (d.spaces || []).length > 0 && !DL._open.has(d.id);
+            // 접이식은 점검자가 고름(이 휴대폰에 기억) — 기본은 펼침(노출식)
+            DL.fold = function () { try { return localStorage.getItem('th_space_fold') === '1'; } catch (e) { return false; } };
+            DL.setFold = function (on) { try { localStorage.setItem('th_space_fold', on ? '1' : '0'); } catch (e) {} DL._open.clear(); renderDefects(); showToast(on ? '공간: 고르면 한 줄로 접힘 (접이식)' : '공간: 항상 펼침 (노출식)', 'info'); };
+            DL.spaceCollapsed = d => DL.fold() && (d.spaces || []).length > 0 && !DL._open.has(d.id);
+            DL.spaceHead = d => DL.fold()
+                ? ((d.spaces || []).length ? `<button type="button" class="sp-fold" onclick="DL.spaceToggle(${d.id})">접기 ▴</button>` : '')
+                : `<button type="button" class="sp-fold" onclick="DL.setFold(true)">접이식으로</button>`;
             DL.spaceToggle = function (id) { if (DL._open.has(id)) DL._open.delete(id); else DL._open.add(id); renderDefects(); };
-            DL.spaceSummary = d => `<div class="sp-sum"><b>${(d.spaces || []).map(s => escapeHtml(s)).join(', ')}</b>${d.spacesAuto ? '<small>이전 하자 공간</small>' : ''}<button type="button" onclick="DL.spaceToggle(${d.id})">바꾸기 ▾</button></div>`;
+            DL.spaceSummary = d => `<div class="sp-sum"><b>${(d.spaces || []).map(s => escapeHtml(s)).join(', ')}</b>${d.spacesAuto ? '<small>이전 하자 공간</small>' : ''}<button type="button" onclick="DL.spaceToggle(${d.id})">바꾸기 ▾</button><button type="button" class="sp-all" onclick="DL.setFold(false)">항상 펼침</button></div>`;
         })();
 
         function renderDefects() {
@@ -8420,7 +8427,7 @@ body.light-mode .card.reference-info {
                     </div>
 
                     <div class="form-field">
-                        ${DL.spaceCollapsed(defect) ? `<label class="form-label">공간</label>${DL.spaceSummary(defect)}` : `<label class="form-label" style="display:flex;justify-content:space-between;align-items:center;">공간 선택 (최대 4개)${defect.spaces.length ? `<button type="button" class="sp-fold" onclick="DL.spaceToggle(${defect.id})">접기 ▴</button>` : ''}</label>
+                        ${DL.spaceCollapsed(defect) ? `<label class="form-label">공간</label>${DL.spaceSummary(defect)}` : `<label class="form-label" style="display:flex;justify-content:space-between;align-items:center;">공간 선택 (최대 4개)${DL.spaceHead(defect)}</label>
                         <div class="selected-count">${defect.spaces.length}/4 선택됨${defect.spacesAuto ? ' · <b style="color:var(--a-red-text, var(--danger));">✓ 이전 하자 공간 자동 적용</b> (다른 공간을 누르면 바뀝니다)' : ''}</div>
                         <div class="touch-button-grid">
                             ${getSpaceButtons().map(space => `
@@ -16392,7 +16399,7 @@ body.light-mode .card.reference-info {
     }
     
     // ✅ 패치 69: 새 배포 확인 — 이 화면의 판 번호(APP_BUILD) vs 사이트의 version.json(정식)·version-test.json(테스트)
-    const APP_BUILD = 'a9faae94a222'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
+    const APP_BUILD = '3af4ea41e6ed'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
     (function() {
         const url = /index-unified-test\.html$/.test(location.pathname) ? 'version-test.json' : 'version.json';
         let busy = false;
