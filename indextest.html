@@ -8245,15 +8245,11 @@ body.light-mode .card.reference-info {
                 const el = document.getElementById('detailLocation_' + id); if (!el) return;
                 el.value = (el.value.trim() ? el.value.trim() + ' ' : '') + w; DL.preview(id, el.value);
             };
-            const BASES = { 거실: ['창', '문', '입구', '아트월', '우물천장', '콘센트'], 주방: ['냉장고장', '하부장', '상부장', '상판', '아일랜드', '창'], 현관: ['신발장', '중문', '디딤석', '문', '입구', '스토퍼'],
-                욕실: ['세면대', '욕조', '젠다이', '점검구', '샤워부스', '문'], 침실: ['창', '문', '입구', '옷장', '분합창', '콘센트'], 드레스룸: ['선반', '문', '창', '입구', '가구'],
-                발코니: ['창', '문', '그릴창', '배관', '입구', '수전'], 복도: ['문', '입구', '중문', '디딤석', '콘센트'], 기타: ['창', '문', '입구', '콘센트'] };
-            const GROUP = s => /욕실/.test(s) ? '욕실' : /침실|안방|알파/.test(s) ? '침실' : /드레스|팬트리|파우더/.test(s) ? '드레스룸' : /발코니|실외기|대피|다용도/.test(s) ? '발코니' : /현관|외부/.test(s) ? '현관' : BASES[s] ? s : '기타';
             const PARTS = ['걸레받이', '몰딩', '틀', '코너', '이음부', '마루', '실리콘', '피스커버'];
             const DGRID = [['좌상', '좌측 상단'], ['상', '상단'], ['우상', '우측 상단'], ['좌', '좌측'], ['중앙', '중앙'], ['우', '우측'], ['좌하', '좌측 하단'], ['하', '하단'], ['우하', '우측 하단']];
             const chip = (id, label, w) => `<button type="button" class="dl-c" onmousedown="event.preventDefault()" onclick="DL.add(${id}, '${w || label}')">${label}</button>`;
             DL.picker = function (d) {
-                const b = BASES[GROUP((d.spaces || [])[0] || '')];
+                const b = ['창', '문', '중문']; // 대표님 10-26: 기준은 가장 많이 쓰는 창·문·중문만 (나머지는 직접 입력)
                 return `<div class="dl-pick"><small>기준</small><div class="dl-row">${b.map(w => chip(d.id, w)).join('')}</div>
                     <div class="dl-two"><div><small>방향</small><div class="dl-dir">${DGRID.map(([l, w]) => chip(d.id, l, w)).join('')}</div></div>
                     <div style="flex:1;min-width:0"><small>부위</small><div class="dl-row">${PARTS.map(w => chip(d.id, w)).join('')}</div></div></div>
@@ -8428,7 +8424,7 @@ body.light-mode .card.reference-info {
                     <div class="form-field">
                         ${DL.spaceCollapsed(defect) ? `<label class="form-label">공간</label>${DL.spaceSummary(defect)}` : `<label class="form-label" style="display:flex;justify-content:space-between;align-items:center;">공간 선택 (최대 4개)${DL.spaceHead(defect)}</label>
                         <div class="selected-count">${defect.spaces.length}/4 선택됨${defect.spacesAuto ? ' · <b style="color:var(--a-red-text, var(--danger));">✓ 이전 하자 공간 자동 적용</b> (다른 공간을 누르면 바뀝니다)' : ''}</div>
-                        <div class="touch-button-grid">
+                        <div class="touch-button-grid tb5">
                             ${getSpaceButtons().map(space => `
                                 <button type="button" class="touch-btn ${defect.spaces.includes(space) ? (defect.spacesAuto ? 'carried' : 'selected') : ''}" 
                                         ${defect.spaces.length >= 4 && !defect.spaces.includes(space) ? 'disabled' : ''}
@@ -16398,7 +16394,7 @@ body.light-mode .card.reference-info {
     }
     
     // ✅ 패치 69: 새 배포 확인 — 이 화면의 판 번호(APP_BUILD) vs 사이트의 version.json(정식)·version-test.json(테스트)
-    const APP_BUILD = 'a02ddc2a8f43'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
+    const APP_BUILD = 'f0f0c6b2277e'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
     (function() {
         const url = /index-unified-test\.html$/.test(location.pathname) ? 'version-test.json' : 'version.json';
         let busy = false;
