@@ -979,6 +979,10 @@
         .aq-more { display: flex; gap: 6px; align-items: center; padding: 6px 8px 10px; } .aq-more .form-input { flex: 1; min-width: 0; margin: 0; } .aq-more .dc-del, .aq-more .sp-fold { margin-left: 0; }
         .aq-chips { display: flex; flex-wrap: wrap; gap: 6px; padding: 10px 8px; border-top: 1px solid var(--border); }
         .aq-chips button { min-height: 36px; border: 1px dashed var(--a-line-strong, #3a4866); background: transparent; border-radius: 18px; padding: 0 14px; font-size: 13.5px; font-weight: 800; color: var(--text-secondary); font-family: inherit; cursor: pointer; }
+        .aq-guide { padding: 12px 14px; font-size: 13px; color: var(--text-secondary); line-height: 1.55; } .aq-guide > b { color: var(--text-primary); font-size: 14px; }
+        .aq-guide table { width: 100%; border-collapse: collapse; margin: 8px 0; } .aq-guide th, .aq-guide td { padding: 6px 4px; border-top: 1px solid var(--border); text-align: left; font-size: 12.5px; }
+        .aq-guide th { color: var(--text-primary); white-space: nowrap; } .aq-guide td b { color: var(--text-primary); font-size: 14px; }
+        .aq-guide ul { margin: 4px 0 0; padding-left: 18px; } .aq-guide li { margin: 3px 0; font-size: 12.5px; } .aq-red { color: var(--a-red-text, #FF8080); font-weight: 800; }
         /* ✅ 패치 85: 장비 점검 간소화 */
         .eq-top { display: flex; align-items: center; gap: 10px; padding: 10px 12px; margin-bottom: 10px; }
         .eq-top b { font-size: 16px; color: var(--text-primary); } .eq-top small { font-size: 12px; color: var(--text-secondary); font-weight: 700; }
@@ -2099,10 +2103,25 @@ body.light-mode .card.reference-info {
             <div class="card aq-top">
                 <div class="aq-t"><span>🌬️</span><b>공기질 측정</b><span class="aq-pill" id="aqCount">0/0칸</span><span class="aq-pill" id="aqBad">초과 없음</span></div>
                 <div class="aq-bar"><i id="aqBar"></i></div>
-                <div class="aq-tip">숫자 입력 후 키보드 [다음] → 다음 칸 · 포름·VOCs는 128 → 0.128 자동 · 욕실은 라돈만</div>
+                <div class="aq-tip">숫자만 누르면 소수점 자동 (128 → 0.128) · 키보드 [다음] → 다음 칸</div>
             </div>
 
             <div id="airQualityList"></div>
+
+            <div class="card aq-guide">
+                <b>📋 권고기준 · 측정 안내 (직원용)</b>
+                <table>
+                    <tr><th>라돈</th><td><b>148</b> Bq/m³ 이하</td><td>모든 공간 (욕실 포함)</td></tr>
+                    <tr><th>포름알데히드</th><td><b>0.210</b> mg/m³ 이하</td><td>거실·침실 (욕실 X)</td></tr>
+                    <tr><th>총VOCs</th><td><b>0.500</b> mg/m³ 이하</td><td>거실·침실 (욕실 X)</td></tr>
+                </table>
+                <ul>
+                    <li>기준보다 높으면 칸이 <span class="aq-red">빨갛게</span> 바뀝니다 — 숫자를 다시 한 번 확인하세요.</li>
+                    <li>포름·VOCs는 측정기 숫자 3자리만 누르면 됩니다 (0.128 → <b>1 2 8</b>).</li>
+                    <li>초과 항목은 보고서에 환기(라돈)·베이크아웃(포름·VOCs) 안내가 자동으로 들어갑니다.</li>
+                    <li>욕실은 라돈만 적습니다. 공간 이름 바꾸기·삭제는 ⋯ 를 누릅니다.</li>
+                </ul>
+            </div>
         </div>
 
         <!-- 데이터 관리 섹션 -->
@@ -9096,6 +9115,12 @@ body.light-mode .card.reference-info {
             showToast(el.value + ' → ' + v + ' 로 바꿨습니다', 'info');
             el.value = v;
         };
+        // 포름·VOCs: 숫자만 누르면 소수점 셋째 자리로 자동 (1 → 0.001, 12 → 0.012, 128 → 0.128, 1280 → 1.280)
+        AQ.dec = function (el, e) {
+            const d = el.value.replace(/\D/g, '').replace(/^0+/, '');
+            if (!d) { el.value = (e && /^insert/.test(e.inputType || '') && /0/.test(el.value)) ? '0.000' : ''; return; }
+            el.value = (parseInt(d, 10) / 1000).toFixed(3);
+        };
         AQ.live = function (el, f) { el.classList.toggle('bad', AQ.bad(f, el.value)); };
         AQ.next = function (e, el) {
             if (e.key !== 'Enter' || e.isComposing) return;
@@ -9114,9 +9139,9 @@ body.light-mode .card.reference-info {
         AQ.cell = function (r, f) {
             if (AQ.skip(r, f)) return '<span class="aq-in no">측정 안 함</span>';
             const dec = f !== 'radon';
-            return `<input type="number" class="aq-in${AQ.bad(f, r[f]) ? ' bad' : ''}" ${dec ? 'step="0.001"' : ''} inputmode="decimal" enterkeyhint="next"
+            return `<input type="${dec ? 'text' : 'number'}" class="aq-in${AQ.bad(f, r[f]) ? ' bad' : ''}" inputmode="numeric" enterkeyhint="next" autocomplete="off"
                 value="${escapeHtml(r[f])}" placeholder="${dec ? '0.000' : '0'}" aria-label="${escapeHtml(r.name)} ${f === 'radon' ? '라돈' : f === 'vocs' ? '총VOCs' : '포름알데히드'}"
-                oninput="AQ.live(this, '${f}')" onkeydown="AQ.next(event, this)"
+                oninput="${dec ? 'AQ.dec(this, event); ' : ''}AQ.live(this, '${f}')" onkeydown="AQ.next(event, this)"
                 onchange="AQ.fix(this, '${f}'); AQ.live(this, '${f}'); updateAirQualityValue(${r.id}, '${f}', this.value, this.validity && this.validity.badInput); AQ.sum()"
                 onblur="checkAirQualityInput(this, ${r.id}, '${f}')">`;
         };
@@ -16387,7 +16412,7 @@ body.light-mode .card.reference-info {
     }
     
     // ✅ 패치 69: 새 배포 확인 — 이 화면의 판 번호(APP_BUILD) vs 사이트의 version.json(정식)·version-test.json(테스트)
-    const APP_BUILD = 'ac3ff9ab3fbe'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
+    const APP_BUILD = '8cd31531fad7'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
     (function() {
         const url = /index-unified-test\.html$/.test(location.pathname) ? 'version-test.json' : 'version.json';
         let busy = false;
