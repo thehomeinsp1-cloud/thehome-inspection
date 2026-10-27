@@ -1,6 +1,6 @@
 // 자동 생성 파일 (tools/web-sw.py) — 직접 고치지 마세요
-const CACHE = 'hajanote-9029409b9fb9';
-const FILES = ["./apple-touch-icon.png", "./assets/code-KaFSeAJS.js", "./assets/commonjs-dynamic-modules-TDtrdbi3.js", "./assets/exceljs.min-bY6FjSdj.js", "./assets/html2canvas.esm-Dw6mdHwC.js", "./assets/index-CByC-Ymj.css", "./assets/index-CcmMzM0-.js", "./assets/index-Cl50C6M1.js", "./assets/index-DySQgO1c.js", "./assets/index-L05vepjn.js", "./assets/index-pC9U1d0K.js", "./assets/index.es-Dfw_SDWh.js", "./assets/jspdf.es.min-6ONlrFxH.js", "./assets/jszip.min-D_7WPACa.js", "./assets/purify.es-C8T5ouKw.js", "./assets/web-CBwotKl7.js", "./assets/web-D7lHMQwy.js", "./assets/web-F0t1XiB8.js", "./fonts/OFL-WantedSans.txt", "./fonts/WantedSansVariable.woff2", "./icon-192.png", "./icon-512.png", "./index.html", "./manifest.webmanifest"];
+const CACHE = 'hajanote-159e3ab87bd4';
+const FILES = ["./apple-touch-icon.png", "./assets/code-KaFSeAJS.js", "./assets/commonjs-dynamic-modules-TDtrdbi3.js", "./assets/exceljs.min-BxmyBlhF.js", "./assets/html2canvas.esm-Dw6mdHwC.js", "./assets/index-B0zDygPF.js", "./assets/index-CByC-Ymj.css", "./assets/index-CEuX6sMe.js", "./assets/index-CKVR945p.js", "./assets/index-Cl50C6M1.js", "./assets/index-DOEzQ2zH.js", "./assets/index.es-CHoaZxY4.js", "./assets/jspdf.es.min-CmEBvwV5.js", "./assets/jszip.min-B65UiFIL.js", "./assets/purify.es-C8T5ouKw.js", "./assets/web-CBwotKl7.js", "./assets/web-ColaY0C3.js", "./assets/web-F0t1XiB8.js", "./fonts/OFL-WantedSans.txt", "./fonts/WantedSansVariable.woff2", "./icon-192.png", "./icon-512.png", "./index.html", "./manifest.webmanifest"];
 
 self.addEventListener('install', (e) => {
   // cache:'reload' — 브라우저 HTTP 캐시의 옛 index.html이 새 캐시에 들어가 흰 화면이 되는 것을 막는다 (검수 P-2)
@@ -17,7 +17,7 @@ self.addEventListener('fetch', (e) => {
   // (예전엔 caches.match가 남겨 둔 옛 캐시를 먼저 찾아 늘 한 버전 전 화면이 떴다, 2026-10-27 대표님 폰)
   const own = caches.open(CACHE).then((c) => c.match(r.mode === 'navigate' ? './' : r, { ignoreSearch: true }));
   if (r.mode === 'navigate') {
-    const net = fetch(r.url, { cache: 'no-cache' }).then((res) => { if (!res.ok) throw res; caches.open(CACHE).then((c) => c.put('./', res.clone())); return res; });
+    const net = fetch(r.url, { cache: 'no-cache' }).then((res) => { if (!res.ok) throw res; return res; });   // 받아 온 화면은 캐시에 넣지 않는다: 옛 캐시에 새 화면이 들어가면 오프라인 때 새 파일을 못 찾아 흰 화면 (검수 2차 S-2)
     const late = new Promise((ok) => setTimeout(ok, 4000)).then(() => own).then((hit) => hit || net);
     e.respondWith(Promise.race([net, late]).catch(() => own.then((hit) => hit || Response.error())));
     return;
