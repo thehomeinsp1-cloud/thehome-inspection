@@ -1945,7 +1945,7 @@ body.light-mode .card.reference-info {
         </button>
         
         <h1>🏠 더홈점검</h1>
-        <p id="appVersionTag">업데이트 2026.10.26</p>
+        <p id="appVersionTag">업데이트 2026.10.27</p>
     </div>
 
     <div class="container">
@@ -13616,7 +13616,9 @@ body.light-mode .card.reference-info {
             if (hasAirQuality) S.push({ k: 'aq', title: '실내 공기질 측정 결과', desc: '라돈, 포름알데히드, 총VOCs 측정 결과' });
             S.push({ k: 'warranty', title: '하자보수 청구 & 담보책임 가이드', desc: '보수 청구 절차와 하자담보책임기간 안내' });
             S.push({ k: 'wtable', title: '하자담보책임기간표', desc: '시행령 별표4 공사별 기간 전체 · 점검세대 하자 번호' });
-            S.push({ k: 'checklist', title: '입주 전 체크리스트', desc: '입주 준비부터 입주 당일까지 확인사항' });
+            S.push(projectData.inspectionType === '사후점검'
+                ? { k: 'checklist', title: '입주 후 생활 꿀팁', desc: '첫 주에 확인할 곳 · 인테리어 전 주의 · 계절별 관리' }
+                : { k: 'checklist', title: '입주 전 체크리스트', desc: '입주 준비부터 입주 당일까지 확인사항' });
             S.push({ k: 'living', title: '입주 후 하자 관리 카드', desc: '시기별로 살펴볼 곳 · 관리법 · 보증기간 · 이번 점검 번호' });
             S.push({ k: 'quote', title: '홈케어서비스 견적서', desc: '입주 청소, 줄눈, 코팅 등 부가 서비스 비용 안내' });
             S.push({ k: 'service', title: '홈케어서비스 시공안내', desc: '부가 서비스 시공 상세 안내' });
@@ -15070,7 +15072,7 @@ body.light-mode .card.reference-info {
             if (start.aq) await add(window.createAirQualityDetailPage());
             await add(window.createWarrantyGuidePage1());
             await add(window.createWarrantyTablePage());
-            await add(window.createMoveInChecklistPage());
+            await add(P.inspectionType === '사후점검' ? window.createAfterMoveInTipsPage() : window.createMoveInChecklistPage());
             await add(window.createLivingGuidePage());
             await add(window.createQuotationPage(P.apartmentName, P.dong, P.ho, P.inspectionDate || new Date().toLocaleDateString('ko-KR')));
             await add(window.createServiceGuidePage());
@@ -15681,7 +15683,7 @@ body.light-mode .card.reference-info {
                     </div>
                     <div style="display: flex; flex-direction: column; gap: 7px;">
                         <div style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 10px 15px;">
-                            <div style="font-size: 13.5px; font-weight: 700; color: #141d2e; margin-bottom: 5px;"><span style="color:#E84848;">Q.</span> 사전점검 뒤에 발견한 하자도 보수를 요청할 수 있나요?</div>
+                            <div style="font-size: 13.5px; font-weight: 700; color: #141d2e; margin-bottom: 5px;"><span style="color:#E84848;">Q.</span> 점검 뒤에 발견한 하자도 보수를 요청할 수 있나요?</div>
                             <div style="font-size: 12.5px; color: #5b6472; line-height: 1.6;">네. 담보책임기간 내라면 입주 후 발견된 하자도 보수를 청구할 수 있습니다(하자 해당 여부는 내용에 따라 판단). 발견 즉시 사진·위치와 함께 접수하시면 됩니다.</div>
                         </div>
                         <div style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 10px 15px;">
@@ -15835,6 +15837,41 @@ body.light-mode .card.reference-info {
         const out = [];
         if (M) (defs || []).forEach((d, i) => { try { if (M(d)) out.push(i + 1); } catch (e) {} });
         return out;
+    };
+    // ✅ 패치 87: 사후점검 보고서 — '입주 전 체크리스트' 대신 '입주 후 생활 꿀팁' (대표님 10-27)
+    window.AFTER_TIPS = [
+        ['입주 첫 주, 위치부터 사진으로', ['세대 분전반(누전차단기) · 가스 중간밸브 · 세대 급수밸브 · 환기장치 위치를 찍어 두기', '누수·누전 때 바로 잠그면 피해가 크게 줄어듭니다']],
+        ['인테리어·시공 전에 사진 먼저', ['줄눈·탄성코트·가구 설치 전, 그 자리의 하자를 먼저 사진 찍고 접수', '시공 뒤에는 원래 있던 하자인지 따지기 어려워집니다']],
+        ['못 박기·타공 전 확인', ['콘센트·스위치의 위아래·옆 줄은 벽 속 전선이 지나갈 수 있어요', '욕실·주방 타일, 바닥 타공은 방수층·배관 주의 — 관리사무소에 도면 확인']],
+        ['에어컨 설치', ['배관·실외기 자리는 시공 도면(매립 배관) 기준으로', '실외기실 환기창(루버)을 열고 가동, 배수 호스 연결 확인']],
+        ['환기장치(전열교환기)', ['새집 냄새가 빠질 때까지 자주 가동', '필터는 제품 설명서 주기마다 확인·교체 (먼지가 쌓이면 환기량이 줄어요)']],
+        ['보일러 · 난방', ['첫 난방은 낮은 온도부터 천천히', '분배기 밸브가 방마다 열려 있는지 확인', '오래 비울 땐 끄지 말고 외출 모드 (동파·결로 예방)']],
+        ['결로 예방', ['습도 40~60%, 하루 2~3번 환기', '가구는 바깥벽에서 5cm 이상 띄우기', '빨래 실내 건조는 줄이고 제습기 활용']],
+        ['배수구 관리', ['욕실 배수구에 머리카락 거름망', '세탁기 배수 호스는 배수구 끝까지 꽂기 (역류·넘침)', '장마 전 발코니 배수구 먼지·낙엽 치우기']],
+        ['겨울 동파 대비', ['발코니·세탁실 수전과 노출 배관은 보온재로 감싸기', '한파 때는 수돗물을 아주 조금 흐르게']],
+        ['대피공간 · 경량칸막이', ['위치를 가족 모두 알아 두기', '물건을 쌓아 두지 않기 — 화재 때 피난 통로입니다']],
+        ['전입신고 · 확정일자', ['이사 후 14일 이내 전입신고 (정부24 또는 주민센터)', '전월세라면 확정일자를 함께 받기']],
+        ['하자 접수 기록 남기기', ['접수 날짜 · 접수 번호 · 담당자를 적어 두기', '보수 뒤 바로 서명하지 말고, 실리콘·도장은 마른 뒤 확인']]
+    ];
+    window.createAfterMoveInTipsPage = function() {
+        const header = getGuideHeaderHTML('입주 후 생활 꿀팁', '#141d2e');
+        const cards = window.AFTER_TIPS.map((t, i) => '<div style="border:1px solid #e3e6ec;border-radius:10px;padding:13px 15px;box-sizing:border-box;">'
+            + '<div style="display:flex;align-items:center;gap:9px;margin-bottom:7px;">'
+                + '<span style="width:26px;height:26px;border-radius:6px;background:' + (i % 2 ? '#141d2e' : '#E84848') + ';color:#fff;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;">' + String(i + 1).padStart(2, '0') + '</span>'
+                + '<span style="font-size:15px;font-weight:800;color:#141d2e;">' + t[0] + '</span>'
+            + '</div>'
+            + t[1].map(b => '<div style="font-size:12.5px;color:#4b5563;line-height:1.55;padding-left:12px;position:relative;"><span style="position:absolute;left:0;color:#9aa1ad;">·</span>' + b + '</div>').join('')
+        + '</div>').join('');
+        return '<div style="width:794px;min-height:1123px;background:white;font-family:\'Malgun Gothic\',sans-serif;padding:45px;box-sizing:border-box;position:relative;">'
+            + header
+            + '<div style="font-size:13px;color:#555;margin:-12px 0 16px;line-height:1.6;">입주 후 살면서 알아 두면 좋은 것들입니다. 하자가 보이면 \'입주 후 하자 관리 카드\'를 보고 사진·날짜와 함께 바로 접수하세요.</div>'
+            + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">' + cards + '</div>'
+            + '<div style="margin-top:16px;background:#141d2e;color:#fff;border-radius:10px;padding:13px 18px;font-size:13px;line-height:1.6;display:flex;justify-content:space-between;align-items:center;gap:14px;">'
+                + '<span><b style="color:#ffb4b4;">보증 만료 전 점검</b> — 2년·3년 만료 2~3개월 전에 집 전체를 한 번 더 보면 남은 하자를 한 번에 접수할 수 있습니다.</span>'
+                + '<span style="white-space:nowrap;font-weight:800;">1668-5322</span>'
+            + '</div>'
+            + '<div style="position:absolute;bottom:20px;left:45px;right:45px;padding-top:10px;border-top:1px solid #e8eaee;display:flex;justify-content:space-between;font-size:11px;color:#9aa1ad;font-weight:700;letter-spacing:.05em;"><span>THE HOME INSPECTION GUIDE</span><span>더홈점검</span></div>'
+        + '</div>';
     };
     window.createLivingGuidePage = function() {
         const defs = projectData.defects || [], st = window._rptPlan && window._rptPlan.start;
@@ -16412,7 +16449,7 @@ body.light-mode .card.reference-info {
     }
     
     // ✅ 패치 69: 새 배포 확인 — 이 화면의 판 번호(APP_BUILD) vs 사이트의 version.json(정식)·version-test.json(테스트)
-    const APP_BUILD = '8cd31531fad7'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
+    const APP_BUILD = '6dc92add263b'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
     (function() {
         const url = /index-unified-test\.html$/.test(location.pathname) ? 'version-test.json' : 'version.json';
         let busy = false;
