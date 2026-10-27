@@ -1,6 +1,6 @@
 // 자동 생성 파일 (tools/web-sw.py) — 직접 고치지 마세요
-const CACHE = 'hajanote-fc62c13b6151';
-const FILES = ["./apple-touch-icon.png", "./assets/code-KaFSeAJS.js", "./assets/commonjs-dynamic-modules-TDtrdbi3.js", "./assets/exceljs.min-BAQj_C-y.js", "./assets/html2canvas.esm-Dw6mdHwC.js", "./assets/index-CByC-Ymj.css", "./assets/index-Cl50C6M1.js", "./assets/index-DEDQuKHr.js", "./assets/index-DS-6b6ns.js", "./assets/index-bCK8nrkU.js", "./assets/index-fgy9CcPe.js", "./assets/index.es-Bh44jfKe.js", "./assets/jspdf.es.min-DoTLd8Q3.js", "./assets/jszip.min-CW_DLsVi.js", "./assets/purify.es-C8T5ouKw.js", "./assets/web-CBwotKl7.js", "./assets/web-F0t1XiB8.js", "./assets/web-uI5KRtWv.js", "./fonts/OFL-WantedSans.txt", "./fonts/WantedSansVariable.woff2", "./icon-192.png", "./icon-512.png", "./index.html", "./manifest.webmanifest"];
+const CACHE = 'hajanote-843f20a714bd';
+const FILES = ["./apple-touch-icon.png", "./assets/code-KaFSeAJS.js", "./assets/commonjs-dynamic-modules-TDtrdbi3.js", "./assets/exceljs.min-D-uC3p-3.js", "./assets/html2canvas.esm-Dw6mdHwC.js", "./assets/index-C29EZBZJ.js", "./assets/index-CByC-Ymj.css", "./assets/index-Cl50C6M1.js", "./assets/index-Czl62fHL.js", "./assets/index-DgoSwXzM.js", "./assets/index-Dr50ZIqK.js", "./assets/index.es-YkO7ZsXS.js", "./assets/jspdf.es.min-CIvLlW5m.js", "./assets/jszip.min-sIjyakP_.js", "./assets/purify.es-C8T5ouKw.js", "./assets/web-CBwotKl7.js", "./assets/web-CSbUBzw3.js", "./assets/web-F0t1XiB8.js", "./fonts/OFL-WantedSans.txt", "./fonts/WantedSansVariable.woff2", "./icon-192.png", "./icon-512.png", "./index.html", "./manifest.webmanifest"];
 
 self.addEventListener('install', (e) => {
   // cache:'reload' — 브라우저 HTTP 캐시의 옛 index.html이 새 캐시에 들어가 흰 화면이 되는 것을 막는다 (검수 P-2)
@@ -13,7 +13,15 @@ self.addEventListener('activate', (e) => {
 self.addEventListener('fetch', (e) => {
   const r = e.request;
   if (r.method !== 'GET' || new URL(r.url).origin !== location.origin) return;   // 가입 정보 전송 등 바깥 주소는 건드리지 않음
-  e.respondWith(
-    caches.match(r, { ignoreSearch: true }).then((hit) => hit || fetch(r).catch(() => (r.mode === 'navigate' ? caches.match('./index.html') : Response.error())))
-  );
+  // 화면(index.html)은 인터넷 먼저 — 새 버전이 첫 실행에 바로 보이게. 4초 안에 안 오거나 오프라인이면 저장해 둔 것
+  // (예전엔 caches.match가 남겨 둔 옛 캐시를 먼저 찾아 늘 한 버전 전 화면이 떴다, 2026-10-27 대표님 폰)
+  const own = caches.open(CACHE).then((c) => c.match(r.mode === 'navigate' ? './' : r, { ignoreSearch: true }));
+  if (r.mode === 'navigate') {
+    const net = fetch(r.url, { cache: 'no-cache' }).then((res) => { if (!res.ok) throw res; caches.open(CACHE).then((c) => c.put('./', res.clone())); return res; });
+    const late = new Promise((ok) => setTimeout(ok, 4000)).then(() => own).then((hit) => hit || net);
+    e.respondWith(Promise.race([net, late]).catch(() => own.then((hit) => hit || Response.error())));
+    return;
+  }
+  // 나머지(이름에 내용 지문이 붙은 파일)는 이번 버전 캐시 → 바로 전 버전 캐시 → 인터넷
+  e.respondWith(own.then((hit) => hit || caches.match(r, { ignoreSearch: true })).then((hit) => hit || fetch(r)));
 });
