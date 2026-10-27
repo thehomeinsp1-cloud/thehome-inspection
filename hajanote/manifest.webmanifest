@@ -1,7 +1,7 @@
 {
   "name": "하자노트",
   "short_name": "하자노트",
-  "description": "새집 하자 기록과 2·3·5·10년 보수 기간 관리 — 더홈점검",
+  "description": "신축 아파트 사전점검 셀프 하자 기록과 접수 파일(PDF·엑셀)",
   "lang": "ko",
   "start_url": "./",
   "scope": "./",
