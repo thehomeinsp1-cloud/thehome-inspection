@@ -6413,7 +6413,7 @@ body.light-mode .card.reference-info {
                 if (!b) { if (e.target === wrap) close(); return; }
                 const a = b.getAttribute('data-act');
                 if (a === 'close') return close();
-                if (a === 'sms') { mark(); close(); window.location.href = 'sms:' + smsNum + (window.IS_IOS_DEVICE ? '&' : '?') + 'body=' + encodeURIComponent(text); return; }
+                if (a === 'sms') { mark(); close(); window.location.href = 'sms:' + smsNum + (window.IS_IOS_DEVICE ? '&' : '?') + 'body=' + encodeURIComponent(String(text).replace(/&/g, '＆')); return; } /* ✅ 패치 89 */
                 if (a === 'copy') { if (await copyTextSafe(text, '📋 안내 문구가 복사되었습니다')) { mark(); close(); } }
             });
             document.body.appendChild(wrap);
@@ -6469,7 +6469,7 @@ body.light-mode .card.reference-info {
                     if (act === 'sms') {
                         // 문자앱을 열고 고객 번호·안내 문구를 채움 (PDF 첨부는 문자앱 구조상 불가 → 보내기 버튼으로)
                         _markSent(); // ✅ 패치 68
-                        const body = encodeURIComponent(text);
+                        const body = encodeURIComponent(String(text).replace(/&/g, '＆')); // ✅ 패치 89: 아이폰은 본문을 '&'에서 끊음
                         window.location.href = 'sms:' + smsNum + (window.IS_IOS_DEVICE ? '&' : '?') + 'body=' + body;
                         return;
                     }
@@ -6589,7 +6589,7 @@ body.light-mode .card.reference-info {
                     .concat(r.dep ? ['예약금 -' + won(r.dep)] : [])
                     .concat(['──────────────────', '★ 최종 잔금 : ' + won(r.total - r.dep), '', '【 입금 】', '국민 757301-00-288729 (더홈점검)', '※ 입금 후 입금자명 메시지를 꼭 남겨주세요.',
                         '※ 다른 명의로 입금 시 「입금자명 + 동호수」 필수', '(예: 홍길동 / 101동 1001호)', '', '【 현금영수증 】', '예약자 연락처로 자동 발행됩니다.', '(다른 번호·세금계산서 필요 시 별도 요청)', '',
-                        '⭐ 만족도 조사 & 개선 의견', '불편했던 점을 남겨주시면 꼭 반영하겠습니다.', 'https://www.thehomeinsp.com/61', '', '입주 축하드립니다! 🏠 문의 1668-5322']));
+                        '⭐ 만족도 조사 · 개선 의견', '불편했던 점을 남겨주시면 꼭 반영하겠습니다.', 'https://www.thehomeinsp.com/61', '', '입주 축하드립니다! 🏠 문의 1668-5322']));
             }
             // 미입금 재안내 (대표님 10-19 A안): 정산 문자 대신 정중한 확인 요청 — 결재확인 체크가 늦어 이미 입금한 고객에게도 갈 수 있음
             function msgK8(r) {
@@ -7216,7 +7216,7 @@ body.light-mode .card.reference-info {
                         w.querySelector('[data-n]').textContent = fmtPh(pick);
                         return;
                     }
-                    if (a === 'sms') { if (onSent) onSent(); close(); window._admGo('sms:' + pick + (window.IS_IOS_DEVICE ? '&' : '?') + 'body=' + encodeURIComponent(text)); return; }
+                    if (a === 'sms') { if (onSent) onSent(); close(); window._admGo('sms:' + pick + (window.IS_IOS_DEVICE ? '&' : '?') + 'body=' + encodeURIComponent(String(text).replace(/&/g, '＆'))); /* ✅ 패치 89 */ return; }
                     if (a === 'copy') { const ok = await copyTextSafe(text, '📋 복사했어요. 카톡에 붙여넣기 하세요'); if (ok && onSent) onSent(); if (ok) close(); }
                 });
                 document.body.appendChild(w);
@@ -16496,7 +16496,7 @@ body.light-mode .card.reference-info {
     }
     
     // ✅ 패치 69: 새 배포 확인 — 이 화면의 판 번호(APP_BUILD) vs 사이트의 version.json(정식)·version-test.json(테스트)
-    const APP_BUILD = '36ed0d46958c'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
+    const APP_BUILD = '53cfea201c02'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
     (function() {
         const url = /index-unified-test\.html$/.test(location.pathname) ? 'version-test.json' : 'version.json';
         let busy = false;
