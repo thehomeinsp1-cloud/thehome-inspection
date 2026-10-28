@@ -1945,7 +1945,7 @@ body.light-mode .card.reference-info {
         </button>
         
         <h1>🏠 더홈점검</h1>
-        <p id="appVersionTag" style="color:#fde68a;font-weight:700;">🧪 테스트판 · 업데이트 2026.10.27</p>
+        <p id="appVersionTag" style="color:#fde68a;font-weight:700;">🧪 테스트판 · 업데이트 2026.10.28</p>
     </div>
 
     <div class="container">
@@ -12363,6 +12363,7 @@ body.light-mode .card.reference-info {
         };
         window.warrantyBucketOf = function(d) { return window.GJ_BUCKET[window.reportGongJongOf(d)] || 'chk'; };
         window.warrantyBadgeHTML = function(d, small) {
+            if (projectData.inspectionType === '인테리어점검') return '<span style="display:inline-block;background:#141d2e;color:#fff;font-size:' + (small ? 10 : 10.5) + 'px;font-weight:700;padding:' + (small ? '2px 7px' : '3px 9px') + ';border-radius:11px;white-space:nowrap;line-height:1.35;">A/S</span>'; // ✅ 패치 88
             const B = window.WBK[window.warrantyBucketOf(d)];
             return '<span style="display:inline-block;background:' + B.bg + ';color:#fff;font-size:' + (small ? 10 : 10.5) + 'px;font-weight:700;padding:' + (small ? '2px 7px' : '3px 9px') + ';border-radius:11px;white-space:nowrap;line-height:1.35;">' + B.badge + '</span>';
         };
@@ -13606,21 +13607,22 @@ body.light-mode .card.reference-info {
             const hasEquipment = (projectData.equipment || []).some(e => e && (e.photos && typeof e.photos === 'object' ? Object.values(e.photos).some(p => p) : e.photo));
             const hasAirQuality = (projectData.airQuality || []).some(r => r.radon || r.formaldehyde || r.vocs);
             const pg = k => { if (!st || !st[k]) return ''; const a = st[k][0], b = st[k][1]; return a === b ? a + '쪽' : a + '~' + b + '쪽'; };
-            const S = [];
+            const S = [], INT = projectData.inspectionType === '인테리어점검', TIPS = INT || ['사후점검', '입주점검'].includes(projectData.inspectionType); // ✅ 패치 88
             S.push({ k: 'summary', title: '프로젝트 요약', desc: '하자 건수, 우선 보수 권장 항목, 공종·공간별 하자 현황' });
-            S.push({ k: 'criteria', title: '하자 판단기준 안내', desc: '보증기간별 해당 번호 · 공종별 확인 상태' });
-            if (defects.length) S.push({ k: 'list', title: '하자 점검 목록', desc: '발견된 하자 ' + defects.length + '건 · 번호마다 상세 내용과 보증기간' });
+            if (!INT) S.push({ k: 'criteria', title: '하자 판단기준 안내', desc: '보증기간별 해당 번호 · 공종별 확인 상태' });
+            if (defects.length) S.push({ k: 'list', title: '하자 점검 목록', desc: '발견된 하자 ' + defects.length + '건 · 번호마다 상세 내용과 ' + (INT ? 'A/S 표시' : '보증기간') });
             if (withPhotos) S.push({ k: 'photos', title: '하자 상세 리포트 (사진)', desc: '번호 순서대로 위치 사진 · 확대 사진 (한 쪽에 3건)' });
             if (hasEquipment) S.push({ k: 'equip', title: '장비 점검 리포트', desc: '열화상 카메라, 레이저 레벨기 등 장비 점검 결과' });
             else S.push({ k: '', off: true, title: '장비 점검 보고서', desc: '별도 생성된 장비점검 보고서를 참고해 주세요' });
             if (st && st.thermal) S.push({ k: 'thermal', title: '열화상 단열 점검 안내', desc: '점검일 열화상 단열 판독 범위와 입주 후 확인 방법' });
             if (hasAirQuality) S.push({ k: 'aq', title: '실내 공기질 측정 결과', desc: '라돈, 포름알데히드, 총VOCs 측정 결과' });
-            S.push({ k: 'warranty', title: '하자보수 청구 & 담보책임 가이드', desc: '보수 청구 절차와 하자담보책임기간 안내' });
-            S.push({ k: 'wtable', title: '하자담보책임기간표', desc: '시행령 별표4 공사별 기간 전체 · 점검세대 하자 번호' });
-            S.push(projectData.inspectionType === '사후점검'
+            if (INT) S.push({ k: 'intguide', title: '인테리어 하자 처리 가이드', desc: '보수 요청 순서 · A/S 기간(계약서) · 건설사 하자와 구분' });
+            if (!INT) S.push({ k: 'warranty', title: '하자보수 청구 & 담보책임 가이드', desc: '보수 청구 절차와 하자담보책임기간 안내' });
+            if (!INT) S.push({ k: 'wtable', title: '하자담보책임기간표', desc: '시행령 별표4 공사별 기간 전체 · 점검세대 하자 번호' });
+            S.push(TIPS
                 ? { k: 'checklist', title: '입주 후 생활 꿀팁', desc: '첫 주에 확인할 곳 · 인테리어 전 주의 · 계절별 관리' }
                 : { k: 'checklist', title: '입주 전 체크리스트', desc: '입주 준비부터 입주 당일까지 확인사항' });
-            S.push({ k: 'living', title: '입주 후 하자 관리 카드', desc: '시기별로 살펴볼 곳 · 관리법 · 보증기간 · 이번 점검 번호' });
+            if (!INT) S.push({ k: 'living', title: '입주 후 하자 관리 카드', desc: '시기별로 살펴볼 곳 · 관리법 · 보증기간 · 이번 점검 번호' });
             S.push({ k: 'quote', title: '홈케어서비스 견적서', desc: '입주 청소, 줄눈, 코팅 등 부가 서비스 비용 안내' });
             S.push({ k: 'service', title: '홈케어서비스 시공안내', desc: '부가 서비스 시공 상세 안내' });
             const PAD = [14, 10, 7][L], BOX = [44, 38, 32][L];
@@ -14011,7 +14013,9 @@ body.light-mode .card.reference-info {
             const S = f => stat.find(s => s.f === f);
             if (S('radon').over) tips.push(['라돈', '환기를 자주 하면 크게 낮아집니다. 하루 2~3회, 30분 이상 맞통풍 환기를 해 주세요. 입주 후에도 높으면 재측정을 권장합니다.']);
             if (S('formaldehyde').over || S('vocs').over) tips.push([S('formaldehyde').over && S('vocs').over ? '포름알데히드·VOCs' : S('formaldehyde').over ? '포름알데히드' : '총VOCs',
-                '입주 전 베이크아웃을 권장합니다. 창문을 닫고 난방을 높여(33~38℃) 8시간 → 2시간 환기, 3회 이상 반복하세요. 새 가구는 충분히 환기한 뒤 들이세요.']);
+                projectData.inspectionType === '입주점검'
+                    ? '환기를 자주 해 주세요. 하루 2~3회, 30분 이상 맞통풍 환기를 하고, 새 가구·커튼은 들이기 전 충분히 환기하세요. 짐이 들어오기 전이라면 베이크아웃도 효과가 있습니다.'
+                    : '입주 전 베이크아웃을 권장합니다. 창문을 닫고 난방을 높여(33~38℃) 8시간 → 2시간 환기, 3회 이상 반복하세요. 새 가구는 충분히 환기한 뒤 들이세요.']);
             if (!tips.length) tips.push(['결과', '측정한 모든 항목이 권고기준 이하입니다. 입주 후에도 하루 2회 이상 환기를 유지해 주세요.']);
             tips.push(['참고', '측정값은 측정 당시 온도·습도·환기 상태에 따라 달라질 수 있습니다.' + (rooms.some(wet) ? ' 욕실은 라돈만 측정합니다.' : '')]);
 
@@ -15052,11 +15056,12 @@ body.light-mode .card.reference-info {
         eq.forEach((item, i) => item._originalIndex = i + 1);
         let thermalOn = false; try { thermalOn = localStorage.getItem('thermalNoticeGlobal') === 'on'; } catch (e) {}
         const hasAQ = (P.airQuality || []).some(r => r.radon || r.formaldehyde || r.vocs);
+        const INT = P.inspectionType === '인테리어점검', TIPS = INT || P.inspectionType === '사후점검' || P.inspectionType === '입주점검'; // ✅ 패치 88
         try {
             const listPlan = defects.length ? window.planDefectPages() : [];
             const eqPages = window.pairEquipmentPages(eq);
-            const order = [['cover', 1], ['toc', 1], ['summary', 1], ['criteria', 1], ['list', listPlan.length], ['photos', Math.ceil(withPhotos.length / 3)],
-                ['equip', eqPages.length], ['thermal', thermalOn && eq.length ? 1 : 0], ['aq', hasAQ ? 1 : 0], ['warranty', 1], ['wtable', 1], ['checklist', 1], ['living', 1], ['quote', 1], ['service', 1]];
+            const order = [['cover', 1], ['toc', 1], ['summary', 1], ['criteria', INT ? 0 : 1], ['list', listPlan.length], ['photos', Math.ceil(withPhotos.length / 3)],
+                ['equip', eqPages.length], ['thermal', thermalOn && eq.length ? 1 : 0], ['aq', hasAQ ? 1 : 0], ['warranty', INT ? 0 : 1], ['wtable', INT ? 0 : 1], ['intguide', INT ? 1 : 0], ['checklist', 1], ['living', INT ? 0 : 1], ['quote', 1], ['service', 1]];
             const start = {}; let p = 1;
             order.forEach(([k, n]) => { if (n > 0) { start[k] = [p, p + n - 1]; p += n; } });
             const total = p - 1;
@@ -15065,16 +15070,16 @@ body.light-mode .card.reference-info {
             await add(window.createSummaryFirstPage(), true);
             await add(window.createTableOfContentsPage());
             await add(window.createProjectSummaryPage());
-            await add(window.createGongJongCriteriaPage());
+            if (!INT) await add(window.createGongJongCriteriaPage());
             for (let i = 0; i < listPlan.length; i++) await add(window.createDefectListPage(listPlan[i].start, listPlan[i].count, i + 1, listPlan.length));
             for (let i = 0; i < withPhotos.length; i += 3) await add(await window.createDefectDetailPage(withPhotos.slice(i, i + 3), i, true));
             for (const pg of eqPages) await add(await window.createEquipmentPage(pg));
             if (start.thermal) await add(window.createThermalNoticePage());
             if (start.aq) await add(window.createAirQualityDetailPage());
-            await add(window.createWarrantyGuidePage1());
-            await add(window.createWarrantyTablePage());
-            await add(P.inspectionType === '사후점검' ? window.createAfterMoveInTipsPage() : window.createMoveInChecklistPage());
-            await add(window.createLivingGuidePage());
+            if (INT) await add(window.createInteriorGuidePage());
+            else { await add(window.createWarrantyGuidePage1()); await add(window.createWarrantyTablePage()); }
+            await add(TIPS ? window.createAfterMoveInTipsPage() : window.createMoveInChecklistPage());
+            if (!INT) await add(window.createLivingGuidePage());
             await add(window.createQuotationPage(P.apartmentName, P.dong, P.ho, P.inspectionDate || new Date().toLocaleDateString('ko-KR')));
             await add(window.createServiceGuidePage());
             if (doc.getNumberOfPages() !== total) console.warn('보고서 쪽 수가 계획과 다름', doc.getNumberOfPages(), total);
@@ -15247,7 +15252,7 @@ body.light-mode .card.reference-info {
 
                     <div style="border-left:3px solid #E84848;background:#f8f9fb;padding:14px 18px;">
                         <div style="font-size:12.5px;font-weight:800;color:#141d2e;margin-bottom:5px;">점검 기준일 안내</div>
-                        <div style="font-size:11.5px;color:#5b6472;line-height:1.65;">이 보고서는 <b style="color:#141d2e;">점검일${_inspDay} 기준</b>으로 육안·기능 점검과 장비 측정 범위에서 확인된 내용입니다. 점검 이후 사용이나 계절 변화로 새로 생기는 하자(결로·균열·수축 등)는 이 보고서에 포함되지 않으며, 하자담보책임기간 안에서는 시공사에 무상 보수를 요청하실 수 있습니다.</div>
+                        <div style="font-size:11.5px;color:#5b6472;line-height:1.65;">이 보고서는 <b style="color:#141d2e;">점검일${_inspDay} 기준</b>으로 육안·기능 점검과 장비 측정 범위에서 확인된 내용입니다. 점검 이후 사용이나 계절 변화로 새로 생기는 하자(결로·균열·수축 등)는 이 보고서에 포함되지 않으며, ${projectData.inspectionType === '인테리어점검' ? '인테리어 공사 하자는 계약서의 A/S 기간 안에서 업체에 보수를 요청하실 수 있습니다.' : '하자담보책임기간 안에서는 시공사에 무상 보수를 요청하실 수 있습니다.'}${projectData.inspectionType === '입주점검' ? ' 생활 흔적과 구분할 수 있도록 이 보고서의 사진을 보관해 주세요.' : ''}</div>
                     </div>
                 </div>
                 <div style="margin-top:auto;padding:14px 44px;border-top:1px solid #e8eaee;display:flex;justify-content:space-between;align-items:center;font-size:11px;color:#9aa1ad;font-weight:700;letter-spacing:.05em;"><span>THE HOME INSPECTION</span><span>1668-5322</span></div>
@@ -15563,7 +15568,7 @@ body.light-mode .card.reference-info {
         });
         const note = (pageNum || 1) === 1
             ? `<div style="display:flex;align-items:center;gap:10px;background:#f4f6fa;border-radius:8px;padding:9px 14px;margin-bottom:12px;font-size:11.5px;color:#4b5563;">`
-              + `<span style="flex:1;"><b style="color:#141d2e;">보증</b> 칸은 참고 분류입니다 (하자 유형·원인에 따라 다를 수 있음).</span></div>` // 패치 79: 번호·누수 안내 뺌 (대표님 10-24)
+              + `<span style="flex:1;">${projectData.inspectionType === '인테리어점검' ? '<b style="color:#141d2e;">A/S</b> = 인테리어 업체에 보수를 요청할 항목입니다 (기간은 계약서 기준).' : '<b style="color:#141d2e;">보증</b> 칸은 참고 분류입니다 (하자 유형·원인에 따라 다를 수 있음).'}</span></div>` // 패치 79: 번호·누수 안내 뺌 (대표님 10-24)
             : '';
         return `<div style="width:794px;height:1123px;background:#fff;font-family:'Pretendard','Malgun Gothic',sans-serif;display:flex;flex-direction:column;overflow:hidden;box-sizing:border-box;">
             <div style="background:#141d2e;padding:20px 44px;display:flex;justify-content:space-between;align-items:center;">
@@ -15574,7 +15579,7 @@ body.light-mode .card.reference-info {
             <div style="flex:1;padding:22px 44px 0;">
                 ${note}
                 <table style="width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed;">
-                    <thead><tr style="background:#141d2e;color:#fff;"><th style="padding:11px 6px;width:38px;font-weight:700;font-size:12px;">NO</th><th style="padding:11px 8px;text-align:left;width:76px;font-weight:700;font-size:12px;">공간</th><th style="padding:11px 8px;text-align:left;width:92px;font-weight:700;font-size:12px;">위치</th><th style="padding:11px 8px;text-align:left;width:122px;font-weight:700;font-size:12px;">유형</th><th style="padding:11px 8px;text-align:left;font-weight:700;font-size:12px;">상세 내용</th><th style="padding:11px 4px;width:60px;font-weight:700;font-size:12px;">보증</th></tr></thead>
+                    <thead><tr style="background:#141d2e;color:#fff;"><th style="padding:11px 6px;width:38px;font-weight:700;font-size:12px;">NO</th><th style="padding:11px 8px;text-align:left;width:76px;font-weight:700;font-size:12px;">공간</th><th style="padding:11px 8px;text-align:left;width:92px;font-weight:700;font-size:12px;">위치</th><th style="padding:11px 8px;text-align:left;width:122px;font-weight:700;font-size:12px;">유형</th><th style="padding:11px 8px;text-align:left;font-weight:700;font-size:12px;">상세 내용</th><th style="padding:11px 4px;width:60px;font-weight:700;font-size:12px;">${projectData.inspectionType === '인테리어점검' ? 'A/S' : '보증'}</th></tr></thead>
                     <tbody>${defectRows}</tbody>
                 </table>
             </div>
@@ -15865,11 +15870,52 @@ body.light-mode .card.reference-info {
         + '</div>').join('');
         return '<div style="width:794px;min-height:1123px;background:white;font-family:\'Malgun Gothic\',sans-serif;padding:45px;box-sizing:border-box;position:relative;">'
             + header
-            + '<div style="font-size:13px;color:#555;margin:-12px 0 16px;line-height:1.6;">입주 후 살면서 알아 두면 좋은 것들입니다. 하자가 보이면 \'입주 후 하자 관리 카드\'를 보고 사진·날짜와 함께 바로 접수하세요.</div>'
+            + '<div style="font-size:13px;color:#555;margin:-12px 0 16px;line-height:1.6;">입주 후 살면서 알아 두면 좋은 것들입니다. ' + (projectData.inspectionType === '인테리어점검' ? '하자가 보이면 사진·날짜를 남기고 인테리어 업체(공사한 곳) 또는 시공사(그 밖의 곳)에 바로 알리세요.' : '하자가 보이면 \'입주 후 하자 관리 카드\'를 보고 사진·날짜와 함께 바로 접수하세요.') + '</div>'
             + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">' + cards + '</div>'
             + '<div style="margin-top:16px;background:#141d2e;color:#fff;border-radius:10px;padding:13px 18px;font-size:13px;line-height:1.6;display:flex;justify-content:space-between;align-items:center;gap:14px;">'
                 + '<span><b style="color:#ffb4b4;">보증 만료 전 점검</b> — 2년·3년 만료 2~3개월 전에 집 전체를 한 번 더 보면 남은 하자를 한 번에 접수할 수 있습니다.</span>'
                 + '<span style="white-space:nowrap;font-weight:800;">1668-5322</span>'
+            + '</div>'
+            + '<div style="position:absolute;bottom:20px;left:45px;right:45px;padding-top:10px;border-top:1px solid #e8eaee;display:flex;justify-content:space-between;font-size:11px;color:#9aa1ad;font-weight:700;letter-spacing:.05em;"><span>THE HOME INSPECTION GUIDE</span><span>더홈점검</span></div>'
+        + '</div>';
+    };
+    // ✅ 패치 88: 인테리어점검 보고서 — 건설사 보증 쪽(가이드·기간표) 대신 '인테리어 하자 처리 가이드' 1쪽 (대표님 10-28)
+    window.createInteriorGuidePage = function() {
+        const header = getGuideHeaderHTML('인테리어 하자 처리 가이드', '#141d2e');
+        const step = (n, t, lines) => '<div style="flex:1;border:1px solid #e3e6ec;border-radius:10px;padding:16px;">'
+            + '<div style="font-size:12px;font-weight:800;color:#E84848;margin-bottom:6px;">STEP ' + n + '</div>'
+            + '<div style="font-size:15px;font-weight:800;color:#141d2e;margin-bottom:8px;">' + t + '</div>'
+            + lines.map(l => '<div style="font-size:12.5px;color:#4b5563;line-height:1.6;padding-left:11px;position:relative;"><span style="position:absolute;left:0;color:#9aa1ad;">·</span>' + l + '</div>').join('')
+        + '</div>';
+        const sec = (no, t) => '<div style="font-size:17px;font-weight:800;color:#1f2937;margin:0 0 14px;padding-bottom:9px;border-bottom:2px solid #141d2e;display:flex;align-items:center;gap:10px;">'
+            + '<span style="width:26px;height:26px;background:#141d2e;color:#fff;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:13px;">' + no + '</span>' + t + '</div>';
+        return '<div style="width:794px;min-height:1123px;background:white;font-family:\'Malgun Gothic\',sans-serif;padding:45px;box-sizing:border-box;position:relative;">'
+            + header
+            + sec('01', '하자 보수 요청 순서')
+            + '<div style="display:flex;gap:12px;margin-bottom:26px;">'
+                + step(1, '목록·사진 전달', ['이 보고서의 하자 목록과 사진을 인테리어 업체에 그대로 전달', '번호로 말하면 소통이 빠릅니다'])
+                + step(2, '잔금 전에 요청', ['보수 일정과 범위를 <b>잔금을 치르기 전</b>에 정하는 것이 유리합니다', '약속은 문자·메일로 남기기'])
+                + step(3, '보수 후 확인', ['보수가 끝나면 같은 번호 순서로 다시 확인', '실리콘·도장은 마른 뒤 확인하고 서명'])
+            + '</div>'
+            + sec('02', 'A/S 기간은 계약서 기준')
+            + '<div style="display:flex;gap:14px;align-items:stretch;margin-bottom:26px;">'
+                + '<div style="flex:1;background:#f8fafb;border-radius:10px;padding:16px 18px;font-size:13px;color:#444;line-height:1.75;">'
+                    + '보고서의 <b style="color:#141d2e;">A/S</b> 표시는 인테리어 업체에 보수를 요청할 항목이라는 뜻입니다.<br>'
+                    + 'A/S 기간은 <b>인테리어 계약서에 적힌 하자보수 기간</b>을 따릅니다. 기간이 적혀 있지 않다면 지금 업체에 확인해 문자로 남겨 두세요.'
+                + '</div>'
+                + '<div style="width:230px;border:2px solid #141d2e;border-radius:10px;padding:14px 16px;font-size:12.5px;color:#333;line-height:1.7;">'
+                    + '<div style="font-weight:800;color:#141d2e;margin-bottom:4px;">계약서에서 볼 곳</div>'
+                    + '· 하자보수(A/S) 기간<br>· 공사 범위(공정 목록)<br>· 잔금 지급 조건<br>· 추가 공사 비용 기준'
+                + '</div>'
+            + '</div>'
+            + sec('03', '건설사 하자와 구분하기')
+            + '<div style="font-size:13px;color:#444;line-height:1.75;margin-bottom:26px;">'
+                + '인테리어로 손대지 않은 곳(창호·배관·공용 설비 등)에 처음부터 있던 하자는 지금처럼 <b>건설사(시공사)</b>에 접수할 수 있습니다. 공사 전 사진이 있으면 함께 내면 좋습니다.<br>'
+                + '인테리어 공사로 바뀐 곳의 하자는 <b>인테리어 업체</b>에 요청합니다.'
+            + '</div>'
+            + sec('04', '해결이 안 될 때')
+            + '<div style="font-size:13px;color:#444;line-height:1.75;">'
+                + '요청 내용과 날짜를 문자·메일로 남기고, 그래도 해결되지 않으면 <b>한국소비자원 상담(1372)</b>에서 상담을 받을 수 있습니다.'
             + '</div>'
             + '<div style="position:absolute;bottom:20px;left:45px;right:45px;padding-top:10px;border-top:1px solid #e8eaee;display:flex;justify-content:space-between;font-size:11px;color:#9aa1ad;font-weight:700;letter-spacing:.05em;"><span>THE HOME INSPECTION GUIDE</span><span>더홈점검</span></div>'
         + '</div>';
@@ -16450,7 +16496,7 @@ body.light-mode .card.reference-info {
     }
     
     // ✅ 패치 69: 새 배포 확인 — 이 화면의 판 번호(APP_BUILD) vs 사이트의 version.json(정식)·version-test.json(테스트)
-    const APP_BUILD = '07b9bde1d4a7'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
+    const APP_BUILD = '36ed0d46958c'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
     (function() {
         const url = /index-unified-test\.html$/.test(location.pathname) ? 'version-test.json' : 'version.json';
         let busy = false;
