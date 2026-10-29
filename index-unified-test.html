@@ -1945,7 +1945,7 @@ body.light-mode .card.reference-info {
         </button>
         
         <h1>🏠 더홈점검</h1>
-        <p id="appVersionTag" style="color:#fde68a;font-weight:700;">🧪 테스트판 · 업데이트 2026.10.28</p>
+        <p id="appVersionTag" style="color:#fde68a;font-weight:700;">🧪 테스트판 · 업데이트 2026.10.29</p>
     </div>
 
     <div class="container">
@@ -7187,6 +7187,10 @@ body.light-mode .card.reference-info {
                 const nx = cur.findIndex(r => !isDone(r) && !lockOf(r));
                 if (nx >= 0) h += '<button type="button" class="adm-next" data-act="open" data-i="' + nx + '">▶ 다음 사람 보내기 (' + E(cur[nx].name || dh(cur[nx])) + ')</button>';
                 saveSt();
+                if (st.kind === 'k5') h += '<div class="adm-step">번호로 보내기 <small>시트에 이 번호가 있으면 금액 자동 · 없으면 점검비를 적어 주세요</small></div>' // ✅ 패치 91
+                    + '<input class="adm-sel" data-f="direct" inputmode="tel" placeholder="010-0000-0000">'
+                    + '<div class="adm-dates"><input class="adm-sel" data-f="tot5" inputmode="numeric" placeholder="점검비 (예: 350000)" style="flex:1;min-width:0;"><input class="adm-sel" data-f="dep5" inputmode="numeric" placeholder="예약금 (예: 50000)" style="flex:1;min-width:0;"></div>'
+                    + '<button type="button" class="adm-next" data-act="direct5">🧾 정산 문자 보내기</button>';
                 if (['k1', 'k2', 'k3'].indexOf(st.kind) >= 0) h += '<div class="adm-step">번호 직접 입력 <small>시트에 없는 고객</small></div><div class="adm-dates"><input class="adm-sel" data-f="direct" inputmode="tel" placeholder="010-0000-0000"><button type="button" class="adm-send" data-act="direct">📩 보내기</button></div>';
                 box.innerHTML = card(h);
             }
@@ -7458,6 +7462,18 @@ body.light-mode .card.reference-info {
                         return;
                     }
                     if (a === 'price-re') { startPrice(true); render(); return; } // ✅ 패치 90
+                    if (a === 'direct5') { // ✅ 패치 91: 번호로 정산 — 시트에서 그 번호의 가장 최근 점검(금액 있는 것), 적은 금액이 있으면 그 금액
+                        const v = f => { const x = box.querySelector('[data-f="' + f + '"]'); return x ? x.value : ''; };
+                        const ph = phonesOf(v('direct')), won0 = s => +String(s).replace(/\D/g, '') || 0, tot = won0(v('tot5')), dep = won0(v('dep5'));
+                        if (!ph.length) { alert('전화번호를 확인해 주세요.'); return; }
+                        const r = data.rows.filter(x => x.total && x.date && x.phones.some(p => ph.indexOf(p) >= 0)).sort((a, b) => b.date - a.date)[0];
+                        if (!tot && !r) { alert('시트에서 이 번호의 점검 금액을 찾지 못했어요. 점검비(와 예약금)를 적어 주세요.'); return; }
+                        if (tot && dep > tot) { alert('예약금이 점검비보다 커요. 금액을 확인해 주세요.'); return; }
+                        const m = tot ? { total: tot, dep: dep } : r;
+                        sheet(r && !tot ? dh(r) + ' · ' + (r.name || '') : fmtPh(ph[0]) + ' · 잔금 ' + won(m.total - m.dep), msgK5(m), ph,
+                            r && !tot ? () => { sent[sentKey(r)] = new Date().toISOString(); lsSet(SENT_KEY, sent); render(); } : null);
+                        return;
+                    }
                     if (a === 'direct') {
                         const inp = box.querySelector('[data-f="direct"]'), ph = phonesOf(inp && inp.value);
                         if (!ph.length) { alert('전화번호를 확인해 주세요.'); return; }
@@ -16532,7 +16548,7 @@ body.light-mode .card.reference-info {
     }
     
     // ✅ 패치 69: 새 배포 확인 — 이 화면의 판 번호(APP_BUILD) vs 사이트의 version.json(정식)·version-test.json(테스트)
-    const APP_BUILD = 'dec9d3aecbd4'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
+    const APP_BUILD = 'f2b247cda979'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
     (function() {
         const url = /index-unified-test\.html$/.test(location.pathname) ? 'version-test.json' : 'version.json';
         let busy = false;
