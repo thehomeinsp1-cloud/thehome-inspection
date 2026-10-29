@@ -6556,7 +6556,7 @@ body.light-mode .card.reference-info {
             const L = a => a.join('\n');
             const MSG = {
                 k1: L(['🏠 더홈점검 점검서비스 안내', '', '안녕하세요, 건축자격증 보유 · 현장경력 10년의 사전점검 전문 더홈점검입니다.', '문의 감사합니다 😊', '',
-                    '📄 실제 보고서 샘플 먼저 확인해 보세요', 'https://drive.google.com/file/d/1h34gEhhAf7aqlyms4pmPWUR1qFoTF4Zt/view?usp=drive_link', '',
+                    '🔒 아래 링크는 더홈점검 공식 링크예요. 안심하고 눌러 보세요.', '', '📄 실제 보고서 샘플 (먼저 확인해 보세요)', 'drive.google.com/file/d/1h34gEhhAf7aqlyms4pmPWUR1qFoTF4Zt/view', '',
                     '🔍 점검 구성', '육안점검+기능점검+장비점검(열화상·레이저레벨)+공기질측정+현장 브리핑+당일 종합보고서+사후점검(유상옵션)', '· 소요시간 : 세대당 2시간내외', '',
                     '✅ 예약 방법', '단지명 / 동·호수 / 평형 / 희망일시 회신 → 일정 확인 → 예약금 5만원 → 잔금은 점검 후 결제', '',
                     '📞 문의', '1668-5322 / 010-9985-0128 (문자 남겨주시면 회신드립니다)', '홈페이지 https://www.thehomeinsp.com/', '카톡상담 https://open.kakao.com/o/sR64Xb3e', '후기·사례 https://blog.naver.com/thehomeinsp']),
@@ -6592,16 +6592,18 @@ body.light-mode .card.reference-info {
                 gget('https://sheets.googleapis.com/v4/spreadsheets/' + PRICE_SHEET + '/values/' + rq('링크!A2:G'))
                     .then(j => { const today = dKey(new Date());
                         p.rows = (j.values || []).map(v => ({ code: String(v[0] || '').trim(), name: String(v[1] || '').trim(), grade: String(v[2] || '').trim(), exp: String(v[3] || '').trim(), add: String(v[4] || '').trim(), link: String(v[6] || '').trim() }))
-                            .filter(x => x.code && x.name && /^https?:\/\//.test(x.link))
+                            .filter(x => x.code && /^https?:\/\//.test(x.link))
                             .map(x => Object.assign(x, { old: /^\d{4}-\d{2}-\d{2}$/.test(x.exp) && x.exp < today })); },
                         e => { p.err = e && (e.status === 403 || e.status === 404) ? '이 구글 계정은 가격안내 시트를 볼 수 없어요.' : e && e.status === 401 ? '구글 로그인이 만료됐어요. 다시 로그인해 주세요.' : '가격안내 시트를 읽지 못했어요.'; })
                     .then(() => { p.loading = false; if (price === p && isAdmin && st.kind === 'k1') render(); });
             }
+            const shortUrl = u => String(u).replace(/^https?:\/\/(www\.)?/, '').replace(/[?&]usp=[^&]*$/, ''); // ✅ 패치 92: thehomeinsp.com/64?k=… (문자앱이 주소로 알아봄)
             const priceRow = () => price && price.rows ? price.rows.find(x => x.code === st.price && !x.old) || null : null;
             function msgK1() {
                 const p = priceRow();
                 if (!p) return MSG.k1;
-                return MSG.k1.replace('\n\n✅ 예약 방법', '\n\n' + L(['💰 ' + p.name + ' 가격 안내 (평형별 금액·할인)', p.link].concat(p.add ? [p.add] : [])) + '\n\n✅ 예약 방법');
+                const S = '1h34gEhhAf7aqlyms4pmPWUR1qFoTF4Zt/view\n'; // ✅ 패치 92: 보고서 샘플 링크 바로 아래
+                return MSG.k1.replace(S, S + '\n' + L(['💰 점검 가격 안내' + (p.name ? ' (' + p.name + ')' : ''), shortUrl(p.link)].concat(p.add ? [p.add] : [])) + '\n');
             }
             function msgK5(r) {
                 return L(['안녕하세요, 더홈점검입니다 🙂', '점검 서비스를 이용해 주셔서 감사합니다.', '', '【 정산 】', '', '점검비 ' + won(r.total)]
@@ -7021,9 +7023,9 @@ body.light-mode .card.reference-info {
                 if (price.err) return h + '<div class="adm-msg adm-err">' + E(price.err) + '</div><button type="button" class="adm-re" data-act="price-re" style="width:100%;">↻ 다시 읽기</button>';
                 const p = priceRow();
                 h += '<div class="adm-dates"><select class="adm-sel" data-f="price" style="flex:1;min-width:0;"><option value="">가격 링크 없이 (기본 안내만)</option>'
-                    + price.rows.map(x => '<option value="' + E(x.code) + '"' + (x.old ? ' disabled' : '') + (p && p.code === x.code ? ' selected' : '') + '>' + E(x.name + (x.grade ? ' · ' + x.grade : '') + (x.old ? ' · 만료' : '')) + '</option>').join('')
+                    + price.rows.slice().sort((a, b) => a.grade.localeCompare(b.grade, 'ko')).map(x => '<option value="' + E(x.code) + '"' + (x.old ? ' disabled' : '') + (p && p.code === x.code ? ' selected' : '') + '>' + E((x.grade || '등급 없음') + (x.name ? ' · ' + x.name : '') + (x.old ? ' · 만료' : '')) + '</option>').join('')
                     + '</select><button type="button" class="adm-re" data-act="price-re" aria-label="가격안내 시트 다시 읽기" style="flex:none;">↻</button></div>';
-                if (p) h += '<div class="adm-hint">💰 ' + E(p.link) + (p.add ? '<br>' + E(p.add) : '') + (p.exp ? '<br>만료일 ' + E(p.exp) : '') + '</div>';
+                if (p) h += '<div class="adm-hint">💰 ' + E(shortUrl(p.link)) + (p.add ? '<br>' + E(p.add) : '') + (p.exp ? '<br>만료일 ' + E(p.exp) : '') + '</div>';
                 else if (!price.rows.length) h += '<div class="adm-hint">시트 \'링크\' 탭에 단지가 없어요. 시트에 넣고 ↻ 를 누르세요.</div>';
                 return h;
             }
@@ -16547,7 +16549,7 @@ body.light-mode .card.reference-info {
     }
     
     // ✅ 패치 69: 새 배포 확인 — 이 화면의 판 번호(APP_BUILD) vs 사이트의 version.json(정식)·version-test.json(테스트)
-    const APP_BUILD = '019d71867ceb'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
+    const APP_BUILD = '6235c1cc6323'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
     (function() {
         const url = /index-unified-test\.html$/.test(location.pathname) ? 'version-test.json' : 'version.json';
         let busy = false;
