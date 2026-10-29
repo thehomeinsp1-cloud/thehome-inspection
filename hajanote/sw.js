@@ -1,6 +1,6 @@
 // 자동 생성 파일 (tools/web-sw.py) — 직접 고치지 마세요
-const CACHE = 'hajanote-79a846629008';
-const FILES = ["./apple-touch-icon.png", "./assets/code-KaFSeAJS.js", "./assets/commonjs-dynamic-modules-TDtrdbi3.js", "./assets/exceljs.min-DQa2-cWk.js", "./assets/html2canvas.esm-Dw6mdHwC.js", "./assets/index-Cbv_h8WD.js", "./assets/index-Cl50C6M1.js", "./assets/index-D03PHUdX.js", "./assets/index-D06kWB34.css", "./assets/index-DbyTvXVV.js", "./assets/index-DilsHgsH.js", "./assets/index.es-BdEeXPdd.js", "./assets/jspdf.es.min-D0yjXajZ.js", "./assets/jszip.min-1zUEax2W.js", "./assets/purify.es-C8T5ouKw.js", "./assets/web-CBwotKl7.js", "./assets/web-DBZ0lWbs.js", "./assets/web-F0t1XiB8.js", "./fonts/OFL-WantedSans.txt", "./fonts/WantedSansVariable.woff2", "./icon-192.png", "./icon-512.png", "./index.html", "./manifest.webmanifest", "./privacy.html"];
+const CACHE = 'hajanote-c7e3e0609e20';
+const FILES = ["./apple-touch-icon.png", "./assets/code-KaFSeAJS.js", "./assets/commonjs-dynamic-modules-TDtrdbi3.js", "./assets/exceljs.min-BhPnvJ5P.js", "./assets/html2canvas.esm-Dw6mdHwC.js", "./assets/index-Cl50C6M1.js", "./assets/index-D06kWB34.css", "./assets/index-DV-ccBz7.js", "./assets/index-DbbcoIrg.js", "./assets/index-HTzaoRKa.js", "./assets/index-cJMtKMp9.js", "./assets/index.es-DAsjNKDl.js", "./assets/jspdf.es.min-WeTJqbvo.js", "./assets/jszip.min-BF5BTzhC.js", "./assets/purify.es-C8T5ouKw.js", "./assets/web-CBwotKl7.js", "./assets/web-CXH1BCFd.js", "./assets/web-F0t1XiB8.js", "./fonts/OFL-WantedSans.txt", "./fonts/WantedSansVariable.woff2", "./icon-192.png", "./icon-512.png", "./index.html", "./manifest.webmanifest", "./privacy.html"];
 
 self.addEventListener('install', (e) => {
   // cache:'reload' — 브라우저 HTTP 캐시의 옛 index.html이 새 캐시에 들어가 흰 화면이 되는 것을 막는다 (검수 P-2)
