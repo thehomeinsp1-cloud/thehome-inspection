@@ -6855,8 +6855,7 @@ body.light-mode .card.reference-info {
                     its.forEach(x => { body += line(!!x.q, x.it.n, x.it.u, qtW(x.it.p), x.q ? x.q : '-', x.q ? qtW(x.it.p * x.q) : '선택 시'); });
                 });
                 const fr = qtSet.frees.filter(x => x.on && x.n.trim());
-                if (fr.length) body += sec('무료 서비스', '입주청소 + 줄눈 2가지를 함께 진행하시면, 입주청소팀이 무료로 해 드려요')
-                    + fr.map(x => '<tr class="fr"><td class="ck">🎁</td><td><b class="nm">' + E(x.n) + '</b></td><td class="c">세대</td><td class="r">-</td><td class="c">1</td><td class="r"><span class="free">무료</span></td></tr>').join('');
+                if (fr.length) body += '<tr class="fr"><td colspan="6"><span class="free">무료</span> <b>' + E(fr.map(x => x.n).join(' · ')) + '</b><small>입주청소 + 줄눈 함께 진행 시</small></td></tr>'; // 한 줄로 (대표님: 자리 덜 차지하게)
                 const seal = '<svg viewBox="0 0 62 62" width="54" height="54"><rect x="5" y="5" width="52" height="52" rx="6" fill="none" stroke="#c62828" stroke-width="2.4" opacity=".85"/><g fill="#c62828" opacity=".85" font-family="Noto Serif KR,serif" font-weight="900" font-size="17" text-anchor="middle"><text x="21" y="28">더</text><text x="41" y="28">홈</text><text x="21" y="49">점</text><text x="41" y="49">검</text></g></svg>';
                 return '<div class="top"><div class="brand"><img src="' + QT_LOGO + '" alt=""><div><b>더홈점검</b><span>신축 아파트 사전점검 · 입주케어</span></div></div>'
                     + '<div class="ttl"><b>견 적 서</b><span>견적번호 ' + E(no) + '</span></div></div>'
@@ -6917,7 +6916,7 @@ body.light-mode .card.reference-info {
                 + '.qp .tbl td.ck{text-align:center;color:#1f3864;font-weight:900;font-size:15px}.qp .tbl tr.off td.am{color:#9aa2b1;font-size:12.5px}'
                 + '.qp .tbl tr.sg td{background:#e9eef7;color:#1f3864;font-weight:800;font-size:14px;padding:7px 9px;border-bottom:0}.qp .tbl tr.sg small{font-weight:500;font-size:12px;color:#55617a;margin-left:8px}'
                 + '.qp .tbl tr.on td{background:#fff6dc;color:#1c2333}.qp .tbl tr.on .nm{font-weight:800}.qp .tbl tr.on td.am{color:#1f3864;font-weight:800;font-size:14.5px}'
-                + '.qp .tbl tr.fr td{background:#f1f9f3}.qp .free{display:inline-block;background:#1e8a4c;color:#fff;font-weight:800;font-size:12.5px;padding:1px 10px;border-radius:999px}'
+                + '.qp .tbl tr.fr td{background:#f1f9f3;padding:7px 9px;font-size:13px;color:#1c2333}.qp .tbl tr.fr small{margin-left:8px;font-size:11.5px;color:#55617a}.qp .free{display:inline-block;background:#1e8a4c;color:#fff;font-weight:800;font-size:12px;padding:0 9px;border-radius:999px;margin-right:4px}'
                 + '.qp .foot2{display:flex;justify-content:space-between;gap:18px;margin:12px 36px 0;align-items:flex-start}.qp .legend{font-size:12.5px;color:#55617a;line-height:1.7;padding-top:4px}.qp .legend b{color:#1f3864}'
                 + '.qp .sum{width:310px;flex:none;font-size:14px}.qp .sum div{display:flex;justify-content:space-between;padding:5px 4px;border-bottom:1px solid #e3e7ee}.qp .sum .dc{color:#c62828}'
                 + '.qp .sum .g{border:0;background:#1f3864;color:#fff;padding:10px 12px;margin-top:6px;font-weight:800;font-size:16px;border-radius:6px}'
@@ -16890,7 +16889,7 @@ body.light-mode .card.reference-info {
     }
     
     // ✅ 패치 69: 새 배포 확인 — 이 화면의 판 번호(APP_BUILD) vs 사이트의 version.json(정식)·version-test.json(테스트)
-    const APP_BUILD = '2a3c836cca6b'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
+    const APP_BUILD = '59b7864b81f3'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
     (function() {
         const url = /index-unified-test\.html$/.test(location.pathname) ? 'version-test.json' : 'version.json';
         let busy = false;
