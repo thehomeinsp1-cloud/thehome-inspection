@@ -6797,7 +6797,7 @@ body.light-mode .card.reference-info {
                 frees: ['청소 후 하자체크', '스팀케어', '피톤치드 케어', '점검 스티커 제거'].map(n => ({ n: n, on: true })) });
             let qtSet = lsGet(QT_KEY, null);
             if (!qtSet || !Array.isArray(qtSet.items)) qtSet = QT_DEF();
-            const qt = { q: {}, site: '', dong: '', ho: '', ph: '', py: '', dc: '', qq: '', who: '', file: null }; // q: 항목 순번 → 수량 (항목을 지우면 순번이 바뀌어 같이 정리)
+            const qt = { q: {}, site: '', dong: '', ho: '', ph: '', py: '', dc: '', qq: '', who: '', g: '', d: '', file: null }; // q: 항목 순번 → 수량 (항목을 지우면 순번이 바뀌어 같이 정리)
             const qtSave = () => lsSet(QT_KEY, qtSet);
             const qtW = n => Math.round(n).toLocaleString('ko-KR'), qtWn = n => qtW(n) + '원';
             function qtKor(n) { // 금액 한글 표기 (견적서 관례: 금 ○○원정)
@@ -6815,9 +6815,18 @@ body.light-mode .card.reference-info {
                 return { rows: rows, sum: sum, dc: dc, sup: sup, vat: vat, tot: sup + vat };
             }
             // 고객 찾기 (대표님 10-30): 예약일정·홈페이지 신청에서 찾아 누르면 단지·동호수·연락처 자동 (🔎 고객 찾기와 같은 검색)
-            let qtRes = [];
+            let qtRes = [], qtPick = [];
+            function qtPickHtml() { // 예약 고객 고르기 (대표님 10-30): 정산처럼 단지 → 날짜 → 고객
+                const gs = groups(); if (!gs.length) return '';
+                const g = gs.find(x => x.key === qt.g) || gs[0], ds = datesOf(g);
+                if (!ds.list.some(o => o.k === qt.d)) qt.d = ds.best;
+                qtPick = g.rows.filter(r => dKey(r.date) === qt.d).sort((a, b) => tMin(a.time) - tMin(b.time));
+                return '<select class="adm-sel" data-qk="g">' + gs.map(x => '<option value="' + E(x.key) + '"' + (x.key === g.key ? ' selected' : '') + '>' + E(x.name) + ' (' + x.rows.length + ')</option>').join('') + '</select>'
+                    + '<select class="adm-sel" data-qk="d">' + ds.list.map(o => '<option value="' + o.k + '"' + (o.k === qt.d ? ' selected' : '') + '>' + dLabel(o.date) + ' · ' + o.n + '세대</option>').join('') + '</select>'
+                    + qtPick.map((r, i) => '<button type="button" class="qt-add qt-who" data-qa="pick" data-i="' + i + '"><b>' + E(dh(r)) + ' · ' + E(r.name || '이름 없음') + '</b>' + (r.phones[0] ? ' · ' + E(fmtPh(r.phones[0])) : '') + (r.time ? ' · ' + E(r.time) : '') + '</button>').join('');
+            }
             function qtFindHtml() {
-                if (norm(qt.qq).length < 2) return qt.who ? '<div class="adm-hint">✓ <b>' + E(qt.who) + '</b> 고객 정보를 넣었어요. 아래에서 고칠 수 있어요.</div>' : '';
+                if (norm(qt.qq).length < 2) return qt.who ? '<div class="adm-hint">✓ <b>' + E(qt.who) + '</b> 고객 정보를 넣었어요. 아래에서 고칠 수 있어요. <button type="button" class="qt-add" data-qa="repick" style="width:auto;display:inline-block;margin:4px 0 0;padding:4px 10px;">↺ 다른 고객 고르기</button></div>' : '';
                 qtRes = sqFind(qt.qq).concat(data.hp && data.hp.rows ? sqFind(qt.qq, data.hp.rows) : []).slice(0, 20);
                 if (!qtRes.length) return '<div class="adm-msg">찾는 고객이 없어요. 아래에 직접 적어 주세요.</div>';
                 return qtRes.map((r, i) => '<button type="button" class="qt-add qt-who" data-qa="who" data-i="' + i + '"><b>' + E(r.name || '이름 없음') + '</b> · ' + E(r.site) + ' ' + E(dh(r))
@@ -6825,8 +6834,9 @@ body.light-mode .card.reference-info {
             }
             function qtFormHtml() {
                 const inp = (k, v, ph, extra) => '<input class="adm-sel" data-qk="' + k + '" value="' + E(v) + '" placeholder="' + ph + '"' + (extra || '') + '>';
-                let h = '<div class="adm-step">② 고객 <small>찾아서 누르면 단지·동호수·연락처가 들어가요</small></div>'
-                    + inp('qq', qt.qq, '🔎 이름 · 전화 뒷자리 · 동호수 · 단지명', ' type="search" autocomplete="off"') + '<div id="qtFind">' + qtFindHtml() + '</div>' + inp('site', qt.site, '단지명')
+                let h = '<div class="adm-step">② 예약 고객 <small>단지 · 날짜 고르고 누르면 동호수·연락처가 들어가요</small></div>'
+                    + (qt.who ? '' : qtPickHtml())
+                    + inp('qq', qt.qq, '🔎 다른 고객 찾기 · 이름 · 전화 뒷자리 · 동호수', ' type="search" autocomplete="off"') + '<div id="qtFind">' + qtFindHtml() + '</div>' + inp('site', qt.site, '단지명')
                     + '<div class="adm-dates">' + inp('dong', qt.dong, '동', ' inputmode="numeric"') + inp('ho', qt.ho, '호', ' inputmode="numeric"') + '</div>'
                     + inp('ph', qt.ph, '고객 연락처 (안내 문자용 · 없어도 됨)', ' inputmode="tel"')
                     + '<div class="adm-step">③ 입주청소 <small>전용 평수 · 평당 단가</small></div><div class="adm-dates">' + inp('py', qt.py, '전용 평수 (예: 34)', ' inputmode="decimal"') + inp('ppy', qtSet.ppy, '평당 단가', ' inputmode="numeric"') + '</div>'
@@ -7011,6 +7021,7 @@ body.light-mode .card.reference-info {
                 qtBound = true;
                 box.addEventListener('input', e => {
                     const t = e.target, k = t.getAttribute && t.getAttribute('data-qk'), f = t.getAttribute && t.getAttribute('data-qf');
+                    if (k === 'g' || k === 'd') { qt[k] = t.value; if (k === 'g') qt.d = ''; qtForm(); return; }
                     if (k === 'qq') { qt.qq = t.value; const f2 = document.getElementById('qtFind'); if (f2) f2.innerHTML = qtFindHtml(); return; }
                     if (k === 'all') { qtSet.all = t.checked; qtSave(); qtDraw(); return; }
                     if (k) { if (k === 'ppy') { qtSet.ppy = +t.value.replace(/\D/g, '') || 0; qtSave(); } else qt[k] = t.value.trim(); qtDraw(); return; }
@@ -7023,8 +7034,9 @@ body.light-mode .card.reference-info {
                     const b = e.target.closest && e.target.closest('[data-qa]');
                     if (!b) return;
                     const a = b.getAttribute('data-qa'), i = +b.getAttribute('data-i');
-                    if (a === 'who') {
-                        const r = qtRes[i]; if (!r) return;
+                    if (a === 'repick') { qt.who = ''; qtForm(); return; }
+                    if (a === 'who' || a === 'pick') {
+                        const r = (a === 'pick' ? qtPick : qtRes)[i]; if (!r) return;
                         qt.site = String(r.site || '').replace(/\s*\(?사후[^()]*\)?\s*/g, '').replace(/\s*\(추가\)/g, '').trim();
                         qt.dong = unitPart(r.dong, '동'); qt.ho = unitPart(r.ho, '호'); qt.ph = r.phones[0] ? fmtPh(r.phones[0]) : '';
                         qt.who = (r.name || '') + ' · ' + qt.site + ' ' + dh(r); qt.qq = ''; qtForm(); return;
@@ -16918,7 +16930,7 @@ body.light-mode .card.reference-info {
     }
     
     // ✅ 패치 69: 새 배포 확인 — 이 화면의 판 번호(APP_BUILD) vs 사이트의 version.json(정식)·version-test.json(테스트)
-    const APP_BUILD = '62f89ba4efb5'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
+    const APP_BUILD = '4e76176e0a23'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
     (function() {
         const url = /index-unified-test\.html$/.test(location.pathname) ? 'version-test.json' : 'version.json';
         let busy = false;
