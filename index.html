@@ -6546,7 +6546,7 @@ body.light-mode .card.reference-info {
             const KINDS = [['k1', '🏠 서비스 안내', '문의 고객'], ['k2', '💳 예약금 요청', '예약 직전'], ['k3', '📢 필독 안내문', '점검 전 공지'],
                 ['k4', '★ 예약 안내문', '예약금 입금 후'], ['k5', '🧾 정산·잔금', '점검 후'], ['k6', '🔁 사후점검', '단지 공지'],
                 ['k7', '⏰ 전날 안내', '내일 점검 고객'], ['k8', '💰 미입금', '잔금 재안내'], ['k9', '⚠️ 확인 필요', '빠진 것·보고서'],
-                ['k10', '📩 하자접수 완료 안내', '접수완료 체크된 고객 (모바일접수대행 시트)'], ['k11', '🔐 직원 로그인 기록', '누가 언제 로그인했는지 · PIN 틀림·잠금 · 계약서 서명'], ['k12', '📥 홈페이지 신청', '사후점검 예약 · 빠른예약 (홈페이지 시트)']];
+                ['k10', '📩 하자접수 완료 안내', '접수완료 체크된 고객 (모바일접수대행 시트)'], ['k11', '🔐 직원 로그인 기록', '누가 언제 로그인했는지 · PIN 틀림·잠금 · 계약서 서명'], ['k12', '📥 홈페이지 신청', '사후점검 예약 · 빠른예약 (홈페이지 시트)'], ['k13', '🧾 견적서', '입주청소 · 줄눈 · 탄성코트 → 이미지/PDF']];
             // 로그인 서버(Apps Script)가 남기는 기록 + 직원관리코드(이름·소속·상태만, PIN 칸은 읽지 않음) — 둘 다 대표님 계정 소유, 읽기만
             const LOG_SHEET = '1WVZXXrjPumWThhnonMYbQM4z_sYDgynfXU0gyFwDpI8', STAFF_SHEET = '1djnGAm8nlGbHgRuxxORGK-cqI_CTYOKrSwZuPtMzl2s';
             const SUB_SHEET = '1jfYZNb9aIsWY6nQOoHjSUE8a2NTGXoD1aPVrVzqRGO8'; // 더홈점검_모바일접수대행_공유 — 아이디·비밀번호 칸은 요청하지 않음 (필요한 칸만 골라 읽음)
@@ -6775,6 +6775,260 @@ body.light-mode .card.reference-info {
             const night = () => { const h = new Date().getHours(); return h >= 21 || h < 8; };
             const lsGet = (k, def) => { try { return JSON.parse(localStorage.getItem(k) || 'null') || def; } catch (e) { return def; } };
             const lsSet = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
+            // ✅ 패치 94: 🧾 견적서 (대표님 10-29) — 입주청소·줄눈·탄성코트 견적을 이미지/PDF로 만들어 공유창(문자·카톡)으로 보냄
+            //    항목 이름·단위·단가·추가·삭제·무료서비스는 이 휴대폰에 저장(th_quote_v1), 수량·고객은 저장 안 함
+            //    양식: 처음 견적서(청소케어견적서.pdf) 바탕 · 로고는 아래에 내장
+            const QT_KEY = 'th_quote_v1';
+            const QT_LOGO = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAKAAAACACAYAAACMY2IbAAAhCElEQVR42u2dd3hUVfrHv+fcMjWdNEijN0GlWHAVEZWlCYpgAUQEAUFFBMyisGxcwYKKiLiyWBFFiSgguC66+kNdRCw0KdKkt/Tpc8s5vz8mICzJTChTktz3eeahhbl3zv3Me95+CAw5Z7G+sroXzWs+BqKUB6aDl5d96v7kk6dRWOAyVufchBhLcG5im/fvR2nz9jNgMpuh6wAhAKHgHtcKHNw9wjW6W7GxSjUXwViCGotoefGTAqF1xxkQJRGaCnAGMAYwHcQW15JY464kbbt8o/9nSZmxXIYGvJgi2978ZgFt3Paek8BV/VNmcI9zv3Z4z12+kdd/byybAeDFEItt4fo5NLfF/VD9AOchUDWD+zyH9MO/3+a975ofjeULLtRYgiDkDRzdyL54w3Ka06xm8AGA4gMxmbPEzNxPra+v6W2soqEBz0vMN9+RLdz72FKa06IzvB4A/NzeQJIBTXOxsqIR7oFtlxgragBYc3YmvdReuvSa98S8Fpdwn/cCXDwJYJqXlRwZ5b7j8kXGyhoAhnZ1J77U2Xxt749pSnoW93lCACYGHJJgW3PgZ3T4vFOcffJmGSts2IDViunxuT3M1/RcRpJTQ8BHAFECKzlWDFUBaJBolq4BhAqw2Z+zf7p3mrHKBoBV23zPLL5burbfUpKc1hB+XxD2CGAyg/t9b+vvPNtR/33HX09puuqE6QBjIPaEJ+2FW17GkiWyseJGIPoPzTd1wUipc7f5xGy3QFOCwyebwV1lC13r1o3SFkwrVVe9+43QuXsFscd1J2arAMaq/r+cA5yDJKRcKfPklkpi4uf4cY1iAFjfQy3zPn9SbH/VLGKxB7Ib1e4VFADhcDtmudb/OAEFg07Bo/1r0TqS2+KIkJHTExabUG2gGgB0HcQa11bObNxeTsv8Uln/lccAMELXkqd/3Fxse0WS/uPq0thIrX38nNjuqr8QUSLQtSDwCQHt53bkO/s2LcCawrMI07/7bAPJa3OYpufcRCw2KTiEGkhcUgvkNLsBHbr+n776wxLDCw6jnWn9568jSGLacGKytIOqcvjcq9SDm57wT+mzNyqfOusqi+XJF+aIOc3vBwGq3TZP2XZc5c6yaa5+LZ4N9dbyiJm9pD/3fZumZ6cGtSUBwGwFd1Zs0fbu7Ot7sPt+A0CEo3rkl/G0SfuXQAVAUwACEFkGLzmxQ9/2YzdPQZ9jEf3EmZlW6zNLFwpNLhkAvy9QUFCtjpTAdb2MO0rHuG9rVeNgsvm+J64Tew/+kKRlZSBUKMdkBtzOLfrhA8M8I6/ZYHjBFxO+iQvTSIOG+QAAxRvwBnUd3OsFUtJakaZtHozkh7WNmJJum1G4RGjcZgD83uDwSSZA14u4ogw8F/gAwPfmjG/833/Vkx098BNMluA/7PcB1rh2Qm7TVfZ31nY1ALyIoputrYjZngm9CuNeZ4AtqVukQkHmofk5pOeQlULz9r0Dmi9I8Fg2gSu+vfD5+7p7Zf3nfK6nPv/gRnfh/F686NDXxGxFqPwxZDkTyXlLLY//cKsB4EUz8ymrVstwDkKIJRKOkDxxRhux7+DlJD27U8jshskCrvh/g6Oit7NP9g8XdOHCuUX0uyW3s6Ljn0G2BByZ6gwhjx/kgJgi2rMXx0399V4DwIthYNoTVQBB9rlzzfCfR5jlmQ+ukm8Y/C+SkXNZjewxr2cLcZf1c93easfFuL5jdkGp6x8Fg/RtP31IJNPZEBIAOoA9DChTAEpNsCXPt+X/8JAB4IUHXnQQ8CC+DgE6hm/bfWTKtWJe2ifEFpcDvz8EfFZwt+trdcu63s7+rX+7qDfyxSK354Huw/RdmxdCNlfGFCvhYwD26EA5DzwNpgGEyDQp+2X737bNquvZqvBqQLNdBwiPxgezP/XSAKHjVZ/AggyU76p80qSa1JoV3Ov+HAd2DfJNuvVgmG7J7x553f3qph9ehqYBghDQ/78zoJSf+SSYDnCAWFMn2adueakuQxjeD0YEFmKbDQuctuf/MZi0bLWIxsWnQNUAtRzwHDz7coQAkgxeduJd08E9gyLQUKT4Hrp5vL557TSoGsdBAShiVT8FzgBdAYlPf8j++Ia3kwe/G28AWAvEMnv+AzQn73WIkvlUao1QQCkFvIf/0IKEBuBzO+e4Fk0ZXjLyT85I3aNn8u1PaWu+G8sPlLshBalL4BzQVJDk3KFK8yuX2gfOSTUAPBcFKEo10HA/XzzNN/etv4t5zV6FJAdaJs+4GQr4iwDfUYCKAKXgDuds1w9vPIrCQj3SC++dOfA1fcfXQ7nf5YBoCr5JKB4Qe4Mb0ebPi20jFqQbANa8IpiDBLEBCcFFckIk24vzn6NZOVPBOc6C73QItWJAOe7nLuc4V9+cR1FQwKK1+N4PRn3CDvwyiPsch4JDiEoIU7rTvBs/i5+wtpkBYI3cUGv4H26XLnHWBYsX0ibNJwdaJoPndTmDB2V7R7tuafxqLDwAz+u3/1vZ+vnN3FO+BVKIrInqA8zxHXhyo+X2Bz9vZQAYcgvmPKgXzPmF5aKbdEyw3TNukZDR6E7oIUrjRQmc6aXEUTHIeXffd2LpISgfjtuu7v3vrdxTujk0hF7AZG2DjNaf2adsutYA8EKEM3K+O7A5f3qOLf/RFULDrFtCptYkGdC149zjGuAcPmBVLD4I/8J79+i/ftlLL9q9hkghUneaH0S2NkZcg2XWyd/3MgCsVuvIPGighZzf5U1jJzQT21y6SmiUcx1XQgSYZRnw+3foTldv99Bb/y+WH4a38IHDnm+ev00r3vsFZFv1qbuTEApiMk1s9IFtwtdDDADPt+DL6z2nbVgaP+kysfM1K0hySuiWSZMJ3K9sJGWlfTz33vpzrXgi6wpLPf998Q79+M4PQMTgX1JdBRHkOJrW8i3blF8mGgCGuR7RXvBCV9PV3T6jKQ1ah0ytyTK41/e9UFZ+m2P0XXtq1VP57v0yz6wrh+rHt80BDQFhIHUn0viM5+356x43AAxTrsM0afrNpGWrJcRiy4SihNZ8Hs8KbN1yS8WoQb/X0t1J88zuNoEV73kO4MFbPyvL/0lS7gz7tK0vo81A2QCwJmDW0Au2Pjt3lNSh88cwW9OghuhaM5kAr2epa/+RIa6CSbV9Vh93z7o6Xzu4eQzXNX/Q1k/OAiVu8RkP2W+d+gYyO1oNADWFXGjRv2Xmy2OFJi1eJVarLWjXGiGAIIKVlb7mPLhtKPJHOlFHxPtqz/m8ePdI6LoXghwcQtUHkthoiO3ef36Y8MC3SfUaQK6REPhxAkUh1TYzPfvqVLFZ85chigI0Lag3TUQJ3O163n3PreMwcaIXdUzcs7st0g5vvhM+R3HI1J3qA01p3EfPbFRoH74ktZ5vwUG2WQ4CVJlVEqzz3p4ttGrzd4iSUG1q7VS/LmfMUT7dNbjvYyEKYGu3JpzXc4W6f90A+JzHIZkRMnVnSejO8zp8ZB61JMewAaveNqtyUUy2l9+cK2TlPgxNDZFaEwDONVZe/rBraP8nI1FhHW3xvTnkG+3w1lu4u3R3SAhVL6g18Top58p/Wyd8e6kB4P8GYAhhkA/8AU3vu5NsbxUuprmNH4CmhUitieC67oLHM9I9YuA81CPxzu+7XvlxYS/uPLEBsjV0/thka0VTcpdZxq3uVM+cEJUEJZAQP7ZtC+yvf/pzqr3/LYU0Nf3WkPBJEqCpx3nx8f7Oof3eQT0UZdVTu7Ttq/tzZ9H3kEMXMRDZnCdktFhlmbz+lnqUigteD0gIVQHo0thH2tqHDfsXzcjsDl8N8rqqeoyXFN/hHjP0P6jH4it85ADZtLQvK9qzjEiW4HF9TQGRLWliYsMPbBP/e6exBRMCrvpdUr+B7eQrr1tGM7M68pDZDROYx7WN7Nnb1zV68BoYAueyx0vcCx8YzEr2FQZt/UQgdQdBtNDknLcsE78bg7o+nEjuNz6dmC2jQahwtn9AANcJG20o3SukN8xGqKICkxnc59monTjczzNx9DYDvdPEdVRVvEdWSWntkokloXMAQl59rFAQRWpL6SN1ukNWv1vwVf3cgnUdJCEuU8jOC57dOLntuhxr1P0Hb/M/POp3g7gq5OeVHvesK8by0gNPAOAhU3ecgSblPG7LX/90NMf0RTcMwxiCBpgBEJMZ8Lg+cn6xpq9/sgFfSGU466qZzHViEsB10BCpO6aDJuf+xT5tyzvoM8paz7zg0DYiJBnM6fjQ+cvW+/DmLKeBV83EPeOyF/WjG0dBU9wQpBAQaiAJjQbbOz76OtoPsdUrLzhooaoogpeWzHH934qhmJVvwHeO4pnT601etGcI11QHxBCtn343SErWXfbRLy2xzdicXn96QqpLrVEK5nTMcA0f8Aj++U/VwOk8t+M53Zbxol0DuM95CKK5egAlGbBZQJJSepG0ZqtMj6xsUjc0IJVYjY63OjO15uHO8rHuIf2mGghdhO34pW5fst9/7MN9jj1nNTxxHpgAm5QMCBTwA8Rq6Si3+NOn0tgll9X++YA71sUHrlEDCEURnHE397iHue657R8GOhdxO37rzk382JZ+3Fv+6xn5Y0oD8EniH49IARCf0MZ0ed/PbE+su6HWAmgfODyVNpKegyRJIbWgKIErSjncziGuof0/MpAJgyZ8td9WfdtHPbiz+MtTmjAxGTDJZ+sHFSAWcyZtfNkHpjBDGBYALb17N+I9eiwVUht0DVpKBQTmsyj+Izi4v7/rnluXGaggjJMY8o9g18q7uPPEV0htCFjN1W9OKgCTKVVq3P5j68zdw1BbMiGWRx7vJFzfYylNS+8EBYCQUU2OkgCCBq4c3KWXFg3yPHTfWgOR8Ivy62qP0rLrcik5PY1YrZcHtY4YQCTJTG1xfYTOd5VoX837Maan5FsenHCF0PnaT2hyg4bc7wWIHZAvq/oyogRUFBX7t7/XVSmYbKTWIi/E/krJbJKUPB5qiEpKAYCuaXrJ7094JrV4LiYBtE0p6E5atVtIkpIbBrrWePUAUgJ4AOw8utH5RJNOlUNqDYm8CLY5x56m8SmTQcXgteQ0ACIvK5vleig5/2IV/14UG9AyZ0Ff0uHKpSQxqWHIlklKgDI/sM8JaKBo08Y4ry56orvHZzzGTux/BEzTg9LAAGgASUyabH+l9DkAYkwAaJ817zYhM/s9IskJUNXQ8BX7gAOugM4jnELJMc4sjraHnN9sDis5Oh5MU4J6BTywV5GEpEn2eSVv4r7X46IKoO2ND8eR3KbvE0mOC1VUAALguBc45A58EAO72IJwUs48bd/GwVzxlQfVbSchTEoeau9wW2Fc/5kpUQHQ+urb+TQx+RVIkinoQX8nCySPeICj7spekNO74gyJmTBNQeeP2NEdd3BFKYUUAkI/QJKSerDr711henB548gBmJVlsc59c46Q3ugZEIKgcT4CgHGOQ26OE96qzsjgxmOPLfFMu3y1dmx3f+6sOBAUwsqsCU3N7CK3v3GV9MjytuEHMDPTap/6zAIhr9nDp+r5gvbrCsB+J1DiI6CkqpZhDuw2nnqMie+Jtt/yzV/05U7HXsihIYTN2trU6oaPreOWdggfgM2axVufePpt0ih7MBR/6JZJze9Wf9r7Kxy8avhOFqTJsqEFY9Em/MfAzXzTl/14RfmWmkBI7PYWwmU9V1mn/9LrogNoGjiksW3KjJVCdt5AKEroUbiq4uClR0foFXlPQxKD2YeGDRjLEL424Fd91ayevLRodUgIVQBmSwbNbr3YMm1934sGoGngkMZSj76f0PSG10INAZ8sg2vqbv3A3h7uMfd/SDIbqUHjlRzECMPEuGOyauZh17rFA5nD9TFMIaIXGkBM5nghp+1i69N77qvJ+wcNJlqffOFS2ij7PZKW3hahppHKJsDv2w5Hxe3eiWPPIbVW62xAy/R276Ykm8ypzROvsBEGsrP8F89e906XShXfq9unHa20jOqOvDfe4U7rPMSWmTGPZjYeDj1IHkQDiMlqExrmLrDNPmx3T2j08nkBaJn+whW0eculxB6XFfqgPxN4eekm5bedA5Wn8nf9MR1Lp5CDDkfgtcAGFGd2fL9jpimnq0W0dRCI2M4iWBsCxC4SSSQC0CzxUr1JYjtFZ7p6Q9ptv0tUWufXPWsPeQ599+hPffbWCQhnd/G6gZH25/c7SUbOw9CDjIHSAVCB0qT0F20vHJLcE7NeOCcATVMKugstmi8iNntGaPjMYC7nN2z3xsHKUwWHzvg3ptbao8AebD+rcStL+8FZ1rzeEpU72cR4EQAY1wMvcIAHZrBLglkgIBYiwEKJcCklwqWcJ42Ol1LKPum2/ZsKX+mip74f9ulu7PbXcgyZa1LuBPtLx4pJfOLfIJhotRAyAFQQaGqj520vn2jqfrjneOBnNWQxgu25eUNIXrN5RJbjQw6EFCVwR8WHglY6pmL48PL//RHpr7/dZbYnvw/NX9VRroDPucn5Yd8rsG1bzGxZXTP7NBiUPW5itq35/XFyUgo4g8pVcH7uU98oESBRGSpT4NIcP5X4D780cu0NSypN9lot1md2jhAyGs8DFU1BS0lIQM2xE4feds+6YhyOHvVU64RY//bCCJLX9HUiS6Hhk2VwR9lbrqen3FMVfJVxwlrlYEy9ZH7/B5r//b9tEjv9xSbaUxTdC4X5zwu+k9rSr3vBOUOilNwpz9ZmUeH1v342/fLXO9V2AD1/afEGKzk2kuuaM2TqTgNoWta9timbC63DXsmoCkBqnb3gr0KrNvOJJJmC5nUpBagAVl7+mmvF+2OCai9Ka0uMz/xY+6Xzu6TdvDTdnNVCYX5oXMPFG4fNoTA/GNeRasq8sXPSDV+9ftWaMbG0ADelt097MvuatjMbd2/RJSWlRkUG7onZi/i+rf25ohwNmbpTAaFBg16k850fWW99MfN0AEXbC689KzRuWgC5JtNIofPi41PcQ/uNRWGhEqK5nJzHgMqISpv4m5MHNfvoTUidRnm5TDXuD+Ncdg6/7oVFsMVl25vO++C6DU9i+vRo28l0aasB4+Y27PLTkNRLf74zsdWGhTmD1i9vPaBfjSAsuOwr7N14J3y+E6FihdwP0KSUa8j1d6+UH1vdGgCoZfabI2jjZpOg66GnkQKMlZc+5rr/rmcuSkHihZ4Vd4FyaUK/xM5Z+cuy46+8y6Mr2Oz0QuehC3UICCihoEQ47UVR04nsGldBiUDTTY2mLVl+3cxorsHHrQaMuNre6JVUyZJtEySTTRStyZKl1WXWzPdWtBpwc03ewzXjym/IwR194XZtqknWhKamd5CzOyyx3/V8AyqmJA+p7McNkVrTnPrxYyPc9w168RwAi+UtWGybMWJuA3OLa1XmBQVHscqwx6tWmTkkhEKiJsjUBA4OlSkuVVcq/Lrf4de9Lo/mVgmhMAkWSFQOCSPjDK6yfTArWv6Sliui0gOdhSxLC3PKg2Yqws906JxD5xw+piFBMNlaW1Knfd21a40KTx0Fl6/X9/3Sk3t8a2EKdTAeQBJTLmEdb79P5KKYSYJpPkkCV9VyUlJ8j+eBIZ/Wldjq3S1XPptuvWSIxnxn1MvucqtIlQQkSRSMA5RQSFSGX/d5FeZdy4i+1Kf6t+xz7z7CoKoaV4lTLRdcWnnCJfFXZMfLiVeIVL7NLsa3kakZKvPjrAPzCIXqOAbFdbzSU5amL2zx0a/37Lw9ol2BE3Nb5Vmp0FJlZ5tdCtdhImLuDwclG4CKGjkmM7setT7+0+1CTqvFiLN1DRmOV5WbRELgqHaooSSDe72Huc8/1DVm8Nd1Bb6eebPvSDE3ncC4fgYcBIDGga1uBVcnmGGiMlSuujya8x2Vaf/o93XzrSHeeiOAT/tk9nm6V9b4G5LMKflplkZ/4pxDP+nUEArNUwq/4whAKBg4BCKIVmp+bX6Lt3aM3jl8R6TWIVW2mQRQkVdvo2sNpHM789kzs9NRDMzvZ7t20hs0pcGAaiEkAJFNDsoOHvgclJ5dq2cyg3vd+9juHX3c9/b/+jwnXMWcE9IueXBWtv2a50VqIbyKABYlQLHCsN8nQGW+TRz+G3v9p/GDNYDvlKw8utIz9sebVt71bYebfqvYNMmnex0yNQGEQvc74S87eMbP61yDWTCn2xH/6jBMN0dqLdQQh6lxnKeNXvhshfvTZ4ax4qKq88ckEJoB15dQ97JFT7Pf9y48OYuPmMwgsgnc5ViHkiO9PFMnbEQdkjapA6bHyZlZOq9+fzAJJmx1ln20yb395h5fNPnhAi7nG/vDzS/8WPptz1KlaLekA77S/eBMP+up+JkfcWJ8ty5Nc4fUiYX+4gW3e+Wz97DD++eDcEA6GXMBIAPc637f/WnBcoq1a53u8fcN13/b2lsvOT6DlRXPZXt3PeD6eMWfXePu316X4OvU4KHLk+S8ITqvPsguUjMU3fPBTve+IZO/73HiYly3YOM9a38o+vctR47/vFNkPMgcZ454KfHhiekTbbGwXgSAW1fIBUE4OW+MfnzPMO6qWMdVfwn3ejagrHSia8N792PNO76THg7zPP7IZwA+i/intFgitg03Sbp+glVKNWus6soekZjg153r9ri/HP357vEXNSD43NYJ2x9q8NCdXVK6f2ERLCl6FYFulauwUlu7xvbWd+M4FtSVL77nseYLAbxvGfluhvfzeSU4tM4bK+cFR0zaJt2RnWjK7s2qyXAQIkBjPodDOTL2893jHeG4h7nFczfs8e5+nINVG6YhIEgRUsYMyx1mrmOPQPO+PvTQ6fDFAIAciNA55k0Se/SzSanJrJrtVyAiFO5+8d3tN20I531MPTDprVK1ZLVEpGqC1BpEKl3aGu0vqw+Kob5oQGKV4m+hRKymakWEonsOlXg2vBoJ53Ore3OBl3nVqrQgB4dFMAvxUvL1BoAXKnpsjHzJir85KV7OaaNXs/1SIkJh7o8Ld48oisT9vHjkufXlWvn66rQg5xxx1HZDfWjfj8XTMi+6NLVe10Sm1jTO9SptLp35VZ15lkTSHirViz7g1YTgdDCIRGo5PmF8QpRNJG4TwluxHlUAeYRO9rWLie1FapZ4FeW7hAjQuXqgSPt+cyQ/+yH10Hq37tFpFY+AcQaBCKmZaXmZ0Q3DEB4vmHgd1oCRmYwgypYGApWqrVrWmPfgit8iexTEQffeoypXKqpOFnFQENHGEiwRcANJPXdCwu8Ge7XS9ODfAloU6U+9vGy5w898rmrDMYQIEmX26MYowl8uVy+84AbWNukkyEelRFSiYwKTagtXBSLSNCEzPqw+Yg3qMR26n9ReAAWJhfiKEaBjBL7Kuhy8eYiwaPAXqlpSQ7TrKcOvn8SwA8h51cWunEdsOBYP/U3n0c24VvfFiDaADOF2QsIKIJE1N8wywKq4jCACAo/UVsdD2Do8NmNk0W/qCvcWHFYABffhYqTlMggCPUvHiAD3mbkRDI1dIbV97Wn65S6AaOCVm9xZLxYxcwsh5m/HosRCHqlWxwGJwDliYBshIQCk0dKBJLhtGn0bsM7vPpQDP0d9kSMR76qtUqttQK6rhHBGos055YQLjINVoVAEziFEZw8mOgdlIGBVrA8BhcLDP9okEIs4Ox4R+Dtau73gmgRIInGVowkSfPFm6PrZpAnUDE1ToqKFU2kJMiiBVlkkcfrpFQKh0MMcnpQkBRbRBwsVA9O+zqgOp6Bcg8N1uPZqQCJIMWHD7Es24XiyBVzjVdyjBUzVonKfDekxnit4oVRRpSMSClXXw/rwrfDALntgoUKVAMpM503D/AzDrwFJMCckMrYXYZwIvOotmHIeOWe8ilA8Az3r4Qc8c1qDXEn4tmBU/n2SWIfLsSL4rA0no8omrJD1mPx4rfeCgxrSkWpMj00ACWL7oB4GkPRaDyChxjkg55mC1mMgRlemKbW4GkasHYfQkKgdGWZYBtSwzSq9gRgUoR6YAWHWgOCxm2mtebWMIbUVQA0hsiARc0IQg/WAhBt7cCzkgqNfDQOjGqa+AhipYxxIrAYnebRtQKMW09CAxhYMo/SXx2Ic0ADQENTtVFz0kwQGgDFcqR1tYbzON6bX7xPTjUrsmPCCu8ZE1t1IxVXZsM+NLdgQQwOet4SspKAcWFNfU20xnwlhtR1ArqskaLCZMwp0JPXVEDFswLD3BYfoJyBEj4W2zFgVnUf5wG/OSYWukrppAxIAVHRVHtoU5uFYUGslgYrgD+fb+726J/hRXeE3EcLbF+xXKTHRahsyBcWf0XzSnhvlpBydMZ8AJnJQjZw2wjfwe1bZHUbBCRU4tMrZMkwngACuKZQzEE78lGsK5bpKT3XcEI1jV3HbWBmYXvMYHMCzK25y3TBeLPf7JV5px5r4H13MGmdEp5zonBOBES4Qwk8PLmunaVCdcqJqmgAAbk0VVcZocamjJXyEVjerOhK1guHtijtlA9KzsvCiAqR6LK1MqU2+AAEEEsZhoCmAvqsMpIyjysOAEVtV+pwDcblentyE5oNY8m1ymCb1pjcEK/Fw/WBZwOMgZw+RT6j1bZlVlICIOpBaDphUgNPThhWF0dDgTRNBd5aBOJQqIKSxkQmp/FNyMy9PzPETcBJ2V5QmWwgnnOsHykFYjQ99rzUTUs8YTnQWfASRycdzACIBa5YA2KTA/namkUij7QVzHohKpbSshI9FqFiecQhJViJkJ4LT/zlbu26k4gJ2SJXwRbrwxCRAb54AWMT/gTAqcUImIDB7g3OAipyntfHw+EYKQaSdX8YhJFuJkJN0BoQMXNjpcwm1FkDBZvWBUDXq8J0eWbWIYM0TOEzCKQ3DmO/3KNyN0w91H+UUgsyRfomH2NI0ErUyaMYhJFmImJ0YsAU5wCOgoMJ6AYdjw2Hmd+0TaQzAdxqE3CYR1iwRkEQw1aMQga+Ixp0c8pYtk2w6Mtu7YUnSol+DzzhospWIuUmAJICDrx6192dH7e38W/2GJrfrW5zG0/9sgWACBQgN1MCE/UWDvAgAmwBukph27OisbctaLI7G895TUbq919UNuqSnW3PBSIQWJsQLFMRuhgJ9274jx0alHdtVXuvLMZqP/eE6MavdQ4TKmeCgABcrLy2caWkTDs4JCHjgCIdAuBrgQmVclBECzk+euUUq5/oE/gchJDBrCIRolRuuTkB0TqATgAX+DT4S6NdTmd9ZuP2viYXRLE1+4E/tkiY3uebhRvHxfShj5tN6keiZI+zIHz4bJ/y06ar0D48hMM2IkMpfOWecE0oowDkXcHJzDcQUGTjnADghRCeB6/g5paqq6xsP6K4XW86ffzjcC/D/v8PiQ/NxcaIAAAAASUVORK5CYII=';
+            const QT_SECS = { a: '추가 청소', b: '줄눈 · 코팅 (줄눈 경력 10년)', c: '탄성코트' };
+            const QT_DEF = () => ({ ppy: 13000, all: true,
+                items: [['a', '가전청소 (내/외측)', '개소', 20000], ['a', '큰 붙박이장 (안방 외)', '개소', 50000], ['a', '에어컨청소 (외부/필터)', '개소', 20000],
+                    ['a', '새집증후군 (건식/베이크아웃)', '식', 300000], ['a', '벽지·천장지 특수장비 청소', '식', 180000],
+                    ['b', '줄눈 패키지1 · 폴리우레아 (현관+욕실2 바닥+실리콘오염방지)', '식', 320000], ['b', '줄눈 패키지2 · 폴리우레아 (현관+욕실2 바닥+샤워부스벽 3면)', '식', 430000],
+                    ['b', '줄눈 패키지3 · 폴리우레아 (+욕조벽 3면)', '식', 580000], ['b', '줄눈 패키지1 · 케라폭시 프리미엄', '식', 700000],
+                    ['b', '줄눈 패키지2 · 케라폭시 프리미엄', '식', 950000], ['b', '줄눈 패키지3 · 케라폭시 프리미엄', '식', 1300000],
+                    ['b', '패키지3 폴리우레아 + 발코니·거실바닥·주방벽', '식', 2000000], ['b', '패키지3 케라폭시 + 발코니·거실바닥', '식', 3500000],
+                    ['b', '주방+욕실 나노/UV코팅 (아일랜드 포함)', '식', 450000], ['c', '규조토 패키지 (발코니1 + 세탁실1)', '식', 500000]].map(a => ({ s: a[0], n: a[1], u: a[2], p: a[3] })),
+                frees: ['청소 후 하자체크', '스팀케어', '피톤치드 케어', '점검 스티커 제거'].map(n => ({ n: n, on: true })) });
+            let qtSet = lsGet(QT_KEY, null);
+            if (!qtSet || !Array.isArray(qtSet.items)) qtSet = QT_DEF();
+            const qt = { q: {}, site: '', dong: '', ho: '', ph: '', py: '', dc: '', file: null }; // q: 항목 순번 → 수량 (항목을 지우면 순번이 바뀌어 같이 정리)
+            const qtSave = () => lsSet(QT_KEY, qtSet);
+            const qtW = n => Math.round(n).toLocaleString('ko-KR'), qtWn = n => qtW(n) + '원';
+            function qtKor(n) { // 금액 한글 표기 (견적서 관례: 금 ○○원정)
+                if (!n) return '영';
+                const d = '일이삼사오육칠팔구', u = ['', '십', '백', '천'], b = ['', '만', '억'];
+                let s = '', k = 0;
+                while (n > 0) { let c = n % 10000, t = ''; for (let i = 0; c > 0; i++, c = Math.floor(c / 10)) { const x = c % 10; if (x) t = (x === 1 && i ? '' : d[x - 1]) + u[i] + t; } if (t) s = t + b[k] + s; n = Math.floor(n / 10000); k++; }
+                return s;
+            }
+            function qtCalc() {
+                const py = +qt.py || 0, ppy = +qtSet.ppy || 0, rows = [];
+                if (py) rows.push({ s: '0', n: '입주청소 (평당 ' + qtWn(ppy) + ' × 전용 ' + py + '평 · 전문 청소팀)', u: '평', p: ppy, q: py });
+                qtSet.items.forEach((it, i) => { if (qt.q[i]) rows.push(Object.assign({}, it, { q: qt.q[i] })); });
+                const sum = rows.reduce((a, r) => a + r.p * r.q, 0), dc = Math.min(+String(qt.dc).replace(/\D/g, '') || 0, sum), sup = sum - dc, vat = Math.round(sup * 0.1);
+                return { rows: rows, sum: sum, dc: dc, sup: sup, vat: vat, tot: sup + vat };
+            }
+            function qtFormHtml() {
+                const inp = (k, v, ph, extra) => '<input class="adm-sel" data-qk="' + k + '" value="' + E(v) + '" placeholder="' + ph + '"' + (extra || '') + '>';
+                let h = '<div class="adm-step">② 고객</div>' + inp('site', qt.site, '단지명')
+                    + '<div class="adm-dates">' + inp('dong', qt.dong, '동', ' inputmode="numeric"') + inp('ho', qt.ho, '호', ' inputmode="numeric"') + '</div>'
+                    + inp('ph', qt.ph, '고객 연락처 (안내 문자용 · 없어도 됨)', ' inputmode="tel"')
+                    + '<div class="adm-step">③ 입주청소 <small>전용 평수 · 평당 단가</small></div><div class="adm-dates">' + inp('py', qt.py, '전용 평수 (예: 34)', ' inputmode="decimal"') + inp('ppy', qtSet.ppy, '평당 단가', ' inputmode="numeric"') + '</div>'
+                    + '<div class="adm-step">④ 항목 <small>+ 로 수량 · 이름·단가 고치면 저장돼요</small></div>';
+                let last = '';
+                qtSet.items.forEach((it, i) => {
+                    if (it.s !== last) { h += '<div class="qt-sh">' + E(QT_SECS[it.s] || '기타') + '</div>'; last = it.s; }
+                    const q = qt.q[i] || 0;
+                    h += '<div class="qt-it' + (q ? ' on' : '') + '"><div class="qt-r"><input data-qi="' + i + '" data-qf="n" value="' + E(it.n) + '"><button type="button" class="qt-x" data-qa="del" data-i="' + i + '" aria-label="항목 삭제">×</button></div>'
+                        + '<div class="qt-r"><input class="u" data-qi="' + i + '" data-qf="u" value="' + E(it.u) + '"><input class="p" data-qi="' + i + '" data-qf="p" inputmode="numeric" value="' + it.p + '">'
+                        + '<button type="button" class="qt-b" data-qa="qty" data-i="' + i + '" data-d="-1" aria-label="수량 빼기">−</button><b class="qt-q">' + q + '</b><button type="button" class="qt-b" data-qa="qty" data-i="' + i + '" data-d="1" aria-label="수량 더하기">+</button></div></div>';
+                    if (!qtSet.items[i + 1] || qtSet.items[i + 1].s !== it.s) h += '<button type="button" class="qt-add" data-qa="add" data-s="' + it.s + '">+ ' + E((QT_SECS[it.s] || '기타').split(' (')[0]) + ' 항목 추가</button>';
+                });
+                ['a', 'b', 'c'].forEach(s => { if (!qtSet.items.some(it => it.s === s)) h += '<button type="button" class="qt-add" data-qa="add" data-s="' + s + '">+ ' + E(QT_SECS[s].split(' (')[0]) + ' 항목 추가</button>'; });
+                h += '<div class="adm-step">⑤ 무료 서비스 <small>입주청소+줄눈 함께 진행 시 · 체크한 것만</small></div>'
+                    + qtSet.frees.map((f, i) => '<div class="qt-it' + (f.on ? ' on' : '') + '"><div class="qt-r"><input type="checkbox" data-qfi="' + i + '" data-qf="on"' + (f.on ? ' checked' : '') + ' style="flex:none;width:22px;height:22px;"><input data-qfi="' + i + '" data-qf="n" value="' + E(f.n) + '"></div></div>').join('')
+                    + '<label class="qt-it on" style="display:flex;gap:8px;align-items:center;margin-top:12px;font-size:14px;font-weight:700;"><input type="checkbox" data-qk="all"' + (qtSet.all !== false ? ' checked' : '') + ' style="width:22px;height:22px;flex:none;"><span>고르지 않은 공정도 단가 보여 주기<br><small style="font-weight:400;opacity:.75;">입주청소만 요청해도 다른 공정 가격 안내 · 합계엔 안 들어가요</small></span></label>'
+                    + '<div class="adm-step">⑥ 할인 <small>원 · 없으면 비움</small></div>' + inp('dc', qt.dc, '할인 금액', ' inputmode="numeric"')
+                    + '<button type="button" class="qt-add" data-qa="reset" style="margin-top:10px;">↺ 항목·단가를 처음 상태로</button>';
+                return h;
+            }
+            function qtPaper() {
+                const c = qtCalc(), t = new Date(), ed = new Date(+t + 30 * 864e5), all = qtSet.all !== false;
+                const f = x => x.getFullYear() + '. ' + pad(x.getMonth() + 1) + '. ' + pad(x.getDate());
+                const unit = [qt.dong && qt.dong + '동', qt.ho && qt.ho + '호'].filter(Boolean).join(' ');
+                const no = 'TH-' + t.getFullYear() + pad(t.getMonth() + 1) + pad(t.getDate()) + '-' + (String(qt.dong) + String(qt.ho) || '0');
+                const split = n => { const m = /^(.*?)\s*\((.*)\)\s*$/.exec(n); return m ? [m[1], m[2]] : [n, '']; };
+                const nm = n => { const ab = split(n); return '<b class="nm">' + E(ab[0]) + '</b>' + (ab[1] ? '<span class="ds">' + E(ab[1]) + '</span>' : ''); };
+                // 고른 항목(on)만 금액·합계에 들어감. 안 고른 공정은 단가만 안내(금액 칸 '선택 시')
+                const line = (on, name, u, p, q, amt) => '<tr class="' + (on ? 'on' : 'off') + '"><td class="ck">' + (on ? '✔' : '') + '</td><td>' + nm(name) + '</td><td class="c">' + E(u) + '</td><td class="r">' + p + '</td><td class="c">' + q + '</td><td class="r am">' + amt + '</td></tr>';
+                let body = '', sn = 0;
+                const sec = (title, sub) => '<tr class="sg"><td colspan="6">' + (++sn) + '. ' + E(title) + (sub ? '<small>' + E(sub) + '</small>' : '') + '</td></tr>';
+                const py = +qt.py || 0, ppy = +qtSet.ppy || 0;
+                body += sec('입주청소', '전문 청소팀');
+                body += line(!!py, '입주청소 (평당 ' + qtWn(ppy) + ' × 전용 평수)', '평', qtW(ppy), py ? py + '평' : '-', py ? qtW(py * ppy) : '평수 확인 후');
+                ['a', 'b', 'c'].forEach(s => {
+                    const its = qtSet.items.map((it, i) => ({ it: it, q: qt.q[i] || 0 })).filter(x => x.it.s === s && (all || x.q));
+                    if (!its.length) return;
+                    body += sec(QT_SECS[s].split(' (')[0], s === 'b' ? '줄눈 경력 10년' : '');
+                    its.forEach(x => { body += line(!!x.q, x.it.n, x.it.u, qtW(x.it.p), x.q ? x.q : '-', x.q ? qtW(x.it.p * x.q) : '선택 시'); });
+                });
+                const fr = qtSet.frees.filter(x => x.on && x.n.trim());
+                if (fr.length) body += '<tr class="fr"><td colspan="6"><span class="free">무료</span> <b>' + E(fr.map(x => x.n).join(' · ')) + '</b><small>입주청소 + 줄눈 함께 진행 시</small></td></tr>'; // 한 줄로 (대표님: 자리 덜 차지하게)
+                const seal = '<svg viewBox="0 0 62 62" width="54" height="54"><rect x="5" y="5" width="52" height="52" rx="6" fill="none" stroke="#c62828" stroke-width="2.4" opacity=".85"/><g fill="#c62828" opacity=".85" font-family="Noto Serif KR,serif" font-weight="900" font-size="17" text-anchor="middle"><text x="21" y="28">더</text><text x="41" y="28">홈</text><text x="21" y="49">점</text><text x="41" y="49">검</text></g></svg>';
+                return '<div class="top"><div class="brand"><img src="' + QT_LOGO + '" alt=""><div><b>더홈점검</b><span>신축 아파트 사전점검 · 입주케어</span></div></div>'
+                    + '<div class="ttl"><b>견 적 서</b><span>견적번호 ' + E(no) + '</span></div></div>'
+                    + '<div class="meta"><table class="kv">'
+                    + '<tr><th>받는 분</th><td><b class="to">' + E(((qt.site || '') + ' ' + unit).trim() || '고객') + '</b> 고객님 귀하</td></tr>'
+                    + '<tr><th>견적일</th><td>' + f(t) + '</td></tr><tr><th>유효기간</th><td>' + f(ed) + '까지 (30일)</td></tr></table>'
+                    + '<table class="kv sup"><tr><th>상호</th><td><b>더홈점검</b> (대표 박지현)</td></tr><tr><th>사업자번호</th><td>531-42-01293</td></tr>'
+                    + '<tr><th>연락처</th><td>1668-5322 · 010-9985-0128</td></tr><tr><th>이메일</th><td>thehomeinsp1@gmail.com</td></tr></table></div>'
+                    + '<div class="sumbar"><div><span>고르신 항목</span><b>' + c.rows.length + '건</b></div><div><span>시공비 (부가세 별도)</span><b>' + qtWn(c.sup) + '</b></div>'
+                    + '<div class="tot"><span>고르신 항목 합계 (부가세 포함)</span><b>' + qtWn(c.tot) + '</b><small>금 ' + qtKor(c.tot) + '원정</small></div></div>'
+                    + '<table class="tbl"><tr><th style="width:40px" class="c">선택</th><th>항목</th><th class="c" style="width:52px">단위</th><th class="r" style="width:96px">단가</th><th class="c" style="width:58px">수량</th><th class="r" style="width:104px">금액</th></tr>' + body + '</table>'
+                    + '<div class="foot2"><div class="legend">' + (all ? '<b>✔ 표시</b>가 고르신 항목이에요. 합계에는 <b>고르신 항목만</b> 들어가요.<br>다른 공정은 단가 안내예요. 필요하시면 말씀만 해 주세요.' : '고르신 항목만 적었어요.') + '<br>고르신 항목 외에 추가 요금은 없어요.</div>'
+                    + '<div class="sum"><div><span>항목 합계</span><span>' + qtWn(c.sum) + '</span></div>' + (c.dc ? '<div class="dc"><span>할인</span><span>− ' + qtWn(c.dc) + '</span></div>' : '')
+                    + '<div><span>시공비 (부가세 별도)</span><span>' + qtWn(c.sup) + '</span></div><div><span>부가세 (10%)</span><span>' + qtWn(c.vat) + '</span></div>'
+                    + '<div class="g"><span>합계 (부가세 포함)</span><span>' + qtWn(c.tot) + '</span></div></div></div>'
+                    + '<div class="box"><h4>진행 순서</h4><p class="flow">① 상담·평수 확인 → ② 견적 확정 → ③ 방문 시공 → ④ 함께 확인(검수) → ⑤ 끝난 뒤 입금</p>'
+                    + '<h4>꼭 알아 두세요</h4><ul>'
+                    + '<li>시공비는 <b>시공이 끝난 뒤</b> 확인하고 내시면 돼요.</li><li>입주청소 금액은 평수 확인 후 확정돼요.</li>'
+                    + '<li>입주청소는 바깥 창문과 추가 항목을 뺀 집 전체를 청소해요.</li><li>줄눈은 <b>2년 동안</b> 무료로 고쳐 드려요. (사진을 보내 주세요)</li>'
+                    + '<li>끝나고 함께 둘러보며 확인해요. 다시 할 곳은 그때 말씀해 주세요. (물티슈로 닦아 보는 확인은 사양해요)</li><li>줄눈 위치를 늘리고 싶으시면 현장에서 말씀해 주세요.</li></ul></div>'
+                    + '<div class="sign"><span>위와 같이 견적합니다. &nbsp;' + f(t) + '</span><span class="who">더홈점검 대표 <b>박지현</b>' + seal + '</span></div>'
+                    + '<div class="ft">감사합니다 · 더홈점검 · 1668-5322 / 010-9985-0128</div>';
+            }
+            function qtSms() {
+                const c = qtCalc(), ed = new Date(Date.now() + 30 * 864e5), fr = qtSet.frees.filter(x => x.on && x.n.trim());
+                const unit = [qt.dong && qt.dong + '동', qt.ho && qt.ho + '호'].filter(Boolean).join(' ');
+                return L(['[더홈점검] 청소·케어 견적서', '', '안녕하세요, 고객님. 더홈점검입니다 🙂', ((qt.site || '') + ' ' + unit).trim() + ' 견적서를 보내 드립니다.', '',
+                    '💰 합계 ' + qtWn(c.tot) + ' (부가세 포함)', '📅 유효기간 : ' + (ed.getMonth() + 1) + '월 ' + ed.getDate() + '일까지']
+                    .concat(fr.length ? ['🎁 입주청소+줄눈 함께 진행 시 무료 서비스 ' + fr.length + '종'] : [])
+                    .concat(['', '※ 입주청소 금액은 평수 확인 후 확정됩니다.', '문의 1668-5322 / 010-9985-0128']));
+            }
+            const QT_CSS = '.qt-sh{margin:12px 0 2px;font-size:12px;font-weight:800;color:#c9a46a}'
+                + '.qt-it{border:1px solid var(--a-line,#3a4560);border-radius:10px;padding:6px;margin-top:6px}.qt-it.on{border-color:#c9a46a;background:rgba(201,164,106,.1)}'
+                + '.qt-r{display:flex;gap:5px;align-items:center}.qt-r+.qt-r{margin-top:5px}'
+                + '.qt-r input:not([type=checkbox]){flex:1;min-width:0;min-height:38px;padding:0 9px;border-radius:8px;border:1px solid var(--a-line-strong,#62708C);background:var(--a-sunken,#0F1726);color:var(--a-ink,#F1F4F9);font:inherit;font-size:14px}'
+                + '.qt-r input.u{flex:none;width:58px}.qt-q{width:24px;text-align:center;font-size:15px}'
+                + '.qt-b,.qt-x{flex:none;width:36px;height:38px;border-radius:8px;border:1px solid var(--a-line-strong,#62708C);background:transparent;color:inherit;font-size:18px;font-family:inherit}.qt-x{color:#f87171}'
+                + '.qt-add{width:100%;min-height:40px;margin-top:6px;border:1px dashed #c9a46a;border-radius:10px;background:transparent;color:#c9a46a;font:inherit;font-size:13px;font-weight:700}'
+                + '.qt-tot{display:flex;justify-content:space-between;margin-top:14px;padding:12px 14px;border-radius:12px;background:#0e1b33;color:#fff;font-weight:800;font-size:16px}'
+                + '#admin .qt-mk{display:flex;gap:8px}#admin .qt-mk .adm-next{flex:1}#admin .qt-mk .adm-next.g{background:#b08d57}'
+                + '.qt-pv{margin-top:12px;border-radius:8px;overflow:hidden;background:#fff}'
+                // 견적서 (대표님 10-29 2차: 처음 양식(청소케어견적서.pdf) 바탕 · 머리 작게 · 글씨 크게 · 안 고른 공정은 단가만, 합계엔 고른 것만)
+                + '.qp{width:760px;background:#fff;color:#1c2333;font-family:"Noto Sans KR","Malgun Gothic","Apple SD Gothic Neo",sans-serif;font-size:14px;line-height:1.5;letter-spacing:0;text-align:left}'
+                + '.qp *{box-sizing:border-box}.qp b{font-weight:700}.qp table{border-collapse:collapse;width:100%}.qp th,.qp td{border:0;background:none;color:inherit;font-size:inherit}'
+                + '.qp .c{text-align:center}.qp .r{text-align:right;white-space:nowrap}'
+                + '.qp .top{display:flex;justify-content:space-between;align-items:center;padding:20px 36px 12px;border-bottom:3px solid #1f3864}'
+                + '.qp .brand{display:flex;align-items:center;gap:10px}.qp .brand img{height:42px;width:auto}.qp .brand b{display:block;font-size:21px;color:#1f3864;letter-spacing:1px;line-height:1.2}.qp .brand span{font-size:12px;color:#6b7486}'
+                + '.qp .ttl{text-align:right}.qp .ttl b{display:block;font-size:30px;font-weight:800;color:#1f3864;letter-spacing:6px;line-height:1.15}.qp .ttl span{font-size:11.5px;color:#6b7486}'
+                + '.qp .meta{display:flex;gap:16px;padding:12px 36px}.qp .kv{flex:1;font-size:13.5px}.qp .kv th{width:80px;text-align:left;color:#6b7486;font-weight:500;padding:3px 0;vertical-align:top}.qp .kv td{padding:3px 0}'
+                + '.qp .kv.sup{flex:1.05;background:#f4f6fa;border-radius:8px;border-collapse:separate;padding:4px 12px}.qp .kv .to{font-size:16.5px;color:#1f3864}'
+                + '.qp .sumbar{display:grid;grid-template-columns:.75fr 1fr 1.6fr;margin:0 36px;border:1.5px solid #1f3864;border-radius:8px;overflow:hidden}'
+                + '.qp .sumbar div{padding:8px 14px;border-left:1px solid #d6dbe6}.qp .sumbar div:first-child{border-left:0}.qp .sumbar span{display:block;font-size:12px;color:#6b7486}.qp .sumbar b{font-size:18px;color:#1f3864}'
+                + '.qp .sumbar .tot{background:#1f3864}.qp .sumbar .tot span,.qp .sumbar .tot small{color:#c9d3e6}.qp .sumbar .tot b{font-size:25px;color:#fff}.qp .sumbar .tot small{display:block;font-size:12px}'
+                + '.qp .tbl{margin:14px 36px 0;width:688px}'
+                + '.qp .tbl th{background:#1f3864;color:#fff;font-size:13px;font-weight:700;padding:8px 7px;text-align:left}.qp .tbl th.c{text-align:center}.qp .tbl th.r{text-align:right}'
+                + '.qp .tbl td{padding:7px;border-bottom:1px solid #e3e7ee;vertical-align:middle;font-size:13.5px;color:#3d4556}'
+                + '.qp .tbl .nm{font-weight:500;color:#1c2333}.qp .tbl .ds{display:block;font-size:12px;color:#7a8394;line-height:1.35}'
+                + '.qp .tbl td.ck{text-align:center;color:#1f3864;font-weight:900;font-size:15px}.qp .tbl tr.off td.am{color:#9aa2b1;font-size:12.5px}'
+                + '.qp .tbl tr.sg td{background:#e9eef7;color:#1f3864;font-weight:800;font-size:14px;padding:7px 9px;border-bottom:0}.qp .tbl tr.sg small{font-weight:500;font-size:12px;color:#55617a;margin-left:8px}'
+                + '.qp .tbl tr.on td{background:#fff6dc;color:#1c2333}.qp .tbl tr.on .nm{font-weight:800}.qp .tbl tr.on td.am{color:#1f3864;font-weight:800;font-size:14.5px}'
+                + '.qp .tbl tr.fr td{background:#f1f9f3;padding:7px 9px;font-size:13px;color:#1c2333}.qp .tbl tr.fr small{margin-left:8px;font-size:11.5px;color:#55617a}.qp .free{display:inline-block;background:#1e8a4c;color:#fff;font-weight:800;font-size:12px;padding:0 9px;border-radius:999px;margin-right:4px}'
+                + '.qp .foot2{display:flex;justify-content:space-between;gap:18px;margin:12px 36px 0;align-items:flex-start}.qp .legend{font-size:12.5px;color:#55617a;line-height:1.7;padding-top:4px}.qp .legend b{color:#1f3864}'
+                + '.qp .sum{width:310px;flex:none;font-size:14px}.qp .sum div{display:flex;justify-content:space-between;padding:5px 4px;border-bottom:1px solid #e3e7ee}.qp .sum .dc{color:#c62828}'
+                + '.qp .sum .g{border:0;background:#1f3864;color:#fff;padding:10px 12px;margin-top:6px;font-weight:800;font-size:16px;border-radius:6px}'
+                + '.qp .box{margin:16px 36px 0;border:1px solid #e3e7ee;border-radius:8px;padding:8px 16px 12px;background:#fafbfd}.qp .box h4{margin:4px 0;font-size:14px;color:#1f3864}'
+                + '.qp .flow{margin:0 0 6px;font-size:13px;color:#3d4556}.qp .box ul{margin:0;padding-left:18px;display:grid;grid-template-columns:1fr 1fr;gap:2px 22px;font-size:12.8px;color:#3d4556;line-height:1.6}.qp .box li{margin:0}'
+                + '.qp .sign{display:flex;justify-content:space-between;align-items:center;margin:12px 36px 0;font-size:14px;color:#1c2333}.qp .sign .who{display:flex;align-items:center;gap:4px}.qp .sign .who b{font-size:17px;margin:0 2px 0 4px}'
+                + '.qp .ft{margin-top:12px;background:#1f3864;color:#fff;text-align:center;padding:9px;font-size:13px;font-weight:700}';
+            let qtBound = false;
+            function qtHtml() {
+                if (!document.getElementById('qtCss')) {
+                    const s = document.createElement('style'); s.id = 'qtCss'; s.textContent = QT_CSS; document.head.appendChild(s);
+                    const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = 'https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Noto+Serif+KR:wght@500;700;900&display=swap'; document.head.appendChild(l);
+                }
+                return '<div id="qtForm">' + qtFormHtml() + '</div>'
+                    + '<div class="qt-tot"><span>합계 (부가세 포함)</span><span id="qtTot">' + qtWn(qtCalc().tot) + '</span></div>'
+                    + '<div class="adm-step">⑦ 미리보기 <small>고객이 받는 모습</small></div><div class="qt-pv" id="qtPv"><div class="qp" id="qtPaper">' + qtPaper() + '</div></div>'
+                    + '<div class="qt-mk"><button type="button" class="adm-next" data-qa="make" data-t="png">🖼 이미지 만들기</button><button type="button" class="adm-next g" data-qa="make" data-t="pdf">📄 PDF 만들기</button></div>'
+                    + '<div id="qtOut"></div>';
+            }
+            function qtDraw() { // 입력할 때: 미리보기·합계만 다시 그림 (입력 칸은 그대로 → 키보드 안 닫힘)
+                const p = document.getElementById('qtPaper'), t = document.getElementById('qtTot'), pv = document.getElementById('qtPv');
+                if (p) p.innerHTML = qtPaper();
+                if (t) t.textContent = qtWn(qtCalc().tot);
+                if (pv && p) { const z = pv.clientWidth / 760; p.style.zoom = z; }
+                if (qt.file) { qt.file = null; const o = document.getElementById('qtOut'); if (o) o.innerHTML = ''; } // 고치면 만든 파일은 버림
+            }
+            function qtForm() { const f = document.getElementById('qtForm'); if (f) f.innerHTML = qtFormHtml(); qtDraw(); }
+            async function qtMake(type) {
+                const out = document.getElementById('qtOut');
+                if (!qtCalc().rows.length) { alert('평수나 항목을 먼저 넣어 주세요.'); return; }
+                if (out) out.innerHTML = '<div class="adm-msg">⏳ 견적서 만드는 중...</div>';
+                const tmp = document.createElement('div');
+                tmp.className = 'qp'; tmp.style.cssText = 'position:fixed;left:-10000px;top:0;z-index:-1;';
+                tmp.innerHTML = qtPaper(); document.body.appendChild(tmp);
+                try {
+                    try { await document.fonts.ready; } catch (e) {}
+                    await Promise.all([].map.call(tmp.querySelectorAll('img'), im => im.complete ? 0 : new Promise(r => { im.onload = im.onerror = r; })));
+                    const cv = await html2canvas(tmp, { scale: 2, backgroundColor: '#ffffff', useCORS: true, logging: false });
+                    const name = '더홈점검_견적서_' + ((qt.site || '고객').replace(/[\\/:*?"<>|\s]+/g, '') + (qt.dong || qt.ho ? '_' + qt.dong + '-' + qt.ho : '')) + '.' + type;
+                    let blob;
+                    if (type === 'pdf') {
+                        const pdf = new window.jspdf.jsPDF({ unit: 'mm', format: 'a4' }), pw = 210, ph = 297, h = cv.height * pw / cv.width;
+                        if (h <= ph * 1.45) { const k = Math.min(1, ph / h); pdf.addImage(cv, 'JPEG', (pw - pw * k) / 2, 0, pw * k, h * k); } // A4 한 장: 조금 길면 양옆 여백을 두고 줄임
+                        else { // 여러 장: 표 줄·칸 경계에서만 나눔 (줄 중간이 잘리지 않게)
+                            const sh = Math.floor(cv.width * ph / pw), k2 = cv.width / tmp.offsetWidth, top0 = tmp.getBoundingClientRect().top;
+                            const cuts = [].map.call(tmp.querySelectorAll('tr, .foot2, .box, .sign, .ft'), e => Math.round((e.getBoundingClientRect().top - top0) * k2));
+                            for (let y = 0; y < cv.height - 2;) {
+                                let end = y + sh;
+                                if (end < cv.height) { const c = cuts.filter(v => v > y + sh * 0.5 && v <= end).pop(); if (c) end = c; } else end = cv.height;
+                                const s = document.createElement('canvas'); s.width = cv.width; s.height = end - y;
+                                const g = s.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, s.width, s.height); g.drawImage(cv, 0, -y);
+                                if (y) pdf.addPage(); pdf.addImage(s, 'JPEG', 0, 0, pw, s.height * pw / cv.width); y = end;
+                            }
+                        }
+                        blob = pdf.output('blob');
+                    } else blob = await new Promise(r => cv.toBlob(r, 'image/png'));
+                    qt.file = new File([blob], name, { type: blob.type });
+                    const ph = phonesOf(qt.ph);
+                    if (out) out.innerHTML = '<div class="adm-hint">✅ <b>' + E(name) + '</b> 준비됐어요. 보내기를 누르면 문자·카톡을 고를 수 있어요.</div>'
+                        + '<div class="qt-mk"><button type="button" class="adm-next" data-qa="share">📤 견적서 보내기</button><button type="button" class="adm-next g" data-qa="save">📥 저장</button></div>'
+                        + '<button type="button" class="adm-next" data-qa="sms" style="background:#334155;">💬 안내 문자 ' + (ph.length ? '보내기 (' + E(fmtPh(ph[0])) + ')' : '복사') + '</button>';
+                } catch (e) {
+                    if (out) out.innerHTML = '<div class="adm-msg adm-err">견적서를 만들지 못했어요. 인터넷 연결을 확인하고 다시 눌러 주세요.</div>';
+                } finally { tmp.remove(); }
+            }
+            function qtSaveFile() {
+                const url = URL.createObjectURL(qt.file), a = document.createElement('a');
+                a.href = url; a.download = qt.file.name; document.body.appendChild(a); a.click();
+                setTimeout(() => { try { a.remove(); } catch (e) {} }, 100);
+                setTimeout(() => { try { URL.revokeObjectURL(url); } catch (e) {} }, 60000); // 아이폰은 저장 창이 뜬 뒤 파일을 읽음
+                showToast('📥 ' + qt.file.name + ' 저장 — 문자·카톡에서 첨부해 보내 주세요');
+            }
+            function qtMount(box) {
+                const pv = document.getElementById('qtPv'), p = document.getElementById('qtPaper');
+                if (pv && p) p.style.zoom = pv.clientWidth / 760;
+                if (qtBound) return;
+                qtBound = true;
+                box.addEventListener('input', e => {
+                    const t = e.target, k = t.getAttribute && t.getAttribute('data-qk'), f = t.getAttribute && t.getAttribute('data-qf');
+                    if (k === 'all') { qtSet.all = t.checked; qtSave(); qtDraw(); return; }
+                    if (k) { if (k === 'ppy') { qtSet.ppy = +t.value.replace(/\D/g, '') || 0; qtSave(); } else qt[k] = t.value.trim(); qtDraw(); return; }
+                    if (!f) return;
+                    if (t.hasAttribute('data-qi')) { const it = qtSet.items[+t.getAttribute('data-qi')]; if (!it) return; it[f] = f === 'p' ? +t.value.replace(/\D/g, '') || 0 : t.value; }
+                    else if (t.hasAttribute('data-qfi')) { const x = qtSet.frees[+t.getAttribute('data-qfi')]; if (!x) return; if (f === 'on') { x.on = t.checked; t.closest('.qt-it').classList.toggle('on', x.on); } else x.n = t.value; }
+                    qtSave(); qtDraw();
+                });
+                box.addEventListener('click', e => {
+                    const b = e.target.closest && e.target.closest('[data-qa]');
+                    if (!b) return;
+                    const a = b.getAttribute('data-qa'), i = +b.getAttribute('data-i');
+                    if (a === 'qty') { qt.q[i] = Math.max(0, (qt.q[i] || 0) + +b.getAttribute('data-d')); const it = b.closest('.qt-it'); it.querySelector('.qt-q').textContent = qt.q[i]; it.classList.toggle('on', !!qt.q[i]); qtDraw(); }
+                    else if (a === 'del') {
+                        if (!confirm('"' + qtSet.items[i].n + '" 항목을 지울까요?')) return;
+                        qtSet.items.splice(i, 1); const q = {}; Object.keys(qt.q).forEach(k => { if (+k < i) q[k] = qt.q[k]; else if (+k > i) q[k - 1] = qt.q[k]; }); qt.q = q; qtSave(); qtForm();
+                    } else if (a === 'add') {
+                        const s = b.getAttribute('data-s'), at = qtSet.items.map(x => x.s).lastIndexOf(s), pos = at < 0 ? qtSet.items.filter(x => x.s < s).length : at + 1;
+                        qtSet.items.splice(pos, 0, { s: s, n: '새 항목', u: '식', p: 0 }); const q = {}; Object.keys(qt.q).forEach(k => { q[+k >= pos ? +k + 1 : k] = qt.q[k]; }); q[pos] = 1; qt.q = q; qtSave(); qtForm();
+                    } else if (a === 'reset') { if (confirm('고친 항목·단가를 지우고 처음 상태로 돌릴까요?')) { qtSet = QT_DEF(); qt.q = {}; qtSave(); qtForm(); } }
+                    else if (a === 'make') qtMake(b.getAttribute('data-t'));
+                    else if (a === 'save' && qt.file) qtSaveFile();
+                    else if (a === 'share' && qt.file) { // 공유창은 버튼을 누른 직후에만 열림 → 파일은 미리 만들어 둠. 글자를 같이 넣으면 카톡에서 파일이 빠져 파일만 보냄
+                        let ok = false;
+                        try { ok = !!(navigator.share && navigator.canShare && navigator.canShare({ files: [qt.file] })); } catch (err) { ok = false; }
+                        if (!ok) { qtSaveFile(); alert('이 휴대폰은 바로 보내기를 지원하지 않아 파일로 저장했어요. 문자나 카톡에서 첨부해 보내 주세요.'); return; }
+                        navigator.share({ files: [qt.file] }).catch(err => { if (!(err && (err.name === 'AbortError' || err.name === 'InvalidStateError'))) { qtSaveFile(); } });
+                    } else if (a === 'sms') {
+                        const ph = phonesOf(qt.ph), text = qtSms();
+                        if (ph.length) sheet(fmtPh(ph[0]) + ' · 견적서 안내', text, ph, null);
+                        else if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(() => showToast('📋 안내 문자를 복사했어요'), () => alert(text));
+                        else alert(text);
+                    }
+                });
+            }
 
             let isAdmin = false, data = null, loading = false, err = null, cur = [];
             const ST_KEY = 'th_adm_st_v1'; // 문자앱에 다녀오며 앱이 새로 열려도 고른 종류·단지·날짜 그대로
@@ -7112,7 +7366,7 @@ body.light-mode .card.reference-info {
                 if (loading) { box.innerHTML = card('<div class="adm-msg">⏳ 예약현황 불러오는 중...</div>'); return; }
                 if (err) { box.innerHTML = card('<div class="adm-msg adm-err">' + E(err) + '</div>' + (/로그인/.test(err) ? '<button type="button" class="btn btn-primary" data-act="login" style="width:100%;">🔐 구글 다시 로그인</button>' : '')); return; }
                 if (!data) { box.innerHTML = card(''); return; }
-                const V = views(), cross = ['k1', 'k7', 'k8', 'k9', 'k10', 'k11', 'k12'].indexOf(st.kind) >= 0;
+                const V = views(), cross = ['k1', 'k7', 'k8', 'k9', 'k10', 'k11', 'k12', 'k13'].indexOf(st.kind) >= 0;
                 const repNote = !data.reports; // 드라이브 보고서 확인 전이면 '확인 필요' 숫자 뒤에 +
                 const nCheck = V.soon.length + V.noRep.length;
                 // 한눈에: 오늘·내일·7일·미입금·확인 필요 (누르면 그 목록으로)
@@ -7123,7 +7377,7 @@ body.light-mode .card.reference-info {
                     + chip('미입금', V.unpaid.length, 'k8', null, true) + chip('확인 필요', repNote ? V.soon.length + '+' : nCheck, 'k9', null, true) + '</div>';
                 h += '<input class="adm-sel adm-q" data-f="q" type="search" placeholder="🔎 고객 찾기 · 이름 · 전화 뒷자리 · 동호수" value="' + E(sq) + '" autocomplete="off"><div id="admSearchOut">' + sqHtml() + '</div>';
                 h += '<div class="adm-step">① 문자 종류</div><div class="adm-kinds">'
-                    + KINDS.map(k => '<button type="button" class="adm-kind' + (k[0] === st.kind ? ' on' : '') + (k[0] === 'k10' || k[0] === 'k11' || k[0] === 'k12' ? ' wide' : '') + '" data-act="kind" data-k="' + k[0] + '">' + k[1] + '<span>' + k[2] + '</span></button>').join('') + '</div>';
+                    + KINDS.map(k => '<button type="button" class="adm-kind' + (k[0] === st.kind ? ' on' : '') + (k[0] === 'k10' || k[0] === 'k11' || k[0] === 'k12' || k[0] === 'k13' ? ' wide' : '') + '" data-act="kind" data-k="' + k[0] + '">' + k[1] + '<span>' + k[2] + '</span></button>').join('') + '</div>';
                 const gs = cross ? [] : groups();
                 let g = gs.find(x => x.key === st.group) || gs[0];
                 if (g) st.group = g.key;
@@ -7141,6 +7395,7 @@ body.light-mode .card.reference-info {
                     box.innerHTML = card(h);
                     return;
                 }
+                if (st.kind === 'k13') { h += qtHtml(); saveSt(); box.innerHTML = card(h); qtMount(box); return; } // ✅ 패치 94
                 if (st.kind === 'k7') {
                     h += '<div class="adm-step">② 점검 날짜 <small>단지 상관없이 모아 보기</small></div>';
                     const opts = [];
@@ -16633,7 +16888,7 @@ body.light-mode .card.reference-info {
     }
     
     // ✅ 패치 69: 새 배포 확인 — 이 화면의 판 번호(APP_BUILD) vs 사이트의 version.json(정식)·version-test.json(테스트)
-    const APP_BUILD = '3c7c9e29809e'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
+    const APP_BUILD = '41214f7d9316'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
     (function() {
         const url = /index-unified-test\.html$/.test(location.pathname) ? 'version-test.json' : 'version.json';
         let busy = false;
