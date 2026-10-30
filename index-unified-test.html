@@ -8323,6 +8323,59 @@ body.light-mode .card.reference-info {
             }
         }
 
+        // ✅ 패치 96: 갤러리 하자 사진 포인트 찍기 — 탭으로 빨간 동그라미(촬영 포인트와 같은 모양), 완료하면 사진에 그려서 돌려줌
+        function markGalleryPhoto(src) {
+            return new Promise(resolve => {
+                const img = new Image();
+                img.onload = () => {
+                    const pts = [], dpr = window.devicePixelRatio || 1;
+                    const draw = window._drawPointMarker || function(g, x, y, w, h) {
+                        const b = Math.min(w, h), r = b * 0.08, lw = Math.max(3, b * 0.012);
+                        g.beginPath(); g.arc(x, y, r, 0, 2 * Math.PI); g.strokeStyle = 'rgba(255,255,255,0.95)'; g.lineWidth = lw + Math.max(2, lw * 0.6); g.stroke();
+                        g.beginPath(); g.arc(x, y, r, 0, 2 * Math.PI); g.strokeStyle = '#ef4444'; g.lineWidth = lw; g.stroke();
+                    };
+                    const ov = document.createElement('div');
+                    ov.style.cssText = 'position:fixed;inset:0;z-index:100000;background:#000;display:flex;flex-direction:column;padding:env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px);';
+                    ov.innerHTML = '<div style="color:#fff;text-align:center;padding:10px;font-weight:700;font-size:15px;">📍 하자 위치를 눌러 포인트를 찍어 주세요</div>'
+                        + '<div style="flex:1;min-height:0;display:flex;align-items:center;justify-content:center;"><canvas style="touch-action:none;max-width:100%;max-height:100%;"></canvas></div>'
+                        + '<div style="display:flex;gap:8px;padding:10px;">'
+                        + '<button type="button" data-g="undo" style="flex:1;min-height:48px;border-radius:12px;border:1px solid #555;background:#222;color:#fff;font-size:15px;">↶ 되돌리기</button>'
+                        + '<button type="button" data-g="skip" style="flex:1;min-height:48px;border-radius:12px;border:1px solid #555;background:#222;color:#fff;font-size:15px;">포인트 없이</button>'
+                        + '<button type="button" data-g="ok" style="flex:1.3;min-height:48px;border-radius:12px;border:0;background:#ef4444;color:#fff;font-weight:800;font-size:15px;">✓ 완료</button></div>';
+                    document.body.appendChild(ov);
+                    const cv = ov.querySelector('canvas'), box = cv.parentNode, ctx = cv.getContext('2d');
+                    let cw = 0, ch = 0;
+                    const paint = () => {
+                        ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, cw, ch); ctx.drawImage(img, 0, 0, cw, ch);
+                        pts.forEach(p => draw(ctx, p.x * cw, p.y * ch, cw, ch));
+                    };
+                    const fit = () => {
+                        const s = Math.min(box.clientWidth / img.width, box.clientHeight / img.height);
+                        cw = Math.max(1, Math.floor(img.width * s)); ch = Math.max(1, Math.floor(img.height * s));
+                        cv.width = cw * dpr; cv.height = ch * dpr; cv.style.width = cw + 'px'; cv.style.height = ch + 'px'; paint();
+                    };
+                    fit(); window.addEventListener('resize', fit);
+                    cv.addEventListener('pointerup', e => { const r = cv.getBoundingClientRect(); pts.push({ x: (e.clientX - r.left) / r.width, y: (e.clientY - r.top) / r.height }); paint(); });
+                    const done = v => { window.removeEventListener('resize', fit); ov.remove(); resolve(v); };
+                    ov.addEventListener('click', e => {
+                        const a = e.target.getAttribute && e.target.getAttribute('data-g');
+                        if (a === 'undo') { pts.pop(); paint(); }
+                        else if (a === 'skip' || (a === 'ok' && !pts.length)) done(src);
+                        else if (a === 'ok') {
+                            try {
+                                const c = document.createElement('canvas'); c.width = img.width; c.height = img.height;
+                                const g = c.getContext('2d'); g.drawImage(img, 0, 0);
+                                pts.forEach(p => draw(g, p.x * img.width, p.y * img.height, img.width, img.height));
+                                done(c.toDataURL('image/jpeg', 0.85));
+                            } catch (err) { console.error('포인트 저장 오류:', err); showToast('포인트를 넣지 못해 원본으로 저장했어요', 'warning'); done(src); }
+                        }
+                    });
+                };
+                img.onerror = () => resolve(src); // 못 띄우면 원본 그대로 (사진은 잃지 않음)
+                img.src = src;
+            });
+        }
+
         // ==================== 평면도 관리 ====================
         window.openFloorplanCamera = function() {
             currentPhotoTarget = 'floorplan';
@@ -9046,7 +9099,7 @@ body.light-mode .card.reference-info {
                     showToast('사진을 처리 중입니다...');
                     
                     // 이미지 압축
-                    const compressedImage = await compressGalleryFile(file, project, 1920, 0.85);
+                    let compressedImage = await compressGalleryFile(file, project, 1920, 0.85); if (compressedImage) compressedImage = await markGalleryPhoto(compressedImage); // ✅ 패치 96
                     if (!compressedImage) return;
 
                     const defect = (project.defects || []).find(d => d.id === defectId); // ✅ 고정한 프로젝트에서 찾기
@@ -9092,14 +9145,15 @@ body.light-mode .card.reference-info {
                 if (file) {
                     const compressed = await compressGalleryFile(file, project);
                     if (!compressed) return;
+                    const marked = await markGalleryPhoto(compressed); // ✅ 패치 96
                     const defect = (project.defects || []).find(d => d.id === defectId);
                     if (defect) {
                         if (!Array.isArray(defect.photos)) defect.photos = [];
                         if (step === 'far' || step === 'close') {
                             // 원경=0번, 근경=1번 칸에 저장 (삭제로 생긴 빈칸 채움)
-                            defect.photos[step === 'close' ? 1 : 0] = compressed;
+                            defect.photos[step === 'close' ? 1 : 0] = marked;
                         } else {
-                            defect.photos.push(compressed);
+                            defect.photos.push(marked);
                         }
 
                         if (project === getCurrentProject()) renderDefects();
@@ -16930,7 +16984,7 @@ body.light-mode .card.reference-info {
     }
     
     // ✅ 패치 69: 새 배포 확인 — 이 화면의 판 번호(APP_BUILD) vs 사이트의 version.json(정식)·version-test.json(테스트)
-    const APP_BUILD = '4e76176e0a23'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
+    const APP_BUILD = '405ef81869a3'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
     (function() {
         const url = /index-unified-test\.html$/.test(location.pathname) ? 'version-test.json' : 'version.json';
         let busy = false;
