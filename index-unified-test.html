@@ -7430,7 +7430,8 @@ body.light-mode .card.reference-info {
                         + '<div class="adm-dates"><button type="button" class="adm-re" data-act="paste" style="flex:1;">📋 붙여넣기</button>'
                         + (canPick ? '<button type="button" class="adm-re" data-act="pick" style="flex:1;">👤 연락처에서</button>' : '') + '</div>'
                         + priceHtml()
-                        + '<button type="button" class="adm-next" data-act="direct">📩 서비스 안내 보내기</button>';
+                        + '<button type="button" class="adm-next" data-act="direct">📩 서비스 안내 보내기</button>'
+                        + '<button type="button" class="adm-re" data-act="copy1" style="width:100%;margin-top:6px;min-height:44px;">📋 번호 없이 문자 복사 (카톡·문자에 붙여넣기)</button>'; // ✅ 패치 98
                     saveSt();
                     box.innerHTML = card(h);
                     return;
@@ -7854,6 +7855,12 @@ body.light-mode .card.reference-info {
                         const m = tot ? { total: tot, dep: dep } : r;
                         sheet(r && !tot ? dh(r) + ' · ' + (r.name || '') : fmtPh(ph[0]) + ' · 잔금 ' + won(m.total - m.dep), msgK5(m), ph,
                             r && !tot ? () => { sent[sentKey(r)] = new Date().toISOString(); lsSet(SENT_KEY, sent); render(); } : null);
+                        return;
+                    }
+                    if (a === 'copy1' || (a === 'direct' && st.kind === 'k1' && !phonesOf((box.querySelector('[data-f="direct"]') || {}).value).length)) { // ✅ 패치 98: 번호 없으면 복사
+                        const text = msgK1();
+                        if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(() => showToast('📋 서비스 안내를 복사했어요. 카톡·문자에 붙여넣기 하세요'), () => alert(text));
+                        else alert(text);
                         return;
                     }
                     if (a === 'direct') {
@@ -16984,7 +16991,7 @@ body.light-mode .card.reference-info {
     }
     
     // ✅ 패치 69: 새 배포 확인 — 이 화면의 판 번호(APP_BUILD) vs 사이트의 version.json(정식)·version-test.json(테스트)
-    const APP_BUILD = '99a602297fa3'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
+    const APP_BUILD = '9470a477cb44'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
     (function() {
         const url = /index-unified-test\.html$/.test(location.pathname) ? 'version-test.json' : 'version.json';
         let busy = false;
