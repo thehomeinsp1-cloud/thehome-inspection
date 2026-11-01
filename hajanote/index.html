@@ -1,22 +1,35 @@
 <!doctype html>
 <html lang="ko">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#ECEEEC">
-  <title>하자노트</title>
-  <!-- 홈페이지 웹판: 아이폰·안드로이드 '홈 화면에 추가' 아이콘과 전체 화면 -->
-  <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="icon" type="image/png" href="./icon-192.png">
-  <link rel="apple-touch-icon" href="./apple-touch-icon.png">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-title" content="하자노트">
-  <link rel="preload" href="./fonts/WantedSansVariable.woff2" as="font" type="font/woff2" crossorigin>
-  <script type="module" crossorigin src="./assets/index-C5Dy5HMh.js"></script>
-  <link rel="stylesheet" crossorigin href="./assets/index-DZTt1J0o.css">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>하자노트가 이사했어요</title>
+<meta name="robots" content="noindex">
+<link rel="canonical" href="https://hajanote.haechium.com/">
+<style>
+  body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: #f6f7f9; color: #1d2433; font: 17px/1.6 system-ui, -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif; }
+  main { max-width: 420px; padding: 32px 24px; text-align: center; }
+  h1 { font-size: 24px; margin: 0 0 12px; }
+  p { margin: 0 0 24px; color: #4a5263; }
+  a { display: block; padding: 16px; border-radius: 12px; background: #1f6feb; color: #fff; font-weight: 700; text-decoration: none; }
+  small { display: block; margin-top: 16px; color: #6b7385; }
+  @media (prefers-color-scheme: dark) { body { background: #12151b; color: #e8ebf1; } p { color: #b4bccb; } small { color: #8c95a6; } }
+</style>
 </head>
 <body>
-  <div id="app"></div>
+<main>
+  <h1>하자노트가 이사했어요</h1>
+  <p>이제 아래 새 주소에서 써 주세요.<br>홈 화면에 추가해 두셨다면 새 주소로 다시 추가해 주세요.</p>
+  <a id="go" href="https://hajanote.haechium.com/">새 주소로 가기</a>
+  <small>hajanote.haechium.com</small>
+</main>
+<script>
+  // 받은 실측표 링크(?mt=) 같은 뒷부분은 그대로 넘긴다
+  var u = 'https://hajanote.haechium.com/' + location.search + location.hash;
+  document.getElementById('go').href = u;
+  // 예전에 설치된 앱(서비스 워커)을 지워 다음부터 이 안내가 바로 뜨게 — 같은 주소의 직원용 앱 캐시는 건드리지 않는다
+  if (navigator.serviceWorker) navigator.serviceWorker.getRegistrations().then(function (rs) { rs.forEach(function (r) { if (r.scope.indexOf('/hajanote/') > -1) r.unregister(); }); });
+  if (window.caches) caches.keys().then(function (ks) { ks.forEach(function (k) { if (k.indexOf('hajanote-') === 0) caches.delete(k); }); });
+</script>
 </body>
 </html>
