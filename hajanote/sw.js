@@ -1,6 +1,6 @@
 // 자동 생성 파일 (tools/web-sw.py) — 직접 고치지 마세요
-const CACHE = 'hajanote-63c24460b1c9';
-const FILES = ["./apple-touch-icon.png", "./assets/act-CWDZBXgK.js", "./assets/act-eGmgojVG.js", "./assets/commonjs-dynamic-modules-TDtrdbi3.js", "./assets/danji-CnQ-XWOZ.js", "./assets/exceljs.min-WXE_OR_B.js", "./assets/feedback-BHdjBayr.js", "./assets/html2canvas.esm-Dw6mdHwC.js", "./assets/index-B4SrPgQJ.js", "./assets/index-BFCK-8cP.js", "./assets/index-C0UiuBlN.css", "./assets/index-CPx9q-me.js", "./assets/index-Cl50C6M1.js", "./assets/index-DQId8j9G.js", "./assets/index.es-DvTtuwfD.js", "./assets/jspdf.es.min-7tnzcU02.js", "./assets/jszip.min-C7Ljnkw2.js", "./assets/purify.es-C8T5ouKw.js", "./assets/web-CBwotKl7.js", "./assets/web-Ck2Iyqim.js", "./assets/web-F0t1XiB8.js", "./fonts/OFL-WantedSans.txt", "./fonts/WantedSansVariable.woff2", "./icon-192.png", "./icon-512.png", "./index.html", "./manifest.webmanifest", "./privacy.html", "./terms.html"];
+const CACHE = 'hajanote-4993f9918dea';
+const FILES = ["./apple-touch-icon.png", "./assets/act-B6By-Os6.js", "./assets/act-BLEisuJR.js", "./assets/commonjs-dynamic-modules-TDtrdbi3.js", "./assets/danji-CnQ-XWOZ.js", "./assets/exceljs.min-BnGeE2-_.js", "./assets/feedback-BmBCfAe2.js", "./assets/html2canvas.esm-Dw6mdHwC.js", "./assets/index-B-ixXsGU.js", "./assets/index-BhAfZh0N.js", "./assets/index-Cl50C6M1.js", "./assets/index-DK0x7SLj.css", "./assets/index-DNtbxuvT.js", "./assets/index-uLH7qI_u.js", "./assets/index.es-4m1jdeiZ.js", "./assets/jspdf.es.min-C8gb5aVu.js", "./assets/jszip.min-BjVcVqGn.js", "./assets/purify.es-C8T5ouKw.js", "./assets/web-BBRUSIZb.js", "./assets/web-CBwotKl7.js", "./assets/web-F0t1XiB8.js", "./fonts/OFL-WantedSans.txt", "./fonts/WantedSansVariable.woff2", "./icon-192.png", "./icon-512.png", "./index.html", "./manifest.webmanifest", "./privacy.html", "./terms.html"];
 
 self.addEventListener('install', (e) => {
   // cache:'reload' — 브라우저 HTTP 캐시의 옛 index.html이 새 캐시에 들어가 흰 화면이 되는 것을 막는다 (검수 P-2)
@@ -17,7 +17,7 @@ self.addEventListener('fetch', (e) => {
   // (예전엔 caches.match가 남겨 둔 옛 캐시를 먼저 찾아 늘 한 버전 전 화면이 떴다, 2026-10-27 대표님 폰)
   const own = caches.open(CACHE).then((c) => c.match(r.mode === 'navigate' ? './' : r, { ignoreSearch: true }));
   if (r.mode === 'navigate') {
-    const net = fetch(r.url, { cache: 'no-cache' }).then((res) => { if (!res.ok) throw res; return res; });   // 받아 온 화면은 캐시에 넣지 않는다: 옛 캐시에 새 화면이 들어가면 오프라인 때 새 파일을 못 찾아 흰 화면 (검수 2차 S-2)
+    const net = fetch(r.url, { cache: 'no-cache' }).then((res) => { if (!res.ok) throw res; return res.redirected ? Response.redirect(res.url, 302) : res; });   // terms.html → /terms 처럼 주소가 바뀐 응답은 그대로 못 넘긴다 (2026-11-02 검수)   // 받아 온 화면은 캐시에 넣지 않는다: 옛 캐시에 새 화면이 들어가면 오프라인 때 새 파일을 못 찾아 흰 화면 (검수 2차 S-2)
     const late = new Promise((ok) => setTimeout(ok, 4000)).then(() => own).then((hit) => hit || net);
     e.respondWith(Promise.race([net, late]).catch(() => own.then((hit) => hit || Response.error())));
     return;
