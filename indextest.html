@@ -1949,7 +1949,7 @@ body.light-mode .card.reference-info {
         </button>
         
         <h1>🏠 더홈점검</h1>
-        <p id="appVersionTag">업데이트 2026.10.31</p>
+        <p id="appVersionTag">업데이트 2026.11.02</p>
     </div>
 
     <div class="container">
@@ -6759,7 +6759,7 @@ body.light-mode .card.reference-info {
             const tMin = t => { const m = /(\d{1,2})\s*[:시]\s*(\d{0,2})/.exec(String(t || '')); if (!m) return 9999; let h = +m[1]; if (h >= 1 && h <= 6) h += 12; return h * 60 + (+m[2] || 0); }; // '2:30' = 오후
             const badT = r => { const t = tMin(r.time); return t === 9999 || t < 480 || t > 1080; }; // 빈칸·'오전'·'위임'·0:00·20:00 등 → 시간 확인
             const TIME_NOTE = /조율|미정|시간.{0,4}(확인|정|변경)|변경/; // 비고에 이런 말이 있으면 시간 확정 전 (비고 원문은 비번 등이 있어 이 경우만 보여줌)
-            const PAY_GRACE = 2; // 잔금은 당일 입금, 결재확인은 며칠 뒤 몰아서 체크 → 점검 3일째부터 미입금으로
+            const PAY_GRACE = -1; // ✅ 패치 99: 점검 당일부터 미입금으로 (예전 2 = 3일째부터) // 잔금은 당일 입금, 결재확인은 며칠 뒤 몰아서 체크 → 점검 3일째부터 미입금으로
             // 행사장이 없는 예약(주소형·인테리어·입주)이나 현장명 칸 메모는 전날 안내 문구가 맞지 않음 → 잠금
             const oddSite = r => /인테리어|입주/.test(r.site + ' ' + (r.team || '')) || /\d+-\d+|번길|[시군구]\s|\(.{9,}\)|\d+월\s*\d/.test(r.site);
             const colL = i => { let s = ''; for (i++; i > 0; i = Math.floor((i - 1) / 26)) s = String.fromCharCode(65 + (i - 1) % 26) + s; return s; };
@@ -7488,7 +7488,7 @@ body.light-mode .card.reference-info {
                     else if (data.sub.err) h += '<div class="adm-msg adm-err">' + E(data.sub.err) + '</div>';
                     else cur = data.sub.rows;
                 } else if (st.kind === 'k8') {
-                    h += '<div class="adm-step">② 대상 <small>지난 60일 · 점검 ' + (PAY_GRACE + 1) + '일째부터 · 시트 결재확인 안 된 고객</small></div>';
+                    h += '<div class="adm-step">② 대상 <small>지난 60일 · 점검 당일부터 · 시트 결재확인 안 된 고객</small></div>';
                     cur = V.unpaid;
                 } else if (st.kind === 'k9') {
                     // 확인 필요: 문자 없이 목록만 (시트에서 고치면 ↻ 새로 불러오기)
@@ -7544,7 +7544,7 @@ body.light-mode .card.reference-info {
                     if (st.kind === 'k12') info += ' · ' + E(r.info) + (r.reg ? ' · 예약일정 ✓' : ' · <span class="warn">예약일정 없음</span>'); // ✅ 패치 93
                     if (st.kind === 'k10') info += (r.app ? ' · ' + E(r.app) : '') + (r.cnt ? ' · 접수 ' + r.cnt + '건' : '') + (r.who ? ' · 담당 ' + E(r.who) : '');
                     if (MK(st.kind) === 'k5') info += ' · ' + (r.total ? '잔금 ' + won(r.total - r.dep) + (r.paid ? ' · 입금확인' : '') : '금액 없음');
-                    if (st.kind === 'k8') { const k5 = sent['k5' + sentKey(r).slice(2)]; if (k5) info += ' · 정산 보냄 ' + (new Date(k5).getMonth() + 1) + '/' + new Date(k5).getDate(); }
+                    if (st.kind === 'k8') { const dd = Math.round((new Date(new Date().toDateString()) - new Date(r.date.toDateString())) / 86400000); info += ' · ' + (dd > 0 ? (dd >= 7 ? '<span class="warn">' + dd + '일 지남</span>' : dd + '일 지남') : '오늘 점검'); } /* ✅ 패치 99 */ if (st.kind === 'k8') { const k5 = sent['k5' + sentKey(r).slice(2)]; if (k5) info += ' · 정산 보냄 ' + (new Date(k5).getMonth() + 1) + '/' + new Date(k5).getDate(); }
                     if (st.kind === 'k7' && TIME_NOTE.test(r.note || '')) info += ' · 📝 ' + E(String(r.note).replace(/\s+/g, ' ').slice(0, 30));
                     if (st.kind === 'k6' && r.booked) info += ' · 사후 예약됨';
                     const left = st.kind === 'k6' ? '' : '<div class="t">' + (st.kind === 'k12' ? (r.date ? E((r.date.getMonth() + 1) + '/' + r.date.getDate()) + '<br>' : '') + E(r.time || '') : st.kind === 'k8' || st.kind === 'k10' ? E((r.date.getMonth() + 1) + '/' + r.date.getDate()) : E(r.time || '-')) + '</div>';
@@ -16990,7 +16990,7 @@ body.light-mode .card.reference-info {
     }
     
     // ✅ 패치 69: 새 배포 확인 — 이 화면의 판 번호(APP_BUILD) vs 사이트의 version.json(정식)·version-test.json(테스트)
-    const APP_BUILD = '738f71071798'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
+    const APP_BUILD = '5cacf37eaa6f'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
     (function() {
         const url = /index-unified-test\.html$/.test(location.pathname) ? 'version-test.json' : 'version.json';
         let busy = false;
