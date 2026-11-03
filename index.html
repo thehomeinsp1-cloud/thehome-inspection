@@ -1949,7 +1949,7 @@ body.light-mode .card.reference-info {
         </button>
         
         <h1>🏠 더홈점검</h1>
-        <p id="appVersionTag">업데이트 2026.11.02</p>
+        <p id="appVersionTag">업데이트 2026.11.03</p>
     </div>
 
     <div class="container">
@@ -2130,6 +2130,13 @@ body.light-mode .card.reference-info {
 
         <!-- 데이터 관리 섹션 -->
         <div id="data" class="section">
+            <!-- ✅ 패치 100: 사후점검이면 이 세대 예전 보고서 -->
+            <div id="prevRepCard" class="card" style="display:none; margin-bottom: 14px; padding: 12px 14px;">
+                <div style="font-size: 15px; font-weight: 800;">📄 이 세대 예전 보고서</div>
+                <div style="font-size: 12.5px; color: var(--text-secondary); margin: 2px 0 8px;">공유 드라이브에서 같은 동·호수 보고서를 찾아요 (구글 로그인 필요)</div>
+                <button type="button" class="btn btn-secondary" onclick="prevRepFind()" style="min-height: 44px;">🔎 예전 보고서 찾기</button>
+                <div id="prevRepOut" style="margin-top: 8px;"></div>
+            </div>
             <!-- ✅ 회사 구글 로그인 (소장님·매니저 모두 필요) -->
             <div class="card" style="margin-bottom: 14px; padding: 12px 14px;">
                 <div style="display: flex; align-items: center; gap: 10px;">
@@ -15013,7 +15020,40 @@ body.light-mode .card.reference-info {
             const badge = document.getElementById('inspectionTypeBadge');
             if (!el || !badge) return;
             const t = el.value || '사전점검';
+            const _prc = document.getElementById('prevRepCard'); if (_prc) { _prc.style.display = t === '사후점검' ? 'block' : 'none'; const _o = document.getElementById('prevRepOut'); if (_o) _o.innerHTML = ''; } // ✅ 패치 100
             badge.innerHTML = '<span style="display:inline-block;padding:5px 12px;border-radius:20px;background:rgba(16,185,129,0.15);border:1px solid var(--primary);color:var(--primary);font-size:12px;font-weight:700;">표지: ' + t + ' 보고서</span>';
+        };
+
+        // ✅ 패치 100: 예전 보고서 찾기 — 파일 이름 '단지_동동_호호_작성자_YYYY-MM-DD_하자점검보고서.pdf'(장비점검보고서도)에서 동·호·단지를 맞춤
+        window.prevRepFind = async function() {
+            const out = document.getElementById('prevRepOut');
+            if (!out) return;
+            const say = (t, warn) => { out.innerHTML = '<div style="font-size:13.5px;padding:8px 10px;border-radius:8px;background:' + (warn ? 'rgba(245,158,11,0.12)' : 'var(--bg-secondary, rgba(127,127,127,0.08))') + ';">' + t + '</div>'; };
+            const digits = s => String(s || '').replace(/\D/g, '');
+            const site = s => String(s || '').replace(/\s+/g, '').replace(/\(?사후[^()_]*\)?/g, '').replace(/[()]/g, '');
+            const dong = digits(projectData.dong), ho = digits(projectData.ho), apt = site(projectData.apartmentName);
+            if (!ho) { say('프로젝트 탭에 동·호수를 먼저 적어 주세요.', true); return; }
+            if (!accessToken) { say('🔐 위에서 구글 로그인 후 다시 눌러 주세요.', true); return; }
+            say('⏳ 공유 드라이브에서 찾는 중...');
+            try {
+                const q = "name contains '" + ho + "호' and (name contains '하자점검보고서' or name contains '장비점검보고서') and mimeType = 'application/pdf' and trashed = false";
+                const res = await fetch('https://www.googleapis.com/drive/v3/files?q=' + encodeURIComponent(q) + '&corpora=allDrives&includeItemsFromAllDrives=true&supportsAllDrives=true&pageSize=200&fields=files(id,name,webViewLink)', { headers: { Authorization: 'Bearer ' + accessToken } });
+                if (res.status === 401) { say('🔐 구글 로그인이 풀렸어요. 위에서 다시 로그인한 뒤 눌러 주세요.', true); return; }
+                if (!res.ok) throw new Error('drive ' + res.status);
+                const files = ((await res.json()).files || []).map(f => {
+                    const m = /^(.*?)_([^_]*)동_([^_]*)호_(.*)_(\d{4})-(\d{1,2})-(\d{1,2})_(하자|장비)점검보고서/.exec(String(f.name || ''));
+                    return m ? { f: f, apt: site(m[1]), dong: digits(m[2]), ho: digits(m[3]), who: m[4].split('_')[0], date: new Date(+m[5], +m[6] - 1, +m[7]), kind: m[8] } : null;
+                }).filter(x => x && x.ho === ho && (!dong || !x.dong || x.dong === dong)
+                    && (!apt || x.apt.indexOf(apt.slice(0, 4)) >= 0 || apt.indexOf(x.apt.slice(0, 4)) >= 0)) // 단지명은 앞 4글자로 넉넉하게 (띄어쓰기·(사후) 무시)
+                    .sort((a, b) => b.date - a.date || (a.kind === '하자' ? -1 : 1));
+                if (!files.length) { say('이 세대(' + (dong ? dong + '동 ' : '') + ho + '호) 보고서를 찾지 못했어요. 동·호수·단지명이 사전점검 때와 같은지 확인해 주세요.', true); return; }
+                const md = d => (d.getMonth() + 1) + '/' + d.getDate();
+                out.innerHTML = files.map(x => '<a href="' + escapeHtml(x.f.webViewLink || ('https://drive.google.com/file/d/' + x.f.id + '/view')) + '" target="_blank" rel="noopener" style="display:block;padding:10px 12px;margin-top:6px;border-radius:10px;border:1px solid var(--border-color, rgba(127,127,127,0.3));text-decoration:none;color:inherit;">'
+                    + '<b>' + (x.kind === '하자' ? '📄 하자점검' : '📸 장비점검') + ' 보고서 · ' + md(x.date) + '</b><br><small style="color:var(--text-secondary);">' + escapeHtml(x.who || '') + ' · ' + escapeHtml(x.f.name) + '</small></a>').join('');
+            } catch (err) {
+                console.error('예전 보고서 찾기 오류:', err);
+                say('보고서를 찾지 못했어요. 인터넷 연결을 확인하고 다시 눌러 주세요.', true);
+            }
         };
 
         function autoSaveProjectData() {
@@ -16990,7 +17030,7 @@ body.light-mode .card.reference-info {
     }
     
     // ✅ 패치 69: 새 배포 확인 — 이 화면의 판 번호(APP_BUILD) vs 사이트의 version.json(정식)·version-test.json(테스트)
-    const APP_BUILD = '5cacf37eaa6f'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
+    const APP_BUILD = '33d552bf9c62'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
     (function() {
         const url = /index-unified-test\.html$/.test(location.pathname) ? 'version-test.json' : 'version.json';
         let busy = false;
