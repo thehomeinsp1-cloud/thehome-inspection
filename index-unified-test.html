@@ -2080,6 +2080,7 @@ body.light-mode .card.reference-info {
             <div id="missingTools" style="display: none;">
                 <button type="button" id="missingOnlyBtn" class="btn btn-secondary" aria-pressed="false" onclick="toggleMissingOnly()">⚠️ 검토 0</button>
                 <button type="button" id="afBtn" class="btn btn-secondary" onclick="AF.run()" title="사진 속 하자 스티커를 읽어 위치·하자내용을 채웁니다 (시험)">🤖 자동 채우기</button>
+                <button type="button" id="paBtn" class="btn btn-secondary" style="display: none;" onclick="PA.run()" title="사진을 AI가 보고 위치·하자내용·상세위치를 채웁니다 (테스트판)">🧠 사진 AI</button>
                 <span class="tb-jump"><input type="text" id="jumpDefectNo" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" placeholder="번호" aria-label="이동할 하자 번호"
                        onkeydown="if(event.key==='Enter' && !event.isComposing){event.preventDefault();jumpToDefect();}"><button type="button" onclick="jumpToDefect()" aria-label="그 번호 하자로 이동">→</button></span>
             </div>
@@ -2131,22 +2132,6 @@ body.light-mode .card.reference-info {
 
         <!-- 데이터 관리 섹션 -->
         <div id="data" class="section">
-            <!-- ✅ 패치 100: 사후점검이면 이 세대 예전 보고서 -->
-            <div id="prevRepCard" class="card" style="display:none; margin-bottom: 14px; padding: 12px 14px;">
-                <div style="font-size: 15px; font-weight: 800;">📄 이 세대 예전 보고서</div>
-                <div style="font-size: 12.5px; color: var(--text-secondary); margin: 2px 0 8px;">공유 드라이브에서 같은 동·호수 보고서를 찾아요 (구글 로그인 필요)</div>
-                <button type="button" class="btn btn-secondary" onclick="prevRepFind()" style="min-height: 44px;">🔎 예전 보고서 찾기</button>
-                <div id="prevRepOut" style="margin-top: 8px;"></div>
-            </div>
-            <!-- ✅ 패치 101: 나는 누구 — 고르면 내 카드만 -->
-            <div style="margin-bottom: 10px;">
-                <div style="font-size: 13px; font-weight: 700; color: var(--text-secondary); margin: 0 2px 6px;">나는 누구? <small style="font-weight:500;">고르면 내 버튼만 보여요 · 이 폰에 기억</small></div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr 0.7fr; gap: 6px;">
-                    <button type="button" class="btn btn-secondary data-role-b" data-r="boss" onclick="setDataRole('boss')" style="min-height: 46px; margin: 0; font-weight: 800;">🔧 소장</button>
-                    <button type="button" class="btn btn-secondary data-role-b" data-r="mgr" onclick="setDataRole('mgr')" style="min-height: 46px; margin: 0; font-weight: 800;">📋 매니저</button>
-                    <button type="button" class="btn btn-secondary data-role-b" data-r="all" onclick="setDataRole('all')" style="min-height: 46px; margin: 0; font-weight: 700;">전체</button>
-                </div>
-            </div>
             <!-- ✅ 회사 구글 로그인 (소장님·매니저 모두 필요) -->
             <div class="card" style="margin-bottom: 14px; padding: 12px 14px;">
                 <div style="display: flex; align-items: center; gap: 10px;">
@@ -2157,8 +2142,7 @@ body.light-mode .card.reference-info {
                     <button id="signInBtnSimple" class="btn btn-secondary" onclick="handleGoogleSignIn()" style="width: auto; flex-shrink: 0; min-height: 40px; padding: 8px 14px; font-size: 14px;">🔐 로그인</button>
                     <button id="signOutBtnSimple" class="btn btn-secondary" onclick="handleGoogleSignOut()" style="width: auto; flex-shrink: 0; min-height: 40px; padding: 8px 14px; font-size: 13px; display: none;">로그아웃</button>
                 </div>
-                <div style="font-size: 12.5px; color: var(--text-secondary); margin-top: 6px; word-break: keep-all;">💡 드라이브로 보내기·합치기·저장할 때 필요해요. <b>1시간</b> 지나면 풀리니 누르기 전에 ✅인지 확인하세요.</div>
-<details style="margin-top: 8px;">
+                <details style="margin-top: 8px;">
                     <summary style="cursor: pointer; font-size: 12.5px; font-weight: 700; color: var(--text-secondary); padding: 4px 0;">❓ 처음 로그인 방법 · 로그인이 풀릴 때</summary>
                     <ol style="font-size: 13px; line-height: 1.55; margin: 8px 0 6px; padding-left: 20px;">
                         <li style="margin: 0 0 6px;"><b>🔐 로그인</b> → 회사 구글 계정 선택</li>
@@ -2174,10 +2158,10 @@ body.light-mode .card.reference-info {
             </div>
 
             <!-- 🔧 소장님: 장비점검 끝나면 -->
-            <div class="card" style="margin-bottom: 14px; border: 2px solid #7F77DD;" id="dataBossCard">
+            <div class="card" style="margin-bottom: 14px; border: 2px solid #7F77DD;">
                 <h2 style="font-size: 17px; margin-bottom: 12px; color: var(--role-eq-text, #9C95E8);">🔧 소장님 · 장비점검 끝나면</h2>
                 <button class="btn" onclick="sendEquipmentToDrive()" style="display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; margin-bottom: 8px; background: #534AB7; color: #FFFFFF; border: none; padding: 13px 14px; font-size: 15.5px;">
-                    <span style="display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: #FFFFFF; color: #534AB7; font-size: 13px; font-weight: 800; flex-shrink: 0;">1</span> <span>📤 장비점검 보내기 (필수)<small style="display:block;font-size:12.5px;font-weight:500;opacity:0.8;margin-top:2px;">장비 사진·결과가 매니저에게 넘어가요 · 끝나면 1번만</small></span>
+                    <span style="display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: #FFFFFF; color: #534AB7; font-size: 13px; font-weight: 800; flex-shrink: 0;">1</span> 📤 장비점검 보내기 (필수)
                 </button>
                 <div style="font-size: 13.5px; line-height: 1.5; font-weight: 800; color: var(--role-eq-text, #9C95E8); margin: 2px 0 10px; word-break: keep-all;">✅ 장비점검이 끝나면 ① 장비점검 보내기를 꼭 눌러주세요. 매니저가 합쳐야 고객 보고서 1개에 장비점검이 들어갑니다.</div>
                 <button class="btn btn-secondary" onclick="generateEquipmentOnlyPDF()" style="width: 100%; font-size: 14px;">
@@ -2186,10 +2170,10 @@ body.light-mode .card.reference-info {
             </div>
 
             <!-- 📋 매니저: 점검 끝나면 순서대로 -->
-            <div class="card" style="margin-bottom: 14px; border: 2px solid #D23B3B;" id="dataMgrCard">
+            <div class="card" style="margin-bottom: 14px; border: 2px solid #D23B3B;">
                 <h2 style="font-size: 17px; margin-bottom: 12px; color: var(--role-mgr-text, #FF8080);">📋 매니저 · 점검 끝나면 순서대로</h2>
                 <button id="mgrStep1" class="btn btn-secondary" onclick="openEquipmentDriveSheet()" style="display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; margin-bottom: 8px; padding: 12px 14px; font-size: 15px;">
-                    <span class="mgr-n" style="display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: #D23B3B; color: #FFFFFF; font-size: 13px; font-weight: 800; flex-shrink: 0;">1</span> <span>📥 장비점검 합치기<small style="display:block;font-size:12.5px;font-weight:500;opacity:0.8;margin-top:2px;">소장님이 보낸 장비 사진·결과를 내 보고서에 넣어요</small></span>
+                    <span class="mgr-n" style="display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: #D23B3B; color: #FFFFFF; font-size: 13px; font-weight: 800; flex-shrink: 0;">1</span> 📥 장비점검 합치기 (소장님이 보낸 것)
                 </button>
                 <button id="driveUploadBtn" class="btn btn-secondary" onclick="uploadProjectToDrive()" style="display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; margin-bottom: 8px; padding: 12px 14px; font-size: 15px;">
                     <span class="mgr-n" style="display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: #D23B3B; color: #FFFFFF; font-size: 13px; font-weight: 800; flex-shrink: 0;">2</span> <span>☁️ 공유드라이브에 저장하기 (보고서 자동 포함)<br><small style="font-size: 12.5px; font-weight: 600; color: var(--text-secondary);">인터넷 필요 · 1~3분</small></span>
@@ -2204,9 +2188,7 @@ body.light-mode .card.reference-info {
             <!-- 📩 하자접수 완료 문자 (직원 모두 · 패치 59 admin-tab.inc.js sdRender) -->
             <div class="card" id="staffDone" style="margin-bottom: 14px;"></div>
 
-            <!-- 📁 기타 자료 (✅ 패치 101: 자주 안 써서 접어 둠) -->
-            <details id="dataMore" style="margin-bottom: 14px;">
-                <summary style="cursor: pointer; font-size: 14px; font-weight: 800; color: var(--text-secondary); padding: 12px 4px;">▸ 기타 자료 · 엑셀 · 전체 다운로드 · 백업 복원 · 프리랜서 계약서</summary>
+            <!-- 📁 기타 자료 -->
             <div class="card" style="margin-bottom: 14px;">
                 <h2 style="font-size: 16px; margin-bottom: 10px; color: var(--text-secondary);">📁 기타 자료</h2>
                 <button class="btn btn-secondary" onclick="generateFieldReportPDF()" style="width: 100%; margin-bottom: 8px; font-size: 14px;">📋 현장출력보고서 (요약형)</button>
@@ -2221,8 +2203,6 @@ body.light-mode .card.reference-info {
 
             <!-- 📝 프리랜서 계약서 (패치 64 contract.inc.js) -->
             <div class="card" id="contractCard" style="margin-bottom: 14px;"></div>
-
-            </details>
 
             <!-- 📖 사용 가이드 -->
             <div class="card" style="margin-bottom: 14px;">
@@ -6352,7 +6332,6 @@ body.light-mode .card.reference-info {
                 const el = document.getElementById(id), n = el && el.querySelector('.mgr-n');
                 if (!n) return;
                 el.style.outline = i === next ? '2px solid #D23B3B' : '';
-                let tg = el.querySelector('.mgr-now'); if (i === next) { if (!tg) { tg = document.createElement('b'); tg.className = 'mgr-now'; tg.textContent = '👈 지금'; tg.style.cssText = 'margin-left:auto;flex:none;font-size:12.5px;color:#FF8080;white-space:nowrap;'; el.appendChild(tg); } } else if (tg) tg.remove(); // ✅ 패치 101
                 el.style.outlineOffset = '-2px';
                 n.textContent = done[i] === true ? '✓' : String(i + 1);
                 n.style.background = done[i] === true ? '#16a34a' : i === next ? '#D23B3B' : '#6b7280';
@@ -6583,7 +6562,7 @@ body.light-mode .card.reference-info {
             const L = a => a.join('\n');
             const MSG = {
                 k1: L(['🏠 더홈점검 점검서비스 안내', '', '안녕하세요, 건축자격증 보유 · 현장경력 10년의 사전점검 전문 더홈점검입니다.', '문의 감사합니다 😊', '',
-                    '🔒 아래 링크는 더홈점검 공식 링크예요. 안심하고 눌러 보세요.', '', '📄 실제 보고서 샘플 (먼저 확인해 보세요)', 'https://drive.google.com/file/d/1h34gEhhAf7aqlyms4pmPWUR1qFoTF4Zt/view', '',
+                    '🔒 아래 링크는 더홈점검 공식 링크예요. 안심하고 눌러 보세요.', '', '📄 실제 보고서 샘플 (먼저 확인해 보세요)', 'drive.google.com/file/d/1h34gEhhAf7aqlyms4pmPWUR1qFoTF4Zt/view', '',
                     '🔍 점검 구성', '육안점검+기능점검+장비점검(열화상·레이저레벨)+공기질측정+현장 브리핑+당일 종합보고서+사후점검(유상옵션)', '· 소요시간 : 세대당 2시간내외', '',
                     '✅ 예약 방법', '단지명 / 동·호수 / 평형 / 희망일시 회신 → 일정 확인 → 예약금 5만원 → 잔금은 점검 후 결제', '',
                     '📞 문의', '1668-5322 / 010-9985-0128 (문자 남겨주시면 회신드립니다)', '홈페이지 https://www.thehomeinsp.com/', '카톡상담 https://open.kakao.com/o/sR64Xb3e', '후기·사례 https://blog.naver.com/thehomeinsp']),
@@ -6624,7 +6603,7 @@ body.light-mode .card.reference-info {
                         e => { p.err = e && (e.status === 403 || e.status === 404) ? '이 구글 계정은 가격안내 시트를 볼 수 없어요.' : e && e.status === 401 ? '구글 로그인이 만료됐어요. 다시 로그인해 주세요.' : '가격안내 시트를 읽지 못했어요.'; })
                     .then(() => { p.loading = false; if (price === p && isAdmin && st.kind === 'k1') render(); });
             }
-            const shortUrl = u => (/^https?:\/\//.test(u) ? '' : 'https://') + String(u).replace(/[?&]usp=[^&]*$/, ''); // ✅ 패치 97: https:// 그대로 (모든 문자앱에서 눌리게) // ✅ 패치 92: thehomeinsp.com/64?k=… (문자앱이 주소로 알아봄)
+            const shortUrl = u => String(u).replace(/^https?:\/\/(www\.)?/, '').replace(/[?&]usp=[^&]*$/, ''); // ✅ 패치 92: thehomeinsp.com/64?k=… (문자앱이 주소로 알아봄)
             const priceRow = () => price && price.rows ? price.rows.find(x => x.code === st.price && !x.old) || null : null;
             function msgK1() {
                 const p = priceRow();
@@ -6651,7 +6630,7 @@ body.light-mode .card.reference-info {
                         : ['📅 ' + r.when, '🔍 하자접수대행 : ' + (r.agent ? '신청' : '신청 안 함'), '💰 ' + (pay ? '결제금액 ' + won(pay) : '추가 비용 없음 (패키지 포함)')]
                             .concat(pay ? ['입금계좌 : 국민 757301-00-288729 (더홈점검)', '※ 입금 확인 후 예약이 확정됩니다.'] : []))
                     .concat(['', '🏠 점검 당일', '· 보일러를 켜 두세요 (난방 점검)', /위임/.test(r.deleg) ? '· 위임 진행 : 도어락 비밀번호나 위임 서류를 미리 알려 주세요' : '· 점검 10분 전까지 세대에 와 주세요',
-                        '', '예약 조회·취소 : https://www.thehomeinsp.com/57', '문의 1668-5322']));
+                        '', '예약 조회·취소 : thehomeinsp.com/57', '문의 1668-5322']));
             }
             function msgHpB(r) { // 홈페이지 빠른예약(사전점검) 신청 확인 + 예약금 안내
                 return L(['[더홈점검] 사전점검 예약 신청 확인', '', '안녕하세요' + (r.name ? ', ' + r.name + ' 고객님' : '') + '. 더홈점검입니다 🙂', '홈페이지에 남겨 주신 예약 신청을 확인했습니다.', '',
@@ -6659,7 +6638,7 @@ body.light-mode .card.reference-info {
                     .concat(r.size ? ['📐 ' + r.size] : []).concat(r.est ? ['💰 예상금액 : ' + r.est] : [])
                     .concat(['', '▶ 예약금 5만원을 아래 계좌로 입금해 주시면 일정을 확정해 드립니다.', '입금계좌 : 국민 757301-00-288729 (더홈점검)',
                         '※ 입금 후 「동·호수 / 계약자 성함」을 문자로 남겨 주세요.', '※ 예약금 미입금 시 1일 내 자동 취소되는 점 양해 바랍니다.', '',
-                        '🔒 아래는 더홈점검 공식 링크예요.', '📄 실제 보고서 샘플', 'https://drive.google.com/file/d/1h34gEhhAf7aqlyms4pmPWUR1qFoTF4Zt/view', '', '문의 1668-5322 / 010-9985-0128']));
+                        '🔒 아래는 더홈점검 공식 링크예요.', '📄 실제 보고서 샘플', 'drive.google.com/file/d/1h34gEhhAf7aqlyms4pmPWUR1qFoTF4Zt/view', '', '문의 1668-5322 / 010-9985-0128']));
             }
             async function loadHp() {
                 const j = await gget(HPURL + '/values:batchGet?ranges=' + rq('사후점검예약!A2:N') + '&ranges=' + rq('빠른예약!A2:M'));
@@ -6782,7 +6761,7 @@ body.light-mode .card.reference-info {
             const tMin = t => { const m = /(\d{1,2})\s*[:시]\s*(\d{0,2})/.exec(String(t || '')); if (!m) return 9999; let h = +m[1]; if (h >= 1 && h <= 6) h += 12; return h * 60 + (+m[2] || 0); }; // '2:30' = 오후
             const badT = r => { const t = tMin(r.time); return t === 9999 || t < 480 || t > 1080; }; // 빈칸·'오전'·'위임'·0:00·20:00 등 → 시간 확인
             const TIME_NOTE = /조율|미정|시간.{0,4}(확인|정|변경)|변경/; // 비고에 이런 말이 있으면 시간 확정 전 (비고 원문은 비번 등이 있어 이 경우만 보여줌)
-            const PAY_GRACE = -1; // ✅ 패치 99: 점검 당일부터 미입금으로 (예전 2 = 3일째부터) // 잔금은 당일 입금, 결재확인은 며칠 뒤 몰아서 체크 → 점검 3일째부터 미입금으로
+            const PAY_GRACE = 2; // 잔금은 당일 입금, 결재확인은 며칠 뒤 몰아서 체크 → 점검 3일째부터 미입금으로
             // 행사장이 없는 예약(주소형·인테리어·입주)이나 현장명 칸 메모는 전날 안내 문구가 맞지 않음 → 잠금
             const oddSite = r => /인테리어|입주/.test(r.site + ' ' + (r.team || '')) || /\d+-\d+|번길|[시군구]\s|\(.{9,}\)|\d+월\s*\d/.test(r.site);
             const colL = i => { let s = ''; for (i++; i > 0; i = Math.floor((i - 1) / 26)) s = String.fromCharCode(65 + (i - 1) % 26) + s; return s; };
@@ -7452,8 +7431,7 @@ body.light-mode .card.reference-info {
                         + '<div class="adm-dates"><button type="button" class="adm-re" data-act="paste" style="flex:1;">📋 붙여넣기</button>'
                         + (canPick ? '<button type="button" class="adm-re" data-act="pick" style="flex:1;">👤 연락처에서</button>' : '') + '</div>'
                         + priceHtml()
-                        + '<button type="button" class="adm-next" data-act="direct">📩 서비스 안내 보내기</button>'
-                        + '<button type="button" class="adm-re" data-act="copy1" style="width:100%;margin-top:6px;min-height:44px;">📋 번호 없이 문자 복사 (카톡·문자에 붙여넣기)</button>'; // ✅ 패치 98
+                        + '<button type="button" class="adm-next" data-act="direct">📩 서비스 안내 보내기</button>';
                     saveSt();
                     box.innerHTML = card(h);
                     return;
@@ -7511,7 +7489,7 @@ body.light-mode .card.reference-info {
                     else if (data.sub.err) h += '<div class="adm-msg adm-err">' + E(data.sub.err) + '</div>';
                     else cur = data.sub.rows;
                 } else if (st.kind === 'k8') {
-                    h += '<div class="adm-step">② 대상 <small>지난 60일 · 점검 당일부터 · 시트 결재확인 안 된 고객</small></div>';
+                    h += '<div class="adm-step">② 대상 <small>지난 60일 · 점검 ' + (PAY_GRACE + 1) + '일째부터 · 시트 결재확인 안 된 고객</small></div>';
                     cur = V.unpaid;
                 } else if (st.kind === 'k9') {
                     // 확인 필요: 문자 없이 목록만 (시트에서 고치면 ↻ 새로 불러오기)
@@ -7567,7 +7545,7 @@ body.light-mode .card.reference-info {
                     if (st.kind === 'k12') info += ' · ' + E(r.info) + (r.reg ? ' · 예약일정 ✓' : ' · <span class="warn">예약일정 없음</span>'); // ✅ 패치 93
                     if (st.kind === 'k10') info += (r.app ? ' · ' + E(r.app) : '') + (r.cnt ? ' · 접수 ' + r.cnt + '건' : '') + (r.who ? ' · 담당 ' + E(r.who) : '');
                     if (MK(st.kind) === 'k5') info += ' · ' + (r.total ? '잔금 ' + won(r.total - r.dep) + (r.paid ? ' · 입금확인' : '') : '금액 없음');
-                    if (st.kind === 'k8') { const dd = Math.round((new Date(new Date().toDateString()) - new Date(r.date.toDateString())) / 86400000); info += ' · ' + (dd > 0 ? (dd >= 7 ? '<span class="warn">' + dd + '일 지남</span>' : dd + '일 지남') : '오늘 점검'); } /* ✅ 패치 99 */ if (st.kind === 'k8') { const k5 = sent['k5' + sentKey(r).slice(2)]; if (k5) info += ' · 정산 보냄 ' + (new Date(k5).getMonth() + 1) + '/' + new Date(k5).getDate(); }
+                    if (st.kind === 'k8') { const k5 = sent['k5' + sentKey(r).slice(2)]; if (k5) info += ' · 정산 보냄 ' + (new Date(k5).getMonth() + 1) + '/' + new Date(k5).getDate(); }
                     if (st.kind === 'k7' && TIME_NOTE.test(r.note || '')) info += ' · 📝 ' + E(String(r.note).replace(/\s+/g, ' ').slice(0, 30));
                     if (st.kind === 'k6' && r.booked) info += ' · 사후 예약됨';
                     const left = st.kind === 'k6' ? '' : '<div class="t">' + (st.kind === 'k12' ? (r.date ? E((r.date.getMonth() + 1) + '/' + r.date.getDate()) + '<br>' : '') + E(r.time || '') : st.kind === 'k8' || st.kind === 'k10' ? E((r.date.getMonth() + 1) + '/' + r.date.getDate()) : E(r.time || '-')) + '</div>';
@@ -7877,12 +7855,6 @@ body.light-mode .card.reference-info {
                         const m = tot ? { total: tot, dep: dep } : r;
                         sheet(r && !tot ? dh(r) + ' · ' + (r.name || '') : fmtPh(ph[0]) + ' · 잔금 ' + won(m.total - m.dep), msgK5(m), ph,
                             r && !tot ? () => { sent[sentKey(r)] = new Date().toISOString(); lsSet(SENT_KEY, sent); render(); } : null);
-                        return;
-                    }
-                    if (a === 'copy1' || (a === 'direct' && st.kind === 'k1' && !phonesOf((box.querySelector('[data-f="direct"]') || {}).value).length)) { // ✅ 패치 98: 번호 없으면 복사
-                        const text = msgK1();
-                        if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(() => showToast('📋 서비스 안내를 복사했어요. 카톡·문자에 붙여넣기 하세요'), () => alert(text));
-                        else alert(text);
                         return;
                     }
                     if (a === 'direct') {
@@ -11387,6 +11359,190 @@ body.light-mode .card.reference-info {
                     if (window.keepAwakeOff) window.keepAwakeOff();
                 }
             };
+        })();
+
+        // ✅ 패치 97 (대표님 11-03): 🧠 사진 AI 분석 — 테스트판에서만 버튼이 보임 (제목이 '[테스트]'로 시작할 때)
+        //    하자마다 원경·근경 사진 + 공간을 Claude 에게 보내 위치·하자내용·상세위치를 채움.
+        //    순서: ① 스티커 판독(패치 80)이 위치·하자내용 둘 다 확실하면 그 값(무료) ② 아니면 Claude 사진 분석(스티커가 보이면 그것부터 읽게 지시)
+        //    직원이 고른 하자는 안 건드림. AI 가 채우고 아무도 손대지 않은 하자는 다시 누르면 새로 채움.
+        //    AI 칸은 전부 '확인 필요'(노란 표시). 처음 채운 값은 _af.pl/pt/pd, AI 확신은 _af.c → 직원 수정과 비교해 규칙을 고침 (tools/photo-ai/README.md)
+        //    ponytail: API 키를 이 휴대폰 localStorage 에 둠 — 직원 휴대폰에 배포하기 전 Apps Script 프록시로 옮길 것
+        (function () {
+            const PA = window.PA = { MODEL: 'claude-opus-5-5', KEY: 'th_claude_key', N: 3 };
+            const LOCS = ['벽', '바닥', '천장', '도배', '가구', '창', '문', '짝', '틀', '마감판', '수전', '타일', '도장', '줄눈', '코킹'];
+            const TYPES = ['유격', '틈새', '단차', '파손', '긁힘', '찍힘', '들뜸', '오염', '마감', '고정', '수평/수직', '전체', '다수', '작동', '돌출', '불량', '누락'];
+            const SCHEMA = {
+                type: 'object', additionalProperties: false, required: ['sticker', 'loc', 'typ', 'detail', 'sure', 'why'],
+                properties: {
+                    sticker: { type: 'boolean', description: '하자 스티커의 동그라미 칸을 읽어서 답했으면 true' },
+                    loc: { type: 'array', items: { type: 'string', enum: LOCS }, description: '위치 버튼 1~3개' },
+                    typ: { type: 'array', items: { type: 'string', enum: TYPES }, description: '하자내용 버튼 1~4개' },
+                    detail: { type: 'string', description: '상세위치 짧게. 예: 문 우측 상단, 창 좌측 하단 걸레받이, 우물천장 몰딩 코너' },
+                    sure: { type: 'string', enum: ['high', 'low'] },
+                    why: { type: 'string', description: '판단 근거 한 줄' },
+                },
+            };
+            // 규칙 v7: 과거 하자 31,657건 통계 + 601동 702호 대표님 정답 비교(11-03)에서 나온 것. 바꾸면 tools/photo-ai/README.md 의 시험 점수도 다시 잴 것
+            const RULES = `당신은 신축 아파트 하자점검 회사 '더홈점검'의 점검 기록 담당입니다. 하자 1건의 원경·근경 사진과 공간(방 이름)을 보고, 점검 앱의 위치 버튼·하자내용 버튼·상세위치를 정합니다.
+
+사진 읽는 순서
+1. 근경에 종이 하자 스티커(빨간 격자 칸, 손으로 동그라미)가 보이면 동그라미 친 칸을 그대로 따르고 sticker=true.
+2. 없으면 빨간 원(앱에서 찍은 포인트)과 빨간 테이프·화살표가 가리키는 정확한 지점을 봅니다. 그 지점의 재료가 무엇인지(벽지, 문틀, 창틀, 창 짝, 몰딩, 마루, 타일, 가구 등)로 위치를 정합니다.
+3. 원경으로 방 안의 어디인지, 실내인지 외부(외벽·발코니 밖)인지 먼저 확인합니다.
+
+위치 규칙 (자주 틀리는 것)
+- 문·창은 기준점일 뿐입니다. 테이프가 문틀·창틀 옆 벽지에 붙어 있으면 '벽, 도배'(틈새·들뜸)입니다. 틀 자체가 찍히거나 오염된 경우만 '문, 틀'·'창, 틀'.
+- 창의 움직이는 문짝(손잡이 달린 쪽)에 표시가 있으면 '창, 짝' — 대부분 수평/수직 또는 작동.
+- 천장 몰딩·우물천장 코너는 '천장, 도배'(틈새·마감).
+- 벽지 이음부는 도배입니다. 걸레받이 위 벽지도 '벽, 도배'.
+- 콘센트·스위치·단자함·수건걸이·선반 같은 벽 부착물은 '벽'(고정, 수평/수직).
+- 외벽 균열·도장은 '벽, 도장'(마감).
+
+위치별 흔한 하자내용 (과거 3만 건, 사진으로 갈리지 않으면 이것을 따름)
+벽+도배: 들뜸 58%, 틈새 35% / 천장+도배: 들뜸 51%, 틈새 39% / 바닥(마루): 들뜸 54%, 찍힘, 단차 / 문+틀: 찍힘 29%, 틈새 28%, 긁힘 22% / 창+틀: 긁힘 30%, 고정 24%, 오염 21% / 창+짝: 수평/수직, 작동 / 문+짝: 작동, 누락, 유격 / 가구: 누락, 틈새, 긁힘, 고정, 단차 / 벽(부착물): 고정 33%, 틈새 / 벽+도장: 마감 51% / 천장: 틈새, 마감, 파손 / 벽+타일: 틈새, 오염, 단차, 파손 / 바닥+타일+줄눈: 마감, 틈새, 단차 / 코킹이 들어가면: 마감, 틈새, 누락
+
+하자내용 작성
+- 핵심 하자 1~2개 + 끝에 '불량'(78%의 하자에 붙음). 표시(원·테이프)가 여러 곳이면 '다수'도 붙임.
+- 작동·평활도·소음·조명처럼 사진으로 안 보이는 하자로 보이면 가장 그럴듯한 값을 넣고 sure=low.
+- 상세위치는 현장 말투로 짧게: '문 우측 상단', '창 좌측 하단 걸레받이', '우물천장 몰딩 코너', '콘센트'.
+- 확실하면 sure=high, 조금이라도 애매하면 low.`;
+
+            const sameSet = (a, b) => Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every(x => b.includes(x));
+            const fresh = d => !(d.locations || []).length && !(d.types || []).length;
+            const untouchedAI = d => !!d._af && d._af.loc === 'check' && d._af.typ === 'check' && sameSet(d.locations, d._af.pl) && sameSet(d.types, d._af.pt);
+            const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+            function shrink(src, max) { // 사진 → 긴 변 max px JPEG base64 (요금·전송량 줄이기)
+                return new Promise((ok, no) => {
+                    const im = new Image();
+                    im.onload = () => {
+                        const s = Math.min(1, max / Math.max(im.width, im.height)), c = document.createElement('canvas');
+                        c.width = Math.round(im.width * s); c.height = Math.round(im.height * s);
+                        try { c.getContext('2d').drawImage(im, 0, 0, c.width, c.height); const u = c.toDataURL('image/jpeg', 0.85); ok(u.slice(u.indexOf(',') + 1)); }
+                        catch (e) { no(e); } finally { c.width = 0; c.height = 0; } // 아이폰 메모리
+                    };
+                    im.onerror = () => no(new Error('사진 열기 실패'));
+                    im.src = src;
+                });
+            }
+
+            async function ask(key, d) {
+                const ph = Array.isArray(d.photos) ? d.photos : [], content = [];
+                for (const [i, name] of [[0, '원경'], [1, '근경']]) {
+                    if (!ph[i] || typeof ph[i] !== 'string') continue;
+                    content.push({ type: 'text', text: name + ' 사진:' }, { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: await shrink(ph[i], 1280) } });
+                }
+                content.push({ type: 'text', text: '공간: ' + ((d.spaces || []).join(', ') || '(모름)') });
+                const body = JSON.stringify({
+                    model: PA.MODEL, max_tokens: 16000, fallbacks: 'default', system: RULES,
+                    output_config: { effort: 'high', format: { type: 'json_schema', schema: SCHEMA } },
+                    messages: [{ role: 'user', content }],
+                });
+                for (let k = 0; ; k++) { // 혼잡(429·529·5xx)·네트워크 오류는 2번까지 다시
+                    let res = null, j = {};
+                    try {
+                        res = await fetch('https://api.anthropic.com/v1/messages', {
+                            method: 'POST', body,
+                            headers: {
+                                'content-type': 'application/json', 'x-api-key': key, 'anthropic-version': '2026-10-21',
+                                'anthropic-beta': 'server-side-fallback-2026-07-01', 'anthropic-dangerous-direct-browser-access': 'true',
+                            },
+                        });
+                        j = await res.json().catch(() => ({}));
+                    } catch (e) { if (k < 2) { await sleep(3000 * (k + 1)); continue; } throw e; }
+                    if (res.ok) {
+                        if (j.stop_reason === 'refusal') return null;
+                        const t = (j.content || []).find(b => b.type === 'text');
+                        return t ? JSON.parse(t.text) : null;
+                    }
+                    if ((res.status === 429 || res.status >= 500) && k < 2) { await sleep(5000 * (k + 1)); continue; }
+                    const e = new Error((j.error && j.error.message) || ('HTTP ' + res.status)); e.status = res.status; throw e;
+                }
+            }
+
+            function prog(i, n) { // 패치 80 과 같은 진행 막대
+                const el = document.getElementById('loadingProg'); if (!el) return;
+                el.style.display = 'block';
+                const bar = el.querySelector('i'), sp = el.querySelector('span'), b = el.querySelector('b'), f = n ? Math.round(100 * i / n) : 0;
+                if (bar) bar.style.width = f + '%'; if (sp) sp.textContent = `사진 AI 분석 중 ${i}/${n}`; if (b) b.textContent = f + '%';
+            }
+
+            PA.run = async function () {
+                if (!/^\[테스트\]/.test(document.title)) return;
+                if (PA._busy || (window.AF && AF._busy)) return;
+                if (isAppBusy()) { showToast('⏳ 다른 작업(저장·보고서 등)이 끝난 뒤 다시 눌러주세요', 'warning'); return; }
+                const project = getCurrentProject();
+                const targets = (project.defects || []).filter(d => d && Array.isArray(d.photos) && (d.photos[0] || d.photos[1]) && (fresh(d) || untouchedAI(d)));
+                if (!targets.length) { showToast('분석할 하자가 없습니다 — 위치·하자내용이 비어 있거나 AI가 채운 뒤 손대지 않은 하자만 분석합니다', 'info'); return; }
+                let key = ''; try { key = localStorage.getItem(PA.KEY) || ''; } catch (e) {}
+                if (!key) {
+                    key = (prompt('Claude API 키를 넣어 주세요 (sk-ant- 로 시작, 이 휴대폰에만 저장)') || '').trim();
+                    if (!key) return;
+                    try { localStorage.setItem(PA.KEY, key); } catch (e) {}
+                }
+                if (!confirm(`🧠 사진 AI 분석 (테스트판)\n\n하자 ${targets.length}건의 사진을 AI가 보고 위치·하자내용·상세위치를 채웁니다.\n· 직원이 고른 하자는 건드리지 않습니다\n· 스티커가 확실히 읽히면 스티커 값을 씁니다\n· AI가 채운 칸은 모두 '확인 필요'(노란 표시)로 남깁니다\n· 사진이 Anthropic(Claude)으로 전송되고 건당 약 50~100원 요금이 듭니다(추정)\n\n진행할까요?`)) return;
+                if (isAppBusy()) { showToast('⏳ 다른 작업(저장·보고서 등)이 끝난 뒤 다시 눌러주세요', 'warning'); return; }
+                const stamp = window._appBusySince = Date.now(), list = document.getElementById('defectsList'), n = targets.length;
+                PA._busy = true; showLoading(); prog(0, n);
+                if (list) list.style.pointerEvents = 'none';
+                if (window.keepAwakeOn) window.keepAwakeOn();
+                const same = () => project === getCurrentProject() && projects.includes(project);
+                let done = 0, ai = 0, stk = 0, none = 0, fail = 0, stop = null, net = null;
+                try { if (window.AF) net = await AF.loadModel(); } catch (e) { console.warn('스티커 모델 없음 — AI만 씀:', e); }
+                const one = async d => {
+                    let r = null, src = 'ai';
+                    if (net) {
+                        try {
+                            const s = await AF.readDefect(net, d);
+                            if (s && s.dec.loc.st === 'ok' && s.dec.typ.st === 'ok' && s.dec.loc.on.length && s.dec.typ.on.length) { r = { loc: s.dec.loc.on, typ: s.dec.typ.on, detail: '', sure: 'high', why: '스티커' }; src = 'sticker'; }
+                        } catch (e) { console.warn('스티커 판독 오류(무시하고 AI로):', e); }
+                    }
+                    if (!r) r = await ask(key, d);
+                    if (!same() || !(fresh(d) || untouchedAI(d))) return; // 그 사이 세대가 바뀌었거나 직원이 고름
+                    const loc = ((r && r.loc) || []).filter((x, i, a) => LOCS.includes(x) && a.indexOf(x) === i).slice(0, 4);
+                    const typ = ((r && r.typ) || []).filter((x, i, a) => TYPES.includes(x) && a.indexOf(x) === i).slice(0, 4);
+                    if (!loc.length && !typ.length) { none++; return; }
+                    const keepDetail = d.detailLocation && !(d._af && d.detailLocation === d._af.pd); // 직원이 쓴 상세위치는 유지
+                    d.locations = loc; d.types = typ;
+                    if (!keepDetail && r.detail) d.detailLocation = window.DL ? DL.norm(r.detail) : r.detail;
+                    const st = src === 'sticker' ? 'ok' : 'check';
+                    d._af = { v: 2, src, m: src === 'ai' ? PA.MODEL : '', loc: st, typ: st, c: r.sure || '', why: String(r.why || '').slice(0, 200), pl: loc.slice(), pt: typ.slice(), pd: d.detailLocation || '' };
+                    generateAutoDescription(d.id);
+                    if (src === 'sticker') stk++; else ai++;
+                    saveWithDebounce();
+                };
+                const queue = targets.slice();
+                const worker = async () => {
+                    while (queue.length && !stop && same()) {
+                        const d = queue.shift();
+                        try { await one(d); }
+                        catch (e) {
+                            fail++; console.error('사진 AI 오류:', e);
+                            if (e.status === 401 || e.status === 403) { stop = e; try { localStorage.removeItem(PA.KEY); } catch (_) {} }
+                            else if (e.status === 400 && !stop) stop = e; // 요청 형식 오류는 모든 하자가 같이 실패 → 바로 멈춤
+                        }
+                        prog(++done, n);
+                    }
+                };
+                try {
+                    await Promise.all(Array.from({ length: Math.min(PA.N, n) }, worker));
+                    if (same()) renderDefects();
+                    await saveImmediately();
+                    if (stop && (stop.status === 401 || stop.status === 403)) showToast('❌ API 키가 맞지 않습니다 — 다시 누르면 새 키를 넣을 수 있습니다', 'error');
+                    else if (stop) showToast('❌ 사진 AI 요청 오류: ' + stop.message, 'error');
+                    else showToast(`🧠 AI ${ai}건 · 스티커 ${stk}건 채움${none ? ` · 못 정함 ${none}건` : ''}${fail ? ` · 오류 ${fail}건` : ''} — 노란 칸을 확인해 주세요`, ai + stk ? 'success' : 'info');
+                } catch (e) {
+                    console.error('사진 AI 오류:', e);
+                    showToast('❌ 사진 AI 실패: ' + (e && e.message || e), 'error');
+                } finally {
+                    PA._busy = false; hideLoading();
+                    if (list) list.style.pointerEvents = '';
+                    if (window._appBusySince === stamp) window._appBusySince = 0; // 내가 건 잠금만 해제
+                    if (window.keepAwakeOff) window.keepAwakeOff();
+                }
+            };
+            const btn = document.getElementById('paBtn');
+            if (btn && /^\[테스트\]/.test(document.title)) btn.style.display = '';
         })();
 
         window.toggleDefectSelection = function(id, field, value) {
@@ -15036,51 +15192,8 @@ body.light-mode .card.reference-info {
             const badge = document.getElementById('inspectionTypeBadge');
             if (!el || !badge) return;
             const t = el.value || '사전점검';
-            const _prc = document.getElementById('prevRepCard'); if (_prc) { _prc.style.display = t === '사후점검' ? 'block' : 'none'; const _o = document.getElementById('prevRepOut'); if (_o) _o.innerHTML = ''; } // ✅ 패치 100
             badge.innerHTML = '<span style="display:inline-block;padding:5px 12px;border-radius:20px;background:rgba(16,185,129,0.15);border:1px solid var(--primary);color:var(--primary);font-size:12px;font-weight:700;">표지: ' + t + ' 보고서</span>';
         };
-
-        // ✅ 패치 100: 예전 보고서 찾기 — 파일 이름 '단지_동동_호호_작성자_YYYY-MM-DD_하자점검보고서.pdf'(장비점검보고서도)에서 동·호·단지를 맞춤
-        window.prevRepFind = async function() {
-            const out = document.getElementById('prevRepOut');
-            if (!out) return;
-            const say = (t, warn) => { out.innerHTML = '<div style="font-size:13.5px;padding:8px 10px;border-radius:8px;background:' + (warn ? 'rgba(245,158,11,0.12)' : 'var(--bg-secondary, rgba(127,127,127,0.08))') + ';">' + t + '</div>'; };
-            const digits = s => String(s || '').replace(/\D/g, '');
-            const site = s => String(s || '').replace(/\s+/g, '').replace(/\(?사후[^()_]*\)?/g, '').replace(/[()]/g, '');
-            const dong = digits(projectData.dong), ho = digits(projectData.ho), apt = site(projectData.apartmentName);
-            if (!ho) { say('프로젝트 탭에 동·호수를 먼저 적어 주세요.', true); return; }
-            if (!accessToken) { say('🔐 위에서 구글 로그인 후 다시 눌러 주세요.', true); return; }
-            say('⏳ 공유 드라이브에서 찾는 중...');
-            try {
-                const q = "name contains '" + ho + "호' and (name contains '하자점검보고서' or name contains '장비점검보고서') and mimeType = 'application/pdf' and trashed = false";
-                const res = await fetch('https://www.googleapis.com/drive/v3/files?q=' + encodeURIComponent(q) + '&corpora=allDrives&includeItemsFromAllDrives=true&supportsAllDrives=true&pageSize=200&fields=files(id,name,webViewLink)', { headers: { Authorization: 'Bearer ' + accessToken } });
-                if (res.status === 401) { say('🔐 구글 로그인이 풀렸어요. 위에서 다시 로그인한 뒤 눌러 주세요.', true); return; }
-                if (!res.ok) throw new Error('drive ' + res.status);
-                const files = ((await res.json()).files || []).map(f => {
-                    const m = /^(.*?)_([^_]*)동_([^_]*)호_(.*)_(\d{4})-(\d{1,2})-(\d{1,2})_(하자|장비)점검보고서/.exec(String(f.name || ''));
-                    return m ? { f: f, apt: site(m[1]), dong: digits(m[2]), ho: digits(m[3]), who: m[4].split('_')[0], date: new Date(+m[5], +m[6] - 1, +m[7]), kind: m[8] } : null;
-                }).filter(x => x && x.ho === ho && (!dong || !x.dong || x.dong === dong)
-                    && (!apt || x.apt.indexOf(apt.slice(0, 4)) >= 0 || apt.indexOf(x.apt.slice(0, 4)) >= 0)) // 단지명은 앞 4글자로 넉넉하게 (띄어쓰기·(사후) 무시)
-                    .sort((a, b) => b.date - a.date || (a.kind === '하자' ? -1 : 1));
-                if (!files.length) { say('이 세대(' + (dong ? dong + '동 ' : '') + ho + '호) 보고서를 찾지 못했어요. 동·호수·단지명이 사전점검 때와 같은지 확인해 주세요.', true); return; }
-                const md = d => (d.getMonth() + 1) + '/' + d.getDate();
-                out.innerHTML = files.map(x => '<a href="' + escapeHtml(x.f.webViewLink || ('https://drive.google.com/file/d/' + x.f.id + '/view')) + '" target="_blank" rel="noopener" style="display:block;padding:10px 12px;margin-top:6px;border-radius:10px;border:1px solid var(--border-color, rgba(127,127,127,0.3));text-decoration:none;color:inherit;">'
-                    + '<b>' + (x.kind === '하자' ? '📄 하자점검' : '📸 장비점검') + ' 보고서 · ' + md(x.date) + '</b><br><small style="color:var(--text-secondary);">' + escapeHtml(x.who || '') + ' · ' + escapeHtml(x.f.name) + '</small></a>').join('');
-            } catch (err) {
-                console.error('예전 보고서 찾기 오류:', err);
-                say('보고서를 찾지 못했어요. 인터넷 연결을 확인하고 다시 눌러 주세요.', true);
-            }
-        };
-
-        // ✅ 패치 101: 데이터 탭 '나는 누구' (소장/매니저/전체)
-                window.setDataRole = function(r) {
-                    try { localStorage.setItem('th_data_role', r); } catch (e) {}
-                    const b = document.getElementById('dataBossCard'), m = document.getElementById('dataMgrCard');
-                    if (b) b.style.display = r === 'mgr' ? 'none' : '';
-                    if (m) m.style.display = r === 'boss' ? 'none' : '';
-                    document.querySelectorAll('.data-role-b').forEach(x => { const on = x.getAttribute('data-r') === r; const c = { boss: '#534AB7', mgr: '#D23B3B', all: '#10b981' }[x.getAttribute('data-r')]; x.style.background = on ? c : ''; x.style.borderColor = on ? c : ''; x.style.color = on ? '#FFFFFF' : ''; x.style.boxShadow = on ? '0 0 0 2px ' + c + '55' : ''; }); // 소장 보라 · 매니저 빨강(아래 카드 색) · 전체 초록
-                };
-                document.addEventListener('DOMContentLoaded', () => { let r = 'all'; try { r = localStorage.getItem('th_data_role') || 'all'; } catch (e) {} window.setDataRole(r); });
 
         function autoSaveProjectData() {
             // projectData 업데이트
@@ -17056,7 +17169,7 @@ body.light-mode .card.reference-info {
     }
     
     // ✅ 패치 69: 새 배포 확인 — 이 화면의 판 번호(APP_BUILD) vs 사이트의 version.json(정식)·version-test.json(테스트)
-    const APP_BUILD = 'd09e392d3956'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
+    const APP_BUILD = 'f3de13f4107a'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
     (function() {
         const url = /index-unified-test\.html$/.test(location.pathname) ? 'version-test.json' : 'version.json';
         let busy = false;
