@@ -2080,9 +2080,7 @@ body.light-mode .card.reference-info {
             <div id="missingTools" style="display: none;">
                 <button type="button" id="missingOnlyBtn" class="btn btn-secondary" aria-pressed="false" onclick="toggleMissingOnly()">⚠️ 검토 0</button>
                 <button type="button" id="afBtn" class="btn btn-secondary" onclick="AF.run()" title="사진 속 하자 스티커를 읽어 위치·하자내용을 채웁니다 (시험)">🤖 자동 채우기</button>
-                <button type="button" id="paBtn" class="btn btn-secondary" style="display: none; grid-column: 1 / -1;" onclick="PA.run()" title="사진을 AI가 보고 위치·하자내용·상세위치를 채웁니다 (테스트판)">🧠 사진 AI 분석</button>
-                <button type="button" id="paPackBtn" class="btn btn-secondary" style="display: none;" onclick="PA.pack()" title="집 PC: 사진 묶음(zip)을 받아 Claude 에게 분석 요청 (요금 없음)">📦 AI 묶음 받기</button>
-                <button type="button" id="paLoadBtn" class="btn btn-secondary" style="display: none;" onclick="PA.load()" title="Claude 가 만든 결과(json)를 불러와 채움">📥 AI 결과 불러오기</button>
+                <button type="button" id="paBtn" class="btn btn-secondary" style="display: none; grid-column: 1 / -1;" onclick="PA.menu()" title="바로 분석(요금) · 묶음 받기(집 PC) · 결과 불러오기 (테스트판)">🧠 사진 AI ▾</button>
                 <span class="tb-jump"><input type="text" id="jumpDefectNo" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" placeholder="번호" aria-label="이동할 하자 번호"
                        onkeydown="if(event.key==='Enter' && !event.isComposing){event.preventDefault();jumpToDefect();}"><button type="button" onclick="jumpToDefect()" aria-label="그 번호 하자로 이동">→</button></span>
             </div>
@@ -11632,7 +11630,22 @@ body.light-mode .card.reference-info {
                 };
                 inp.click();
             };
-            if (/^\[테스트\]/.test(document.title)) ['paBtn', 'paPackBtn', 'paLoadBtn'].forEach(id => { const b = document.getElementById(id); if (b) b.style.display = ''; });
+            PA.menu = function () { // 대표님 11-03: 🧠 버튼 하나 → 바로 분석 / 묶음 받기 / 결과 불러오기 중 고름
+                const bg = document.createElement('div');
+                bg.style.cssText = 'position:fixed;inset:0;z-index:10050;background:rgba(0,0,0,.45);display:flex;align-items:flex-end;justify-content:center';
+                bg.innerHTML = '<div style="background:var(--card-bg,#fff);width:100%;max-width:480px;border-radius:16px 16px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom,0px));display:grid;gap:8px">'
+                    + '<div style="font-weight:800;font-size:16px;text-align:center;padding-bottom:4px">🧠 사진 AI</div>'
+                    + '<button type="button" class="btn btn-primary" data-k="run">🧠 바로 분석 <small>(요금·비밀번호)</small></button>'
+                    + '<button type="button" class="btn btn-secondary" data-k="pack">📦 묶음 받기 <small>(집 PC, 요금 없음)</small></button>'
+                    + '<button type="button" class="btn btn-secondary" data-k="load">📥 결과 불러오기</button>'
+                    + '<button type="button" class="btn btn-secondary" data-k="">취소</button></div>';
+                bg.onclick = e => {
+                    const b = e.target.closest('[data-k]'); if (e.target !== bg && !b) return;
+                    bg.remove(); const k = b && b.dataset.k; if (k) PA[k]();
+                };
+                document.body.appendChild(bg);
+            };
+            if (/^\[테스트\]/.test(document.title)) ['paBtn'].forEach(id => { const b = document.getElementById(id); if (b) b.style.display = ''; });
         })();
 
 
@@ -17303,7 +17316,7 @@ body.light-mode .card.reference-info {
     }
     
     // ✅ 패치 69: 새 배포 확인 — 이 화면의 판 번호(APP_BUILD) vs 사이트의 version.json(정식)·version-test.json(테스트)
-    const APP_BUILD = 'd7f47ee12dfc'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
+    const APP_BUILD = 'd1fcac79e6db'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
     (function() {
         const url = /index-unified-test\.html$/.test(location.pathname) ? 'version-test.json' : 'version.json';
         let busy = false;
