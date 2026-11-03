@@ -2137,6 +2137,15 @@ body.light-mode .card.reference-info {
                 <button type="button" class="btn btn-secondary" onclick="prevRepFind()" style="min-height: 44px;">🔎 예전 보고서 찾기</button>
                 <div id="prevRepOut" style="margin-top: 8px;"></div>
             </div>
+            <!-- ✅ 패치 101: 나는 누구 — 고르면 내 카드만 -->
+            <div style="margin-bottom: 10px;">
+                <div style="font-size: 13px; font-weight: 700; color: var(--text-secondary); margin: 0 2px 6px;">나는 누구? <small style="font-weight:500;">고르면 내 버튼만 보여요 · 이 폰에 기억</small></div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr 0.7fr; gap: 6px;">
+                    <button type="button" class="btn btn-secondary data-role-b" data-r="boss" onclick="setDataRole('boss')" style="min-height: 46px; margin: 0; font-weight: 800;">🔧 소장</button>
+                    <button type="button" class="btn btn-secondary data-role-b" data-r="mgr" onclick="setDataRole('mgr')" style="min-height: 46px; margin: 0; font-weight: 800;">📋 매니저</button>
+                    <button type="button" class="btn btn-secondary data-role-b" data-r="all" onclick="setDataRole('all')" style="min-height: 46px; margin: 0; font-weight: 700;">전체</button>
+                </div>
+            </div>
             <!-- ✅ 회사 구글 로그인 (소장님·매니저 모두 필요) -->
             <div class="card" style="margin-bottom: 14px; padding: 12px 14px;">
                 <div style="display: flex; align-items: center; gap: 10px;">
@@ -2147,7 +2156,8 @@ body.light-mode .card.reference-info {
                     <button id="signInBtnSimple" class="btn btn-secondary" onclick="handleGoogleSignIn()" style="width: auto; flex-shrink: 0; min-height: 40px; padding: 8px 14px; font-size: 14px;">🔐 로그인</button>
                     <button id="signOutBtnSimple" class="btn btn-secondary" onclick="handleGoogleSignOut()" style="width: auto; flex-shrink: 0; min-height: 40px; padding: 8px 14px; font-size: 13px; display: none;">로그아웃</button>
                 </div>
-                <details style="margin-top: 8px;">
+                <div style="font-size: 12.5px; color: var(--text-secondary); margin-top: 6px; word-break: keep-all;">💡 드라이브로 보내기·합치기·저장할 때 필요해요. <b>1시간</b> 지나면 풀리니 누르기 전에 ✅인지 확인하세요.</div>
+<details style="margin-top: 8px;">
                     <summary style="cursor: pointer; font-size: 12.5px; font-weight: 700; color: var(--text-secondary); padding: 4px 0;">❓ 처음 로그인 방법 · 로그인이 풀릴 때</summary>
                     <ol style="font-size: 13px; line-height: 1.55; margin: 8px 0 6px; padding-left: 20px;">
                         <li style="margin: 0 0 6px;"><b>🔐 로그인</b> → 회사 구글 계정 선택</li>
@@ -2163,10 +2173,10 @@ body.light-mode .card.reference-info {
             </div>
 
             <!-- 🔧 소장님: 장비점검 끝나면 -->
-            <div class="card" style="margin-bottom: 14px; border: 2px solid #7F77DD;">
+            <div class="card" style="margin-bottom: 14px; border: 2px solid #7F77DD;" id="dataBossCard">
                 <h2 style="font-size: 17px; margin-bottom: 12px; color: var(--role-eq-text, #9C95E8);">🔧 소장님 · 장비점검 끝나면</h2>
                 <button class="btn" onclick="sendEquipmentToDrive()" style="display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; margin-bottom: 8px; background: #534AB7; color: #FFFFFF; border: none; padding: 13px 14px; font-size: 15.5px;">
-                    <span style="display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: #FFFFFF; color: #534AB7; font-size: 13px; font-weight: 800; flex-shrink: 0;">1</span> 📤 장비점검 보내기 (필수)
+                    <span style="display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: #FFFFFF; color: #534AB7; font-size: 13px; font-weight: 800; flex-shrink: 0;">1</span> <span>📤 장비점검 보내기 (필수)<small style="display:block;font-size:12.5px;font-weight:500;opacity:0.8;margin-top:2px;">장비 사진·결과가 매니저에게 넘어가요 · 끝나면 1번만</small></span>
                 </button>
                 <div style="font-size: 13.5px; line-height: 1.5; font-weight: 800; color: var(--role-eq-text, #9C95E8); margin: 2px 0 10px; word-break: keep-all;">✅ 장비점검이 끝나면 ① 장비점검 보내기를 꼭 눌러주세요. 매니저가 합쳐야 고객 보고서 1개에 장비점검이 들어갑니다.</div>
                 <button class="btn btn-secondary" onclick="generateEquipmentOnlyPDF()" style="width: 100%; font-size: 14px;">
@@ -2175,10 +2185,10 @@ body.light-mode .card.reference-info {
             </div>
 
             <!-- 📋 매니저: 점검 끝나면 순서대로 -->
-            <div class="card" style="margin-bottom: 14px; border: 2px solid #D23B3B;">
+            <div class="card" style="margin-bottom: 14px; border: 2px solid #D23B3B;" id="dataMgrCard">
                 <h2 style="font-size: 17px; margin-bottom: 12px; color: var(--role-mgr-text, #FF8080);">📋 매니저 · 점검 끝나면 순서대로</h2>
                 <button id="mgrStep1" class="btn btn-secondary" onclick="openEquipmentDriveSheet()" style="display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; margin-bottom: 8px; padding: 12px 14px; font-size: 15px;">
-                    <span class="mgr-n" style="display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: #D23B3B; color: #FFFFFF; font-size: 13px; font-weight: 800; flex-shrink: 0;">1</span> 📥 장비점검 합치기 (소장님이 보낸 것)
+                    <span class="mgr-n" style="display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: #D23B3B; color: #FFFFFF; font-size: 13px; font-weight: 800; flex-shrink: 0;">1</span> <span>📥 장비점검 합치기<small style="display:block;font-size:12.5px;font-weight:500;opacity:0.8;margin-top:2px;">소장님이 보낸 장비 사진·결과를 내 보고서에 넣어요</small></span>
                 </button>
                 <button id="driveUploadBtn" class="btn btn-secondary" onclick="uploadProjectToDrive()" style="display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; margin-bottom: 8px; padding: 12px 14px; font-size: 15px;">
                     <span class="mgr-n" style="display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: #D23B3B; color: #FFFFFF; font-size: 13px; font-weight: 800; flex-shrink: 0;">2</span> <span>☁️ 공유드라이브에 저장하기 (보고서 자동 포함)<br><small style="font-size: 12.5px; font-weight: 600; color: var(--text-secondary);">인터넷 필요 · 1~3분</small></span>
@@ -2193,7 +2203,9 @@ body.light-mode .card.reference-info {
             <!-- 📩 하자접수 완료 문자 (직원 모두 · 패치 59 admin-tab.inc.js sdRender) -->
             <div class="card" id="staffDone" style="margin-bottom: 14px;"></div>
 
-            <!-- 📁 기타 자료 -->
+            <!-- 📁 기타 자료 (✅ 패치 101: 자주 안 써서 접어 둠) -->
+            <details id="dataMore" style="margin-bottom: 14px;">
+                <summary style="cursor: pointer; font-size: 14px; font-weight: 800; color: var(--text-secondary); padding: 12px 4px;">▸ 기타 자료 · 엑셀 · 전체 다운로드 · 백업 복원 · 프리랜서 계약서</summary>
             <div class="card" style="margin-bottom: 14px;">
                 <h2 style="font-size: 16px; margin-bottom: 10px; color: var(--text-secondary);">📁 기타 자료</h2>
                 <button class="btn btn-secondary" onclick="generateFieldReportPDF()" style="width: 100%; margin-bottom: 8px; font-size: 14px;">📋 현장출력보고서 (요약형)</button>
@@ -2208,6 +2220,8 @@ body.light-mode .card.reference-info {
 
             <!-- 📝 프리랜서 계약서 (패치 64 contract.inc.js) -->
             <div class="card" id="contractCard" style="margin-bottom: 14px;"></div>
+
+            </details>
 
             <!-- 📖 사용 가이드 -->
             <div class="card" style="margin-bottom: 14px;">
@@ -6337,6 +6351,7 @@ body.light-mode .card.reference-info {
                 const el = document.getElementById(id), n = el && el.querySelector('.mgr-n');
                 if (!n) return;
                 el.style.outline = i === next ? '2px solid #D23B3B' : '';
+                let tg = el.querySelector('.mgr-now'); if (i === next) { if (!tg) { tg = document.createElement('b'); tg.className = 'mgr-now'; tg.textContent = '👈 지금'; tg.style.cssText = 'margin-left:auto;flex:none;font-size:12.5px;color:#FF8080;white-space:nowrap;'; el.appendChild(tg); } } else if (tg) tg.remove(); // ✅ 패치 101
                 el.style.outlineOffset = '-2px';
                 n.textContent = done[i] === true ? '✓' : String(i + 1);
                 n.style.background = done[i] === true ? '#16a34a' : i === next ? '#D23B3B' : '#6b7280';
@@ -15056,6 +15071,16 @@ body.light-mode .card.reference-info {
             }
         };
 
+        // ✅ 패치 101: 데이터 탭 '나는 누구' (소장/매니저/전체)
+                window.setDataRole = function(r) {
+                    try { localStorage.setItem('th_data_role', r); } catch (e) {}
+                    const b = document.getElementById('dataBossCard'), m = document.getElementById('dataMgrCard');
+                    if (b) b.style.display = r === 'mgr' ? 'none' : '';
+                    if (m) m.style.display = r === 'boss' ? 'none' : '';
+                    document.querySelectorAll('.data-role-b').forEach(x => { const on = x.getAttribute('data-r') === r; const c = { boss: '#534AB7', mgr: '#D23B3B', all: '#10b981' }[x.getAttribute('data-r')]; x.style.background = on ? c : ''; x.style.borderColor = on ? c : ''; x.style.color = on ? '#FFFFFF' : ''; x.style.boxShadow = on ? '0 0 0 2px ' + c + '55' : ''; }); // 소장 보라 · 매니저 빨강(아래 카드 색) · 전체 초록
+                };
+                document.addEventListener('DOMContentLoaded', () => { let r = 'all'; try { r = localStorage.getItem('th_data_role') || 'all'; } catch (e) {} window.setDataRole(r); });
+
         function autoSaveProjectData() {
             // projectData 업데이트
             projectData.apartmentName = document.getElementById('apartmentName').value;
@@ -17030,7 +17055,7 @@ body.light-mode .card.reference-info {
     }
     
     // ✅ 패치 69: 새 배포 확인 — 이 화면의 판 번호(APP_BUILD) vs 사이트의 version.json(정식)·version-test.json(테스트)
-    const APP_BUILD = '33d552bf9c62'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
+    const APP_BUILD = '4b8d8a4f5253'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
     (function() {
         const url = /index-unified-test\.html$/.test(location.pathname) ? 'version-test.json' : 'version.json';
         let busy = false;
