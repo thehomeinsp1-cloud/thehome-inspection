@@ -11398,7 +11398,7 @@ body.light-mode .card.reference-info {
         //    대표님 11-03: API 키는 휴대폰에 없음 — 사진 AI 서버(photo-ai-server/Code.gs, 대표님 Apps Script)가 키를 갖고 Claude 에 물음.
         //    앱은 비밀번호(테스트 기간)만 보냄: 앱을 켤 때마다 한 번 묻고 메모리에만 둠(저장 안 함). 한 달 건수 한도·모델(소넷)·토큰 한도는 서버가 정함
         (function () {
-            const PA = window.PA = { MODEL: 'claude-sonnet-5-5', URL: '', N: 3, WON: 40, _pw: '' }; // URL: 서버 배포 주소(/exec) — 대표님이 배포 후 넣음
+            const PA = window.PA = { MODEL: 'claude-sonnet-5-5', URL: 'https://script.google.com/macros/s/AKfycbxEJ4r15HvFihrs35S82yhkX_LAU6_-quOICDLkQElkE4liAOj31CIEnyG7_tcGIeU/exec', N: 3, WON: 40, _pw: '' }; // URL: 서버 배포 주소(/exec) — 대표님이 배포 후 넣음
             const LOCS = ['벽', '바닥', '천장', '도배', '가구', '창', '문', '짝', '틀', '마감판', '수전', '타일', '도장', '줄눈', '코킹'];
             const TYPES = ['유격', '틈새', '단차', '파손', '긁힘', '찍힘', '들뜸', '오염', '마감', '고정', '수평/수직', '전체', '다수', '작동', '돌출', '불량', '누락'];
             const SCHEMA = {
@@ -17247,7 +17247,7 @@ body.light-mode .card.reference-info {
     }
     
     // ✅ 패치 69: 새 배포 확인 — 이 화면의 판 번호(APP_BUILD) vs 사이트의 version.json(정식)·version-test.json(테스트)
-    const APP_BUILD = 'cb509c0972a6'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
+    const APP_BUILD = 'fc26ee2e7720'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
     (function() {
         const url = /index-unified-test\.html$/.test(location.pathname) ? 'version-test.json' : 'version.json';
         let busy = false;
