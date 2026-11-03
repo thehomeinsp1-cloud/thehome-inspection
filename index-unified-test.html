@@ -2206,7 +2206,7 @@ body.light-mode .card.reference-info {
 
             <!-- 📁 기타 자료 (✅ 패치 101: 자주 안 써서 접어 둠) -->
             <details id="dataMore" style="margin-bottom: 14px;">
-                <summary style="cursor: pointer; font-size: 14px; font-weight: 800; color: var(--text-secondary); padding: 12px 4px;">▸ 기타 자료 · 엑셀 · 전체 다운로드 · 백업 복원</summary>
+                <summary style="cursor: pointer; font-size: 14px; font-weight: 800; color: var(--text-secondary); padding: 12px 4px;">▸ 기타 자료 · 엑셀 · 전체 다운로드 · 백업 복원 · 프리랜서 계약서</summary>
             <div class="card" style="margin-bottom: 14px;">
                 <h2 style="font-size: 16px; margin-bottom: 10px; color: var(--text-secondary);">📁 기타 자료</h2>
                 <button class="btn btn-secondary" onclick="generateFieldReportPDF()" style="width: 100%; margin-bottom: 8px; font-size: 14px;">📋 현장출력보고서 (요약형)</button>
@@ -2219,10 +2219,10 @@ body.light-mode .card.reference-info {
                 </div>
             </div>
 
-            </details>
-
             <!-- 📝 프리랜서 계약서 (패치 64 contract.inc.js) -->
             <div class="card" id="contractCard" style="margin-bottom: 14px;"></div>
+
+            </details>
 
             <!-- 📖 사용 가이드 -->
             <div class="card" style="margin-bottom: 14px;">
@@ -15078,7 +15078,7 @@ body.light-mode .card.reference-info {
                     const b = document.getElementById('dataBossCard'), m = document.getElementById('dataMgrCard');
                     if (b) b.style.display = r === 'mgr' ? 'none' : '';
                     if (m) m.style.display = r === 'boss' ? 'none' : '';
-                    document.querySelectorAll('.data-role-b').forEach(x => { const on = x.getAttribute('data-r') === r; x.style.outline = on ? '2px solid var(--primary, #10b981)' : ''; x.style.outlineOffset = '-2px'; x.style.color = on ? 'var(--primary, #10b981)' : ''; });
+                    document.querySelectorAll('.data-role-b').forEach(x => { const on = x.getAttribute('data-r') === r; const c = { boss: '#534AB7', mgr: '#D23B3B', all: '#10b981' }[x.getAttribute('data-r')]; x.style.background = on ? c : ''; x.style.borderColor = on ? c : ''; x.style.color = on ? '#FFFFFF' : ''; x.style.boxShadow = on ? '0 0 0 2px ' + c + '55' : ''; }); // 소장 보라 · 매니저 빨강(아래 카드 색) · 전체 초록
                 };
                 document.addEventListener('DOMContentLoaded', () => { let r = 'all'; try { r = localStorage.getItem('th_data_role') || 'all'; } catch (e) {} window.setDataRole(r); });
 
@@ -17056,7 +17056,7 @@ body.light-mode .card.reference-info {
     }
     
     // ✅ 패치 69: 새 배포 확인 — 이 화면의 판 번호(APP_BUILD) vs 사이트의 version.json(정식)·version-test.json(테스트)
-    const APP_BUILD = 'daafee84fdbd'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
+    const APP_BUILD = 'd09e392d3956'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
     (function() {
         const url = /index-unified-test\.html$/.test(location.pathname) ? 'version-test.json' : 'version.json';
         let busy = false;
