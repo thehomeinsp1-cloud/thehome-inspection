@@ -2081,6 +2081,8 @@ body.light-mode .card.reference-info {
                 <button type="button" id="missingOnlyBtn" class="btn btn-secondary" aria-pressed="false" onclick="toggleMissingOnly()">⚠️ 검토 0</button>
                 <button type="button" id="afBtn" class="btn btn-secondary" onclick="AF.run()" title="사진 속 하자 스티커를 읽어 위치·하자내용을 채웁니다 (시험)">🤖 자동 채우기</button>
                 <button type="button" id="paBtn" class="btn btn-secondary" style="display: none; grid-column: 1 / -1;" onclick="PA.run()" title="사진을 AI가 보고 위치·하자내용·상세위치를 채웁니다 (테스트판)">🧠 사진 AI 분석</button>
+                <button type="button" id="paPackBtn" class="btn btn-secondary" style="display: none;" onclick="PA.pack()" title="집 PC: 사진 묶음(zip)을 받아 Claude 에게 분석 요청 (요금 없음)">📦 AI 묶음 받기</button>
+                <button type="button" id="paLoadBtn" class="btn btn-secondary" style="display: none;" onclick="PA.load()" title="Claude 가 만든 결과(json)를 불러와 채움">📥 AI 결과 불러오기</button>
                 <span class="tb-jump"><input type="text" id="jumpDefectNo" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" placeholder="번호" aria-label="이동할 하자 번호"
                        onkeydown="if(event.key==='Enter' && !event.isComposing){event.preventDefault();jumpToDefect();}"><button type="button" onclick="jumpToDefect()" aria-label="그 번호 하자로 이동">→</button></span>
             </div>
@@ -11441,6 +11443,7 @@ body.light-mode .card.reference-info {
             const fresh = d => !(d.locations || []).length && !(d.types || []).length;
             const stickerLeft = d => !!d._af && d._af.v === 1 && (d._af.loc !== 'ok' || d._af.typ !== 'ok') && sameSet(d.locations, d._af.pl) && sameSet(d.types, d._af.pt); // 자동 채우기가 애매하게 남긴 하자(직원 손 안 댐)
             const untouchedAI = d => !!d._af && d._af.loc === 'check' && d._af.typ === 'check' && sameSet(d.locations, d._af.pl) && sameSet(d.types, d._af.pt);
+            const todo = p => (p.defects || []).filter(d => d && Array.isArray(d.photos) && (d.photos[0] || d.photos[1]) && (fresh(d) || untouchedAI(d) || stickerLeft(d)));
             const sleep = ms => new Promise(r => setTimeout(r, ms));
 
             function shrink(src, max) { // 사진 → 긴 변 max px JPEG base64 (요금·전송량 줄이기)
@@ -11488,12 +11491,31 @@ body.light-mode .card.reference-info {
                 if (bar) bar.style.width = f + '%'; if (sp) sp.textContent = `사진 AI 분석 중 ${i}/${n}`; if (b) b.textContent = f + '%';
             }
 
+            function apply(d, r, src, model) { // 결과 1건을 하자에 넣기 (🧠 버튼·집 PC 결과 불러오기 공용). 반환: 'ai'|'sticker'|'none'|'' (직원이 그 사이 고름)
+                if (!(fresh(d) || untouchedAI(d) || stickerLeft(d))) return '';
+                const sk = stickerLeft(d) ? d._af : null;
+                const okL = sk && sk.loc === 'ok' && sk.pl.length, okT = sk && sk.typ === 'ok' && sk.pt.length;
+                const loc = okL ? sk.pl.slice() : ((r && r.loc) || []).filter((x, i, a) => LOCS.includes(x) && a.indexOf(x) === i).slice(0, 4);
+                const typ = okT ? sk.pt.slice() : ((r && r.typ) || []).filter((x, i, a) => TYPES.includes(x) && a.indexOf(x) === i).slice(0, 4);
+                if (!loc.length && !typ.length) return 'none';
+                const keepDetail = d.detailLocation && !(d._af && d.detailLocation === d._af.pd); // 직원이 쓴 상세위치는 유지
+                const oldDesc = d.description || ''; generateAutoDescription(d.id); // 지금 칸으로 만든 설명과 다르면 직원이 직접 쓴 설명 → 유지
+                const keepDesc = !!oldDesc && oldDesc !== (d.description || '') && !(d._af && oldDesc === d._af.ds); d.description = oldDesc;
+                d.locations = loc; d.types = typ;
+                if (!keepDetail && r.detail) d.detailLocation = window.DL ? DL.norm(r.detail) : r.detail;
+                const st = src === 'sticker' ? 'ok' : 'check';
+                if (!keepDesc) generateAutoDescription(d.id);
+                d._af = { v: 2, src, m: src === 'sticker' ? '' : model, loc: okL ? 'ok' : st, typ: okT ? 'ok' : st, c: r.sure || '', why: String(r.why || '').slice(0, 200), pl: loc.slice(), pt: typ.slice(), pd: d.detailLocation || '', ds: d.description || '' };
+                saveWithDebounce();
+                return src;
+            }
+
             PA.run = async function (afterAF) { // afterAF: 🤖 자동 채우기가 끝난 뒤 이어서 (애매한 것만 마무리)
                 if (!/^\[테스트\]/.test(document.title)) return;
                 if (PA._busy || (window.AF && AF._busy)) return;
                 if (isAppBusy()) { if (!afterAF) showToast('⏳ 다른 작업(저장·보고서 등)이 끝난 뒤 다시 눌러주세요', 'warning'); return; }
                 const project = getCurrentProject();
-                let targets = (project.defects || []).filter(d => d && Array.isArray(d.photos) && (d.photos[0] || d.photos[1]) && (fresh(d) || untouchedAI(d) || stickerLeft(d)));
+                let targets = todo(project);
                 if (!targets.length) { if (!afterAF) showToast('분석할 하자가 없습니다 — 비어 있거나 자동 채우기·AI가 애매하게 남긴 하자(손대지 않은 것)만 분석합니다', 'info'); return; }
                 if (!PA.URL) { showToast('🧠 사진 AI 서버 주소가 아직 없습니다 — 서버 배포 후 사용할 수 있습니다', 'warning'); return; }
                 let st0 = null;
@@ -11529,21 +11551,9 @@ body.light-mode .card.reference-info {
                         } catch (e) { console.warn('스티커 판독 오류(무시하고 AI로):', e); }
                     }
                     if (!r) r = await ask(d);
-                    if (!same() || !(fresh(d) || untouchedAI(d) || stickerLeft(d))) return; // 그 사이 세대가 바뀌었거나 직원이 고름
-                    const okL = sk && sk.loc === 'ok' && sk.pl.length, okT = sk && sk.typ === 'ok' && sk.pt.length;
-                    const loc = okL ? sk.pl.slice() : ((r && r.loc) || []).filter((x, i, a) => LOCS.includes(x) && a.indexOf(x) === i).slice(0, 4);
-                    const typ = okT ? sk.pt.slice() : ((r && r.typ) || []).filter((x, i, a) => TYPES.includes(x) && a.indexOf(x) === i).slice(0, 4);
-                    if (!loc.length && !typ.length) { none++; return; }
-                    const keepDetail = d.detailLocation && !(d._af && d.detailLocation === d._af.pd); // 직원이 쓴 상세위치는 유지
-                    const oldDesc = d.description || ''; generateAutoDescription(d.id); // 지금 칸으로 만든 설명과 다르면 직원이 직접 쓴 설명 → 유지
-                    const keepDesc = !!oldDesc && oldDesc !== (d.description || '') && !(d._af && oldDesc === d._af.ds); d.description = oldDesc;
-                    d.locations = loc; d.types = typ;
-                    if (!keepDetail && r.detail) d.detailLocation = window.DL ? DL.norm(r.detail) : r.detail;
-                    const st = src === 'sticker' ? 'ok' : 'check';
-                    if (!keepDesc) generateAutoDescription(d.id);
-                    d._af = { v: 2, src, m: src === 'ai' ? PA.MODEL : '', loc: okL ? 'ok' : st, typ: okT ? 'ok' : st, c: r.sure || '', why: String(r.why || '').slice(0, 200), pl: loc.slice(), pt: typ.slice(), pd: d.detailLocation || '', ds: d.description || '' };
-                    if (src === 'sticker') stk++; else ai++;
-                    saveWithDebounce();
+                    if (!same()) return; // 그 사이 세대가 바뀜
+                    const k = apply(d, r, src, PA.MODEL);
+                    if (k === 'none') none++; else if (k === 'sticker') stk++; else if (k) ai++;
                 };
                 const queue = targets.slice();
                 const worker = async () => {
@@ -11575,8 +11585,54 @@ body.light-mode .card.reference-info {
                     if (window.keepAwakeOff) window.keepAwakeOff();
                 }
             };
-            const btn = document.getElementById('paBtn');
-            if (btn && /^\[테스트\]/.test(document.title)) btn.style.display = '';
+
+            // 대표님 11-03: 집 PC에서는 API 요금 없이 — 📦 묶음(zip: 사진 + pack.json)을 받아 Claude Code 에 "사진 AI 묶음 분석해줘" → 결과(json)를 📥 로 불러옴
+            //   pack.json: { kind:'thehome-photo-ai-pack', v:1, pid, rules, items:[{ id, no, spaces, wide, near }] } (wide/near = zip 안 사진 파일명)
+            //   결과 json: { kind:'thehome-photo-ai-result', pid, items:[{ id, loc[], typ[], detail, sure, why }] } — 규칙·칸 이름은 🧠 버튼과 같음 (tools/photo-ai/집분석.md)
+            PA.pack = async function () {
+                if (PA._busy || isAppBusy()) { showToast('⏳ 다른 작업이 끝난 뒤 다시 눌러주세요', 'warning'); return; }
+                const project = getCurrentProject(), targets = todo(project);
+                if (!targets.length) { showToast('묶을 하자가 없습니다 — 비어 있거나 자동 채우기·AI가 애매하게 남긴 하자만 묶습니다', 'info'); return; }
+                PA._busy = true; showLoading();
+                try {
+                    const zip = new JSZip(), items = [];
+                    for (const d of targets) {
+                        const no = (project.defects.indexOf(d) + 1), it = { id: d.id, no, spaces: d.spaces || [] };
+                        for (const [i, k, name] of [[0, 'wide', '원경'], [1, 'near', '근경']]) {
+                            if (typeof d.photos[i] !== 'string' || !d.photos[i]) continue;
+                            it[k] = `${String(no).padStart(3, '0')}_${name}.jpg`;
+                            zip.file(it[k], b64ToBytes(await shrinkOne(d.photos[i], 1024)));
+                        }
+                        items.push(it);
+                    }
+                    zip.file('pack.json', JSON.stringify({ kind: 'thehome-photo-ai-pack', v: 1, pid: project.id, made: new Date().toISOString(), rules: RULES, locs: LOCS, types: TYPES, items }, null, 1));
+                    const blob = await zip.generateAsync({ type: 'blob', compression: 'STORE' }), url = URL.createObjectURL(blob), a = document.createElement('a');
+                    a.href = url; a.download = `사진AI묶음_${String(project.id).slice(-6)}_${items.length}건.zip`; document.body.appendChild(a); a.click(); a.remove();
+                    setTimeout(() => URL.revokeObjectURL(url), 60000);
+                    showToast(`📦 ${items.length}건 묶음을 받았습니다 — Claude 에게 "사진 AI 묶음 분석해줘"라고 하세요`, 'success');
+                } catch (e) { console.error('사진 AI 묶음 오류:', e); showToast('❌ 묶음 만들기 실패: ' + (e && e.message || e), 'error'); }
+                finally { PA._busy = false; hideLoading(); }
+            };
+            PA.load = function () {
+                const inp = document.createElement('input'); inp.type = 'file'; inp.accept = '.json,application/json';
+                inp.onchange = async () => {
+                    const f = inp.files && inp.files[0]; if (!f) return;
+                    let j; try { j = JSON.parse(await f.text()); } catch (e) { showToast('❌ 결과 파일을 읽지 못했습니다', 'error'); return; }
+                    const project = getCurrentProject();
+                    if (!j || j.kind !== 'thehome-photo-ai-result' || !Array.isArray(j.items)) { showToast('❌ 사진 AI 결과 파일이 아닙니다', 'error'); return; }
+                    if (j.pid !== project.id) { showToast('❌ 다른 세대의 결과입니다 — 묶음을 만든 세대를 열고 불러오세요', 'error'); return; }
+                    let ai = 0, none = 0, skip = 0;
+                    for (const r of j.items) {
+                        const d = (project.defects || []).find(x => x && x.id === r.id);
+                        const k = d ? apply(d, r, 'ai', String(j.model || 'claude-home')) : '';
+                        if (k === 'ai') ai++; else if (k === 'none') none++; else skip++;
+                    }
+                    renderDefects(); await saveImmediately();
+                    showToast(`📥 AI 결과 ${ai}건 채움${none ? ` · 못 정함 ${none}건` : ''}${skip ? ` · 건너뜀 ${skip}건(직원이 이미 고름·삭제)` : ''} — 노란 칸을 확인해 주세요`, ai ? 'success' : 'info');
+                };
+                inp.click();
+            };
+            if (/^\[테스트\]/.test(document.title)) ['paBtn', 'paPackBtn', 'paLoadBtn'].forEach(id => { const b = document.getElementById(id); if (b) b.style.display = ''; });
         })();
 
 
@@ -17247,7 +17303,7 @@ body.light-mode .card.reference-info {
     }
     
     // ✅ 패치 69: 새 배포 확인 — 이 화면의 판 번호(APP_BUILD) vs 사이트의 version.json(정식)·version-test.json(테스트)
-    const APP_BUILD = 'fc26ee2e7720'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
+    const APP_BUILD = 'd7f47ee12dfc'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
     (function() {
         const url = /index-unified-test\.html$/.test(location.pathname) ? 'version-test.json' : 'version.json';
         let busy = false;
