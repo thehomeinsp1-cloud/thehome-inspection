@@ -3243,6 +3243,8 @@ body.light-mode .card.reference-info {
                 scope: SCOPES
             }, _needConsent ? { prompt: 'consent' } : _lastEmail ? { login_hint: _lastEmail } : { prompt: 'select_account' }));
             
+            // ✅ 패치 105: 안드로이드 설치 앱은 팝업 대신 같은 화면으로 (팝업 탭이 안 닫혀 구글 화면에 남던 문제)
+            if (/Android/i.test(navigator.userAgent) && window.matchMedia && matchMedia('(display-mode: standalone)').matches) { try { if (typeof saveProjectsToLocalStorage === 'function') await saveProjectsToLocalStorage(); } catch (e) {} location.href = authUrl; return; }
             // 팝업으로 로그인
             const width = 500;
             const height = 600;
@@ -17331,7 +17333,7 @@ body.light-mode .card.reference-info {
     }
     
     // ✅ 패치 69: 새 배포 확인 — 이 화면의 판 번호(APP_BUILD) vs 사이트의 version.json(정식)·version-test.json(테스트)
-    const APP_BUILD = 'a2f279663fc9'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
+    const APP_BUILD = 'ccc721fa4a38'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
     (function() {
         const url = /index-unified-test\.html$/.test(location.pathname) ? 'version-test.json' : 'version.json';
         let busy = false;
