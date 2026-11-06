@@ -9879,7 +9879,7 @@ body.light-mode .card.reference-info {
                     constraints.video.height = { ideal: deviceInfo.isIOS ? 1080 : 1440 };
                 }
                 
-                newStream = await navigator.mediaDevices.getUserMedia(constraints);
+                newStream = deviceInfo.isAndroid ? await _camOpenGood(constraints) : await navigator.mediaDevices.getUserMedia(constraints); // ✅ 패치 108
                 // R1-35: 그 사이 새 요청이 시작됐으면 이 스트림은 바로 끔
                 if (openCamera._busyAt !== openToken) { stopStreamQuietly(newStream); return; }
                 // R1-35: 남아 있던 이전 스트림·터치 리스너 정리 (정상 흐름에서는 이미 비어 있음)
@@ -10369,6 +10369,80 @@ body.light-mode .card.reference-info {
                 // R1-35: 이 요청이 끝났으면 진행 중 표시 해제
                 if (openCamera._busyAt === openToken) openCamera._busyAt = 0;
             }
+        }
+
+        // ✅ 패치 108: 영상이 실제로 들어오는 카메라 찾기 (안드로이드)
+        function _camProbe(stream) {
+            const video = document.getElementById('cameraPreview'), track = stream.getVideoTracks()[0];
+            video.muted = true;
+            video.setAttribute('playsinline', 'true');
+            video.srcObject = stream;
+            try { const p = video.play(); if (p && p.catch) p.catch(() => {}); } catch (e) {}
+            return new Promise(resolve => {
+                const t0 = Date.now(), iv = setInterval(() => {
+                    const ok = track && track.readyState === 'live' && video.videoWidth > 2; // 안 되는 카메라는 2x2 로 나오다 끊김
+                    if (!ok && track && track.readyState === 'live' && Date.now() - t0 < 3000) return;
+                    clearInterval(iv);
+                    video.srcObject = null; // 다음 단계가 다시 붙여 loadedmetadata 를 받게
+                    resolve(!!ok);
+                }, 100);
+            });
+        }
+
+        async function _camOpenGood(constraints) {
+            const KEY = 'th_cam_device_v1', size = {};
+            ['width', 'height'].forEach(k => { if (constraints.video[k]) size[k] = constraints.video[k]; });
+            const byId = id => ({ video: Object.assign({ deviceId: { exact: id } }, size), audio: false });
+            const tried = [];
+            let told = false;
+            const attempt = async c => {
+                let s = null;
+                for (let i = 0; i < 6 && !s; i++) { // 끊긴 직후 약 2초는 크롬이 '장치 없음'으로 답함 (cam-check 2차) → 1초 간격으로 다시
+                    try { s = await navigator.mediaDevices.getUserMedia(c); }
+                    catch (e) {
+                        if (e.name === 'NotAllowedError' || e.name === 'PermissionDeniedError') throw e;
+                        console.warn('카메라 열기 실패:', e.name);
+                        if (e.name !== 'NotFoundError' || !told) break;
+                        await new Promise(r => setTimeout(r, 1000));
+                    }
+                }
+                if (s) {
+                    const st = s.getVideoTracks()[0];
+                    try { const id = st.getSettings().deviceId; if (id) tried.push(id); } catch (e) {}
+                    if (await _camProbe(s)) return s;
+                    s.getTracks().forEach(t => t.stop());
+                }
+                if (!told) { told = true; showToast('카메라 연결 중이에요…', 'warning'); }
+                await new Promise(r => setTimeout(r, 2000));
+                return null;
+            };
+            let saved = '', s = null;
+            try { saved = localStorage.getItem(KEY) || ''; } catch (e) {}
+            if (saved) {
+                tried.push(saved);
+                s = await attempt(byId(saved));
+                if (s) return s;
+                try { localStorage.removeItem(KEY); } catch (e) {}
+            }
+            s = await attempt(constraints);
+            if (s) return s;
+            let cams = [];
+            for (let i = 0; i < 5 && !cams.length; i++) { // 끊긴 직후엔 목록도 비어 있을 수 있음 (106 기록)
+                if (i) await new Promise(r => setTimeout(r, 1000));
+                try { cams = (await navigator.mediaDevices.enumerateDevices()).filter(d => d.kind === 'videoinput' && d.deviceId && !/front|전면/i.test(d.label)); } catch (e) {}
+            }
+            for (const d of cams) {
+                if (tried.indexOf(d.deviceId) >= 0) continue;
+                tried.push(d.deviceId);
+                s = await attempt(byId(d.deviceId));
+                if (s) {
+                    try { localStorage.setItem(KEY, d.deviceId); } catch (e) {}
+                    console.error('카메라 바꿈: ' + d.label); // 앱오류기록에 남김
+                    return s;
+                }
+            }
+            console.error('카메라 찾기 실패: ' + cams.map(d => d.label).join(' / '));
+            return navigator.mediaDevices.getUserMedia(constraints); // 전과 똑같이 (까만 화면·안내)
         }
 
         // ✅ 사진 촬영 중복 실행 방지 플래그
@@ -17070,7 +17144,7 @@ body.light-mode .card.reference-info {
     }
     
     // ✅ 패치 69: 새 배포 확인 — 이 화면의 판 번호(APP_BUILD) vs 사이트의 version.json(정식)·version-test.json(테스트)
-    const APP_BUILD = '25434b164496'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
+    const APP_BUILD = 'f20205cdecaf'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
     (function() {
         const url = /index-unified-test\.html$/.test(location.pathname) ? 'version-test.json' : 'version.json';
         let busy = false;
