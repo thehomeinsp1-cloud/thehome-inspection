@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>카메라 점검</title>
+<style>
+body{margin:0;padding:14px;font:15px/1.45 system-ui,sans-serif;background:#fff;color:#111}
+h1{font-size:19px;margin:0 0 6px}
+button{width:100%;min-height:52px;font-size:17px;font-weight:700;border:0;border-radius:12px;background:#b91c1c;color:#fff}
+button:disabled{background:#999}
+video{width:100%;height:200px;background:#000;border-radius:10px;margin:10px 0;object-fit:contain}
+table{width:100%;border-collapse:collapse;font-size:13px}
+td{border-bottom:1px solid #ddd;padding:6px 4px;vertical-align:top}
+.ok{color:#15803d;font-weight:700}.no{color:#b91c1c;font-weight:700}
+small{color:#555}
+</style></head><body>
+<!-- 11-06 카메라 원인 찾기용. 앱과 같은 주소에서 카메라 여는 방법을 차례로 시험. 점검 자료·저장공간은 읽지도 쓰지도 않음 -->
+<h1>📷 카메라 점검</h1>
+<small>점검 자료는 건드리지 않아요. 버튼을 누르고 끝날 때까지 기다린 뒤 화면 전체를 캡처해 주세요.</small>
+<video id="v" autoplay playsinline muted></video>
+<button id="go">시작</button>
+<p id="st"></p>
+<table id="t"></table>
+<script>
+const $ = id => document.getElementById(id), v = $('v'), t = $('t');
+const wait = ms => new Promise(r => setTimeout(r, ms));
+const esc = s => String(s).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+const row = (a, b, ok) => { t.insertAdjacentHTML('beforeend', '<tr><td>' + esc(a) + '</td><td class="' + (ok === undefined ? '' : ok ? 'ok' : 'no') + '">' + esc(b) + '</td></tr>'); };
+// 앱과 같게: 스트림을 video 에 붙이고 재생한 뒤 4초 동안 살아 있고 화면이 들어오는지 본다
+async function one(name, c) {
+    $('st').textContent = '시험 중: ' + name;
+    let s = null;
+    try {
+        s = await navigator.mediaDevices.getUserMedia({ video: c, audio: false });
+        const tr = s.getVideoTracks()[0];
+        let ended = false; tr.addEventListener('ended', () => { ended = true; });
+        v.srcObject = s;
+        try { await v.play(); } catch (e) {}
+        await wait(1000);
+        const t0 = v.currentTime;
+        await wait(3000);
+        const live = tr.readyState === 'live' && !ended && v.videoWidth > 0 && v.currentTime > t0;
+        row(name, (live ? '정상 ' : '실패 ') + v.videoWidth + 'x' + v.videoHeight + (ended || tr.readyState !== 'live' ? ' 끊김' : '') + (v.currentTime > t0 ? '' : ' 화면없음') + ' / ' + (tr.label || ''), live);
+    } catch (e) {
+        row(name, '실패 ' + e.name + ': ' + e.message, false);
+    } finally {
+        if (s) s.getTracks().forEach(x => x.stop());
+        v.srcObject = null;
+        await wait(800);
+    }
+}
+$('go').onclick = async () => {
+    $('go').disabled = true; t.innerHTML = '';
+    row('주소', location.origin);
+    row('화면 방식', matchMedia('(display-mode: standalone)').matches ? '설치 앱' : '브라우저 탭');
+    row('브라우저', navigator.userAgent.replace(/^.*?\) /, ''));
+    try { row('권한', (await navigator.permissions.query({ name: 'camera' })).state); } catch (e) {}
+    const size = { width: { ideal: 1280 }, height: { ideal: 720 } };
+    await one('① 지정 없음', true);
+    await one('② 후면', { facingMode: 'environment' });
+    await one('③ 후면+크기 (앱과 같음)', Object.assign({ facingMode: 'environment' }, size));
+    let cams = [];
+    try { cams = (await navigator.mediaDevices.enumerateDevices()).filter(d => d.kind === 'videoinput'); } catch (e) {}
+    row('카메라 목록', cams.map(d => d.label || '(이름 없음)').join(' / ') || '없음');
+    for (const d of cams) {
+        await one(d.label + ' (크기 없음)', { deviceId: { exact: d.deviceId } });
+        await one(d.label + ' (크기 지정)', Object.assign({ deviceId: { exact: d.deviceId } }, size));
+    }
+    $('st').textContent = '끝났어요. 화면 전체를 캡처해서 보내 주세요.';
+    $('go').disabled = false;
+};
+</script>
+</body></html>
