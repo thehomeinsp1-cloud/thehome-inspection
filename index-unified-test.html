@@ -10401,8 +10401,15 @@ body.light-mode .card.reference-info {
             let told = false;
             const attempt = async c => {
                 let s = null;
-                try { s = await navigator.mediaDevices.getUserMedia(c); }
-                catch (e) { if (e.name === 'NotAllowedError' || e.name === 'PermissionDeniedError') throw e; console.warn('카메라 열기 실패:', e.name); }
+                for (let i = 0; i < 6 && !s; i++) { // 끊긴 직후 약 2초는 크롬이 '장치 없음'으로 답함 (cam-check 2차) → 1초 간격으로 다시
+                    try { s = await navigator.mediaDevices.getUserMedia(c); }
+                    catch (e) {
+                        if (e.name === 'NotAllowedError' || e.name === 'PermissionDeniedError') throw e;
+                        console.warn('카메라 열기 실패:', e.name);
+                        if (e.name !== 'NotFoundError' || !told) break;
+                        await new Promise(r => setTimeout(r, 1000));
+                    }
+                }
                 if (s) {
                     const st = s.getVideoTracks()[0];
                     try { const id = st.getSettings().deviceId; if (id) tried.push(id); } catch (e) {}
@@ -10410,7 +10417,7 @@ body.light-mode .card.reference-info {
                     s.getTracks().forEach(t => t.stop());
                 }
                 if (!told) { told = true; showToast('카메라 연결 중이에요…', 'warning'); }
-                await new Promise(r => setTimeout(r, 800)); // 바로 다시 열면 '장치 없음'으로 실패함
+                await new Promise(r => setTimeout(r, 2000));
                 return null;
             };
             let saved = '', s = null;
@@ -10424,7 +10431,10 @@ body.light-mode .card.reference-info {
             s = await attempt(constraints);
             if (s) return s;
             let cams = [];
-            try { cams = (await navigator.mediaDevices.enumerateDevices()).filter(d => d.kind === 'videoinput' && d.deviceId && !/front|전면/i.test(d.label)); } catch (e) {}
+            for (let i = 0; i < 5 && !cams.length; i++) { // 끊긴 직후엔 목록도 비어 있을 수 있음 (106 기록)
+                if (i) await new Promise(r => setTimeout(r, 1000));
+                try { cams = (await navigator.mediaDevices.enumerateDevices()).filter(d => d.kind === 'videoinput' && d.deviceId && !/front|전면/i.test(d.label)); } catch (e) {}
+            }
             for (const d of cams) {
                 if (tried.indexOf(d.deviceId) >= 0) continue;
                 tried.push(d.deviceId);
@@ -17397,7 +17407,7 @@ body.light-mode .card.reference-info {
     }
     
     // ✅ 패치 69: 새 배포 확인 — 이 화면의 판 번호(APP_BUILD) vs 사이트의 version.json(정식)·version-test.json(테스트)
-    const APP_BUILD = 'e867241a24ee'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
+    const APP_BUILD = 'bddbb684dfa6'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
     (function() {
         const url = /index-unified-test\.html$/.test(location.pathname) ? 'version-test.json' : 'version.json';
         let busy = false;
