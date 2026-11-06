@@ -8434,7 +8434,7 @@ body.light-mode .card.reference-info {
             const project = getCurrentProject(); // ✅ 고른 시점의 프로젝트 고정 (처리 중 세대 전환·삭제 대비)
             const input = document.createElement('input');
             input.type = 'file';
-            input.accept = 'image/*';
+            input.accept = 'image/*'; if (window._camNative) input.capture = 'environment'; // ✅ 패치 107
             input.onchange = async (e) => {
                 const file = e.target.files[0];
                 if (file) {
@@ -9137,7 +9137,7 @@ body.light-mode .card.reference-info {
             const project = getCurrentProject(); // ✅ 고른 시점의 프로젝트 고정 (처리 중 세대 전환·삭제 대비)
             const input = document.createElement('input');
             input.type = 'file';
-            input.accept = 'image/*';
+            input.accept = 'image/*'; if (window._camNative) input.capture = 'environment'; // ✅ 패치 107
             input.onchange = async function(e) {
                 const file = e.target.files[0];
                 if (!file) return;
@@ -9186,7 +9186,7 @@ body.light-mode .card.reference-info {
             const project = getCurrentProject(); // ✅ 고른 시점의 프로젝트 고정 (처리 중 세대 전환·삭제 대비)
             const input = document.createElement('input');
             input.type = 'file';
-            input.accept = 'image/*';
+            input.accept = 'image/*'; if (window._camNative) input.capture = 'environment'; // ✅ 패치 107
             input.onchange = async (e) => {
                 const file = e.target.files[0];
                 if (file) {
@@ -9528,7 +9528,7 @@ body.light-mode .card.reference-info {
             const project = getCurrentProject(); // ✅ 고른 시점의 프로젝트 고정 (처리 중 세대 전환·삭제 대비)
             const input = document.createElement('input');
             input.type = 'file';
-            input.accept = 'image/*';
+            input.accept = 'image/*'; if (window._camNative) input.capture = 'environment'; // ✅ 패치 107
             input.onchange = async (e) => {
                 const file = e.target.files[0];
                 if (file) {
@@ -9586,7 +9586,7 @@ body.light-mode .card.reference-info {
         async function openEquipmentGallery(id) {
             const input = document.createElement('input');
             input.type = 'file';
-            input.accept = 'image/*';
+            input.accept = 'image/*'; if (window._camNative) input.capture = 'environment'; // ✅ 패치 107
             input.onchange = async (e) => {
                 const file = e.target.files[0];
                 if (file) {
@@ -9839,6 +9839,7 @@ body.light-mode .card.reference-info {
 
         // ==================== 카메라 기능 ====================
         async function openCamera() {
+            if (deviceInfo.isAndroid && _camNativeOpen()) return; // ✅ 패치 107
             // R1-35: 연속 탭 시 카메라 중복 실행 방지 (진행 중이면 무시, 15초 넘게 응답이 없으면 다시 시도 허용)
             if (openCamera._busyAt && Date.now() - openCamera._busyAt < 15000) return;
             const openToken = Date.now();
@@ -10327,7 +10328,7 @@ body.light-mode .card.reference-info {
                 // R1-35: 열기 실패 시 이번에 연 카메라는 끔 (화면에 안 보이는 채 켜져 있지 않도록)
                 if (newStream && cameraStream === newStream) { stopStreamQuietly(newStream); cameraStream = null; }
                 if (openCamera._busyAt !== openToken) return; // 이미 새 요청으로 카메라가 열린 경우
-                if (deviceInfo.isAndroid && (_camRetrying || _camAlt) && error.name !== 'NotAllowedError' && error.name !== 'PermissionDeniedError') { setTimeout(() => _camRetry('open:' + error.name), 0); return; } // ✅ 패치 106
+                if (deviceInfo.isAndroid && (_camRetrying || _camAlt || error.name === 'NotFoundError' || error.name === 'NotReadableError') && error.name !== 'NotAllowedError' && error.name !== 'PermissionDeniedError') { setTimeout(() => _camRetry('open:' + error.name), 0); return; } // ✅ 패치 106
                 
                 // 디바이스별 상세 에러 메시지
                 let errorMessage = '카메라를 사용할 수 없습니다.\n\n';
@@ -10385,6 +10386,24 @@ body.light-mode .card.reference-info {
             }
         }
 
+        // ✅ 패치 107: 앱 카메라가 안 되는 폰은 기본 카메라 → 갤러리 첨부와 같은 저장 흐름
+        function _camNativeOpen() {
+            let at = 0;
+            try { at = Number(localStorage.getItem('th_cam_native_v1')) || 0; } catch (e) {}
+            if (!at || Date.now() - at > 7 * 86400000) return false;
+            const t = currentPhotoTarget;
+            window._camNative = true;
+            try {
+                if (t === 'floorplan') openFloorplanGallery();
+                else if (t && t.defectId && t.photoIndex != null) reattachDefectPhoto(t.defectId, t.photoIndex, t.photoType);
+                else if (t && t.defectId) uploadDefectPhotoFromGallery(t.defectId, t.step);
+                else if (t && t.equipmentId && t.location) openEquipmentLocationGallery(t.equipmentId, t.location);
+                else if (t && t.equipmentId) openEquipmentGallery(t.equipmentId);
+                else return false;
+            } finally { window._camNative = false; }
+            return true;
+        }
+
         // ✅ 패치 106: 카메라가 끊기면 자동 재시도 (안드로이드)
         function _camWatch(stream, alt) {
             const track = stream && stream.getVideoTracks()[0], video = document.getElementById('cameraPreview'), modal = document.getElementById('cameraModal');
@@ -10400,10 +10419,12 @@ body.light-mode .card.reference-info {
                     if (alive()) _camRetry(why);
                 });
             };
+            if (track.readyState === 'ended') { setTimeout(() => fail('ended'), 0); return; } // ✅ 패치 107 (열기가 끝난 뒤에)
             track.addEventListener('ended', () => fail('ended'), { once: true });
             const t0 = video.currentTime;
             setTimeout(() => {
-                if (!alive() || document.hidden || track.readyState === 'ended') return;
+                if (!alive() || document.hidden) return;
+                if (track.readyState === 'ended') { fail('ended'); return; } // ✅ 패치 107
                 if (!video.videoWidth || video.currentTime === t0) { fail('noframes'); return; }
                 openCamera._alts = null;
                 if (alt) { try { localStorage.setItem('th_cam_alt_v1', JSON.stringify(alt)); } catch (e) {} }
@@ -10434,7 +10455,8 @@ body.light-mode .card.reference-info {
             if (!o._alts.length) {
                 o._alts = null;
                 closeCameraModal();
-                alert('이 휴대폰에서는 앱 카메라가 켜지지 않아요.\n\n기본 카메라로 찍은 뒤 [갤러리] 버튼으로 사진을 넣어 주세요.\n(점검 자료는 그대로 있어요. 대표님께 알려 주세요)');
+                try { localStorage.setItem('th_cam_native_v1', String(Date.now())); } catch (e) {} // ✅ 패치 107
+                alert('이 휴대폰은 앱 화면 카메라가 켜지지 않아 휴대폰 기본 카메라로 바꿨어요.\n\n[촬영]을 다시 누르면 기본 카메라가 열려요.\n(점검 자료는 그대로 있어요)');
                 return;
             }
             showToast('카메라 다시 연결 중이에요…', 'warning');
@@ -17408,7 +17430,7 @@ body.light-mode .card.reference-info {
     }
     
     // ✅ 패치 69: 새 배포 확인 — 이 화면의 판 번호(APP_BUILD) vs 사이트의 version.json(정식)·version-test.json(테스트)
-    const APP_BUILD = '93528c685a49'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
+    const APP_BUILD = '96dd8f59c654'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
     (function() {
         const url = /index-unified-test\.html$/.test(location.pathname) ? 'version-test.json' : 'version.json';
         let busy = false;
