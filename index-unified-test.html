@@ -6141,6 +6141,9 @@ body.light-mode .card.reference-info {
             if (window._saveAfterLoad) { window._saveAfterLoad = false; saveProjectsToLocalStorage(); }
         }
         
+        // ✅ 패치 110: 저장된 세대가 없는 첫 실행은 위 불러오기가 화면을 안 그림 → 공기질 표가 안 나왔음
+        if (!document.querySelector('#airQualityList .aq-row')) { try { loadProjectToUI(); } catch (e) { console.warn('첫 화면 그리기 실패:', e); } }
+
         // 저장된 프로젝트 목록 렌더링 - ✅ 시작 시 전체 데이터를 한 번 더 읽지 않도록, 삭제 패널을 열 때만 렌더링
         try {
             const savedListEl = document.getElementById('savedList');
@@ -17415,7 +17418,7 @@ body.light-mode .card.reference-info {
     }
     
     // ✅ 패치 69: 새 배포 확인 — 이 화면의 판 번호(APP_BUILD) vs 사이트의 version.json(정식)·version-test.json(테스트)
-    const APP_BUILD = '75b35f4b673f'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
+    const APP_BUILD = 'd5b353eb21fe'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
     (function() {
         const url = /index-unified-test\.html$/.test(location.pathname) ? 'version-test.json' : 'version.json';
         let busy = false;
