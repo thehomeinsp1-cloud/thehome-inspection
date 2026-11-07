@@ -1949,7 +1949,7 @@ body.light-mode .card.reference-info {
         </button>
         
         <h1>🏠 더홈점검</h1>
-        <p id="appVersionTag" style="color:#fde68a;font-weight:700;">🧪 테스트판 · 업데이트 2026.11.06</p>
+        <p id="appVersionTag" style="color:#fde68a;font-weight:700;">🧪 테스트판 · 업데이트 2026.11.07</p>
     </div>
 
     <div class="container">
@@ -9658,6 +9658,14 @@ body.light-mode .card.reference-info {
             el.value = (parseInt(d, 10) / 1000).toFixed(3);
         };
         AQ.live = function (el, f) { el.classList.toggle('bad', AQ.bad(f, el.value)); };
+        // ✅ 패치 109: 아이폰은 입력 중 값을 바꾼 칸(AQ.dec)에서 change 를 안 보냄 → 칸을 벗어날 때(blur)도 저장. 이미 저장된 값과 같거나 다시 그려져 없어진 칸이면 아무것도 안 함
+        AQ.commit = function (el, id, f) {
+            const room = (projectData.airQuality || []).find(r => r.id === id);
+            if (!el.isConnected || !room || String(room[f] == null ? '' : room[f]) === el.value) return;
+            AQ.fix(el, f); AQ.live(el, f);
+            updateAirQualityValue(id, f, el.value, el.validity && el.validity.badInput);
+            AQ.sum();
+        };
         AQ.next = function (e, el) {
             if (e.key !== 'Enter' || e.isComposing) return;
             e.preventDefault();
@@ -9678,8 +9686,8 @@ body.light-mode .card.reference-info {
             return `<input type="${dec ? 'text' : 'number'}" class="aq-in${AQ.bad(f, r[f]) ? ' bad' : ''}" inputmode="numeric" enterkeyhint="next" autocomplete="off"
                 value="${escapeHtml(r[f])}" placeholder="${dec ? '0.000' : '0'}" aria-label="${escapeHtml(r.name)} ${f === 'radon' ? '라돈' : f === 'vocs' ? '총VOCs' : '포름알데히드'}"
                 oninput="${dec ? 'AQ.dec(this, event); ' : ''}AQ.live(this, '${f}')" onkeydown="AQ.next(event, this)"
-                onchange="AQ.fix(this, '${f}'); AQ.live(this, '${f}'); updateAirQualityValue(${r.id}, '${f}', this.value, this.validity && this.validity.badInput); AQ.sum()"
-                onblur="checkAirQualityInput(this, ${r.id}, '${f}')">`;
+                onchange="AQ.commit(this, ${r.id}, '${f}')"
+                onblur="AQ.commit(this, ${r.id}, '${f}'); checkAirQualityInput(this, ${r.id}, '${f}')">`;
         };
 
         function renderAirQuality() {
@@ -17407,7 +17415,7 @@ body.light-mode .card.reference-info {
     }
     
     // ✅ 패치 69: 새 배포 확인 — 이 화면의 판 번호(APP_BUILD) vs 사이트의 version.json(정식)·version-test.json(테스트)
-    const APP_BUILD = 'bddbb684dfa6'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
+    const APP_BUILD = '75b35f4b673f'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
     (function() {
         const url = /index-unified-test\.html$/.test(location.pathname) ? 'version-test.json' : 'version.json';
         let busy = false;
