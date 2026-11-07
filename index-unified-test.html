@@ -7528,7 +7528,7 @@ body.light-mode .card.reference-info {
                     else { cur = data.hp.rows; h += '<div class="adm-hint">취소 ' + data.hp.cancel + '건은 뺐어요. <b>예약일정 없음</b> = 통합자료 예약일정 시트에 아직 안 옮긴 신청이에요.</div>'; }
                 } else if (st.kind === 'k10') {
                     h += '<div class="adm-step">② 대상 <small>모바일접수대행 시트 · 접수완료 체크 · 지난 90일</small></div>'
-                        + '<button type="button" class="adm-re" data-act="copy1" style="width:100%;margin-top:6px;min-height:44px;">📋 동호수 없이 문자 복사 (카톡·문자에 붙여넣기)</button>'; // ✅ 패치 111
+                        + '<button type="button" class="adm-re" data-act="copy1" style="width:100%;margin-top:6px;min-height:44px;word-break:keep-all;">📋 동호수 없이 문자 복사 (카톡·문자에 붙여넣기)</button>'; // ✅ 패치 111
                     if (!data.sub) { h += '<div class="adm-msg">⏳ 모바일접수대행 시트 불러오는 중...</div>'; startSub(); }
                     else if (data.sub.err) h += '<div class="adm-msg adm-err">' + E(data.sub.err) + '</div>';
                     else cur = data.sub.rows;
@@ -7764,7 +7764,7 @@ body.light-mode .card.reference-info {
                 let h = '<button type="button" class="btn btn-secondary" data-sd="toggle" style="display:flex;align-items:center;gap:10px;width:100%;text-align:left;">'
                     + '<span style="font-size:22px;">📩</span><span style="flex:1;"><b style="font-size:15px;">하자접수 완료 문자</b> <small style="font-size:11.5px;font-weight:600;color:var(--text-secondary);">(하자접수자만 사용)</small><br><small style="color:var(--text-secondary);">접수 끝난 고객에게 · 지난 ' + SD_DAYS + '일</small></span><span>' + (sd.open ? '▲' : '▼') + '</span></button>';
                 if (sd.open) {
-                    h += '<button type="button" class="adm-re" data-sd="copy" style="width:100%;margin-top:6px;min-height:44px;">📋 동호수 없이 문자 복사 (카톡·문자에 붙여넣기)</button>'; // ✅ 패치 111: 로그인·시트 없이도 복사
+                    h += '<button type="button" class="adm-re" data-sd="copy" style="width:100%;margin-top:6px;min-height:44px;word-break:keep-all;">📋 동호수 없이 문자 복사 (카톡·문자에 붙여넣기)</button>'; // ✅ 패치 111: 로그인·시트 없이도 복사
                     if (!accessToken) h += msg('위 🔐 로그인(구글)을 먼저 해 주세요.');
                     else if (sd.loading) h += msg('⏳ 모바일접수대행 시트 불러오는 중...');
                     else if (sd.err) h += msg(E(sd.err), true) + (/로그인/.test(sd.err) ? '<button type="button" class="btn btn-primary" data-sd="login" style="width:100%;">🔐 구글 다시 로그인</button>'
@@ -17421,7 +17421,7 @@ body.light-mode .card.reference-info {
     }
     
     // ✅ 패치 69: 새 배포 확인 — 이 화면의 판 번호(APP_BUILD) vs 사이트의 version.json(정식)·version-test.json(테스트)
-    const APP_BUILD = 'e2302b254079'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
+    const APP_BUILD = 'a209be573b7e'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
     (function() {
         const url = /index-unified-test\.html$/.test(location.pathname) ? 'version-test.json' : 'version.json';
         let busy = false;
