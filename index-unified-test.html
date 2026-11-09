@@ -1340,6 +1340,7 @@ body.light-mode :is(#admin,#staffDone) .adm-chip.hot b{color:#b45309}
 #admin .cap-cal{display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:3px}
 #admin .cap-cal > i{font-style:normal; text-align:center; font-size:11px; font-weight:700; color:var(--text-secondary); padding-bottom:2px}
 #admin .cap-cal > i.we{color:var(--text-primary); font-weight:900}
+#admin .cap-cal > .cap-x{text-align:center; padding-top:5px; font-size:12.5px; font-weight:700; color:var(--text-secondary); opacity:.4}
 #admin .cap-c{min-height:54px; padding:4px 1px 3px; border-radius:8px; border:1px solid var(--a-line,#2A3550); background:var(--a-sunken,#0F1726); color:#94a3b8; font-family:inherit; display:flex; flex-direction:column; align-items:center; gap:1px; line-height:1.15; cursor:pointer; -webkit-tap-highlight-color:transparent; word-break:keep-all; font-variant-numeric:tabular-nums}
 #admin .cap-c b{font-size:12.5px; font-weight:700}
 #admin .cap-c.we b, #admin .cap-c.has b{color:#F1F4F9; font-weight:800}
@@ -7473,7 +7474,7 @@ body.light-mode .card.reference-info {
                 return Array.from(days.values()).sort((a, b) => a.date - b.date);
             }
             const capHp = k => data.hp && data.hp.rows ? data.hp.rows.filter(r => !r.reg && r.date && dKey(r.date) === k).length : 0; // 홈페이지 신청 중 예약일정에 안 옮긴 것
-            function capHtml() { // 달력: 이번 달·다음 달, 월요일부터(토·일 나란히), 날짜를 누르면 그 달 아래에 단지별
+            function capHtml() { // 달력: 이번 달·다음 달, 일요일부터(11-09 대표님 "윈도우 달력 배열로"), 날짜를 누르면 그 달 아래에 단지별
                 const list = data.cap || (data.cap = capCalc()), by = {}, today = new Date(); today.setHours(0, 0, 0, 0);
                 list.forEach(d => { by[d.k] = d; });
                 const m0 = new Date(today.getFullYear(), today.getMonth() + (st.capM || 0), 1);
@@ -7486,9 +7487,10 @@ body.light-mode .card.reference-info {
                 return h;
             }
             function capMonth(m, by, today) {
-                const y = m.getFullYear(), mo = m.getMonth(), n = new Date(y, mo + 1, 0).getDate();
+                const y = m.getFullYear(), mo = m.getMonth(), n = new Date(y, mo + 1, 0).getDate(), lead = m.getDay(), pn = new Date(y, mo, 0).getDate();
                 let open = null, h = '<div class="cap-mon">' + (y !== today.getFullYear() ? y + '년 ' : '') + (mo + 1) + '월</div><div class="cap-cal">'
-                    + '월화수목금토일'.split('').map((w, i) => '<i' + (i > 4 ? ' class="we"' : '') + '>' + w + '</i>').join('') + '<span></span>'.repeat((m.getDay() + 6) % 7);
+                    + '일월화수목금토'.split('').map((w, i) => '<i' + (i % 6 ? '' : ' class="we"') + '>' + w + '</i>').join('');
+                for (let i = lead; i > 0; i--) h += '<span class="cap-x">' + (pn - i + 1) + '</span>'; // 앞뒤 빈칸: 지난·다음 달 날짜를 흐리게 (누르지 않음)
                 for (let i = 1; i <= n; i++) {
                     const dt = new Date(y, mo, i), k = dKey(dt), d = by[k], on = st.capD === k;
                     if (on) open = d || { k: k, date: dt };
@@ -7496,6 +7498,7 @@ body.light-mode .card.reference-info {
                         + (d ? ' style="background:rgba(59,130,246,' + (.14 + Math.min(d.units, 20) * .023).toFixed(2) + ')"' : '') + '><b>' + i + '</b>' // 20세대부터 가장 진함
                         + (d ? '<span>' + d.units + '세대</span><small>' + d.sites.size + '단지</small>' : '') + '</button>';
                 }
+                for (let i = 1; i <= (7 - (lead + n) % 7) % 7; i++) h += '<span class="cap-x">' + i + '</span>';
                 h += '</div>';
                 return open ? h + capOpen(open, capHp(open.k)) : h;
             }
@@ -17515,7 +17518,7 @@ body.light-mode .card.reference-info {
     }
     
     // ✅ 패치 69: 새 배포 확인 — 이 화면의 판 번호(APP_BUILD) vs 사이트의 version.json(정식)·version-test.json(테스트)
-    const APP_BUILD = 'da6f78f9f5b6'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
+    const APP_BUILD = '503b89ee08cd'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
     (function() {
         const url = /index-unified-test\.html$/.test(location.pathname) ? 'version-test.json' : 'version.json';
         let busy = false;
