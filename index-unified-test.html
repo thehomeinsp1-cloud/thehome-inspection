@@ -1337,25 +1337,34 @@ body.light-mode :is(#admin,#staffDone) .adm-chip.hot b{color:#b45309}
 :is(#admin,#staffDone) .adm-chip.red b{color:#f87171}
 body.light-mode :is(#admin,#staffDone) .adm-chip.red b{color:#b91c1c}
 #admin .adm-sum .adm-chip, #admin .adm-kinds .adm-kind{word-break:keep-all}
-#admin .cap-row{display:flex; align-items:center; gap:10px; width:100%; padding:10px 0 10px 10px; border:none; border-top:1px solid var(--a-line,#2A3550); border-left:4px solid transparent; background:none; color:var(--a-ink,#F1F4F9); text-align:left; font-family:inherit; cursor:pointer; -webkit-tap-highlight-color:transparent}
-#admin .cap-row.r{border-left-color:#ef4444}
-#admin .cap-row.y{border-left-color:#f59e0b}
-#admin .cap-row.f{border-left-color:#3b82f6}
-#admin .cap-row.n, #admin .cap-row.p{border-left-color:#64748b}
-#admin .cap-row .d{flex:none; width:44px; font-size:13px; font-weight:800; line-height:1.25; font-variant-numeric:tabular-nums}
-#admin .cap-row .d small, #admin .cap-row .w small{display:block; font-size:12px; font-weight:600; color:var(--text-secondary)}
-#admin .cap-row .w{flex:1; min-width:0; line-height:1.35; word-break:keep-all}
-#admin .cap-row .w b{display:block; font-size:14.5px}
-#admin .cap-tag{flex:none; max-width:112px; text-align:center; font-size:12px; font-weight:800; border-radius:9px; padding:6px 8px; line-height:1.25; word-break:keep-all}
-#admin .cap-tag small{display:block; font-size:10.5px; font-weight:700; opacity:.85}
-#admin .cap-tag.r{background:rgba(239,68,68,.16); color:#fca5a5; border:1px solid rgba(239,68,68,.6)}
-#admin .cap-tag.y{background:rgba(245,158,11,.14); color:#fcd34d; border:1px solid rgba(245,158,11,.55)}
-#admin .cap-tag.f{background:rgba(59,130,246,.14); color:#93c5fd; border:1px solid rgba(59,130,246,.5)}
-#admin .cap-tag.n, #admin .cap-tag.p{background:transparent; color:var(--text-secondary); border:1px dashed var(--a-line-strong,#62708C)}
-body.light-mode #admin .cap-tag.r, body.light-mode #admin .cap-big .cr{color:#b91c1c}
-body.light-mode #admin .cap-tag.y, body.light-mode #admin .cap-big .cy{color:#92400e}
-body.light-mode #admin .cap-tag.f{color:#1d4ed8}
-#admin .cap-open{margin:0 0 6px 14px; padding:11px 12px; border-radius:10px; background:var(--a-sunken,#0F1726); border:1px solid var(--a-line,#2A3550); color:var(--a-ink,#F1F4F9); word-break:keep-all}
+#admin .cap-short{display:flex; flex-wrap:wrap; gap:6px; align-items:center; font-size:12.5px; font-weight:800; color:#fca5a5; margin:4px 0; word-break:keep-all}
+#admin .cap-short .adm-re{min-height:34px; border-color:rgba(239,68,68,.6); color:#fca5a5}
+#admin .cap-nav{display:flex; gap:6px; margin:10px 0 2px}
+#admin .cap-nav .adm-re{flex:1; min-height:38px; padding:0 6px}
+#admin .cap-mon{font-size:14px; font-weight:800; margin:12px 0 6px; color:var(--a-ink,#F1F4F9)}
+#admin .cap-cal{display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:3px}
+#admin .cap-cal > i{font-style:normal; text-align:center; font-size:11px; font-weight:700; color:var(--text-secondary); padding-bottom:2px}
+#admin .cap-cal > i.we{color:var(--a-ink,#F1F4F9); font-weight:900}
+#admin .cap-c{min-height:54px; padding:4px 1px 3px; border-radius:8px; border:1px solid var(--a-line,#2A3550); background:var(--a-sunken,#0F1726); color:var(--text-secondary); font-family:inherit; display:flex; flex-direction:column; align-items:center; gap:1px; line-height:1.15; cursor:pointer; -webkit-tap-highlight-color:transparent; word-break:keep-all; font-variant-numeric:tabular-nums}
+#admin .cap-c b{font-size:12.5px; font-weight:700; color:var(--text-secondary)}
+#admin .cap-c.we b, #admin .cap-c.r b, #admin .cap-c.y b, #admin .cap-c.f b, #admin .cap-c.n b{color:var(--a-ink,#F1F4F9); font-weight:800}
+#admin .cap-c span{font-size:10.5px; font-weight:700; color:var(--a-ink,#F1F4F9)}
+#admin .cap-c small{font-size:10px; font-weight:800}
+#admin .cap-c.r{background:rgba(239,68,68,.2); border-color:rgba(239,68,68,.7)}
+#admin .cap-c.r small{color:#fca5a5}
+#admin .cap-c.y{background:rgba(245,158,11,.14); border-color:rgba(245,158,11,.55)}
+#admin .cap-c.y small{color:#fcd34d}
+#admin .cap-c.f{background:rgba(59,130,246,.14); border-color:rgba(59,130,246,.5)}
+#admin .cap-c.f small{color:#93c5fd}
+#admin .cap-c.n{border-style:dashed; border-color:var(--a-line-strong,#62708C)}
+#admin .cap-c.past{opacity:.38}
+#admin .cap-c.today{outline:2px solid var(--a-ink,#F1F4F9); outline-offset:-2px}
+#admin .cap-c.on{box-shadow:0 0 0 2px #3b82f6; border-color:#3b82f6}
+body.light-mode #admin .cap-c.r small, body.light-mode #admin .cap-big .cr, body.light-mode #admin .cap-short{color:#b91c1c}
+body.light-mode #admin .cap-c.y small, body.light-mode #admin .cap-big .cy{color:#92400e}
+body.light-mode #admin .cap-c.f small{color:#1d4ed8}
+#admin .cap-dh{font-size:12.5px; font-weight:800; color:var(--text-secondary); margin-bottom:4px; line-height:1.4}
+#admin .cap-open{margin:8px 0 4px; padding:11px 12px; border-radius:10px; background:var(--a-sunken,#0F1726); border:1px solid var(--a-line,#2A3550); color:var(--a-ink,#F1F4F9); word-break:keep-all}
 #admin .cap-big{font-size:15px; font-weight:800; margin-bottom:6px; line-height:1.4}
 #admin .cap-big .cr, #admin .cap-li .cr{color:#fca5a5}
 #admin .cap-big .cy, #admin .cap-li .cy{color:#fcd34d; font-weight:800}
@@ -1365,7 +1374,6 @@ body.light-mode #admin .cap-tag.f{color:#1d4ed8}
 #admin .cap-copy{width:100%; min-height:44px; margin-top:8px; border:none; border-radius:10px; background:#FEE500; color:#191919; font-size:14.5px; font-weight:800; font-family:inherit}
 #admin .cap-leg{display:flex; gap:10px; flex-wrap:wrap; font-size:11.5px; color:var(--text-secondary); margin:6px 0 2px}
 #admin .cap-leg i{display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:4px}
-#admin .cap-more{font-size:12px; color:var(--text-secondary); padding:10px 0 2px 14px; border-top:1px solid var(--a-line,#2A3550); line-height:1.5}
 :is(#admin,#staffDone) .adm-row small.warn{white-space:normal}
 :is(#admin,#staffDone) .adm-grp{margin:12px 0 4px; padding:8px 10px; border-radius:8px; font-size:12.5px; line-height:1.5; color:var(--a-ink,#F1F4F9)}
 :is(#admin,#staffDone) .adm-grp.info{background:rgba(74,222,128,.10); border:1px solid rgba(74,222,128,.45)}
@@ -7508,32 +7516,43 @@ body.light-mode .card.reference-info {
                 }).sort((a, b) => a.date - b.date);
                 return { list: list, maxP: maxP, red: list.filter(d => d.cls === 'r' && d.soon).length };
             }
-            function capHtml() {
-                const c = data.cap || (data.cap = capCalc()), fut = c.list.filter(d => d.cls !== 'p');
-                const hpOf = k => data.hp && data.hp.rows ? data.hp.rows.filter(r => !r.reg && r.date && dKey(r.date) === k).length : 0;
-                const TAG = { r: d => '소장<br>' + d.short + '명 부족', y: d => d.slots + '자리<small>같은 단지만</small>', f: () => '꽉 참<small>새 단지는 1명 더</small>', n: () => '배정 전', p: () => '지난 날' };
-                const row = d => { const on = st.capD === d.k, hp = hpOf(d.k);
-                    return '<button type="button" class="cap-row ' + d.cls + '" data-act="capopen" data-d="' + d.k + '" aria-expanded="' + on + '"><span class="d">' + (d.date.getMonth() + 1) + '/' + d.date.getDate() + '<small>' + '일월화수목금토'[d.date.getDay()] + '</small></span>'
-                        + '<span class="w"><b>' + (d.after ? '사후 ' : '') + d.units + '세대 · ' + d.list.length + '단지 ' + (on ? '▴' : '▾') + '</b><small>필요 ' + d.need + ' · ' + (d.P ? '배정 ' + d.P : '배정 전') + (d.noBoss && d.P ? ' · 소장 칸 빈 ' + d.noBoss + '세대' : '') + (hp ? ' · 신청 대기 ' + hp : '') + '</small></span>'
-                        + '<span class="cap-tag ' + d.cls + '">' + TAG[d.cls](d) + '</span></button>' + (on ? capOpen(d, hp) : ''); };
+            const capHp = k => data.hp && data.hp.rows ? data.hp.rows.filter(r => !r.reg && r.date && dKey(r.date) === k).length : 0; // 홈페이지 신청 중 예약일정에 안 옮긴 것
+            function capHtml() { // 달력 (대표님 11-09 "보기 쉽게 달력으로"): 이번 달·다음 달, 월요일부터(토·일 나란히), 날짜를 누르면 그 달 아래에 자세히
+                const c = data.cap || (data.cap = capCalc()), by = {}, today = new Date(); today.setHours(0, 0, 0, 0);
+                c.list.forEach(d => { by[d.k] = d; });
+                const red = c.list.filter(d => d.cls === 'r' && d.soon), m0 = new Date(today.getFullYear(), today.getMonth() + (st.capM || 0), 1);
                 let h = '<div class="adm-step">② 날짜별 인원 <small>소장 1명 = 하루 ' + CAP_PER + '세대</small></div>'
-                    + '<div class="adm-hint" style="word-break:keep-all;">단지마다 세대÷' + CAP_PER + ' 올림 = 필요한 소장 · 예약일정 시트는 읽기만 · 시트에 적기 전 문의(전화·숨고 등)는 몰라요</div>'
-                    + '<div class="adm-dates"><b style="flex:none;font-size:13px;">📅 다른 날 보기</b><input type="date" class="adm-sel" data-f="capd" aria-label="다른 날 보기" value="' + E(st.capD || '') + '" style="margin:0;"></div>'
-                    + '<div class="cap-leg"><span><i style="background:#ef4444"></i>소장 모자람</span><span><i style="background:#f59e0b"></i>있는 팀 빈칸만</span><span><i style="background:#3b82f6"></i>꽉 참</span><span><i style="background:#64748b"></i>배정 전</span></div>';
-                if (st.capD && isoD(st.capD) && !fut.some(d => d.k === st.capD)) { // 지난 날·예약 없는 날
-                    const d = c.list.find(x => x.k === st.capD);
-                    h += d ? row(d) : '<div class="cap-open" style="margin-left:0;"><div class="cap-big">' + capMD(isoD(st.capD)) + ' 예약 없음</div><div class="cap-li">새 단지는 소장 1명부터 (하루 ' + CAP_PER + '세대까지)</div></div>';
+                    + '<div class="adm-hint" style="word-break:keep-all;">단지마다 세대÷' + CAP_PER + ' 올림 = 필요한 소장 · 날짜를 누르면 자세히 · 예약일정 시트는 읽기만 · 시트에 적기 전 문의(전화·숨고 등)는 몰라요</div>'
+                    + (red.length ? '<div class="cap-short">⚠ ' + CAP_SOON + '일 안 소장 모자람' + red.map(d => '<button type="button" class="adm-re" data-act="capopen" data-d="' + d.k + '">' + capMD(d.date) + ' ' + d.short + '명</button>').join('') + '</div>'
+                        : '<div class="adm-hint">✅ ' + CAP_SOON + '일 안 소장 모자란 날 없음</div>')
+                    + '<div class="cap-leg"><span><i style="background:#ef4444"></i>소장 모자람</span><span><i style="background:#f59e0b"></i>있는 팀 빈칸만</span><span><i style="background:#3b82f6"></i>꽉 참</span><span><i style="background:#64748b"></i>배정 전</span></div>'
+                    + '<div class="cap-nav"><button type="button" class="adm-re" data-act="capm" data-m="-1">◀ 이전 달</button><button type="button" class="adm-re" data-act="capm" data-m="0">이번 달</button><button type="button" class="adm-re" data-act="capm" data-m="1">다음 달 ▶</button></div>';
+                [0, 1].forEach(i => { h += capMonth(new Date(m0.getFullYear(), m0.getMonth() + i, 1), by, today); });
+                const last = c.list.filter(d => d.cls !== 'p').pop();
+                if (last) { const e = new Date(last.date); e.setDate(e.getDate() + 1); h += '<div class="adm-hint" style="margin-top:8px;">' + (e.getMonth() + 1) + '/' + e.getDate() + ' 이후 예약 없음</div>'; }
+                return h;
+            }
+            function capMonth(m, by, today) {
+                const y = m.getFullYear(), mo = m.getMonth(), n = new Date(y, mo + 1, 0).getDate();
+                let open = null, h = '<div class="cap-mon">' + (y !== today.getFullYear() ? y + '년 ' : '') + (mo + 1) + '월</div><div class="cap-cal">'
+                    + '월화수목금토일'.split('').map((w, i) => '<i' + (i > 4 ? ' class="we"' : '') + '>' + w + '</i>').join('') + '<span></span>'.repeat((m.getDay() + 6) % 7);
+                for (let i = 1; i <= n; i++) {
+                    const dt = new Date(y, mo, i), k = dKey(dt), d = by[k], on = st.capD === k;
+                    if (on) open = d || { k: k, date: dt };
+                    const sub = !d ? '' : d.cls === 'r' ? d.short + '부족' : d.cls === 'y' ? d.slots + '자리' : d.cls === 'f' ? '꽉참' : d.cls === 'n' ? '배정전' : '';
+                    h += '<button type="button" class="cap-c' + (d ? ' ' + d.cls : '') + (dt.getDay() % 6 ? '' : ' we') + (dt < today ? ' past' : '') + (+dt === +today ? ' today' : '') + (on ? ' on' : '') + '" data-act="capopen" data-d="' + k + '"><b>' + i + '</b>'
+                        + (d ? '<span>' + d.units + '세대</span>' + (sub ? '<small>' + sub + '</small>' : '') : '') + '</button>';
                 }
-                h += '<div class="adm-step">예약 있는 날 <small>' + (c.red ? '<span class="warn">' + CAP_SOON + '일 안 ' + c.red + '일 소장 모자람</span>' : CAP_SOON + '일 안 모자란 날 없음') + '</small></div>';
-                h += fut.map(row).join('') || '<div class="adm-msg">앞으로 예약이 없어요.</div>';
-                if (fut.length) { const e = new Date(fut[fut.length - 1].date); e.setDate(e.getDate() + 1); h += '<div class="cap-more">' + (e.getMonth() + 1) + '/' + e.getDate() + ' 이후 예약 없음</div>'; }
+                h += '</div>';
+                if (open) h += open.list ? capOpen(open, capHp(open.k))
+                    : '<div class="cap-open"><div class="cap-dh">' + capMD(open.date) + '</div><div class="cap-big">예약 없음</div><div class="cap-li">새 단지는 소장 1명부터 (하루 ' + CAP_PER + '세대까지)</div></div>';
                 return h;
             }
             function capOpen(d, hp) {
                 const c = data.cap, can = d.cls !== 'p' && d.short > 0;
                 const big = d.cls === 'p' ? '지난 날 · 소장 ' + d.P + '명' : d.cls === 'n' ? '배정 전 · 소장 ' + d.need + '명 필요'
                     : d.short ? '<span class="cr">소장 ' + d.short + '명 부족</span>' : (d.slots ? '남은 <span class="cy">' + d.slots + '자리</span>' : '꽉 참') + ' · 새 단지는 소장 1명 더 필요';
-                let h = '<div class="cap-open"><div class="cap-big">' + big + '</div>';
+                let h = '<div class="cap-open"><div class="cap-dh">' + capMD(d.date) + ' · ' + (d.after ? '사후 ' : '') + d.units + '세대 · ' + d.list.length + '단지 · 필요 ' + d.need + ' · ' + (d.P ? '배정 ' + d.P : '배정 전') + (d.noBoss && d.P ? ' · 소장 칸 빈 ' + d.noBoss + '세대' : '') + '</div><div class="cap-big">' + big + '</div>';
                 if (c.maxP && (d.cls === 'n' || d.cls === 'r') && d.need >= c.maxP - 1) h += '<div class="cap-li warn">⚠ 지난 기록에서 가장 많았던 날(소장 ' + c.maxP + '명)에 가까워요</div>';
                 d.list.forEach(s => {
                     h += '<div class="cap-li">' + E(s.name) + ' ' + (s.t ? s.t + '팀 ' : '') + s.u + '세대 → ' + (s.short ? '<span class="cr">소장 ' + s.short + '명 ' + (s.t ? '더 ' : '') + '필요</span>' : s.slots ? '<span class="cy">' + s.slots + '자리</span>' : '꽉 참')
@@ -8035,7 +8054,10 @@ body.light-mode .card.reference-info {
                         return;
                     }
                     if (a === 'price-re') { startPrice(true); render(); return; } // ✅ 패치 90
-                    if (a === 'capopen') { const d = b.getAttribute('data-d'); st.capD = st.capD === d ? '' : d; st.capPv = ''; render(); return; } // ✅ 패치 113
+                    if (a === 'capopen') { const d = b.getAttribute('data-d'), top = !!b.closest('.cap-short'), x = isoD(d), t0 = new Date(), mo = (x.getFullYear() - t0.getFullYear()) * 12 + x.getMonth() - t0.getMonth(); // ✅ 패치 113
+                        if (mo < (st.capM || 0) || mo > (st.capM || 0) + 1) st.capM = mo; // 보이는 두 달 밖이면 그 달로
+                        st.capD = st.capD === d && !top ? '' : d; st.capPv = ''; render(); const o = top && box.querySelector('.cap-open'); if (o) o.scrollIntoView({ block: 'nearest' }); return; }
+                    if (a === 'capm') { const m = +b.getAttribute('data-m'); st.capM = m ? (st.capM || 0) + m : 0; render(); return; }
                     if (a === 'cappv') { const t = b.getAttribute('data-t'); st.capPv = st.capPv === t ? '' : t; render(); return; }
                     if (a === 'capcopy') { const d = data && data.cap && data.cap.list.find(x => x.k === st.capD); if (d && st.capPv) copyTextSafe(capText(d, st.capPv), '📋 복사했어요. 카톡 단톡방에 붙여넣기 하세요'); return; }
                     if (a === 'direct5') { // ✅ 패치 91: 번호로 정산 — 시트에서 그 번호의 가장 최근 점검(금액 있는 것), 적은 금액이 있으면 그 금액
@@ -8071,7 +8093,6 @@ body.light-mode .card.reference-info {
                 box.addEventListener('change', e => {
                     const f = e.target.getAttribute && e.target.getAttribute('data-f');
                     if (f === 'price') { st.price = e.target.value; saveSt(); render(); } // ✅ 패치 90
-                    else if (f === 'capd') { st.capD = e.target.value; st.capPv = ''; render(); const o = box.querySelector('.cap-row[aria-expanded="true"]'); if (o) o.scrollIntoView({ block: 'nearest' }); } // ✅ 패치 113
                     else if (f === 'group') { st.group = e.target.value; st.date = ''; render(); }
                     else if (f === 'date') { st.date = e.target.value; render(); }
                     else if (f === 'd7') { st.d7 = e.target.value; st.d7at = dKey(new Date()); render(); }
@@ -17577,7 +17598,7 @@ body.light-mode .card.reference-info {
     }
     
     // ✅ 패치 69: 새 배포 확인 — 이 화면의 판 번호(APP_BUILD) vs 사이트의 version.json(정식)·version-test.json(테스트)
-    const APP_BUILD = 'c9769eaf8dec'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
+    const APP_BUILD = 'ea9c8c2850d6'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
     (function() {
         const url = /index-unified-test\.html$/.test(location.pathname) ? 'version-test.json' : 'version.json';
         let busy = false;
