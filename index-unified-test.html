@@ -1332,48 +1332,28 @@ body.light-mode :is(#admin,#staffDone) .adm-fail{color:#b45309; border-color:#b4
 :is(#admin,#staffDone) .adm-chip.hot{border-color:rgba(245,158,11,.7)}
 :is(#admin,#staffDone) .adm-chip.hot b{color:#f59e0b}
 body.light-mode :is(#admin,#staffDone) .adm-chip.hot b{color:#b45309}
-/* ✅ 패치 113: 👥 인원 현황 */
-:is(#admin,#staffDone) .adm-chip.red{border:2px solid #ef4444; background:rgba(239,68,68,.12)}
-:is(#admin,#staffDone) .adm-chip.red b{color:#f87171}
-body.light-mode :is(#admin,#staffDone) .adm-chip.red b{color:#b91c1c}
+/* ✅ 패치 113: 📅 예약 일정표 */
 #admin .adm-sum .adm-chip, #admin .adm-kinds .adm-kind{word-break:keep-all}
-#admin .cap-short{display:flex; flex-wrap:wrap; gap:6px; align-items:center; font-size:12.5px; font-weight:800; color:#fca5a5; margin:4px 0; word-break:keep-all}
-#admin .cap-short .adm-re{min-height:34px; border-color:rgba(239,68,68,.6); color:#fca5a5}
 #admin .cap-nav{display:flex; gap:6px; margin:10px 0 2px}
 #admin .cap-nav .adm-re{flex:1; min-height:38px; padding:0 6px}
-#admin .cap-mon{font-size:14px; font-weight:800; margin:12px 0 6px; color:var(--a-ink,#F1F4F9)}
+#admin .cap-mon{font-size:14px; font-weight:800; margin:12px 0 6px; color:var(--text-primary)}
 #admin .cap-cal{display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:3px}
 #admin .cap-cal > i{font-style:normal; text-align:center; font-size:11px; font-weight:700; color:var(--text-secondary); padding-bottom:2px}
-#admin .cap-cal > i.we{color:var(--a-ink,#F1F4F9); font-weight:900}
-#admin .cap-c{min-height:54px; padding:4px 1px 3px; border-radius:8px; border:1px solid var(--a-line,#2A3550); background:var(--a-sunken,#0F1726); color:var(--text-secondary); font-family:inherit; display:flex; flex-direction:column; align-items:center; gap:1px; line-height:1.15; cursor:pointer; -webkit-tap-highlight-color:transparent; word-break:keep-all; font-variant-numeric:tabular-nums}
-#admin .cap-c b{font-size:12.5px; font-weight:700; color:var(--text-secondary)}
-#admin .cap-c.we b, #admin .cap-c.r b, #admin .cap-c.y b, #admin .cap-c.f b, #admin .cap-c.n b{color:var(--a-ink,#F1F4F9); font-weight:800}
-#admin .cap-c span{font-size:10.5px; font-weight:700; color:var(--a-ink,#F1F4F9)}
-#admin .cap-c small{font-size:10px; font-weight:800}
-#admin .cap-c.r{background:rgba(239,68,68,.2); border-color:rgba(239,68,68,.7)}
-#admin .cap-c.r small{color:#fca5a5}
-#admin .cap-c.y{background:rgba(245,158,11,.14); border-color:rgba(245,158,11,.55)}
-#admin .cap-c.y small{color:#fcd34d}
-#admin .cap-c.f{background:rgba(59,130,246,.14); border-color:rgba(59,130,246,.5)}
-#admin .cap-c.f small{color:#93c5fd}
-#admin .cap-c.n{border-style:dashed; border-color:var(--a-line-strong,#62708C)}
+#admin .cap-cal > i.we{color:var(--text-primary); font-weight:900}
+#admin .cap-c{min-height:54px; padding:4px 1px 3px; border-radius:8px; border:1px solid var(--a-line,#2A3550); background:var(--a-sunken,#0F1726); color:#94a3b8; font-family:inherit; display:flex; flex-direction:column; align-items:center; gap:1px; line-height:1.15; cursor:pointer; -webkit-tap-highlight-color:transparent; word-break:keep-all; font-variant-numeric:tabular-nums}
+#admin .cap-c b{font-size:12.5px; font-weight:700}
+#admin .cap-c.we b, #admin .cap-c.has b{color:#F1F4F9; font-weight:800}
+#admin .cap-c span{font-size:10.5px; font-weight:800; color:#F1F4F9}
+#admin .cap-c small{font-size:10px; font-weight:700; color:#bfdbfe}
+#admin .cap-c.has{border-color:rgba(59,130,246,.55)}
 #admin .cap-c.past{opacity:.38}
-#admin .cap-c.today{outline:2px solid var(--a-ink,#F1F4F9); outline-offset:-2px}
+#admin .cap-c.today{outline:2px solid #F1F4F9; outline-offset:-2px}
 #admin .cap-c.on{box-shadow:0 0 0 2px #3b82f6; border-color:#3b82f6}
-body.light-mode #admin .cap-c.r small, body.light-mode #admin .cap-big .cr, body.light-mode #admin .cap-short{color:#b91c1c}
-body.light-mode #admin .cap-c.y small, body.light-mode #admin .cap-big .cy{color:#92400e}
-body.light-mode #admin .cap-c.f small{color:#1d4ed8}
-#admin .cap-dh{font-size:12.5px; font-weight:800; color:var(--text-secondary); margin-bottom:4px; line-height:1.4}
-#admin .cap-open{margin:8px 0 4px; padding:11px 12px; border-radius:10px; background:var(--a-sunken,#0F1726); border:1px solid var(--a-line,#2A3550); color:var(--a-ink,#F1F4F9); word-break:keep-all}
-#admin .cap-big{font-size:15px; font-weight:800; margin-bottom:6px; line-height:1.4}
-#admin .cap-big .cr, #admin .cap-li .cr{color:#fca5a5}
-#admin .cap-big .cy, #admin .cap-li .cy{color:#fcd34d; font-weight:800}
-#admin .cap-li{font-size:12.5px; line-height:1.5; padding:5px 0; border-top:1px dashed var(--a-line,#2A3550)}
-#admin .cap-li em{font-style:normal; color:var(--text-secondary)}
-#admin .cap-pv{white-space:pre-wrap; word-break:keep-all; overflow-wrap:anywhere; margin:8px 0 0; padding:10px 11px; border-radius:10px; background:#fff; color:#111; font:inherit; font-size:12.5px; line-height:1.55}
-#admin .cap-copy{width:100%; min-height:44px; margin-top:8px; border:none; border-radius:10px; background:#FEE500; color:#191919; font-size:14.5px; font-weight:800; font-family:inherit}
-#admin .cap-leg{display:flex; gap:10px; flex-wrap:wrap; font-size:11.5px; color:var(--text-secondary); margin:6px 0 2px}
-#admin .cap-leg i{display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:4px}
+#admin .cap-open{margin:8px 0 4px; padding:11px 12px; border-radius:10px; background:var(--a-sunken,#0F1726); border:1px solid var(--a-line,#2A3550); color:#F1F4F9; word-break:keep-all}
+#admin .cap-dh{font-size:14px; font-weight:800; margin-bottom:2px; line-height:1.4}
+#admin .cap-big{font-size:14px; font-weight:700; color:#94a3b8; padding-top:4px}
+#admin .cap-li{font-size:13px; line-height:1.5; padding:6px 0; border-top:1px dashed var(--a-line,#2A3550)}
+#admin .cap-li em{font-style:normal; color:#94a3b8}
 :is(#admin,#staffDone) .adm-row small.warn{white-space:normal}
 :is(#admin,#staffDone) .adm-grp{margin:12px 0 4px; padding:8px 10px; border-radius:8px; font-size:12.5px; line-height:1.5; color:var(--a-ink,#F1F4F9)}
 :is(#admin,#staffDone) .adm-grp.info{background:rgba(74,222,128,.10); border:1px solid rgba(74,222,128,.45)}
@@ -6621,7 +6601,7 @@ body.light-mode .card.reference-info {
             const KINDS = [['k1', '🏠 서비스 안내', '문의 고객'], ['k2', '💳 예약금 요청', '예약 직전'], ['k3', '📢 필독 안내문', '점검 전 공지'],
                 ['k4', '★ 예약 안내문', '예약금 입금 후'], ['k5', '🧾 정산·잔금', '점검 후'], ['k6', '🔁 사후점검', '단지 공지'],
                 ['k7', '⏰ 전날 안내', '내일 점검 고객'], ['k8', '💰 미입금', '잔금 재안내'], ['k9', '⚠️ 확인 필요', '빠진 것·보고서'],
-                ['k10', '📩 하자접수 완료 안내', '접수완료 체크된 고객 (모바일접수대행 시트)'], ['k11', '🔐 직원 로그인 기록', '누가 언제 로그인했는지 · PIN 틀림·잠금 · 계약서 서명'], ['k12', '📥 홈페이지 신청', '사후점검 예약 · 빠른예약 (홈페이지 시트)'], ['k13', '🧾 견적서', '입주청소 · 줄눈 · 탄성코트 → 이미지/PDF'], ['k14', '📝 계약서 서명', '직원 서명 확인'], ['k15', '🚫 예약 마감 안내', '마감 후 문의 고객'], ['k16', '👥 인원 현황', '날짜별 필요 소장 · 남은 자리']]; // ✅ 패치 103 · 113
+                ['k10', '📩 하자접수 완료 안내', '접수완료 체크된 고객 (모바일접수대행 시트)'], ['k11', '🔐 직원 로그인 기록', '누가 언제 로그인했는지 · PIN 틀림·잠금 · 계약서 서명'], ['k12', '📥 홈페이지 신청', '사후점검 예약 · 빠른예약 (홈페이지 시트)'], ['k13', '🧾 견적서', '입주청소 · 줄눈 · 탄성코트 → 이미지/PDF'], ['k14', '📝 계약서 서명', '직원 서명 확인'], ['k15', '🚫 예약 마감 안내', '마감 후 문의 고객'], ['k16', '📅 예약 일정표', '날짜별 단지·세대']]; // ✅ 패치 103 · 113
             // 로그인 서버(Apps Script)가 남기는 기록 + 직원관리코드(이름·소속·상태만, PIN 칸은 읽지 않음) — 둘 다 대표님 계정 소유, 읽기만
             const LOG_SHEET = '1WVZXXrjPumWThhnonMYbQM4z_sYDgynfXU0gyFwDpI8', STAFF_SHEET = '1djnGAm8nlGbHgRuxxORGK-cqI_CTYOKrSwZuPtMzl2s';
             const SUB_SHEET = '1jfYZNb9aIsWY6nQOoHjSUE8a2NTGXoD1aPVrVzqRGO8'; // 더홈점검_모바일접수대행_공유 — 아이디·비밀번호 칸은 요청하지 않음 (필요한 칸만 골라 읽음)
@@ -7166,7 +7146,7 @@ body.light-mode .card.reference-info {
                 const titles = (meta.sheets || []).map(s => s.properties.title);
                 const tabs = titles.filter(t => /^예약일정_\d{4}$/.test(t)).sort();
                 if (!tabs.length) throw Object.assign(new Error('no tab'), { msg: "시트에서 '예약일정_연도' 탭을 찾지 못했어요" });
-                const rows = [], zCol = {}, capX = []; // capX: 현장명 병합 줄 (인원 현황에서만) ✅ 패치 113
+                const rows = [], zCol = {}, capX = []; // capX: 현장명 병합 줄 (예약 일정표에서만) ✅ 패치 113
                 let hasPkgCol = false;
                 for (const tab of tabs) {
                     const hv = (await api('/values/' + rq("'" + tab + "'!1:2"))).values || [];
@@ -7197,7 +7177,7 @@ body.light-mode .card.reference-info {
                         let date = null;
                         if (m) { const mo = +m[2]; if (mo >= 11 && site && unit) late = true; date = new Date(m[1] ? +m[1] : (late && mo <= 6 ? tabYear + 1 : tabYear), mo - 1, +m[3]); }
                         else if (iso) date = new Date(+iso[1], +iso[2] - 1, +iso[3]);
-                        // ✅ 패치 113: 현장명(·일) 칸을 병합해 적은 줄(동·호만 있음)은 바로 위 줄의 현장명·날짜로 — 인원 현황에서만 셈 (문자 목록은 그대로)
+                        // ✅ 패치 113: 현장명(·일) 칸을 병합해 적은 줄(동·호만 있음)은 바로 위 줄의 현장명·날짜로 — 예약 일정표에서만 셈 (문자 목록은 그대로)
                         const merged = !site && !!(g('dong') || g('ho')) && !!last;
                         if (merged) { site = last.site; if (!date) date = last.date; }
                         if (!site) { last = null; continue; }
@@ -7474,15 +7454,10 @@ body.light-mode .card.reference-info {
                 else if (!price.rows.length) h += '<div class="adm-hint">시트 \'링크\' 탭에 단지가 없어요. 시트에 넣고 ↻ 를 누르세요.</div>';
                 return h;
             }
-            // ✅ 패치 113: 👥 인원 현황 (대표님 11-08 회의 1단계) — 예약일정을 읽기만 해서 날짜별 예약 세대·필요 소장·배정·남은 자리
-            //    단지마다 세대÷4 올림 = 필요한 팀(이미 더 배정했으면 그 수), 남은 자리 = 팀×4 − 세대 (같은 단지 안에서만). 앱은 보여 주기만 하고 예약을 막지 않음
-            //    상태 칸 취소·연기는 빼고, 같은 날 같은 단지·동·호가 두 줄이면 한 번만. 사후점검은 소장 칸이 이름이 아니면(직접입회·위임진행 등) 매니저 칸 사람을 소장으로
-            const CAP_PER = 4, CAP_SOON = 14; // 소장 1명이 하루 맡는 세대 · 이 날수 안에서 모자라면 '인원' 칩 숫자
-            const CAP_NOT = /입회|위임|접수|진행|미정|대기|확인|예정|협의|없음|본인|고객|취소|연기|휴가|외부/;
-            const capNames = s => String(s || '').split(/[,/·&+\s]+/).map(x => x.replace(/(소장|매니저)?님?$/, '')).filter(x => /^[가-힣]{2,4}$/.test(x) && !CAP_NOT.test(x));
+            // ✅ 패치 113: 📅 예약 일정표 (대표님 11-09 "인원 판단은 빼고 예약일정만 일정표로") — 예약일정을 읽기만 해서 날짜별 단지·세대·시간
+            //    상태 칸 취소·연기는 빼고, 같은 날 같은 단지·동·호가 두 줄이면 한 번만, 현장명 병합 줄도 셈. 앱은 보여 주기만 하고 예약을 막지 않음
             const capMD = d => (d.getMonth() + 1) + '/' + d.getDate() + '(' + '일월화수목금토'[d.getDay()] + ')';
             function capCalc() {
-                const today = new Date(); today.setHours(0, 0, 0, 0);
                 const days = new Map(), seen = {};
                 data.rows.concat(data.capX || []).forEach(r => {
                     if (!r.date || /취소|연기/.test(r.stat || '')) return;
@@ -7490,46 +7465,24 @@ body.light-mode .card.reference-info {
                     if (u !== '|' && seen[uk]) return; // 같은 날 같은 동·호가 두 줄
                     seen[uk] = 1;
                     let d = days.get(k);
-                    if (!d) days.set(k, d = { k: k, date: r.date, sites: new Map() });
+                    if (!d) days.set(k, d = { k: k, date: r.date, units: 0, sites: new Map() });
                     let s = d.sites.get(r.key);
-                    if (!s) d.sites.set(r.key, s = { name: r.site.trim(), after: r.after, rows: [], boss: new Set() });
-                    let b = capNames(r.boss), m = capNames(r.mgr);
-                    if (!b.length && r.after) { b = m; m = []; } // 사후: 소장 칸이 비었거나 이름이 아니면 매니저 칸 사람이 소장
-                    b.forEach(x => s.boss.add(x));
-                    s.rows.push({ r: r, b: b, m: m });
+                    if (!s) d.sites.set(r.key, s = { name: r.site.trim(), after: r.after, u: 0, t: [] });
+                    s.u++; d.units++; s.t.push(String(r.time || '').trim());
                 });
-                let maxP = 0;
-                const list = Array.from(days.values()).map(d => {
-                    const ss = Array.from(d.sites.values()), all = new Set();
-                    let short = 0, slots = 0, units = 0, noBoss = 0;
-                    ss.forEach(s => {
-                        s.u = s.rows.length; s.t = s.boss.size; s.short = Math.max(0, Math.ceil(s.u / CAP_PER) - s.t);
-                        s.slots = s.t && !s.short ? s.t * CAP_PER - s.u : 0; // ponytail: 두 단지에 적힌 소장은 단지마다 4칸으로 셈 (드묾)
-                        s.noBoss = s.rows.filter(x => !x.b.length).length;
-                        s.boss.forEach(x => all.add(x));
-                        short += s.short; slots += s.slots; units += s.u; noBoss += s.noBoss;
-                    });
-                    const P = all.size, past = d.date < today, soon = !past && d.date - today < CAP_SOON * 86400000;
-                    if (past && P > maxP) maxP = P;
-                    return Object.assign(d, { list: ss, units: units, P: P, need: P + short, short: short, slots: slots, noBoss: noBoss, names: Array.from(all), after: ss.every(s => s.after), soon: soon,
-                        cls: past ? 'p' : short && (P || soon) ? 'r' : !P ? 'n' : slots ? 'y' : 'f' });
-                }).sort((a, b) => a.date - b.date);
-                return { list: list, maxP: maxP, red: list.filter(d => d.cls === 'r' && d.soon).length };
+                return Array.from(days.values()).sort((a, b) => a.date - b.date);
             }
             const capHp = k => data.hp && data.hp.rows ? data.hp.rows.filter(r => !r.reg && r.date && dKey(r.date) === k).length : 0; // 홈페이지 신청 중 예약일정에 안 옮긴 것
-            function capHtml() { // 달력 (대표님 11-09 "보기 쉽게 달력으로"): 이번 달·다음 달, 월요일부터(토·일 나란히), 날짜를 누르면 그 달 아래에 자세히
-                const c = data.cap || (data.cap = capCalc()), by = {}, today = new Date(); today.setHours(0, 0, 0, 0);
-                c.list.forEach(d => { by[d.k] = d; });
-                const red = c.list.filter(d => d.cls === 'r' && d.soon), m0 = new Date(today.getFullYear(), today.getMonth() + (st.capM || 0), 1);
-                let h = '<div class="adm-step">② 날짜별 인원 <small>소장 1명 = 하루 ' + CAP_PER + '세대</small></div>'
-                    + '<div class="adm-hint" style="word-break:keep-all;">단지마다 세대÷' + CAP_PER + ' 올림 = 필요한 소장 · 날짜를 누르면 자세히 · 예약일정 시트는 읽기만 · 시트에 적기 전 문의(전화·숨고 등)는 몰라요</div>'
-                    + (red.length ? '<div class="cap-short">⚠ ' + CAP_SOON + '일 안 소장 모자람' + red.map(d => '<button type="button" class="adm-re" data-act="capopen" data-d="' + d.k + '">' + capMD(d.date) + ' ' + d.short + '명</button>').join('') + '</div>'
-                        : '<div class="adm-hint">✅ ' + CAP_SOON + '일 안 소장 모자란 날 없음</div>')
-                    + '<div class="cap-leg"><span><i style="background:#ef4444"></i>소장 모자람</span><span><i style="background:#f59e0b"></i>있는 팀 빈칸만</span><span><i style="background:#3b82f6"></i>꽉 참</span><span><i style="background:#64748b"></i>배정 전</span></div>'
+            function capHtml() { // 달력: 이번 달·다음 달, 월요일부터(토·일 나란히), 날짜를 누르면 그 달 아래에 단지별
+                const list = data.cap || (data.cap = capCalc()), by = {}, today = new Date(); today.setHours(0, 0, 0, 0);
+                list.forEach(d => { by[d.k] = d; });
+                const m0 = new Date(today.getFullYear(), today.getMonth() + (st.capM || 0), 1);
+                let h = '<div class="adm-step">② 날짜별 예약 <small>예약일정 시트 · 읽기만</small></div>'
+                    + '<div class="adm-hint" style="word-break:keep-all;">날짜를 누르면 단지별 세대·시간 · 색이 진할수록 예약 많음 · 시트에 적기 전 문의(전화·숨고 등)는 안 보여요</div>'
                     + '<div class="cap-nav"><button type="button" class="adm-re" data-act="capm" data-m="-1">◀ 이전 달</button><button type="button" class="adm-re" data-act="capm" data-m="0">이번 달</button><button type="button" class="adm-re" data-act="capm" data-m="1">다음 달 ▶</button></div>';
                 [0, 1].forEach(i => { h += capMonth(new Date(m0.getFullYear(), m0.getMonth() + i, 1), by, today); });
-                const last = c.list.filter(d => d.cls !== 'p').pop();
-                if (last) { const e = new Date(last.date); e.setDate(e.getDate() + 1); h += '<div class="adm-hint" style="margin-top:8px;">' + (e.getMonth() + 1) + '/' + e.getDate() + ' 이후 예약 없음</div>'; }
+                const last = list[list.length - 1];
+                if (last && last.date >= today) { const e = new Date(last.date); e.setDate(e.getDate() + 1); h += '<div class="adm-hint" style="margin-top:8px;">' + (e.getMonth() + 1) + '/' + e.getDate() + ' 이후 예약 없음</div>'; }
                 return h;
             }
             function capMonth(m, by, today) {
@@ -7539,53 +7492,22 @@ body.light-mode .card.reference-info {
                 for (let i = 1; i <= n; i++) {
                     const dt = new Date(y, mo, i), k = dKey(dt), d = by[k], on = st.capD === k;
                     if (on) open = d || { k: k, date: dt };
-                    const sub = !d ? '' : d.cls === 'r' ? d.short + '부족' : d.cls === 'y' ? d.slots + '자리' : d.cls === 'f' ? '꽉참' : d.cls === 'n' ? '배정전' : '';
-                    h += '<button type="button" class="cap-c' + (d ? ' ' + d.cls : '') + (dt.getDay() % 6 ? '' : ' we') + (dt < today ? ' past' : '') + (+dt === +today ? ' today' : '') + (on ? ' on' : '') + '" data-act="capopen" data-d="' + k + '"><b>' + i + '</b>'
-                        + (d ? '<span>' + d.units + '세대</span>' + (sub ? '<small>' + sub + '</small>' : '') : '') + '</button>';
+                    h += '<button type="button" class="cap-c' + (d ? ' has' : '') + (dt.getDay() % 6 ? '' : ' we') + (dt < today ? ' past' : '') + (+dt === +today ? ' today' : '') + (on ? ' on' : '') + '" data-act="capopen" data-d="' + k + '"'
+                        + (d ? ' style="background:rgba(59,130,246,' + (.14 + Math.min(d.units, 20) * .023).toFixed(2) + ')"' : '') + '><b>' + i + '</b>' // 20세대부터 가장 진함
+                        + (d ? '<span>' + d.units + '세대</span><small>' + d.sites.size + '단지</small>' : '') + '</button>';
                 }
                 h += '</div>';
-                if (open) h += open.list ? capOpen(open, capHp(open.k))
-                    : '<div class="cap-open"><div class="cap-dh">' + capMD(open.date) + '</div><div class="cap-big">예약 없음</div><div class="cap-li">새 단지는 소장 1명부터 (하루 ' + CAP_PER + '세대까지)</div></div>';
-                return h;
+                return open ? h + capOpen(open, capHp(open.k)) : h;
             }
             function capOpen(d, hp) {
-                const c = data.cap, can = d.cls !== 'p' && d.short > 0;
-                const big = d.cls === 'p' ? '지난 날 · 소장 ' + d.P + '명' : d.cls === 'n' ? '배정 전 · 소장 ' + d.need + '명 필요'
-                    : d.short ? '<span class="cr">소장 ' + d.short + '명 부족</span>' : (d.slots ? '남은 <span class="cy">' + d.slots + '자리</span>' : '꽉 참') + ' · 새 단지는 소장 1명 더 필요';
-                let h = '<div class="cap-open"><div class="cap-dh">' + capMD(d.date) + ' · ' + (d.after ? '사후 ' : '') + d.units + '세대 · ' + d.list.length + '단지 · 필요 ' + d.need + ' · ' + (d.P ? '배정 ' + d.P : '배정 전') + (d.noBoss && d.P ? ' · 소장 칸 빈 ' + d.noBoss + '세대' : '') + '</div><div class="cap-big">' + big + '</div>';
-                if (c.maxP && (d.cls === 'n' || d.cls === 'r') && d.need >= c.maxP - 1) h += '<div class="cap-li warn">⚠ 지난 기록에서 가장 많았던 날(소장 ' + c.maxP + '명)에 가까워요</div>';
-                d.list.forEach(s => {
-                    h += '<div class="cap-li">' + E(s.name) + ' ' + (s.t ? s.t + '팀 ' : '') + s.u + '세대 → ' + (s.short ? '<span class="cr">소장 ' + s.short + '명 ' + (s.t ? '더 ' : '') + '필요</span>' : s.slots ? '<span class="cy">' + s.slots + '자리</span>' : '꽉 참')
-                        + (s.noBoss && s.t ? ' <em>(소장 칸 빈 ' + s.noBoss + '세대 · 팀 칸 확인)</em>' : '') + '</div>';
+                let h = '<div class="cap-open"><div class="cap-dh">' + capMD(d.date) + (d.sites ? ' · ' + d.units + '세대 · ' + d.sites.size + '단지' : '') + '</div>';
+                if (!d.sites) h += '<div class="cap-big">예약 없음</div>';
+                else d.sites.forEach(s => {
+                    const ts = s.t.filter((v, i, a) => v && a.indexOf(v) === i).sort((a, b) => tMin(a) - tMin(b));
+                    h += '<div class="cap-li"><b>' + E(s.name) + '</b>' + (s.after && !/사후/.test(s.name) ? ' (사후)' : '') + ' ' + s.u + '세대' + (ts.length ? ' <em>' + E(ts.join(' · ')) + '</em>' : '') + '</div>';
                 });
-                if (d.P) h += '<div class="cap-li"><em>배정 소장 ' + d.P + '명:</em> ' + E(d.names.join('·')) + '</div>';
                 if (hp) h += '<div class="cap-li"><em>홈페이지 신청 대기 ' + hp + '건 (예약일정에 아직 안 옮김)</em></div>';
-                if (d.cls === 'p') return h + '</div>';
-                const pv = st.capPv === 'a' && d.P || st.capPv === 'b' && can ? st.capPv : '';
-                h += '<div class="adm-dates" style="margin-top:10px;">' + (d.P ? '<button type="button" class="adm-re" data-act="cappv" data-t="a" style="flex:1;min-height:40px;">📋 배정 안내 글</button>' : '')
-                    + (can ? '<button type="button" class="adm-re" data-act="cappv" data-t="b" style="flex:1;min-height:40px;">📣 인원 구함 글</button>' : '') + '</div>';
-                if (pv) h += '<pre class="cap-pv">' + E(capText(d, pv)) + '</pre><button type="button" class="cap-copy" data-act="capcopy">복사 (카톡에 붙여넣기)</button>';
-                return h + '<div class="adm-hint" style="margin:6px 0 0;">글에는 고객 이름·전화·동호수를 넣지 않아요</div></div>';
-            }
-            function capText(d, t) {
-                const tm = x => String(x || '').trim(), nm = s => s.name + (s.after && !/사후/.test(s.name) ? '(사후)' : '');
-                if (t === 'a') { // 배정 안내: 단지 → 소장별 시간
-                    const L = ['[더홈점검] ' + capMD(d.date) + ' 점검 배정'];
-                    d.list.forEach(s => {
-                        const teams = new Map();
-                        s.rows.forEach(x => { const k = x.b.join('·'); let g = teams.get(k); if (!g) teams.set(k, g = { b: x.b, m: [], t: [] }); x.m.forEach(v => { if (g.m.indexOf(v) < 0 && g.b.indexOf(v) < 0) g.m.push(v); }); g.t.push(tm(x.r.time)); });
-                        teams.forEach(g => { const ts = g.t.filter((v, i, a) => v && a.indexOf(v) === i).sort((a, b) => tMin(a) - tMin(b));
-                            L.push('- ' + nm(s) + ' ' + (g.b.length ? g.b.concat(g.m).join('·') : '소장 미정' + (g.m.length ? '(' + g.m.join('·') + ')' : '')) + ' ' + (ts.join('·') || '시간 미정') + ' (' + g.t.length + '세대)'); });
-                    });
-                    return L.concat(['바뀌면 다시 보내 드려요']).join('\n');
-                }
-                // 인원 구함: 모자란 단지(배정 전이면 모든 단지) · 답 마감 = 점검 6일 전 밤 9시 (그보다 가까우면 오늘 밤 · 하루 전이면 바로)
-                const today = new Date(); today.setHours(0, 0, 0, 0);
-                const left = Math.round((d.date - today) / 86400000), dl = new Date(d.date); dl.setDate(dl.getDate() - 6);
-                const L = ['[인원 확인] ' + capMD(d.date) + ' 소장 ' + d.short + '분 필요해요'];
-                d.list.filter(s => s.short).forEach(s => { const ts = s.rows.map(x => tm(x.r.time)).filter(v => tMin(v) < 9999).sort((a, b) => tMin(a) - tMin(b));
-                    L.push('- ' + nm(s) + ' ' + s.u + '세대' + (ts.length ? ' · ' + ts[0] + (ts[ts.length - 1] !== ts[0] ? '~' + ts[ts.length - 1] : '') : '') + (s.t ? ' (' + s.short + '분 더)' : '')); });
-                return L.concat(['가능하신 분은 ' + (left >= 7 ? capMD(dl) + ' 밤 9시까지' : left >= 2 ? '오늘 밤 9시까지' : '바로') + ' 답 주세요. 확정은 따로 연락드려요.']).join('\n');
+                return h + '</div>';
             }
             function render() {
                 const box = document.getElementById('admin');
@@ -7599,15 +7521,14 @@ body.light-mode .card.reference-info {
                 const repNote = !data.reports; // 드라이브 보고서 확인 전이면 '확인 필요' 숫자 뒤에 +
                 const nCheck = V.soon.length + V.noRep.length;
                 // 한눈에: 오늘·내일·7일·미입금·확인 필요 (누르면 그 목록으로)
-                const chip = (lab, n, k, d, hot) => '<button type="button" class="adm-chip' + (hot && n ? (hot === 'red' ? ' red' : ' hot') : '') + '" data-act="jump" data-k="' + k + '"' + (d != null ? ' data-d="' + d + '"' : '') + '><b>' + n + '</b>' + lab + '</button>';
+                const chip = (lab, n, k, d, hot) => '<button type="button" class="adm-chip' + (hot && n ? ' hot' : '') + '" data-act="jump" data-k="' + k + '"' + (d != null ? ' data-d="' + d + '"' : '') + '><b>' + n + '</b>' + lab + '</button>';
                 if (!data.hp) startHp(); // ✅ 패치 93
                 const hpN = data.hp && data.hp.rows ? data.hp.rows.filter(r => !sent[hpSent(r)]).length : '…';
-                const capN = (data.cap || (data.cap = capCalc())).red; // ✅ 패치 113
-                let h = '<div class="adm-sum" style="grid-template-columns:repeat(7,minmax(0,1fr));">' + chip('새 신청', hpN, 'k12', null, true) + chip('오늘', V.today, 'k7', dKey(new Date(V.day(0)))) + chip('내일', V.tom, 'k7', dKey(new Date(V.day(1)))) + chip('7일', V.week, 'k9')
-                    + chip('미입금', V.unpaid.length, 'k8', null, true) + chip('확인 필요', repNote ? V.soon.length + '+' : nCheck, 'k9', null, true) + chip('인원', capN, 'k16', null, 'red') + '</div>';
+                let h = '<div class="adm-sum" style="grid-template-columns:repeat(6,minmax(0,1fr));">' + chip('새 신청', hpN, 'k12', null, true) + chip('오늘', V.today, 'k7', dKey(new Date(V.day(0)))) + chip('내일', V.tom, 'k7', dKey(new Date(V.day(1)))) + chip('7일', V.week, 'k9')
+                    + chip('미입금', V.unpaid.length, 'k8', null, true) + chip('확인 필요', repNote ? V.soon.length + '+' : nCheck, 'k9', null, true) + '</div>';
                 h += '<input class="adm-sel adm-q" data-f="q" type="search" placeholder="🔎 고객 찾기 · 이름 · 전화 뒷자리 · 동호수" value="' + E(sq) + '" autocomplete="off"><div id="admSearchOut">' + sqHtml() + '</div>';
                 { // ✅ 패치 95: 쓰는 순서대로 4묶음 · 할 일 숫자
-                    const KN = {}, SUBS = { k16: '필요 소장·남은 자리', k10: '접수완료 체크', k11: '언제·PIN 틀림', k14: '직원 서명 확인', k12: '사후·빠른예약', k13: '청소·줄눈·탄성' }, BADGE = { k16: capN, k12: hpN, k9: repNote ? V.soon.length : nCheck, k8: V.unpaid.length, k7: V.tom };
+                    const KN = {}, SUBS = { k10: '접수완료 체크', k11: '언제·PIN 틀림', k14: '직원 서명 확인', k12: '사후·빠른예약', k13: '청소·줄눈·탄성' }, BADGE = { k12: hpN, k9: repNote ? V.soon.length : nCheck, k8: V.unpaid.length, k7: V.tom };
                     KINDS.forEach(k => { KN[k[0]] = k; });
                     const kb = id => { const k = KN[id], n = BADGE[id]; return '<button type="button" class="adm-kind' + (id === st.kind ? ' on' : '') + '" data-act="kind" data-k="' + id + '">' + (n > 0 ? '<i class="adm-kb">' + n + '</i>' : '') + k[1].replace('하자접수 완료 안내', '하자접수 완료').replace('직원 로그인 기록', '직원 로그인') + '<span>' + E(SUBS[id] || k[2]) + '</span></button>'; };
                     const grp = (lab, ids, n) => '<div class="adm-kg">' + lab + '</div><div class="adm-kinds" style="grid-template-columns:repeat(' + n + ',minmax(0,1fr));">' + ids.map(kb).join('') + '</div>';
@@ -8054,12 +7975,8 @@ body.light-mode .card.reference-info {
                         return;
                     }
                     if (a === 'price-re') { startPrice(true); render(); return; } // ✅ 패치 90
-                    if (a === 'capopen') { const d = b.getAttribute('data-d'), top = !!b.closest('.cap-short'), x = isoD(d), t0 = new Date(), mo = (x.getFullYear() - t0.getFullYear()) * 12 + x.getMonth() - t0.getMonth(); // ✅ 패치 113
-                        if (mo < (st.capM || 0) || mo > (st.capM || 0) + 1) st.capM = mo; // 보이는 두 달 밖이면 그 달로
-                        st.capD = st.capD === d && !top ? '' : d; st.capPv = ''; render(); const o = top && box.querySelector('.cap-open'); if (o) o.scrollIntoView({ block: 'nearest' }); return; }
+                    if (a === 'capopen') { const d = b.getAttribute('data-d'); st.capD = st.capD === d ? '' : d; render(); return; } // ✅ 패치 113
                     if (a === 'capm') { const m = +b.getAttribute('data-m'); st.capM = m ? (st.capM || 0) + m : 0; render(); return; }
-                    if (a === 'cappv') { const t = b.getAttribute('data-t'); st.capPv = st.capPv === t ? '' : t; render(); return; }
-                    if (a === 'capcopy') { const d = data && data.cap && data.cap.list.find(x => x.k === st.capD); if (d && st.capPv) copyTextSafe(capText(d, st.capPv), '📋 복사했어요. 카톡 단톡방에 붙여넣기 하세요'); return; }
                     if (a === 'direct5') { // ✅ 패치 91: 번호로 정산 — 시트에서 그 번호의 가장 최근 점검(금액 있는 것), 적은 금액이 있으면 그 금액
                         const v = f => { const x = box.querySelector('[data-f="' + f + '"]'); return x ? x.value : ''; };
                         const ph = phonesOf(v('direct')), won0 = s => +String(s).replace(/\D/g, '') || 0, tot = won0(v('tot5')), dep = won0(v('dep5'));
@@ -17598,7 +17515,7 @@ body.light-mode .card.reference-info {
     }
     
     // ✅ 패치 69: 새 배포 확인 — 이 화면의 판 번호(APP_BUILD) vs 사이트의 version.json(정식)·version-test.json(테스트)
-    const APP_BUILD = 'ea9c8c2850d6'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
+    const APP_BUILD = 'da6f78f9f5b6'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
     (function() {
         const url = /index-unified-test\.html$/.test(location.pathname) ? 'version-test.json' : 'version.json';
         let busy = false;
