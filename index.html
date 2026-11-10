@@ -1332,6 +1332,29 @@ body.light-mode :is(#admin,#staffDone) .adm-fail{color:#b45309; border-color:#b4
 :is(#admin,#staffDone) .adm-chip.hot{border-color:rgba(245,158,11,.7)}
 :is(#admin,#staffDone) .adm-chip.hot b{color:#f59e0b}
 body.light-mode :is(#admin,#staffDone) .adm-chip.hot b{color:#b45309}
+/* ✅ 패치 113: 📅 예약 일정표 */
+#admin .adm-sum .adm-chip, #admin .adm-kinds .adm-kind{word-break:keep-all}
+#admin .cap-nav{display:flex; gap:6px; margin:10px 0 2px}
+#admin .cap-nav .adm-re{flex:1; min-height:38px; padding:0 6px}
+#admin .cap-mon{font-size:14px; font-weight:800; margin:12px 0 6px; color:var(--text-primary)}
+#admin .cap-cal{display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:3px}
+#admin .cap-cal > i{font-style:normal; text-align:center; font-size:11px; font-weight:700; color:var(--text-secondary); padding-bottom:2px}
+#admin .cap-cal > i.we{color:var(--text-primary); font-weight:900}
+#admin .cap-cal > .cap-x{text-align:center; padding-top:5px; font-size:12.5px; font-weight:700; color:var(--text-secondary); opacity:.4}
+#admin .cap-c{min-height:54px; padding:4px 1px 3px; border-radius:8px; border:1px solid var(--a-line,#2A3550); background:var(--a-sunken,#0F1726); color:#94a3b8; font-family:inherit; display:flex; flex-direction:column; align-items:center; gap:1px; line-height:1.15; cursor:pointer; -webkit-tap-highlight-color:transparent; word-break:keep-all; font-variant-numeric:tabular-nums}
+#admin .cap-c b{font-size:12.5px; font-weight:700}
+#admin .cap-c.we b, #admin .cap-c.has b{color:#F1F4F9; font-weight:800}
+#admin .cap-c span{font-size:10.5px; font-weight:800; color:#F1F4F9}
+#admin .cap-c small{font-size:10px; font-weight:700; color:#bfdbfe}
+#admin .cap-c.has{border-color:rgba(59,130,246,.55)}
+#admin .cap-c.past{opacity:.38}
+#admin .cap-c.today{outline:2px solid #F1F4F9; outline-offset:-2px}
+#admin .cap-c.on{box-shadow:0 0 0 2px #3b82f6; border-color:#3b82f6}
+#admin .cap-open{margin:8px 0 4px; padding:11px 12px; border-radius:10px; background:var(--a-sunken,#0F1726); border:1px solid var(--a-line,#2A3550); color:#F1F4F9; word-break:keep-all}
+#admin .cap-dh{font-size:14px; font-weight:800; margin-bottom:2px; line-height:1.4}
+#admin .cap-big{font-size:14px; font-weight:700; color:#94a3b8; padding-top:4px}
+#admin .cap-li{font-size:13px; line-height:1.5; padding:6px 0; border-top:1px dashed var(--a-line,#2A3550)}
+#admin .cap-li em{font-style:normal; color:#94a3b8}
 :is(#admin,#staffDone) .adm-row small.warn{white-space:normal}
 :is(#admin,#staffDone) .adm-grp{margin:12px 0 4px; padding:8px 10px; border-radius:8px; font-size:12.5px; line-height:1.5; color:var(--a-ink,#F1F4F9)}
 :is(#admin,#staffDone) .adm-grp.info{background:rgba(74,222,128,.10); border:1px solid rgba(74,222,128,.45)}
@@ -1949,7 +1972,7 @@ body.light-mode .card.reference-info {
         </button>
         
         <h1>🏠 더홈점검</h1>
-        <p id="appVersionTag">업데이트 2026.11.08</p>
+        <p id="appVersionTag">업데이트 2026.11.10</p>
     </div>
 
     <div class="container">
@@ -6575,7 +6598,7 @@ body.light-mode .card.reference-info {
             const KINDS = [['k1', '🏠 서비스 안내', '문의 고객'], ['k2', '💳 예약금 요청', '예약 직전'], ['k3', '📢 필독 안내문', '점검 전 공지'],
                 ['k4', '★ 예약 안내문', '예약금 입금 후'], ['k5', '🧾 정산·잔금', '점검 후'], ['k6', '🔁 사후점검', '단지 공지'],
                 ['k7', '⏰ 전날 안내', '내일 점검 고객'], ['k8', '💰 미입금', '잔금 재안내'], ['k9', '⚠️ 확인 필요', '빠진 것·보고서'],
-                ['k10', '📩 하자접수 완료 안내', '접수완료 체크된 고객 (모바일접수대행 시트)'], ['k11', '🔐 직원 로그인 기록', '누가 언제 로그인했는지 · PIN 틀림·잠금 · 계약서 서명'], ['k12', '📥 홈페이지 신청', '사후점검 예약 · 빠른예약 (홈페이지 시트)'], ['k13', '🧾 견적서', '입주청소 · 줄눈 · 탄성코트 → 이미지/PDF'], ['k14', '📝 계약서 서명', '직원 서명 확인'], ['k15', '🚫 예약 마감 안내', '마감 후 문의 고객']]; // ✅ 패치 103
+                ['k10', '📩 하자접수 완료 안내', '접수완료 체크된 고객 (모바일접수대행 시트)'], ['k11', '🔐 직원 로그인 기록', '누가 언제 로그인했는지 · PIN 틀림·잠금 · 계약서 서명'], ['k12', '📥 홈페이지 신청', '사후점검 예약 · 빠른예약 (홈페이지 시트)'], ['k13', '🧾 견적서', '입주청소 · 줄눈 · 탄성코트 → 이미지/PDF'], ['k14', '📝 계약서 서명', '직원 서명 확인'], ['k15', '🚫 예약 마감 안내', '마감 후 문의 고객'], ['k16', '📅 예약 일정표', '날짜별 단지·세대']]; // ✅ 패치 103 · 113
             // 로그인 서버(Apps Script)가 남기는 기록 + 직원관리코드(이름·소속·상태만, PIN 칸은 읽지 않음) — 둘 다 대표님 계정 소유, 읽기만
             const LOG_SHEET = '1WVZXXrjPumWThhnonMYbQM4z_sYDgynfXU0gyFwDpI8', STAFF_SHEET = '1djnGAm8nlGbHgRuxxORGK-cqI_CTYOKrSwZuPtMzl2s';
             const SUB_SHEET = '1jfYZNb9aIsWY6nQOoHjSUE8a2NTGXoD1aPVrVzqRGO8'; // 더홈점검_모바일접수대행_공유 — 아이디·비밀번호 칸은 요청하지 않음 (필요한 칸만 골라 읽음)
@@ -7120,13 +7143,13 @@ body.light-mode .card.reference-info {
                 const titles = (meta.sheets || []).map(s => s.properties.title);
                 const tabs = titles.filter(t => /^예약일정_\d{4}$/.test(t)).sort();
                 if (!tabs.length) throw Object.assign(new Error('no tab'), { msg: "시트에서 '예약일정_연도' 탭을 찾지 못했어요" });
-                const rows = [], zCol = {};
+                const rows = [], zCol = {}, capX = []; // capX: 현장명 병합 줄 (예약 일정표에서만) ✅ 패치 113
                 let hasPkgCol = false;
                 for (const tab of tabs) {
                     const hv = (await api('/values/' + rq("'" + tab + "'!1:2"))).values || [];
                     const h1 = (hv[0] || []).map(norm), h2 = (hv[1] || []).map(norm);
                     const ix = n => h1.indexOf(n);
-                    const need = { site: ix('현장명'), day: ix('일'), time: ix('시간'), dong: ix('동'), ho: ix('호수'), name: ix('이름'), phone: ix('연락처'), total: ix('총합계'), paid: ix('결재확인'), boss: ix('소장'), mgr: ix('매니저'), team: ix('팀'), note: ix('비고'), anote: ix('사후점검안내문'), pkg: h1.findIndex(x => x.indexOf('패키지') >= 0) }; // 패키지: 예약일정 맨 끝에 대표님이 추가하는 체크박스 칸
+                    const need = { site: ix('현장명'), day: ix('일'), time: ix('시간'), dong: ix('동'), ho: ix('호수'), name: ix('이름'), phone: ix('연락처'), total: ix('총합계'), paid: ix('결재확인'), boss: ix('소장'), mgr: ix('매니저'), team: ix('팀'), note: ix('비고'), anote: ix('사후점검안내문'), stat: ix('상태'), pkg: h1.findIndex(x => x.indexOf('패키지') >= 0) }; // 패키지: 예약일정 맨 끝에 대표님이 추가하는 체크박스 칸
                     if (need.pkg >= 0) hasPkgCol = true;
                     const miss = ['site', 'day', 'dong', 'ho', 'name', 'phone'].filter(k => need[k] < 0);
                     if (miss.length) throw Object.assign(new Error('head'), { msg: "'" + tab + "' 탭 머리글을 찾지 못했어요 (현장명·일·동·호수·이름·연락처)" });
@@ -7141,22 +7164,28 @@ body.light-mode .card.reference-info {
                     const n = Math.max.apply(null, keys.map(k => C[k].length));
                     // 연도: 칸에 'YYYY년'이 있으면 그 행만, 없으면 탭 연도. 앞에서 11·12월이 나온 뒤의 1~6월은 다음 해 (늦게 넣은 12월 행이 있어도 밀리지 않게 행마다 계산)
                     const tabYear = parseInt(tab.slice(-4), 10);
-                    let late = false;
+                    let late = false, last = null; // last: 바로 위 줄 (빈 예약칸 포함) ✅ 패치 113
                     for (let i = 0; i < n; i++) {
                         const g = k => String((C[k] || [])[i] == null ? '' : C[k][i]).trim();
-                        const site = g('site');
-                        if (!site || !(g('name') || g('phone') || g('dong') || g('ho'))) continue; // 빈 예약칸
+                        let site = g('site');
+                        const unit = !!(g('name') || g('phone') || g('dong') || g('ho'));
                         const day = g('day');
                         const m = /(?:(\d{4})\s*년\s*)?(\d{1,2})\s*월\s*(\d{1,2})\s*일/.exec(day), iso = /(\d{4})-(\d{1,2})-(\d{1,2})/.exec(day);
                         let date = null;
-                        if (m) { const mo = +m[2]; if (mo >= 11) late = true; date = new Date(m[1] ? +m[1] : (late && mo <= 6 ? tabYear + 1 : tabYear), mo - 1, +m[3]); }
+                        if (m) { const mo = +m[2]; if (mo >= 11 && site && unit) late = true; date = new Date(m[1] ? +m[1] : (late && mo <= 6 ? tabYear + 1 : tabYear), mo - 1, +m[3]); }
                         else if (iso) date = new Date(+iso[1], +iso[2] - 1, +iso[3]);
-                        // 팀 이어쓰기: 같은 현장·날짜의 이어지는 행은 팀·소장·매니저를 비워 둠 → 앞 행 것을 물려받음
-                        let boss = g('boss'), mgr = g('mgr');
-                        const prev = rows[rows.length - 1];
-                        if (!boss && !mgr && !g('team') && prev && prev.tab === tab && prev.key === norm(site) && prev.date && date && +prev.date === +date) { boss = prev.boss; mgr = prev.mgr; }
-                        rows.push({ tab: tab, row: start + i, site: site.replace(/\s+/g, ' '), key: norm(site), after: /사후/.test(site) || !!g('anote'), date: date, time: g('time'),
-                            dong: g('dong'), ho: g('ho'), name: g('name').replace(/\s*\n\s*/g, ' / '), phones: phonesOf(g('phone')), team: g('team'), note: g('note'),
+                        // ✅ 패치 113: 현장명(·일) 칸을 병합해 적은 줄(동·호만 있음)은 바로 위 줄의 현장명·날짜로 — 예약 일정표에서만 셈 (문자 목록은 그대로)
+                        const merged = !site && !!(g('dong') || g('ho')) && !!last;
+                        if (merged) { site = last.site; if (!date) date = last.date; }
+                        if (!site) { last = null; continue; }
+                        // 팀 이어쓰기: 같은 현장·날짜의 이어지는 행은 팀·소장·매니저를 비워 둠 → 바로 위 줄 것을 물려받음
+                        // ✅ 패치 113: 빈 예약칸 줄에 적힌 소장도 이어받고, 팀 칸이 숫자(방문 순번)거나 위 줄과 같은 팀이어도 이어받음
+                        let boss = g('boss'), mgr = g('mgr'), team = g('team');
+                        if (!boss && !mgr && last && last.key === norm(site) && last.date && date && +last.date === +date && (!team || /^\d+$/.test(team) || team === last.team)) { boss = last.boss; mgr = last.mgr; team = team || last.team; }
+                        last = { site: site, key: norm(site), date: date, boss: boss, mgr: mgr, team: team };
+                        if (!unit) continue; // 빈 예약칸
+                        (merged ? capX : rows).push({ tab: tab, row: start + i, site: site.replace(/\s+/g, ' '), key: norm(site), after: /사후/.test(site) || !!g('anote'), date: date, time: g('time'),
+                            dong: g('dong'), ho: g('ho'), name: g('name').replace(/\s*\n\s*/g, ' / '), phones: phonesOf(g('phone')), team: g('team'), note: g('note'), stat: g('stat'),
                             total: num(g('total')), paid: /TRUE/i.test(g('paid')), pkgFlag: /TRUE/i.test(g('pkg')), boss: boss, mgr: mgr, hasStaff: need.boss >= 0 || need.mgr >= 0,
                             dep: D.reduce((a, c) => a + (/^\s*[\d,]+\s*$/.test(String(c[i] == null ? '' : c[i])) ? num(c[i]) : 0), 0) }); // 예약금 칸의 메모·비밀번호 같은 글자는 금액 아님
                     }
@@ -7173,7 +7202,7 @@ body.light-mode .card.reference-info {
                     if (iS >= 0 && iH >= 0 && iP >= 0) v.slice(1).forEach(r => { if (/TRUE/i.test(String(r[iP] || ''))) pkg.add(unitKey(r[iS], iD >= 0 ? r[iD] : '', r[iH])); });
                     else pkgBad = true;
                 }
-                return { rows: rows, zCol: zCol, pkg: pkg, pkgBad: pkgBad, hasPkgCol: hasPkgCol, at: new Date() };
+                return { rows: rows, capX: capX, zCol: zCol, pkg: pkg, pkgBad: pkgBad, hasPkgCol: hasPkgCol, at: new Date() };
             }
 
             // 보고서 못 받은 고객: 드라이브의 '…_동_호_작성자_YYYY-MM-DD_하자점검보고서.pdf'(최근 45일) 이름을 읽어 동·호·날짜(±2일)로 맞춤 (읽기만)
@@ -7422,6 +7451,63 @@ body.light-mode .card.reference-info {
                 else if (!price.rows.length) h += '<div class="adm-hint">시트 \'링크\' 탭에 단지가 없어요. 시트에 넣고 ↻ 를 누르세요.</div>';
                 return h;
             }
+            // ✅ 패치 113: 📅 예약 일정표 (대표님 11-09 "인원 판단은 빼고 예약일정만 일정표로") — 예약일정을 읽기만 해서 날짜별 단지·세대·시간
+            //    상태 칸 취소·연기는 빼고, 같은 날 같은 단지·동·호가 두 줄이면 한 번만, 현장명 병합 줄도 셈. 앱은 보여 주기만 하고 예약을 막지 않음
+            const capMD = d => (d.getMonth() + 1) + '/' + d.getDate() + '(' + '일월화수목금토'[d.getDay()] + ')';
+            function capCalc() {
+                const days = new Map(), seen = {};
+                data.rows.concat(data.capX || []).forEach(r => {
+                    if (!r.date || /취소|연기/.test(r.stat || '')) return;
+                    const k = dKey(r.date), u = unitPart(r.dong, '동') + '|' + unitPart(r.ho, '호'), uk = k + '|' + r.key + '|' + u;
+                    if (u !== '|' && seen[uk]) return; // 같은 날 같은 동·호가 두 줄
+                    seen[uk] = 1;
+                    let d = days.get(k);
+                    if (!d) days.set(k, d = { k: k, date: r.date, units: 0, sites: new Map() });
+                    let s = d.sites.get(r.key);
+                    if (!s) d.sites.set(r.key, s = { name: r.site.trim(), after: r.after, u: 0, t: [] });
+                    s.u++; d.units++; s.t.push(String(r.time || '').trim());
+                });
+                return Array.from(days.values()).sort((a, b) => a.date - b.date);
+            }
+            const capHp = k => data.hp && data.hp.rows ? data.hp.rows.filter(r => !r.reg && r.date && dKey(r.date) === k).length : 0; // 홈페이지 신청 중 예약일정에 안 옮긴 것
+            function capHtml() { // 달력: 이번 달·다음 달, 일요일부터(11-09 대표님 "윈도우 달력 배열로"), 날짜를 누르면 그 달 아래에 단지별
+                const list = data.cap || (data.cap = capCalc()), by = {}, today = new Date(); today.setHours(0, 0, 0, 0);
+                list.forEach(d => { by[d.k] = d; });
+                const m0 = new Date(today.getFullYear(), today.getMonth() + (st.capM || 0), 1);
+                let h = '<div class="adm-step">② 날짜별 예약 <small>예약일정 시트 · 읽기만</small></div>'
+                    + '<div class="adm-hint" style="word-break:keep-all;">날짜를 누르면 단지별 세대·시간 · 색이 진할수록 예약 많음 · 시트에 적기 전 문의(전화·숨고 등)는 안 보여요</div>'
+                    + '<div class="cap-nav"><button type="button" class="adm-re" data-act="capm" data-m="-1">◀ 이전 달</button><button type="button" class="adm-re" data-act="capm" data-m="0">이번 달</button><button type="button" class="adm-re" data-act="capm" data-m="1">다음 달 ▶</button></div>';
+                [0, 1].forEach(i => { h += capMonth(new Date(m0.getFullYear(), m0.getMonth() + i, 1), by, today); });
+                const last = list[list.length - 1];
+                if (last && last.date >= today) { const e = new Date(last.date); e.setDate(e.getDate() + 1); h += '<div class="adm-hint" style="margin-top:8px;">' + (e.getMonth() + 1) + '/' + e.getDate() + ' 이후 예약 없음</div>'; }
+                return h;
+            }
+            function capMonth(m, by, today) {
+                const y = m.getFullYear(), mo = m.getMonth(), n = new Date(y, mo + 1, 0).getDate(), lead = m.getDay(), pn = new Date(y, mo, 0).getDate();
+                let open = null, h = '<div class="cap-mon">' + (y !== today.getFullYear() ? y + '년 ' : '') + (mo + 1) + '월</div><div class="cap-cal">'
+                    + '일월화수목금토'.split('').map((w, i) => '<i' + (i % 6 ? '' : ' class="we"') + '>' + w + '</i>').join('');
+                for (let i = lead; i > 0; i--) h += '<span class="cap-x">' + (pn - i + 1) + '</span>'; // 앞뒤 빈칸: 지난·다음 달 날짜를 흐리게 (누르지 않음)
+                for (let i = 1; i <= n; i++) {
+                    const dt = new Date(y, mo, i), k = dKey(dt), d = by[k], on = st.capD === k;
+                    if (on) open = d || { k: k, date: dt };
+                    h += '<button type="button" class="cap-c' + (d ? ' has' : '') + (dt.getDay() % 6 ? '' : ' we') + (dt < today ? ' past' : '') + (+dt === +today ? ' today' : '') + (on ? ' on' : '') + '" data-act="capopen" data-d="' + k + '"'
+                        + (d ? ' style="background:rgba(59,130,246,' + (.14 + Math.min(d.units, 20) * .023).toFixed(2) + ')"' : '') + '><b>' + i + '</b>' // 20세대부터 가장 진함
+                        + (d ? '<span>' + d.units + '세대</span><small>' + d.sites.size + '단지</small>' : '') + '</button>';
+                }
+                for (let i = 1; i <= (7 - (lead + n) % 7) % 7; i++) h += '<span class="cap-x">' + i + '</span>';
+                h += '</div>';
+                return open ? h + capOpen(open, capHp(open.k)) : h;
+            }
+            function capOpen(d, hp) {
+                let h = '<div class="cap-open"><div class="cap-dh">' + capMD(d.date) + (d.sites ? ' · ' + d.units + '세대 · ' + d.sites.size + '단지' : '') + '</div>';
+                if (!d.sites) h += '<div class="cap-big">예약 없음</div>';
+                else d.sites.forEach(s => {
+                    const ts = s.t.filter((v, i, a) => v && a.indexOf(v) === i).sort((a, b) => tMin(a) - tMin(b));
+                    h += '<div class="cap-li"><b>' + E(s.name) + '</b>' + (s.after && !/사후/.test(s.name) ? ' (사후)' : '') + ' ' + s.u + '세대' + (ts.length ? ' <em>' + E(ts.join(' · ')) + '</em>' : '') + '</div>';
+                });
+                if (hp) h += '<div class="cap-li"><em>홈페이지 신청 대기 ' + hp + '건 (예약일정에 아직 안 옮김)</em></div>';
+                return h + '</div>';
+            }
             function render() {
                 const box = document.getElementById('admin');
                 if (!box) return;
@@ -7430,7 +7516,7 @@ body.light-mode .card.reference-info {
                 if (loading) { box.innerHTML = card('<div class="adm-msg">⏳ 예약현황 불러오는 중...</div>'); return; }
                 if (err) { box.innerHTML = card('<div class="adm-msg adm-err">' + E(err) + '</div>' + (/로그인/.test(err) ? '<button type="button" class="btn btn-primary" data-act="login" style="width:100%;">🔐 구글 다시 로그인</button>' : '')); return; }
                 if (!data) { box.innerHTML = card(''); return; }
-                const V = views(), cross = ['k1', 'k7', 'k8', 'k9', 'k10', 'k11', 'k12', 'k13', 'k14', 'k15'].indexOf(st.kind) >= 0;
+                const V = views(), cross = ['k1', 'k7', 'k8', 'k9', 'k10', 'k11', 'k12', 'k13', 'k14', 'k15', 'k16'].indexOf(st.kind) >= 0;
                 const repNote = !data.reports; // 드라이브 보고서 확인 전이면 '확인 필요' 숫자 뒤에 +
                 const nCheck = V.soon.length + V.noRep.length;
                 // 한눈에: 오늘·내일·7일·미입금·확인 필요 (누르면 그 목록으로)
@@ -7445,7 +7531,7 @@ body.light-mode .card.reference-info {
                     KINDS.forEach(k => { KN[k[0]] = k; });
                     const kb = id => { const k = KN[id], n = BADGE[id]; return '<button type="button" class="adm-kind' + (id === st.kind ? ' on' : '') + '" data-act="kind" data-k="' + id + '">' + (n > 0 ? '<i class="adm-kb">' + n + '</i>' : '') + k[1].replace('하자접수 완료 안내', '하자접수 완료').replace('직원 로그인 기록', '직원 로그인') + '<span>' + E(SUBS[id] || k[2]) + '</span></button>'; };
                     const grp = (lab, ids, n) => '<div class="adm-kg">' + lab + '</div><div class="adm-kinds" style="grid-template-columns:repeat(' + n + ',minmax(0,1fr));">' + ids.map(kb).join('') + '</div>';
-                    h += grp('📥 할 일', ['k12', 'k9'], 2) + grp('📩 점검 전 문자', ['k1', 'k15', 'k2', 'k4', 'k3', 'k7', 'k6'], 3) + grp('💰 점검 후 문자', ['k5', 'k8', 'k10'], 3) + grp('🧰 도구', ['k13', 'k11', 'k14'], 3);
+                    h += grp('📥 할 일', ['k12', 'k9', 'k16'], 3) + grp('📩 점검 전 문자', ['k1', 'k15', 'k2', 'k4', 'k3', 'k7', 'k6'], 3) + grp('💰 점검 후 문자', ['k5', 'k8', 'k10'], 3) + grp('🧰 도구', ['k13', 'k11', 'k14'], 3);
                 }
                 const gs = cross ? [] : groups();
                 let g = gs.find(x => x.key === st.group) || gs[0];
@@ -7476,6 +7562,7 @@ body.light-mode .card.reference-info {
                     saveSt(); box.innerHTML = card(h); return;
                 }
                 if (st.kind === 'k13') { h += qtHtml(); saveSt(); box.innerHTML = card(h); qtMount(box); return; } // ✅ 패치 94
+                if (st.kind === 'k16') { h += capHtml(); saveSt(); box.innerHTML = card(h); return; } // ✅ 패치 113
                 if (st.kind === 'k7') {
                     h += '<div class="adm-step">② 점검 날짜 <small>단지 상관없이 모아 보기</small></div>';
                     const opts = [];
@@ -7887,6 +7974,8 @@ body.light-mode .card.reference-info {
                         return;
                     }
                     if (a === 'price-re') { startPrice(true); render(); return; } // ✅ 패치 90
+                    if (a === 'capopen') { const d = b.getAttribute('data-d'); st.capD = st.capD === d ? '' : d; render(); return; } // ✅ 패치 113
+                    if (a === 'capm') { const m = +b.getAttribute('data-m'); st.capM = m ? (st.capM || 0) + m : 0; render(); return; }
                     if (a === 'direct5') { // ✅ 패치 91: 번호로 정산 — 시트에서 그 번호의 가장 최근 점검(금액 있는 것), 적은 금액이 있으면 그 금액
                         const v = f => { const x = box.querySelector('[data-f="' + f + '"]'); return x ? x.value : ''; };
                         const ph = phonesOf(v('direct')), won0 = s => +String(s).replace(/\D/g, '') || 0, tot = won0(v('tot5')), dep = won0(v('dep5'));
@@ -11071,12 +11160,12 @@ body.light-mode .card.reference-info {
         // 누르면 위치·하자내용·상세위치를 한 번에 채움 (손으로 버튼 누를 때와 같은 설명 생성·화면·저장), 다시 누르면 누르기 전 값으로
         // ▾ 버튼은 기준(창/문 등)·방향(좌/우/상/하)을 고름: 방향 1곳 '창 우측', 2곳 이상 '창 좌/우' + 하자내용 '다수'
         const QUICK_DEFECTS = {
-            "침실": {"spaces":["안방","침실1","침실2","침실3","침실4","알파룸"],"items":[{"n":"바닥 들뜸","loc":["바닥"],"ty":["들뜸","불량"],"pick":{"bases":["입구","창","문"],"base":"입구","dirs":[]}},{"n":"도배 들뜸","loc":["벽","도배"],"ty":["들뜸","불량"],"pick":{"bases":["창","문"],"base":"창","dirs":["우"]}},{"n":"문틀 찍힘","loc":["문","틀"],"ty":["찍힘","불량"],"pick":{"bases":[],"base":"","dirs":["좌"]}},{"n":"창 수평/수직","loc":["창","짝"],"ty":["수평/수직","불량"]},{"n":"문짝 유격","loc":["문","짝"],"ty":["유격"]},{"n":"문 안닫힘","s":"작동 불량","loc":["문","짝"],"ty":["작동","불량"],"d":"안닫힘"}]},
+            "침실": {"spaces":["안방","침실1","침실2","침실3","침실4","알파룸"],"items":[{"n":"바닥 들뜸","loc":["바닥"],"ty":["들뜸","불량"],"pick":{"bases":["입구","창","문"],"base":"입구","dirs":[]}},{"n":"도배 들뜸","loc":["벽","도배"],"ty":["들뜸","불량"],"pick":{"bases":["창","문"],"base":"창","dirs":["우"]}},{"n":"문틀 찍힘","loc":["문","틀"],"ty":["찍힘","불량"],"pick":{"bases":[],"base":"","dirs":["좌"]}},{"n":"창 수평/수직","loc":["창","짝"],"ty":["수평/수직","불량"]},{"n":"문짝 유격","loc":["문","짝"],"ty":["유격"]},{"n":"문 안닫힘","s":"작동 불량","loc":["문","짝"],"ty":["작동","불량"],"d":"안닫힘"},{"n":"창틀 닫힐 때 떨림","s":"고정 불량","loc":["창","틀"],"ty":["고정","불량"],"d":"닫힐 때 떨림"}]},
             "욕실": {"spaces":["공용욕실","부부욕실"],"items":[{"n":"바닥 타일 단차","loc":["바닥","타일"],"ty":["단차","다수"]},{"n":"샤워부스 손잡이","s":"고정 불량","loc":["문","짝"],"ty":["고정","불량"],"d":"샤워부스 손잡이"},{"n":"문짝 유격","loc":["문","짝"],"ty":["유격"]},{"n":"점검구 단열재","s":"틈새·파손","loc":["천장"],"ty":["틈새","파손","다수","불량"],"d":"점검구 내 단열재"},{"n":"줄눈 마감","s":"입구 외","loc":["바닥","타일","줄눈"],"ty":["마감","다수","불량"],"d":"입구 외"},{"n":"수건걸이 고정","loc":["벽"],"ty":["고정","불량"],"d":"수건걸이"}]},
             "주방": {"spaces":["주방"],"items":[{"n":"냉장고장 도배","s":"들뜸","loc":["벽","도배"],"ty":["들뜸","다수","불량"],"d":"냉장고장 내"},{"n":"콘센트 고정","loc":["벽"],"ty":["고정","불량"],"d":"콘센트"},{"n":"상판 틈새·고정","loc":["가구"],"ty":["틈새","고정","다수","불량"],"d":"상판"},{"n":"하부장 도어","s":"단차·수평","loc":["가구"],"ty":["단차","수평/수직","불량"],"d":"싱크 하부장"},{"n":"인덕션 고정","loc":["가구"],"ty":["고정","불량"],"d":"인덕션"},{"n":"후드 작동","loc":["가구"],"ty":["작동","불량"],"d":"후드"}]},
             "현관": {"spaces":["현관","외부"],"items":[{"n":"반달스토퍼","s":"누락","loc":["문","짝"],"ty":["누락"],"d":"반달 스토퍼"},{"n":"디딤석 틈새","s":"좌/우","loc":["바닥","타일"],"ty":["틈새","다수","불량"],"d":"디딤석 좌/우"},{"n":"문틀 하부 긁힘","loc":["문","틀"],"ty":["긁힘","불량"],"pick":{"bases":["하부틀"],"base":"하부틀","dirs":["좌","우"],"after":true}},{"n":"문짝 유격","loc":["문","짝"],"ty":["유격"]},{"n":"피스커버 누락","s":"신발장 내측","loc":["벽","가구"],"ty":["다수","누락"],"d":"신발장 내측 피스커버"},{"n":"줄눈 채움","s":"불량","loc":["바닥","타일","줄눈"],"ty":["불량"],"d":"채움"}]},
             "발코니": {"spaces":["발코니","실외기실","대피공간","다용도실"],"items":[{"n":"문 스토퍼","s":"누락","loc":["문","짝"],"ty":["누락"],"d":"스토퍼"},{"n":"도어체크","s":"누락","loc":["문","짝"],"ty":["누락"],"d":"도어체크"},{"n":"줄눈 마감","s":"입구 외","loc":["바닥","타일","줄눈"],"ty":["마감","다수","불량"],"d":"입구 외"},{"n":"바닥 타일 단차","loc":["바닥","타일"],"ty":["단차","다수"]},{"n":"도장 면처리","loc":["벽","도장"],"ty":["마감","다수","불량"],"d":"면처리"},{"n":"창 수평/수직","loc":["창","짝"],"ty":["수평/수직","불량"]}]},
-            "거실": {"spaces":["거실"],"items":[{"n":"우물천장 도배","s":"들뜸","loc":["천장","도배"],"ty":["들뜸","다수","불량"],"d":"우물천장 주위"},{"n":"도배 들뜸","loc":["벽","도배"],"ty":["들뜸","불량"],"pick":{"bases":["창","문"],"base":"창","dirs":["우"]}},{"n":"바닥 들뜸","loc":["바닥"],"ty":["들뜸","불량"],"pick":{"bases":["입구","창","문"],"base":"창","dirs":["우"]}},{"n":"창 수평/수직","loc":["창","짝"],"ty":["수평/수직","불량"]},{"n":"아트월 타일","s":"단차","loc":["벽","타일"],"ty":["단차","불량"],"d":"아트월"},{"n":"창틀 긁힘","loc":["창","틀"],"ty":["긁힘","불량"],"pick":{"bases":[],"base":"","dirs":["상"]}}]},
+            "거실": {"spaces":["거실"],"items":[{"n":"우물천장 도배","s":"들뜸","loc":["천장","도배"],"ty":["들뜸","다수","불량"],"d":"우물천장 주위"},{"n":"도배 들뜸","loc":["벽","도배"],"ty":["들뜸","불량"],"pick":{"bases":["창","문"],"base":"창","dirs":["우"]}},{"n":"바닥 들뜸","loc":["바닥"],"ty":["들뜸","불량"],"pick":{"bases":["입구","창","문"],"base":"창","dirs":["우"]}},{"n":"창 수평/수직","loc":["창","짝"],"ty":["수평/수직","불량"]},{"n":"아트월 타일","s":"단차","loc":["벽","타일"],"ty":["단차","불량"],"d":"아트월"},{"n":"창틀 긁힘","loc":["창","틀"],"ty":["긁힘","불량"],"pick":{"bases":[],"base":"","dirs":["상"]}},{"n":"창틀 닫힐 때 떨림","s":"고정 불량","loc":["창","틀"],"ty":["고정","불량"],"d":"닫힐 때 떨림"}]},
             "복도": {"spaces":["복도"],"items":[{"n":"바닥 들뜸","loc":["바닥"],"ty":["들뜸","불량"],"pick":{"bases":["디딤석 앞","공용욕실 입구","문 앞"],"base":"디딤석 앞","dirs":[]}},{"n":"도배 들뜸","loc":["벽","도배"],"ty":["틈새","들뜸","불량"],"pick":{"bases":["문","창"],"base":"문","dirs":["우"]}},{"n":"문틀 찍힘","loc":["문","틀"],"ty":["찍힘","불량"],"pick":{"bases":[],"base":"","dirs":["좌"]}},{"n":"콘센트 고정","loc":["벽"],"ty":["고정","불량"],"d":"콘센트"},{"n":"바닥 찍힘","loc":["바닥"],"ty":["찍힘","불량"]},{"n":"천장 도배 들뜸","loc":["천장","도배"],"ty":["들뜸","불량"]}]},
             "드레스룸": {"spaces":["드레스룸","팬트리"],"items":[{"n":"피스커버 누락","s":"문틀 좌우","loc":["문","틀"],"ty":["다수","누락"],"d":"좌우 피스커버"},{"n":"선반 단차","loc":["가구"],"ty":["단차","다수","불량"],"d":"선반"},{"n":"선반 고정","loc":["가구"],"ty":["고정","불량"],"d":"선반"},{"n":"도배 들뜸","loc":["벽","도배"],"ty":["들뜸","불량"],"pick":{"bases":["창","문"],"base":"창","dirs":["우"]}},{"n":"문틀 찍힘","loc":["문","틀"],"ty":["찍힘","불량"],"pick":{"bases":[],"base":"","dirs":["좌"]}},{"n":"바닥 타일 틈새","loc":["바닥","타일"],"ty":["틈새","불량"]}]},
             "파우더룸": {"spaces":["파우더룸"],"items":[{"n":"바닥 들뜸","loc":["바닥"],"ty":["들뜸","불량"],"pick":{"bases":["욕실 입구","입구"],"base":"욕실 입구","dirs":[]}},{"n":"거울 고정","loc":["가구"],"ty":["고정","불량"],"d":"거울"},{"n":"서랍 피스커버","s":"누락","loc":["가구"],"ty":["전체","누락"],"d":"서랍 내 피스커버"},{"n":"가구·문 수평","loc":["가구","문","짝"],"ty":["수평/수직","불량"]},{"n":"문틀 찍힘","loc":["문","틀"],"ty":["찍힘","불량"],"pick":{"bases":[],"base":"","dirs":["좌"]}},{"n":"도배 들뜸","loc":["벽","도배"],"ty":["들뜸","불량"],"pick":{"bases":["창","문"],"base":"문","dirs":["우"]}}]},
@@ -17166,7 +17255,7 @@ body.light-mode .card.reference-info {
     }
     
     // ✅ 패치 69: 새 배포 확인 — 이 화면의 판 번호(APP_BUILD) vs 사이트의 version.json(정식)·version-test.json(테스트)
-    const APP_BUILD = 'abd24c8d66cb'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
+    const APP_BUILD = '9807e7a7e14e'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
     (function() {
         const url = /index-unified-test\.html$/.test(location.pathname) ? 'version-test.json' : 'version.json';
         let busy = false;
