@@ -8917,6 +8917,26 @@ body.light-mode .card.reference-info {
                     <div style="flex:1;min-width:0"><small>부위</small><div class="dl-row">${PARTS.map(w => chip(d.id, w)).join('')}</div></div></div>
                     <small style="margin-top:6px">기준 · 방향 · 부위 순서로 누르면 '창 좌측 하단 걸레받이'</small></div>`;
             };
+            // ✅ 패치 116 (대표님 11-12): 안드로이드는 상세위치 칸을 누르면 키보드가 기준·방향·부위 버튼을 가림 → 키보드가 뜬 뒤 버튼이 다 보이게 칸을 위로 (모자라면 칸이 탭 줄 바로 아래까지만). 아이폰은 그대로
+            //   되돌리기: patches/116-dl-kbd.json 을 빼고 node merge.js · 시험 node tools/test-dl-kbd.js
+            DL.lift = function (input) {
+                const vv = window.visualViewport, pick = input.parentNode.querySelector('.dl-pick'), bar = document.querySelector('.tabs');
+                if (!vv || !pick) return;
+                for (let k = 0; k < 3; k++) { // 화면을 올리면 탭 줄이 숨거나 다시 나와서 두세 번 맞춤
+                    const top = Math.max(vv.offsetTop, bar ? bar.getBoundingClientRect().bottom : 0) + 8; // 보이는 맨 위 (탭 줄 아래)
+                    const up = input.getBoundingClientRect().top - top;                                // 칸을 맨 위까지 올릴 수 있는 만큼 (음수 = 가려짐)
+                    const need = pick.getBoundingClientRect().bottom + 8 - (vv.offsetTop + vv.height); // 버튼이 키보드에 가린 만큼
+                    const d = up < 0 ? up : Math.max(0, Math.min(up, need));
+                    if (Math.abs(d) < 4) break;
+                    window.scrollBy(0, d);
+                }
+            };
+            if (/Android/i.test(navigator.userAgent) && window.visualViewport) {
+                let t;
+                const later = ms => { clearTimeout(t); t = setTimeout(() => { const a = document.activeElement; if (a && a.matches('.dl-wrap > input')) DL.lift(a); }, ms); };
+                visualViewport.addEventListener('resize', () => later(200)); // 키보드가 다 뜬 뒤
+                document.addEventListener('focusin', e => { if (e.target.matches('.dl-wrap > input')) later(400); }); // 키보드가 이미 떠 있을 때
+            }
             // 공간: 고른 뒤엔 한 줄 (바꾸기 ▾) — 펼친 하자는 기억(화면만)
             // 접이식은 점검자가 고름(이 휴대폰에 기억) — 기본은 펼침(노출식)
             DL.fold = function () { try { return localStorage.getItem('th_space_fold') === '1'; } catch (e) { return false; } };
@@ -17259,7 +17279,7 @@ body.light-mode .card.reference-info {
     }
     
     // ✅ 패치 69: 새 배포 확인 — 이 화면의 판 번호(APP_BUILD) vs 사이트의 version.json(정식)·version-test.json(테스트)
-    const APP_BUILD = '6eb12590c686'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
+    const APP_BUILD = '8c1a77007157'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
     (function() {
         const url = /index-unified-test\.html$/.test(location.pathname) ? 'version-test.json' : 'version.json';
         let busy = false;
