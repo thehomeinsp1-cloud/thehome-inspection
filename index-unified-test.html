@@ -17521,7 +17521,7 @@ body.light-mode .card.reference-info {
     }
     
     // ✅ 패치 69: 새 배포 확인 — 이 화면의 판 번호(APP_BUILD) vs 사이트의 version.json(정식)·version-test.json(테스트)
-    const APP_BUILD = '32f95b6ec12d'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
+    const APP_BUILD = 'efcffb845d00'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
     (function() {
         const url = /index-unified-test\.html$/.test(location.pathname) ? 'version-test.json' : 'version.json';
         let busy = false;
@@ -17608,7 +17608,6 @@ body.light-mode .card.reference-info {
 #acctSend .ac-f > *{min-width:0}
 #acctSend input,#acctSend select{width:100%;box-sizing:border-box;min-height:42px;border:1px solid var(--border);border-radius:9px;background:transparent;color:var(--text-primary);padding:8px 10px;font-size:15px;font-family:inherit}
 #acctSend select option{color:#111}
-#acctSend input.mask{-webkit-text-security:disc}
 #acctSend .ac-lb{display:flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;color:var(--text-secondary);margin:9px 0 4px}
 #acctSend .ac-auto{color:#16a34a;font-weight:800}
 #acctSend .ac-eye{border:1px solid var(--border);background:transparent;color:var(--text-secondary);border-radius:8px;font-size:12px;font-weight:700;padding:4px 9px;font-family:inherit}
@@ -17633,7 +17632,7 @@ body.light-mode .card.reference-info {
         ['호반', '채들', 'idpw'], ['써밋', '채들', 'idpw'], ['베르디움', '채들', 'idpw'], ['비발디', 'HL MAS', 'idpw'], ['에피트', 'HL MAS', 'idpw'], ['스위첸', 'KCC', 'idpw'], ['수자인', '수자인', 'idpw'],
         ['데시앙', '데시앙', 'idpw'], ['하늘채', '하늘채', 'idpw'], ['아너스빌', 'COWORKER', 'birth'], ['센트레빌', 'COWORKER', 'birth'], ['아이유쉘', 'COWORKER', 'birth'], ['디이스트', 'COWORKER', 'birth'], ['노블루체', 'COWORKER', 'birth']];
     var APPS = BRAND.map(function (b) { return b[1]; }).concat(['H웹라운지', '아트리온', 'LH 홈픽스', '수기접수', '전화']).filter(function (x, i, a) { return a.indexOf(x) === i; });
-    var st = { open: false, day: '', busy: false, apps: false, msg: '', bad: false, eye: {} };
+    var st = { open: false, day: '', busy: false, apps: false, msg: '', bad: false };
     var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
     var load = function (k) { try { return JSON.parse(localStorage.getItem(k) || '{}') || {}; } catch (e) { return {}; } };
     var save = function (k, o) { try { localStorage.setItem(k, JSON.stringify(o)); } catch (e) {} };
@@ -17731,8 +17730,8 @@ body.light-mode .card.reference-info {
                 + '<div class="ac-f"><input data-k="' + k + '" data-f="app" list="acApps" value="' + esc(d.app) + '" placeholder="모르면 비워 두기" autocomplete="off">'
                 + '<select data-k="' + k + '" data-f="ty">' + Object.keys(TY).map(function (t) { return '<option value="' + t + '"' + (t === ty ? ' selected' : '') + '>' + TY[t][0] + '</option>'; }).join('') + '</select></div>';
             if (d.st === 'got' && ty !== 'hand') h += '<div class="ac-f"><div><div class="ac-lb">' + T[1] + '</div><input data-k="' + k + '" data-f="a" value="' + esc(d.a) + '" autocomplete="off" autocapitalize="off" spellcheck="false"></div>'
-                + '<div><div class="ac-lb">' + T[2] + ' <button type="button" class="ac-eye" data-ac="eye" data-k="' + k + '">' + (st.eye[p.id] ? '가리기' : '보기') + '</button></div>'
-                + '<input data-k="' + k + '" data-f="b" value="' + esc(d.b) + '"' + (st.eye[p.id] ? '' : ' class="mask"') + ' autocomplete="off" autocapitalize="off" spellcheck="false"></div></div>';
+                + '<div><div class="ac-lb">' + T[2] + '</div>'   // 대표님 11-12: 비밀번호 가리기 필요 없음
+                + '<input data-k="' + k + '" data-f="b" value="' + esc(d.b) + '" autocomplete="off" autocapitalize="off" spellcheck="false"></div></div>';
         }
         var ph = d.st === 'later' ? '예) 회원가입 아직 → 오늘 밤 문자로' : d.st === 'self' ? '예) 고객이 직접 접수하기로 함' : ty === 'hand' ? '예) 관리사무소 접수서 제출, 11/20까지' : '예) 인증번호는 문자로 · 저녁 7시 이후';
         h += '<div class="ac-lb">기타 (선택)</div><input data-k="' + k + '" data-f="memo" value="' + esc(d.memo) + '" placeholder="' + ph + '" autocomplete="off">';
@@ -17755,12 +17754,21 @@ body.light-mode .card.reference-info {
         if (!us.length) h += '<div class="ac-msg">이 날은 단지·동·호수를 적은 세대가 없어요.</div>';
         us.forEach(function (u) { h += unitHtml(u, dr[u.p.id], sent[u.p.id]); });
         var n = us.filter(function (u) { return dr[u.p.id] && dr[u.p.id].st; }).length;
-        h += '<button type="button" class="btn btn-primary ac-send" data-ac="send"' + (st.busy || !n ? ' disabled' : '') + '>'
+        var left = us.filter(function (u) { return !(dr[u.p.id] && dr[u.p.id].st) && !sent[u.p.id]; });   // 대표님 11-12: 그날 세대를 다 고른 뒤 한 번에 (다른 직원 현장과 안 섞이게)
+        h += '<button type="button" class="btn btn-primary ac-send" data-ac="send"' + (st.busy || !n || left.length ? ' disabled' : '') + '>'
             + (st.busy ? '⏳ 보내는 중…' : '📤 접수대행 시트로 보내기' + (n ? ' (' + n + '세대)' : '')) + '</button>';
+        if (left.length && us.length && !st.busy) h += '<div class="ac-msg">아직 안 고른 세대: ' + left.map(function (u) { return u.seq + '번'; }).join('·') + ' → 그날 세대를 다 고르면 한 번에 보낼 수 있어요 (계정이 아직이면 \'나중에\')</div>';
         if (st.msg) h += '<div class="ac-msg ' + (st.bad ? 'bad' : 'ok') + '">' + esc(st.msg) + '</div>';
-        h += '<div class="ac-msg">보내면 모바일접수대행 시트에 이어서 바로 적혀요(지우지 않음) · 시공사 접수는 시트의 같은 단지 값을 따라요 · 시트는 대표님이 정한 사람만 봐요 · 보낸 세대의 계정은 이 폰에서 지워요</div>';
+        h += '<div class="ac-msg">보내면 모바일접수대행 시트에 바로 적혀요(같은 현장·같은 날 줄 옆 · 순번·고객 성함·연락처·보낸 사람 이름 · 지우지 않음) · 시공사 접수는 시트의 같은 단지 값을 따라요 · 시트는 대표님이 정한 사람만 봐요 · 보낸 세대의 계정은 이 폰에서 지워요</div>';
         h += '<datalist id="acApps">' + APPS.map(function (a) { return '<option value="' + esc(a) + '">'; }).join('') + '</datalist>';
         box.innerHTML = h;
+    }
+    function openP(u) {   // 그 세대 프로젝트 → 📝 프로젝트 탭 → 빈 칸에 커서 (적은 뒤 데이터 탭에서 다시 보내기)
+        if (typeof switchProject === 'function') switchProject(u.p.id);
+        var b = document.querySelector(".tab[onclick*=\"'project'\"]");
+        if (typeof switchTab === 'function') { switchTab('project'); if (b) b.classList.add('active'); }
+        var el = document.getElementById(String(u.p.customerName || '').trim() ? 'customerPhone' : 'customerName');
+        if (el) setTimeout(function () { el.scrollIntoView({ block: 'center' }); el.focus(); }, 300);
     }
     async function send() {
         var L = load('dhLoginData');
@@ -17771,10 +17779,18 @@ body.light-mode .card.reference-info {
             if (acc && !String(d.a || '').trim() && !String(d.b || '').trim()) miss.push(u.seq + '번');
             var day = /^\d{4}-\d{2}-\d{2}/.test(String(p.inspectionDate || '')) ? String(p.inspectionDate).slice(0, 10) : dkey(p);
             var auto = d.auto === true && d.st !== 'self';   // 손대지 않은 자동 값 → 서버가 시트의 같은 단지 값을 먼저 씀 (예전 서버는 이 값 그대로)
-            return { k: String(p.id), site: p.apartmentName, day: day, dong: p.dong, ho: p.ho, name: p.customerName || '', phone: p.customerPhone || '',
+            return { k: String(p.id), site: p.apartmentName, day: day, seq: u.seq, dong: p.dong, ho: p.ho, name: p.customerName || '', phone: p.customerPhone || '',
                 app: d.st === 'self' ? '' : d.app || '', auto: auto, ty: ty, a: acc ? d.a || '' : '', b: acc ? d.b || '' : '', memo: d.memo || '', st: d.st };
         });
         if (miss.length) { st.msg = miss.join('·') + ': 계정을 적거나 \'나중에\'를 골라 주세요.'; st.bad = true; return render(); }
+        var no = function (u) { return [!String(u.p.customerName || '').trim() && '성함', !String(u.p.customerPhone || '').trim() && '연락처'].filter(Boolean).join('·'); };
+        var need = us.filter(function (u) { return dr[u.p.id].st !== 'self' && no(u); });   // 시트 줄에 들어갈 고객 성함·연락처 (고객 직접은 줄을 안 만듦)
+        if (need.length) {
+            st.msg = need.map(function (u) { return u.seq + '번 ' + no(u); }).join(', ') + ' 빈칸 → 프로젝트 정보에 적은 뒤 다시 보내 주세요.'; st.bad = true; render();
+            if (confirm('고객 성함·연락처가 프로젝트에 비어 있어요.\n\n' + need.map(function (u) { return u.seq + '번 ' + u.p.dong + '동 ' + u.p.ho + '호 : ' + no(u) + ' 없음'; }).join('\n')
+                + '\n\n시트에 같이 들어가도록 프로젝트 정보에 먼저 적어 주세요.\n[확인]을 누르면 ' + need[0].seq + '번 프로젝트를 열어요.')) openP(need[0]);
+            return;
+        }
         st.busy = true; st.msg = ''; render();
         var j = null, ctl = typeof AbortController === 'function' ? new AbortController() : null, t = ctl ? setTimeout(function () { ctl.abort(); }, 45000) : 0;
         try {
@@ -17815,7 +17831,6 @@ body.light-mode .card.reference-info {
             if (a === 'toggle') { st.open = !st.open; st.msg = ''; if (st.open) loadApps(); return render(); }
             if (a === 'day') { st.day = b.getAttribute('data-d'); st.msg = ''; return render(); }
             if (a === 'send') return send();
-            if (a === 'eye') { st.eye[k] = !st.eye[k]; return render(); }
             dr = load(DK);
             if (a === 'st') { dr[k] = dr[k] || fresh(k); dr[k].st = b.getAttribute('data-v'); }
             if (a === 'edit') dr[k] = fresh(k);
