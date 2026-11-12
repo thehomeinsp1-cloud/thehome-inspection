@@ -17258,7 +17258,7 @@ body.light-mode .card.reference-info {
     }
     
     // ✅ 패치 69: 새 배포 확인 — 이 화면의 판 번호(APP_BUILD) vs 사이트의 version.json(정식)·version-test.json(테스트)
-    const APP_BUILD = '71fb67da6b80'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
+    const APP_BUILD = 'edf71a41e5c7'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
     (function() {
         const url = /index-unified-test\.html$/.test(location.pathname) ? 'version-test.json' : 'version.json';
         let busy = false;
@@ -17521,7 +17521,7 @@ body.light-mode .card.reference-info {
         });
         if (miss.length) { st.msg = miss.join('·') + ': 계정을 적거나 \'나중에\'를 골라 주세요.'; st.bad = true; return render(); }
         var no = function (u) { return [!String(u.p.customerName || '').trim() && '성함', !String(u.p.customerPhone || '').trim() && '연락처'].filter(Boolean).join('·'); };
-        var need = us.filter(function (u) { return dr[u.p.id].st !== 'self' && no(u); });   // 시트 줄에 들어갈 고객 성함·연락처 (고객 직접은 줄을 안 만듦)
+        var need = us.filter(function (u) { return no(u); });   // 시트 줄에 들어갈 고객 성함·연락처 (고객 직접도 '셀프접수' 줄을 만듦)
         if (need.length) {
             st.msg = need.map(function (u) { return u.seq + '번 ' + no(u); }).join(', ') + ' 빈칸 → 프로젝트 정보에 적은 뒤 다시 보내 주세요.'; st.bad = true; render();
             if (confirm('고객 성함·연락처가 프로젝트에 비어 있어요.\n\n' + need.map(function (u) { return u.seq + '번 ' + u.p.dong + '동 ' + u.p.ho + '호 : ' + no(u) + ' 없음'; }).join('\n')
@@ -17540,7 +17540,7 @@ body.light-mode .card.reference-info {
         if (j.status !== 'ok') { st.msg = j.status === 'locked' ? 'PIN 을 여러 번 틀려 잠겼어요. 10분 뒤 다시 해 주세요.' : j.status === 'inactive' ? '비활성 직원이라 보낼 수 없어요.' : j.status === 'invalid' ? '직원 PIN 이 맞지 않아요. 앱에 다시 로그인해 주세요.' : '서버가 처리하지 못했어요. 잠시 뒤 다시 눌러 주세요. (적은 내용은 그대로 있어요)'; return render(); }
         if (!Array.isArray(j.results)) { st.msg = '로그인 서버가 아직 예전 코드예요. 대표님이 새 코드를 배포하면 보낼 수 있어요. (적은 내용은 그대로 있어요)'; return render(); }
         var dr2 = load(DK), sent = load(SK), ok = 0, bad = [], now = new Date(), at = (now.getMonth() + 1) + '/' + now.getDate() + ' ' + pad(now.getHours()) + ':' + pad(now.getMinutes());
-        var TXT = { filled: '줄(있던 줄)에 적음', added: '줄(새 줄)에 적음', self: '줄에 고객 직접 표시' };
+        var TXT = { filled: '줄(있던 줄)에 적음', added: '줄(새 줄)에 적음', self: '줄에 셀프접수 표시' };
         j.results.forEach(function (x) {
             var u = us.filter(function (v) { return String(v.p.id) === x.k; })[0], d = dr2[x.k] || {};
             if (TXT[x.r] || x.r === 'skip') {
