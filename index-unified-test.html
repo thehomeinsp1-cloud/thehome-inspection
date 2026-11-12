@@ -1972,7 +1972,7 @@ body.light-mode .card.reference-info {
         </button>
         
         <h1>🏠 더홈점검</h1>
-        <p id="appVersionTag" style="color:#fde68a;font-weight:700;">🧪 테스트판 · 업데이트 2026.11.10</p>
+        <p id="appVersionTag" style="color:#fde68a;font-weight:700;">🧪 테스트판 · 업데이트 2026.11.12</p>
     </div>
 
     <div class="container">
@@ -2224,6 +2224,9 @@ body.light-mode .card.reference-info {
                 <button class="btn btn-secondary" onclick="generatePDF()" style="width: 100%; font-size: 13.5px; min-height: 40px; padding: 8px 12px;">📄 PDF 보고서만 받기 (확인용 · 카톡으로 직접 보낼 때)</button>
                 <input type="file" id="equipmentImportInput" accept=".txt,.json,text/plain,application/json" style="display: none;" onchange="mergeEquipmentFile(this)">
             </div>
+
+            <!-- 🔑 시공사 접수 계정 (✅ 패치 114, 대표님 11-12) -->
+            <div class="card" id="acctSend" style="margin-bottom: 14px;"></div>
 
             <!-- 📩 하자접수 완료 문자 (직원 모두 · 패치 59 admin-tab.inc.js sdRender) -->
             <div class="card" id="staffDone" style="margin-bottom: 14px;"></div>
@@ -17518,7 +17521,7 @@ body.light-mode .card.reference-info {
     }
     
     // ✅ 패치 69: 새 배포 확인 — 이 화면의 판 번호(APP_BUILD) vs 사이트의 version.json(정식)·version-test.json(테스트)
-    const APP_BUILD = '9154480ef925'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
+    const APP_BUILD = '22711640408d'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
     (function() {
         const url = /index-unified-test\.html$/.test(location.pathname) ? 'version-test.json' : 'version.json';
         let busy = false;
@@ -17583,5 +17586,204 @@ body.light-mode .card.reference-info {
             </div>
         </div>
     </div>
+<!-- ✅ 패치 114: 🔑 시공사 접수 계정 (대표님 11-12) -->
+<style>
+#acctSend .ac-h{display:flex;align-items:center;gap:10px;width:100%;text-align:left}
+#acctSend .ac-days{display:flex;gap:6px;flex-wrap:wrap;margin:12px 0 2px}
+#acctSend .ac-day{border:1px solid var(--border);background:transparent;color:var(--text-primary);border-radius:999px;padding:7px 12px;font-size:13px;font-weight:700;font-family:inherit}
+#acctSend .ac-day.on,#acctSend .ac-seg button.on{background:var(--text-primary);color:var(--bg-dark,#111);border-color:var(--text-primary)}
+#acctSend .ac-u{border:1px solid var(--border);border-radius:12px;padding:10px;margin-top:10px}
+#acctSend .ac-uh{display:flex;align-items:center;gap:8px}
+#acctSend .ac-seq{flex:none;background:#FF6B35;color:#fff;font-size:11px;font-weight:800;border-radius:7px;padding:5px 7px;line-height:1.2}
+#acctSend .ac-ut{flex:1;min-width:0}
+#acctSend .ac-ut b{font-size:15px}
+#acctSend .ac-ut small{display:block;color:var(--text-secondary);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#acctSend .ac-st{flex:none;font-size:11.5px;font-weight:800;border-radius:7px;padding:4px 8px;border:1px solid var(--border);color:var(--text-secondary)}
+#acctSend .ac-st.ok{color:#16a34a;border-color:rgba(22,163,74,.5)}
+#acctSend .ac-st.am{color:#d97706;border-color:rgba(217,119,6,.55)}
+#acctSend .ac-seg{display:grid;grid-template-columns:repeat(3,1fr);margin-top:9px;border:1px solid var(--border);border-radius:9px;overflow:hidden}
+#acctSend .ac-seg button{border:0;border-left:1px solid var(--border);background:transparent;color:var(--text-secondary);min-height:38px;font-size:13.5px;font-weight:700;font-family:inherit}
+#acctSend .ac-seg button:first-child{border-left:0}
+#acctSend .ac-f{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+#acctSend .ac-f > *{min-width:0}
+#acctSend input,#acctSend select{width:100%;box-sizing:border-box;min-height:42px;border:1px solid var(--border);border-radius:9px;background:transparent;color:var(--text-primary);padding:8px 10px;font-size:15px;font-family:inherit}
+#acctSend select option{color:#111}
+#acctSend input.mask{-webkit-text-security:disc}
+#acctSend .ac-lb{display:flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;color:var(--text-secondary);margin:9px 0 4px}
+#acctSend .ac-eye{border:1px solid var(--border);background:transparent;color:var(--text-secondary);border-radius:8px;font-size:12px;font-weight:700;padding:4px 9px;font-family:inherit}
+#acctSend .ac-send{width:100%;margin-top:14px;min-height:50px;font-size:16px;font-weight:800}
+#acctSend .ac-send:disabled{opacity:.45}
+#acctSend .ac-msg{margin-top:10px;font-size:13px;line-height:1.6;color:var(--text-secondary);word-break:keep-all}
+#acctSend .ac-msg.bad{color:#ef4444;font-weight:700}
+#acctSend .ac-msg.ok{color:#16a34a;font-weight:700}
+#acctSend .ac-msg a{color:inherit;text-decoration:underline}
+</style>
+<script>
+(function () {
+    var TEST = /^\[테스트\]/.test(document.title);   // 테스트판은 서버가 진짜 시트 대신 시험용 파일에 적음
+    var DK = 'acctDraft_v1' + (TEST ? '_t' : ''), SK = 'acctSent_v1' + (TEST ? '_t' : ''); // DK 적는 중(보내면 지움) · SK 보낸 표시(계정 값 없음)
+    var TY = { idpw: ['아이디·비밀번호', '아이디', '비밀번호'], pin: ['휴대폰·PIN', '휴대폰 번호 (하이픈 없이)', 'PIN'], birth: ['이름·생년월일', '휴대폰 번호', '생년월일 8자리'], hand: ['수기·전화 (계정 없음)', '', ''] };
+    // 단지 이름 → 시공사 접수 (모바일접수대행 시트 시공사앱 칸·하자접수 자동화 기록 기준, 처음 보는 단지는 직원이 고름)
+    var BRAND = [['자이', '자이홈', 'idpw'], ['래미안', '헤스티아', 'pin'], ['디에이치', '마이 디에이치', 'idpw'], ['힐스테이트', '마이힐스', 'idpw'], ['아이파크', '아이파크', 'idpw'],
+        ['푸르지오', '푸르지오', 'idpw'], ['더샵', '블루엣라운지', 'idpw'], ['e편한세상', 'DL', 'birth'], ['이편한세상', 'DL', 'birth'], ['포레나', '포레나라운지', 'idpw'], ['위브', '두산위브', 'idpw'],
+        ['롯데캐슬', '캐슬링', 'idpw'], ['sk뷰', 'SK뷰', 'idpw'], ['우미린', '스마트린', 'idpw'], ['풍경채', 'dtspace', 'idpw'], ['로제비앙', 'dtspace', 'idpw'], ['칸타빌', 'dtspace', 'idpw'],
+        ['하이빌', 'dtspace', 'idpw'], ['스타힐스', 'dtspace', 'idpw'], ['펜테리움', 'dtspace', 'idpw'], ['해모로', 'dtspace', 'idpw'], ['라포르테', 'dtspace', 'idpw'], ['아테라', 'dtspace', 'idpw'],
+        ['호반', '채들', 'idpw'], ['써밋', '채들', 'idpw'], ['베르디움', '채들', 'idpw'], ['비발디', 'HL MAS', 'idpw'], ['에피트', 'HL MAS', 'idpw'], ['스위첸', 'KCC', 'idpw'], ['수자인', '수자인', 'idpw'],
+        ['데시앙', '데시앙', 'idpw'], ['하늘채', '하늘채', 'idpw'], ['아너스빌', 'COWORKER', 'birth'], ['센트레빌', 'COWORKER', 'birth'], ['아이유쉘', 'COWORKER', 'birth'], ['디이스트', 'COWORKER', 'birth'], ['노블루체', 'COWORKER', 'birth']];
+    var APPS = BRAND.map(function (b) { return b[1]; }).concat(['H웹라운지', '아트리온', 'LH 홈픽스', '수기접수', '전화']).filter(function (x, i, a) { return a.indexOf(x) === i; });
+    var st = { open: false, day: '', busy: false, msg: '', bad: false, url: '', eye: {} };
+    var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
+    var load = function (k) { try { return JSON.parse(localStorage.getItem(k) || '{}') || {}; } catch (e) { return {}; } };
+    var save = function (k, o) { try { localStorage.setItem(k, JSON.stringify(o)); } catch (e) {} };
+    var pad = function (n) { return (n < 10 ? '0' : '') + n; };
+    var all = function () { return typeof projects !== 'undefined' && Array.isArray(projects) ? projects.filter(Boolean) : []; };
+    var tkey = function (p) { return p.createdAt ? new Date(p.createdAt).getTime() : (p.id || 0); };   // 목록 '오늘 N번'과 같은 기준
+    var ymd = function (t) { return t.getFullYear() + '-' + pad(t.getMonth() + 1) + '-' + pad(t.getDate()); };
+    var dkey = function (p) { return ymd(p.createdAt ? new Date(p.createdAt) : new Date(p.id || Date.now())); };
+    var findP = function (k) { return all().filter(function (p) { return String(p.id) === k; })[0] || null; };
+    function days() {   // 최근 7일 중 세대가 있는 날 (최근 날 먼저)
+        var m = {}, lim = Date.now() - 7 * 86400000;
+        all().forEach(function (p) { if (tkey(p) >= lim) m[dkey(p)] = 1; });
+        return Object.keys(m).sort().reverse();
+    }
+    function units(day) {   // 그날 세대를 목록 순번(만든 순서)대로, 단지·동·호수가 있는 세대만
+        var a = all().filter(function (p) { return dkey(p) === day; }).sort(function (x, y) { return tkey(x) - tkey(y); });
+        return a.map(function (p, i) { return { p: p, seq: i + 1 }; }).filter(function (u) { return u.p.apartmentName && u.p.dong && u.p.ho; });
+    }
+    function guess(name) {
+        var n = String(name || '').replace(/\s+/g, '').toLowerCase();
+        for (var i = 0; i < BRAND.length; i++) if (n.indexOf(BRAND[i][0]) > -1) return { app: BRAND[i][1], ty: BRAND[i][2] };
+        return { app: '', ty: 'idpw' };
+    }
+    function prefill(d, k) {   // 휴대폰으로 로그인하는 곳은 고객 연락처를 미리 (고칠 수 있음)
+        if ((d.ty === 'pin' || d.ty === 'birth') && !d.a) { var p = findP(k); d.a = String(p && p.customerPhone || '').replace(/[^0-9]/g, ''); }
+        return d;
+    }
+    function fresh(k) { var p = findP(k), g = guess(p && p.apartmentName); return prefill({ st: 'got', app: g.app, ty: g.ty, a: '', b: '', memo: '' }, k); }
+    function seg(k, cur) {
+        return '<div class="ac-seg">' + [['got', '받음'], ['later', '나중에'], ['self', '고객 직접']].map(function (x) {
+            return '<button type="button" data-ac="st" data-k="' + k + '" data-v="' + x[0] + '"' + (cur === x[0] ? ' class="on"' : '') + '>' + x[1] + '</button>';
+        }).join('') + '</div>';
+    }
+    function unitHtml(u, d, s) {
+        var p = u.p, k = esc(String(p.id));
+        var head = '<div class="ac-uh"><span class="ac-seq">' + u.seq + '번</span><div class="ac-ut"><b>' + esc(p.dong) + '동 ' + esc(p.ho) + '호</b><small>'
+            + esc(p.apartmentName) + (p.customerName ? ' · ' + esc(p.customerName) : '') + '</small></div>';
+        if (!d && s) return '<div class="ac-u" data-u="' + k + '">' + head + '<span class="ac-st ok">✓ 보냄 ' + esc(s.at) + '</span></div>'
+            + '<div class="ac-msg" style="margin-top:6px;">' + esc(s.txt) + ' <button type="button" class="ac-eye" data-ac="edit" data-k="' + k + '">다시 적기</button></div></div>';
+        if (!d) return '<div class="ac-u" data-u="' + k + '">' + head + '<span class="ac-st">안 적음</span></div>' + seg(k, '') + '</div>';
+        var ty = TY[d.ty] ? d.ty : 'idpw', T = TY[ty];
+        var h = '<div class="ac-u" data-u="' + k + '">' + head + '<span class="ac-st am">적는 중</span></div>' + seg(k, d.st);
+        if (d.st !== 'self') {
+            h += '<div class="ac-lb">시공사 접수 (앱·웹)</div><div class="ac-f"><input data-k="' + k + '" data-f="app" list="acApps" value="' + esc(d.app) + '" placeholder="예: 자이홈" autocomplete="off">'
+                + '<select data-k="' + k + '" data-f="ty">' + Object.keys(TY).map(function (t) { return '<option value="' + t + '"' + (t === ty ? ' selected' : '') + '>' + TY[t][0] + '</option>'; }).join('') + '</select></div>';
+            if (d.st === 'got' && ty !== 'hand') h += '<div class="ac-f"><div><div class="ac-lb">' + T[1] + '</div><input data-k="' + k + '" data-f="a" value="' + esc(d.a) + '" autocomplete="off" autocapitalize="off" spellcheck="false"></div>'
+                + '<div><div class="ac-lb">' + T[2] + ' <button type="button" class="ac-eye" data-ac="eye" data-k="' + k + '">' + (st.eye[p.id] ? '가리기' : '보기') + '</button></div>'
+                + '<input data-k="' + k + '" data-f="b" value="' + esc(d.b) + '"' + (st.eye[p.id] ? '' : ' class="mask"') + ' autocomplete="off" autocapitalize="off" spellcheck="false"></div></div>';
+        }
+        var ph = d.st === 'later' ? '예) 회원가입 아직 → 오늘 밤 문자로' : d.st === 'self' ? '예) 고객이 직접 접수하기로 함' : ty === 'hand' ? '예) 관리사무소 접수서 제출, 11/20까지' : '예) 인증번호는 문자로 · 저녁 7시 이후';
+        h += '<div class="ac-lb">기타 (선택)</div><input data-k="' + k + '" data-f="memo" value="' + esc(d.memo) + '" placeholder="' + ph + '" autocomplete="off">';
+        return h + '<div style="text-align:right;margin-top:6px;"><button type="button" class="ac-eye" data-ac="clear" data-k="' + k + '">적은 것 지우기</button></div></div>';
+    }
+    function render() {
+        var box = document.getElementById('acctSend');
+        if (!box) return;
+        var dr = load(DK), sent = load(SK), td = ymd(new Date()), ds = days();
+        if (!st.day || ds.indexOf(st.day) < 0) st.day = ds.indexOf(td) > -1 ? td : (ds[0] || td);
+        var tu = units(td), ts = tu.filter(function (u) { return sent[u.p.id]; }).length;
+        var h = '<button type="button" class="btn btn-secondary ac-h" data-ac="toggle"><span style="font-size:22px;">🔑</span><span style="flex:1;"><b style="font-size:15px;">시공사 접수 계정 보내기</b>'
+            + (TEST ? ' <small style="color:#d97706;font-weight:800;">시험 시트로</small>' : '') + '<br><small style="color:var(--text-secondary);">고객에게 받은 하자접수 계정 → 모바일접수대행 시트'
+            + (tu.length ? ' · 오늘 ' + tu.length + '세대' + (ts ? ' (보냄 ' + ts + ')' : '') : '') + '</small></span><span>' + (st.open ? '▲' : '▼') + '</span></button>';
+        if (!st.open) { box.innerHTML = h; return; }
+        h += '<div class="ac-days">' + (ds.length ? ds : [td]).map(function (d) {
+            return '<button type="button" class="ac-day' + (d === st.day ? ' on' : '') + '" data-ac="day" data-d="' + d + '">' + (d === td ? '오늘' : (+d.slice(5, 7)) + '/' + (+d.slice(8))) + ' · ' + units(d).length + '세대</button>';
+        }).join('') + '</div>';
+        var us = units(st.day);
+        if (!us.length) h += '<div class="ac-msg">이 날은 단지·동·호수를 적은 세대가 없어요.</div>';
+        us.forEach(function (u) { h += unitHtml(u, dr[u.p.id], sent[u.p.id]); });
+        var n = us.filter(function (u) { return dr[u.p.id] && dr[u.p.id].st; }).length;
+        h += '<button type="button" class="btn btn-primary ac-send" data-ac="send"' + (st.busy || !n ? ' disabled' : '') + '>'
+            + (st.busy ? '⏳ 보내는 중…' : '📤 접수대행 시트로 보내기' + (n ? ' (' + n + '세대)' : '')) + '</button>';
+        if (st.msg) h += '<div class="ac-msg ' + (st.bad ? 'bad' : 'ok') + '">' + esc(st.msg) + (st.url ? ' · <a href="' + esc(st.url) + '" target="_blank" rel="noopener">시험 시트 열기</a>' : '') + '</div>';
+        h += '<div class="ac-msg">보내면 모바일접수대행 시트에 바로 적혀요(지우지 않음) · 시트는 대표님이 정한 사람만 봐요 · 보낸 세대의 계정은 이 폰에서 지워요</div>';
+        h += '<datalist id="acApps">' + APPS.map(function (a) { return '<option value="' + esc(a) + '">'; }).join('') + '</datalist>';
+        box.innerHTML = h;
+    }
+    async function send() {
+        var L = load('dhLoginData');
+        if (!L.code || !L.pin || typeof LOGIN_API_URL === 'undefined' || !LOGIN_API_URL) { st.msg = '직원 로그인 정보가 없어요. 앱에 다시 로그인해 주세요.'; st.bad = true; return render(); }
+        var dr = load(DK), us = units(st.day).filter(function (u) { return dr[u.p.id] && dr[u.p.id].st; }), miss = [];
+        var items = us.map(function (u) {
+            var d = dr[u.p.id], p = u.p, ty = TY[d.ty] ? d.ty : 'idpw', acc = d.st === 'got' && ty !== 'hand';
+            if (acc && !String(d.a || '').trim() && !String(d.b || '').trim()) miss.push(u.seq + '번');
+            var day = /^\d{4}-\d{2}-\d{2}/.test(String(p.inspectionDate || '')) ? String(p.inspectionDate).slice(0, 10) : dkey(p);
+            return { k: String(p.id), site: p.apartmentName, day: day, dong: p.dong, ho: p.ho, name: p.customerName || '', phone: p.customerPhone || '',
+                app: d.st === 'self' ? '' : d.app || '', ty: ty, a: acc ? d.a || '' : '', b: acc ? d.b || '' : '', memo: d.memo || '', st: d.st };
+        });
+        if (miss.length) { st.msg = miss.join('·') + ': 계정을 적거나 \'나중에\'를 골라 주세요.'; st.bad = true; return render(); }
+        st.busy = true; st.msg = ''; st.url = ''; render();
+        var j = null, ctl = typeof AbortController === 'function' ? new AbortController() : null, t = ctl ? setTimeout(function () { ctl.abort(); }, 45000) : 0;
+        try {
+            var res = await fetch(LOGIN_API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, cache: 'no-store', signal: ctl ? ctl.signal : undefined,
+                body: JSON.stringify({ action: 'acct', code: L.code, pin: L.pin, test: TEST, ua: navigator.userAgent, items: items }) });
+            j = res.ok ? await res.json() : null;
+        } catch (e) { j = null; } finally { clearTimeout(t); st.busy = false; }
+        st.bad = true;
+        if (!j) { st.msg = '보내지 못했어요. 인터넷 연결을 확인하고 다시 눌러 주세요. (적은 내용은 그대로 있어요)'; return render(); }
+        if (j.status !== 'ok') { st.msg = j.status === 'locked' ? 'PIN 을 여러 번 틀려 잠겼어요. 10분 뒤 다시 해 주세요.' : j.status === 'inactive' ? '비활성 직원이라 보낼 수 없어요.' : j.status === 'invalid' ? '직원 PIN 이 맞지 않아요. 앱에 다시 로그인해 주세요.' : '서버가 처리하지 못했어요. 잠시 뒤 다시 눌러 주세요. (적은 내용은 그대로 있어요)'; return render(); }
+        if (!Array.isArray(j.results)) { st.msg = '로그인 서버가 아직 예전 코드예요. 대표님이 새 코드를 배포하면 보낼 수 있어요. (적은 내용은 그대로 있어요)'; return render(); }
+        var dr2 = load(DK), sent = load(SK), ok = 0, bad = [], now = new Date(), at = (now.getMonth() + 1) + '/' + now.getDate() + ' ' + pad(now.getHours()) + ':' + pad(now.getMinutes());
+        var TXT = { filled: '줄(있던 줄)에 적음', added: '줄(새 줄)에 적음', self: '줄에 고객 직접 표시' };
+        j.results.forEach(function (x) {
+            var u = us.filter(function (v) { return String(v.p.id) === x.k; })[0], d = dr2[x.k] || {};
+            if (TXT[x.r] || x.r === 'skip') {
+                ok++;
+                sent[x.k] = { at: at, r: x.r, txt: (x.r === 'skip' ? '고객 직접 · 시트에 그 세대 줄이 없어 안 적음' : '시트 ' + x.row + TXT[x.r]) + (d.st === 'later' ? ' · 나중에 받기' : '') + (TEST ? ' (시험 시트)' : '') };
+                delete dr2[x.k];   // 보낸 세대의 계정은 폰에서 지움
+            } else bad.push((u ? u.seq + '번 ' : '') + ({ notab: '시트에 그 해 탭이 없음', nocol: '시트 칸 제목을 못 찾음', bad: '단지·동·호수 빈칸' }[x.r] || x.r));
+        });
+        save(DK, dr2); save(SK, sent);
+        st.msg = (ok ? '✓ ' + ok + '세대 보냈어요' : '') + (bad.length ? (ok ? ' · ' : '') + '못 보냄: ' + bad.join(', ') : '');
+        st.bad = !!bad.length; st.url = j.url || '';
+        render();
+    }
+    document.addEventListener('DOMContentLoaded', function () {
+        var box = document.getElementById('acctSend');
+        if (!box) return;
+        render();
+        var iv = setInterval(function () { if (window._projectsLoaded) { clearInterval(iv); render(); } }, 700);
+        setTimeout(function () { clearInterval(iv); }, 60000);
+        if ('IntersectionObserver' in window) new IntersectionObserver(function (es) { if (!st.open && es.some(function (x) { return x.isIntersecting; })) render(); }).observe(box); // 데이터 탭을 열 때 '오늘 N세대' 새로
+        box.addEventListener('click', function (e) {
+            var b = e.target.closest && e.target.closest('[data-ac]');
+            if (!b || st.busy) return;
+            var a = b.getAttribute('data-ac'), k = b.getAttribute('data-k'), dr;
+            if (a === 'toggle') { st.open = !st.open; st.msg = ''; return render(); }
+            if (a === 'day') { st.day = b.getAttribute('data-d'); st.msg = ''; return render(); }
+            if (a === 'send') return send();
+            if (a === 'eye') { st.eye[k] = !st.eye[k]; return render(); }
+            dr = load(DK);
+            if (a === 'st') { dr[k] = dr[k] || fresh(k); dr[k].st = b.getAttribute('data-v'); }
+            if (a === 'edit') dr[k] = fresh(k);
+            if (a === 'clear') delete dr[k];
+            save(DK, dr); render();
+        });
+        box.addEventListener('input', function (e) {   // 적는 대로 이 폰에만 (화면은 다시 안 그림 → 글자 칸 그대로)
+            var el = e.target, k = el.getAttribute && el.getAttribute('data-k'), f = el.getAttribute && el.getAttribute('data-f');
+            if (!k || !f || f === 'ty') return;
+            var dr = load(DK);
+            if (!dr[k]) return;
+            dr[k][f] = el.value; save(DK, dr);
+        });
+        box.addEventListener('change', function (e) {
+            var el = e.target, k = el.getAttribute && el.getAttribute('data-k');
+            if (!k || el.getAttribute('data-f') !== 'ty') return;
+            var dr = load(DK);
+            if (!dr[k]) return;
+            dr[k].ty = el.value; prefill(dr[k], k); save(DK, dr); render();
+        });
+    });
+})();
+</script>
 </body>
 </html>
