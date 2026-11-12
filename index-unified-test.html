@@ -7218,12 +7218,13 @@ body.light-mode .card.reference-info {
             async function loadSub(days) {
                 days = days || 90; // 관리자 탭 90일, 직원 데이터 탭 3일
                 const sget = path => gget(SUBURL + path);
-                const all = ((await sget('?fields=sheets.properties.title')).sheets || []).map(x => x.properties.title).filter(t => /^모바일접수대행_\d{4}$/.test(t)).sort();
+                const yr = t => +(/_(\d{4})(?:_|$)/.exec(t) || [0, 0])[1];   // ✅ 패치 115 (대표님 11-12): 탭 이름의 해 — '모바일접수대행_2026' · 앱이 적는 새 탭 '모바일접수대행_2026_앱'
+                const all = ((await sget('?fields=sheets.properties.title')).sheets || []).map(x => x.properties.title).filter(t => /^모바일접수대행_\d{4}(_앱)?$/.test(t)).sort((a, b) => yr(a) - yr(b) || a.length - b.length);
                 if (!all.length) throw Object.assign(new Error('no tab'), { msg: "모바일접수대행 시트에서 '모바일접수대행_연도' 탭을 찾지 못했어요" });
                 const now = new Date(); now.setHours(0, 0, 0, 0);
                 const from = now.getTime() - days * 86400000;
                 // 보는 기간이 지난해로 넘어갈 때만(1월 초) 지난해 탭도 읽음 — 평소엔 올해 탭 하나 (요청 4번)
-                const tabs = all.slice(new Date(from).getFullYear() < parseInt(all[all.length - 1].slice(-4), 10) ? -2 : -1);
+                const lastY = yr(all[all.length - 1]), tabs = all.filter(t => yr(t) >= (new Date(from).getFullYear() < lastY ? lastY - 1 : lastY));   // 그 해 탭 + 새 탭('_앱') 같이
                 const out = [];
                 let newest = null;
                 for (const tab of tabs) {
@@ -7239,7 +7240,7 @@ body.light-mode .card.reference-info {
                     const keys = Object.keys(need).filter(k => need[k] >= 0), start = head + 1;
                     const bg = await sget('/values:batchGet?majorDimension=COLUMNS&' + keys.map(k => 'ranges=' + rq("'" + tab + "'!" + colL(need[k]) + start + ':' + colL(need[k]))).join('&'));
                     const C = {}; keys.forEach((k, j) => { C[k] = (((bg.valueRanges || [])[j] || {}).values || [])[0] || []; });
-                    const n = Math.max.apply(null, keys.map(k => C[k].length)), y0 = parseInt(tab.slice(-4), 10);
+                    const n = Math.max.apply(null, keys.map(k => C[k].length)), y0 = yr(tab);
                     for (let i = 0; i < n; i++) {
                         const g = k => String((C[k] || [])[i] == null ? '' : C[k][i]).trim();
                         if (!g('site') || !/TRUE/i.test(g('done'))) continue;
@@ -17521,7 +17522,7 @@ body.light-mode .card.reference-info {
     }
     
     // ✅ 패치 69: 새 배포 확인 — 이 화면의 판 번호(APP_BUILD) vs 사이트의 version.json(정식)·version-test.json(테스트)
-    const APP_BUILD = '5c59905468e2'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
+    const APP_BUILD = '15a6a529d5ea'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
     (function() {
         const url = /index-unified-test\.html$/.test(location.pathname) ? 'version-test.json' : 'version.json';
         let busy = false;
