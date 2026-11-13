@@ -1972,7 +1972,7 @@ body.light-mode .card.reference-info {
         </button>
         
         <h1>🏠 더홈점검</h1>
-        <p id="appVersionTag">업데이트 2026.11.12</p>
+        <p id="appVersionTag">업데이트 2026.11.13</p>
     </div>
 
     <div class="container">
@@ -6305,8 +6305,14 @@ body.light-mode .card.reference-info {
         const _etHM = d => String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
         const _etDongHo = p => String(p.dong || '').trim().replace(/동$/, '') + '동 ' + String(p.ho || '').trim().replace(/호$/, '') + '호';
         const _etReady = p => !!(p && String(p.apartmentName || '').trim() && String(p.dong || '').trim() && String(p.ho || '').trim());
+        // ✅ 패치 117 (대표님 11-13): 이 폰에서 오늘 입실톡을 보낸 세대 중 몇 번째인지 — 다시 보내면 번호 그대로. 되돌리기: patches/117-entry-nth.json 을 빼고 node merge.js
+        function _etNth(p) {
+            const day = new Date().toDateString(), today = x => x && x._entryTalkAt && new Date(x._entryTalkAt).toDateString() === day;
+            const mine = today(p) ? new Date(p._entryTalkAt) : null; // 오늘 이미 보낸 세대면 그때 순서
+            return (projects || []).filter(x => today(x) && x.id !== p.id && (!mine || new Date(x._entryTalkAt) < mine)).length + 1;
+        }
         function entryTalkText(p) {
-            return '[입실] ' + String(p.apartmentName || '').trim() + ' ' + _etDongHo(p)
+            return '[입실 ' + _etNth(p) + '번째] ' + String(p.apartmentName || '').trim() + ' ' + _etDongHo(p)
                 + (String(p.author || '').trim() ? ' / ' + String(p.author).trim() : '') + ' / ' + _etHM(new Date());
         }
         window.renderEntryTalkBar = function() {
@@ -17279,7 +17285,7 @@ body.light-mode .card.reference-info {
     }
     
     // ✅ 패치 69: 새 배포 확인 — 이 화면의 판 번호(APP_BUILD) vs 사이트의 version.json(정식)·version-test.json(테스트)
-    const APP_BUILD = '8c1a77007157'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
+    const APP_BUILD = 'f6cc30e2db42'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
     (function() {
         const url = /index-unified-test\.html$/.test(location.pathname) ? 'version-test.json' : 'version.json';
         let busy = false;
