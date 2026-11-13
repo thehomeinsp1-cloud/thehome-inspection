@@ -17548,7 +17548,7 @@ body.light-mode .card.reference-info {
     }
     
     // ✅ 패치 69: 새 배포 확인 — 이 화면의 판 번호(APP_BUILD) vs 사이트의 version.json(정식)·version-test.json(테스트)
-    const APP_BUILD = 'ec9c0a2c9953'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
+    const APP_BUILD = 'f84ad6496242'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
     (function() {
         const url = /index-unified-test\.html$/.test(location.pathname) ? 'version-test.json' : 'version.json';
         let busy = false;
@@ -17786,7 +17786,7 @@ body.light-mode .card.reference-info {
             + (st.busy ? '⏳ 보내는 중…' : '📤 접수대행 시트로 보내기' + (n ? ' (' + n + '세대)' : '')) + '</button>';
         if (left.length && us.length && !st.busy) h += '<div class="ac-msg">아직 안 고른 세대: ' + left.map(function (u) { return u.seq + '번'; }).join('·') + ' → 그날 세대를 다 고르면 한 번에 보낼 수 있어요 (계정이 아직이면 \'나중에\')</div>';
         if (st.msg) h += '<div class="ac-msg ' + (st.bad ? 'bad' : 'ok') + '">' + esc(st.msg) + '</div>';
-        h += '<div class="ac-msg">보내면 모바일접수대행 시트에 바로 적혀요(같은 현장·같은 날 줄 옆 · 순번·고객 성함·연락처·보낸 사람 이름 · 지우지 않음) · 시공사 접수는 시트의 같은 단지 값을 따라요 · 시트는 대표님이 정한 사람만 봐요 · 보낸 세대의 계정은 이 폰에서 지워요</div>';
+        h += '<div class="ac-msg">보내면 모바일접수대행 시트에 바로 적혀요(같은 현장·같은 날 줄 옆 · 순번·고객 성함·연락처·하자 수(접수건수)·보낸 사람 이름 · 지우지 않음) · 시공사 접수는 시트의 같은 단지 값을 따라요 · 시트는 대표님이 정한 사람만 봐요 · 보낸 세대의 계정은 이 폰에서 지워요</div>';
         h += '<datalist id="acApps">' + APPS.map(function (a) { return '<option value="' + esc(a) + '">'; }).join('') + '</datalist>';
         box.innerHTML = h;
     }
@@ -17806,7 +17806,7 @@ body.light-mode .card.reference-info {
             if (acc && !String(d.a || '').trim() && !String(d.b || '').trim()) miss.push(u.seq + '번');
             var day = /^\d{4}-\d{2}-\d{2}/.test(String(p.inspectionDate || '')) ? String(p.inspectionDate).slice(0, 10) : dkey(p);
             var auto = d.auto === true && d.st !== 'self';   // 손대지 않은 자동 값 → 서버가 시트의 같은 단지 값을 먼저 씀 (예전 서버는 이 값 그대로)
-            return { k: String(p.id), site: p.apartmentName, day: day, seq: u.seq, dong: p.dong, ho: p.ho, name: p.customerName || '', phone: p.customerPhone || '',
+            return { k: String(p.id), site: p.apartmentName, day: day, seq: u.seq, dong: p.dong, ho: p.ho, name: p.customerName || '', phone: p.customerPhone || '', cnt: (p.defects || []).length,
                 app: d.st === 'self' ? '' : d.app || '', auto: auto, ty: ty, a: acc ? d.a || '' : '', b: acc ? d.b || '' : '', memo: d.memo || '', st: d.st };
         });
         if (miss.length) { st.msg = miss.join('·') + ': 계정을 적거나 \'나중에\'를 골라 주세요.'; st.bad = true; return render(); }
