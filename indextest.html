@@ -7526,7 +7526,7 @@ body.light-mode .card.reference-info {
                 if (loading) { box.innerHTML = card('<div class="adm-msg">⏳ 예약현황 불러오는 중...</div>'); return; }
                 if (err) { box.innerHTML = card('<div class="adm-msg adm-err">' + E(err) + '</div>' + (/로그인/.test(err) ? '<button type="button" class="btn btn-primary" data-act="login" style="width:100%;">🔐 구글 다시 로그인</button>' : '')); return; }
                 if (!data) { box.innerHTML = card(''); return; }
-                const V = views(), cross = ['k1', 'k7', 'k8', 'k9', 'k10', 'k11', 'k12', 'k13', 'k14', 'k15', 'k16'].indexOf(st.kind) >= 0;
+                const V = views(), cross = ['k1', 'k3', 'k4', 'k5', 'k7', 'k8', 'k9', 'k10', 'k11', 'k12', 'k13', 'k14', 'k15', 'k16'].indexOf(st.kind) >= 0;
                 const repNote = !data.reports; // 드라이브 보고서 확인 전이면 '확인 필요' 숫자 뒤에 +
                 const nCheck = V.soon.length + V.noRep.length;
                 // 한눈에: 오늘·내일·7일·미입금·확인 필요 (누르면 그 목록으로)
@@ -7580,6 +7580,19 @@ body.light-mode .card.reference-info {
                     if (st.d7at !== opts[0].k || !opts.some(o => o.k === st.d7)) { st.d7 = opts[1].k; st.d7at = opts[0].k; } // 날이 바뀌면 다시 '내일'로
                     h += '<select class="adm-sel" data-f="d7">' + opts.map(o => '<option value="' + o.k + '"' + (o.k === st.d7 ? ' selected' : '') + '>' + o.w + dLabel(o.d) + ' · ' + o.n + '세대</option>').join('') + '</select>';
                     cur = data.rows.filter(r => dKey(r.date) === st.d7).sort((a, b) => a.key.localeCompare(b.key, 'ko') || tMin(a.time) - tMin(b.time));
+                } else if (['k3', 'k4', 'k5'].indexOf(st.kind) >= 0) { // ✅ 패치 119: 전날 안내처럼 날짜 하나 → 모든 단지
+                    const k4 = st.kind === 'k4', k5 = st.kind === 'k5', t0 = dKey(new Date(V.day(0))), t60 = dKey(new Date(V.day(-60)));
+                    const pool = data.rows.filter(r => r.date && !(k4 && k4Skip(r, new Date(V.day(0))))), by = {};
+                    pool.forEach(r => { (by[dKey(r.date)] = by[dKey(r.date)] || []).push(r); });
+                    let keys = st.kind === 'k3' ? [1, 2, 3, 4, 5, 6, 7].map(n => dKey(new Date(V.day(n)))) // 필독: 점검 1주일 전~하루 전
+                        : Object.keys(by).filter(k => !k5 || (k <= t0 && k >= t60));
+                    if (st.date && by[st.date] && keys.indexOf(st.date) < 0) keys.push(st.date); // 고객 찾기로 온 날
+                    keys = keys.sort(); if (k5) keys.reverse(); // 정산은 최근 먼저
+                    if (keys.indexOf(st.date) < 0) st.date = keys.find(k => (by[k] || []).some(r => !sent[sentKey(r)])) || keys[0] || '';
+                    const w = k => { const n = Math.round((new Date(k + 'T00:00') - V.day(0)) / 86400000); return n === 0 ? '오늘 · ' : n === 1 ? '내일 · ' : n === -1 ? '어제 · ' : ''; };
+                    h += '<div class="adm-step">② 점검 날짜 <small>단지 상관없이 모아 보기' + (st.kind === 'k3' ? ' · 점검 1주일 전~하루 전' : k4 ? ' · 결재확인·지난 날짜 빼고 · 단지 안은 시트 순서' : ' · 오늘~지난 60일') + '</small></div>';
+                    h += keys.length ? '<select class="adm-sel" data-f="date">' + keys.map(k => '<option value="' + k + '"' + (k === st.date ? ' selected' : '') + '>' + w(k) + dLabel(new Date(k + 'T00:00')) + ' · ' + (by[k] || []).length + '세대</option>').join('') + '</select>' : '';
+                    cur = (by[st.date] || []).slice().sort(k4 ? (a, b) => rowOrder(a) < rowOrder(b) ? -1 : 1 : (a, b) => a.key.localeCompare(b.key, 'ko') || tMin(a.time) - tMin(b.time));
                 } else if (st.kind === 'k11' || st.kind === 'k14') { // ✅ 패치 95: k14 = 계약서 서명만
                     // 직원 로그인 기록: 문자 없이 보기만
                     if (!data.login) { h += '<div class="adm-msg">⏳ 로그인 기록 불러오는 중...</div>'; startLogin(); }
@@ -7952,7 +7965,7 @@ body.light-mode .card.reference-info {
                     const a = b.getAttribute('data-act');
                     if (a === 'login') { if (window.handleGoogleSignIn) window.handleGoogleSignIn(); return; }
                     if (a === 'reload') return start(true);
-                    if (a === 'kind') { st.kind = b.getAttribute('data-k'); return render(); }
+                    if (a === 'kind') { st.kind = b.getAttribute('data-k'); st.date = ''; return render(); } // ✅ 패치 119
                     if (a === 'jump') { st.kind = b.getAttribute('data-k'); if (b.getAttribute('data-d')) { st.d7 = b.getAttribute('data-d'); st.d7at = dKey(new Date()); } render(); box.scrollIntoView({ block: 'start' }); return; }
                     if (a === 'open') return openRow(+b.getAttribute('data-i'));
                     if (a === 'sq-send') { // 찾은 고객 → 그 문자 종류·단지·날짜 목록으로 옮긴 뒤 바로 보내기 창
@@ -17285,7 +17298,7 @@ body.light-mode .card.reference-info {
     }
     
     // ✅ 패치 69: 새 배포 확인 — 이 화면의 판 번호(APP_BUILD) vs 사이트의 version.json(정식)·version-test.json(테스트)
-    const APP_BUILD = '7b848e2ebe32'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
+    const APP_BUILD = '4b66a9f02999'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
     (function() {
         const url = /index-unified-test\.html$/.test(location.pathname) ? 'version-test.json' : 'version.json';
         let busy = false;
