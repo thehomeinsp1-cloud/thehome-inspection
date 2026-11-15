@@ -2102,6 +2102,7 @@ body.light-mode .card.reference-info {
             <!-- ✅ 검토 필요만 보기 · 자동 채우기 · 하자 번호로 바로 가기 (하자가 있을 때만 표시) -->
             <div id="missingTools" style="display: none;">
                 <button type="button" id="missingOnlyBtn" class="btn btn-secondary" aria-pressed="false" onclick="toggleMissingOnly()">⚠️ 검토 0</button>
+                <button type="button" id="afBtn" class="btn btn-secondary" onclick="AF.run()" title="사진 속 하자 스티커를 읽어 위치·하자내용을 채웁니다 (시험)">🤖 자동 채우기</button>
                 <span class="tb-jump"><input type="text" id="jumpDefectNo" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" placeholder="번호" aria-label="이동할 하자 번호"
                        onkeydown="if(event.key==='Enter' && !event.isComposing){event.preventDefault();jumpToDefect();}"><button type="button" onclick="jumpToDefect()" aria-label="그 번호 하자로 이동">→</button></span>
             </div>
