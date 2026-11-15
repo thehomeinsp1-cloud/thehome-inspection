@@ -8930,7 +8930,7 @@ body.light-mode .card.reference-info {
                 const el = document.getElementById('detailLocation_' + id); if (!el) return;
                 el.value = (el.value.trim() ? el.value.trim() + ' ' : '') + w; DL.preview(id, el.value);
             };
-            const PARTS = ['걸레받이', '몰딩', '틀', '코너', '이음부', '마루', '실리콘', '피스커버'];
+            const PARTS = ['걸레받이', '몰딩', '틀', '코너', '이음부', '마루', '개폐', '피스커버']; // ✅ 패치 121
             const DGRID = [['좌상', '좌측 상단'], ['상', '상단'], ['우상', '우측 상단'], ['좌', '좌측'], ['중앙', '중앙'], ['우', '우측'], ['좌하', '좌측 하단'], ['하', '하단'], ['우하', '우측 하단']];
             const chip = (id, label, w) => `<button type="button" class="dl-c" onmousedown="event.preventDefault()" onclick="DL.add(${id}, '${w || label}')">${label}</button>`;
             DL.picker = function (d) {
@@ -17561,7 +17561,7 @@ body.light-mode .card.reference-info {
     }
     
     // ✅ 패치 69: 새 배포 확인 — 이 화면의 판 번호(APP_BUILD) vs 사이트의 version.json(정식)·version-test.json(테스트)
-    const APP_BUILD = '727f87e183b3'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
+    const APP_BUILD = '9746a4b9e736'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
     (function() {
         const url = /index-unified-test\.html$/.test(location.pathname) ? 'version-test.json' : 'version.json';
         let busy = false;
