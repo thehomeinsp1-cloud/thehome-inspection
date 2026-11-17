@@ -5316,7 +5316,7 @@ body.light-mode .card.reference-info {
                 (byDate[k] = byDate[k] || []).push(p);
             });
             Object.values(byDate).forEach(arr => {
-                arr.sort((a,b) => getTime(a) - getTime(b));
+                // ✅ 패치 124: 목록(배열) 순서 그대로 — ▲▼로 바꾼 순서가 번호가 됨
                 arr.forEach((p,i) => { seqMap[p.id] = i + 1; });
             });
 
@@ -5375,7 +5375,7 @@ body.light-mode .card.reference-info {
                          onmouseover="if(!${isActive}) this.style.background='rgba(255,255,255,0.2)'"
                          onmouseout="if(!${isActive}) this.style.background='rgba(255,255,255,0.1)'">
                         <div style="display: flex; align-items: center; gap: 11px;">
-                            ${seqBadge}
+                            ${seqBadge}${dKey === todayKey && (byDate[todayKey] || []).length > 1 ? `<div style="order:1;display:flex;flex-direction:column;gap:4px;flex-shrink:0;">${[[-1, '▲', seq > 1], [1, '▼', seq < byDate[todayKey].length]].map(([d, t, on]) => `<button type="button" onclick="moveTodayProject(event, ${project.id}, ${d})" ${on ? '' : 'disabled'} aria-label="${d < 0 ? '위로' : '아래로'}" style="width:34px;height:28px;border:0;border-radius:6px;background:rgba(255,255,255,0.22);color:#fff;font-size:14px;font-weight:800;padding:0;opacity:${on ? 1 : 0.25};">${t}</button>`).join('')}</div>` : ''}
                             <div style="flex: 1; min-width: 0;">
                                 <div style="font-size: ${aptFontSize}px; font-weight: 800; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${isActive ? '▶ ' : ''}${escapeHtml(aptName)}</div>
                                 <div style="display: flex; align-items: baseline; gap: 2px 8px; margin-top: 2px; flex-wrap: wrap;">
@@ -5408,6 +5408,17 @@ body.light-mode .card.reference-info {
         }
 
         // 새 프로젝트 추가
+        // ✅ 패치 124: 같은 날 세대끼리 자리 바꾸기 (오늘 N번 순서)
+        window.moveTodayProject = function (ev, id, d) {
+            if (ev) ev.stopPropagation(); // 카드 누름(세대 바꾸기)으로 안 넘어가게
+            const dk = p => { const t = p.createdAt ? new Date(p.createdAt) : new Date(p.id || Date.now()); return t.getFullYear() + '-' + t.getMonth() + '-' + t.getDate(); };
+            const p = projects.find(x => x.id === id); if (!p) return;
+            const same = projects.filter(x => dk(x) === dk(p)), q = same[same.indexOf(p) + d]; if (!q) return;
+            const a = projects.indexOf(p), b = projects.indexOf(q);
+            projects[a] = q; projects[b] = p;
+            renderProjectList();
+            saveProjectsToLocalStorage();
+        };
         let _cleanupAsked = false; // 새 프로젝트 때 정리 권유는 앱을 켤 때마다 한 번만
         window.addNewProject = async function() {
             // ✅ 세대가 많고 정리할 세대가 있으면 정리할지 물어봄 (취소·실패해도 새 프로젝트는 그대로 만듦)
@@ -17563,7 +17574,7 @@ body.light-mode .card.reference-info {
     }
     
     // ✅ 패치 69: 새 배포 확인 — 이 화면의 판 번호(APP_BUILD) vs 사이트의 version.json(정식)·version-test.json(테스트)
-    const APP_BUILD = 'd6251526bfc6'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
+    const APP_BUILD = '8ea8f9acb57a'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
     (function() {
         const url = /index-unified-test\.html$/.test(location.pathname) ? 'version-test.json' : 'version.json';
         let busy = false;
@@ -17699,7 +17710,7 @@ body.light-mode .card.reference-info {
         return Object.keys(m).sort().reverse();
     }
     function units(day) {   // 그날 세대를 목록 순번(만든 순서)대로, 단지·동·호수가 있는 세대만
-        var a = all().filter(function (p) { return dkey(p) === day; }).sort(function (x, y) { return tkey(x) - tkey(y); });
+        var a = all().filter(function (p) { return dkey(p) === day; }); // ✅ 패치 124: 목록 순서 = 오늘 N번
         return a.map(function (p, i) { return { p: p, seq: i + 1 }; }).filter(function (u) { return u.p.apartmentName && u.p.dong && u.p.ho; });
     }
     var one = function (s) { return String(s == null ? '' : s).trim().replace(/\s*\n\s*/g, ' · '); };   // 여러 줄 → 한 줄
