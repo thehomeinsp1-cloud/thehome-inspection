@@ -1972,7 +1972,7 @@ body.light-mode .card.reference-info {
         </button>
         
         <h1>🏠 더홈점검</h1>
-        <p id="appVersionTag" style="color:#fde68a;font-weight:700;">🧪 테스트판 · 업데이트 2026.11.16</p>
+        <p id="appVersionTag" style="color:#fde68a;font-weight:700;">🧪 테스트판 · 업데이트 2026.11.17</p>
     </div>
 
     <div class="container">
@@ -2010,6 +2010,7 @@ body.light-mode .card.reference-info {
 
             <div class="card">
                 <h2 style="color: var(--primary); margin-bottom: 20px;">📝 프로젝트 정보</h2>
+                <div id="bookPick" style="margin:-4px 0 16px;"></div><!-- ✅ 패치 123 -->
                 
                 <!-- ==================== 점검 유형 선택 ==================== -->
                 <div class="form-field">
@@ -17562,7 +17563,7 @@ body.light-mode .card.reference-info {
     }
     
     // ✅ 패치 69: 새 배포 확인 — 이 화면의 판 번호(APP_BUILD) vs 사이트의 version.json(정식)·version-test.json(테스트)
-    const APP_BUILD = '9a2aba4e05f1'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
+    const APP_BUILD = 'd6251526bfc6'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
     (function() {
         const url = /index-unified-test\.html$/.test(location.pathname) ? 'version-test.json' : 'version.json';
         let busy = false;
@@ -17936,6 +17937,90 @@ body.light-mode .card.reference-info {
             if (old && d[vf] === old) d[vf] = '';   // 미리 넣어 둔 고객 이름·휴대폰은 칸 이름을 바꾸면 비움
             d[f] = el.value; prefill(d, k); save(DK, dr); render();
         });
+    });
+})();
+</script>
+<script>
+// ✅ 패치 123: 오늘 예약 고객 불러오기 (대표님 11-17) — 로그인 서버가 예약일정의 오늘·내일 세대만 줌
+(function () {
+    var st = { open: false, loading: false, err: '', data: null, day: '', picked: '' };
+    var E = function (s) { return escapeHtml(String(s == null ? '' : s)); };
+    var tMin = function (t) { var m = /(\d{1,2})\s*[:시]\s*(\d{0,2})/.exec(String(t || '')); if (!m) return 9999; var h = +m[1]; if (h >= 1 && h <= 6) h += 12; return h * 60 + (+m[2] || 0); };
+    var dLabel = function (k, i) { var d = new Date(k + 'T00:00'); return (i === 0 ? '오늘 · ' : i === 1 ? '내일 · ' : '') + (d.getMonth() + 1) + '월 ' + d.getDate() + '일(' + '일월화수목금토'[d.getDay()] + ')'; };
+    var site = function (s) { return String(s || '').replace(/\s*\(?사후[^()]*\)?\s*/g, ' ').replace(/\s*\(추가\)/g, '').replace(/\s+/g, ' ').trim(); };
+    var num = function (s, w) { return String(s || '').replace(new RegExp(w, 'g'), '').trim(); };
+    var rows = function () { return ((st.data && st.data.rows && st.data.rows[st.day]) || []).slice().sort(function (a, b) { return tMin(a.t) - tMin(b.t); }); };
+    var key = function (r) { return r.day + '|' + r.site + '|' + r.dong + '|' + r.ho; };
+    function render() {
+        var box = document.getElementById('bookPick'); if (!box) return;
+        var h = '<button type="button" class="btn btn-secondary" data-bk="toggle" style="display:flex;align-items:center;gap:10px;width:100%;min-height:52px;text-align:left;border:1px solid var(--primary);background:rgba(16,185,129,0.12);">'
+            + '<span style="font-size:22px;">📅</span><span style="flex:1;"><b style="font-size:14px;">오늘 예약 고객 불러오기</b><br><small style="font-size:11.5px;font-weight:600;color:var(--text-secondary);">누르면 아파트명 · 동 · 호수 · 고객명 · 연락처가 한 번에 들어가요</small></span><span>' + (st.open ? '▲' : '▼') + '</span></button>';
+        if (st.open) {
+            var msg = function (t) { return '<div style="font-size:13.5px;padding:10px 4px;color:var(--text-secondary);">' + t + '</div>'; };
+            if (st.loading) h += msg('⏳ 예약 일정 불러오는 중...');
+            else if (st.err) h += msg('<span style="color:#f59e0b;font-weight:700;">' + E(st.err) + '</span>') + '<button type="button" class="btn btn-secondary" data-bk="reload" style="width:100%;">↻ 다시 불러오기</button>';
+            else if (st.data) {
+                var days = st.data.days || [];
+                if (days.indexOf(st.day) < 0) st.day = days[0] || '';
+                h += '<div style="display:flex;gap:6px;margin-top:8px;"><select class="form-input" data-bk="day" style="flex:1;min-width:0;font-weight:700;">'
+                    + days.map(function (k, i) { return '<option value="' + k + '"' + (k === st.day ? ' selected' : '') + '>' + dLabel(k, i) + ' · ' + ((st.data.rows[k] || []).length) + '세대</option>'; }).join('')
+                    + '</select><button type="button" class="btn btn-secondary" data-bk="reload" aria-label="다시 불러오기" style="flex:none;width:48px;padding:0;">↻</button></div>';
+                var list = rows();
+                h += list.map(function (r, i) {
+                    var on = key(r) === st.picked;
+                    return '<button type="button" data-bk="pick" data-i="' + i + '" style="display:flex;align-items:center;gap:10px;width:100%;margin-top:6px;padding:10px 12px;border-radius:10px;font-family:inherit;text-align:left;color:inherit;'
+                        + 'border:1px solid ' + (on ? 'var(--primary)' : 'var(--border)') + ';background:' + (on ? 'rgba(16,185,129,0.16)' : 'transparent') + ';">'
+                        + '<span style="flex:none;width:50px;font-size:12.5px;font-weight:800;color:var(--primary);">' + E(r.t || '-') + '</span>'
+                        + '<span style="flex:1;min-width:0;"><b style="display:block;font-size:14px;">' + E((r.dong ? num(r.dong, '동') + '동 ' : '') + (r.ho ? num(r.ho, '호') + '호' : '')) + ' · ' + E(r.name || '이름 없음') + '</b>'
+                        + '<small style="display:block;font-size:11.5px;color:var(--text-secondary);margin-top:2px;">' + E(r.site) + (r.phone ? ' · ' + E(window.formatPhoneNumber ? window.formatPhoneNumber(r.phone) : r.phone) : ' · ⚠ 연락처 없음') + '</small></span>'
+                        + (on ? '<span style="flex:none;color:var(--primary);font-weight:800;">✓</span>' : '') + '</button>';
+                }).join('') || msg('이날 예약된 세대가 없어요.');
+                if (st.picked) h += msg('✓ 넣었어요. 틀린 곳은 아래 칸에서 바로 고칠 수 있어요.');
+            }
+        }
+        box.innerHTML = h;
+    }
+    async function load() {
+        var L = {}; try { L = JSON.parse(localStorage.getItem('dhLoginData') || '{}') || {}; } catch (e) {}
+        if (!L.code || !L.pin) { st.err = '🔐 앱에 다시 로그인한 뒤 눌러 주세요.'; return render(); }
+        st.loading = true; st.err = ''; render();
+        try {
+            var res = await fetch(LOGIN_API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, cache: 'no-store',
+                body: JSON.stringify({ action: 'book', code: L.code, pin: L.pin, ua: navigator.userAgent }) });
+            var j = res.ok ? await res.json() : null;
+            if (j && j.status === 'ok' && j.rows) st.data = j;
+            else if (j && j.status === 'ok') st.err = '서버가 아직 새 판이 아니에요. 대표님께 알려 주세요.';
+            else if (j && j.status === 'locked') st.err = 'PIN을 여러 번 틀려 10분간 잠겼어요. 잠시 뒤 다시 눌러 주세요.';
+            else if (j && (j.status === 'invalid' || j.status === 'inactive')) st.err = '🔐 로그인 정보가 맞지 않아요. 앱에 다시 로그인해 주세요.';
+            else st.err = '예약 일정을 불러오지 못했어요. 인터넷 연결을 확인하고 다시 눌러 주세요.';
+        } catch (e) { st.err = '예약 일정을 불러오지 못했어요. 인터넷 연결을 확인하고 다시 눌러 주세요.'; }
+        st.loading = false; render();
+    }
+    function pick(r) {
+        var $ = function (id) { return document.getElementById(id); };
+        var d = num(r.dong, '동'), h = num(r.ho, '호'), cd = num($('dong').value, '동'), ch = num($('ho').value, '호');
+        if ((cd || ch) && (cd !== d || ch !== h) && !confirm('지금 적힌 ' + (cd ? cd + '동 ' : '') + (ch ? ch + '호' : '') + ' 대신\n' + (d ? d + '동 ' : '') + (h ? h + '호' : '') + ' ' + (r.name || '') + ' 고객으로 바꿀까요?')) return;
+        $('apartmentName').value = site(r.site); $('dong').value = d; $('ho').value = h;
+        if (r.day) $('inspectionDate').value = r.day;
+        $('customerName').value = r.name || ''; $('customerPhone').value = r.phone || ''; // 다른 고객 이름·번호가 남지 않게 (없으면 비움)
+        if (r.phone) window.formatPhoneInput($('customerPhone'), true);
+        var ty = $('inspectionType'), aft = /사후/.test(r.site);
+        if (ty && (ty.value === '사전점검' || ty.value === '사후점검') && ty.value !== (aft ? '사후점검' : '사전점검')) { ty.value = aft ? '사후점검' : '사전점검'; window.updateInspectionTypeBadge(); }
+        autoSaveProjectData();
+        st.picked = key(r); render();
+        showToast('✓ ' + (d ? d + '동 ' : '') + (h ? h + '호 ' : '') + (r.name || '') + ' 고객 정보를 넣었어요');
+    }
+    document.addEventListener('DOMContentLoaded', function () {
+        var box = document.getElementById('bookPick'); if (!box) return;
+        render();
+        box.addEventListener('click', function (e) {
+            var b = e.target.closest && e.target.closest('[data-bk]'); if (!b) return;
+            var a = b.getAttribute('data-bk');
+            if (a === 'toggle') { st.open = !st.open; st.picked = ''; if (st.open && !st.data && !st.loading) load(); else render(); }
+            else if (a === 'reload') { st.data = null; load(); }
+            else if (a === 'pick') { var r = rows()[+b.getAttribute('data-i')]; if (r) pick(r); }
+        });
+        box.addEventListener('change', function (e) { if (e.target.getAttribute('data-bk') === 'day') { st.day = e.target.value; st.picked = ''; render(); } });
     });
 })();
 </script>
