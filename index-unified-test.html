@@ -11696,7 +11696,8 @@ body.light-mode .card.reference-info {
             const fresh = d => !(d.locations || []).length && !(d.types || []).length;
             const stickerLeft = d => !!d._af && d._af.v === 1 && (d._af.loc !== 'ok' || d._af.typ !== 'ok') && sameSet(d.locations, d._af.pl) && sameSet(d.types, d._af.pt); // 자동 채우기가 애매하게 남긴 하자(직원 손 안 댐)
             const untouchedAI = d => !!d._af && d._af.loc === 'check' && d._af.typ === 'check' && sameSet(d.locations, d._af.pl) && sameSet(d.types, d._af.pt);
-            const todo = p => (p.defects || []).filter(d => d && Array.isArray(d.photos) && (d.photos[0] || d.photos[1]) && (fresh(d) || untouchedAI(d) || stickerLeft(d)));
+            const partial = d => !d._af && !fresh(d) && (!(d.locations || []).length || !(d.types || []).length); // 11-25 대표님: 직원이 일부만 골라도 빈 칸(위치·하자내용·상세위치)만 채움
+            const todo = p => (p.defects || []).filter(d => d && Array.isArray(d.photos) && (d.photos[0] || d.photos[1]) && (fresh(d) || untouchedAI(d) || stickerLeft(d) || partial(d)));
             const sleep = ms => new Promise(r => setTimeout(r, ms));
 
             function shrink(src, max) { // 사진 → 긴 변 max px JPEG base64 (요금·전송량 줄이기)
@@ -11735,6 +11736,10 @@ body.light-mode .card.reference-info {
                 content.push({ type: 'text', text: '공간: ' + ((d.spaces || []).join(', ') || '(모름)') });
                 const hint = (d.spaces || []).map(sp => HINT[sp]).filter(Boolean).join(' '); // 11-25: 공간별 과거 기록 통계 → 사진만 있을 때 위치 46→54%
                 if (hint) content.push({ type: 'text', text: hint });
+                if (partial(d)) { // 직원이 고른 칸은 정답으로 알려줌 (11-24 시험: 위치를 주면 위치 95%, 하자내용은 그대로)
+                    if ((d.locations || []).length) content.push({ type: 'text', text: '위치는 직원이 이미 골랐습니다: ' + d.locations.join(', ') + ' — loc 에는 이것을 그대로 넣고 나머지만 판단하세요.' });
+                    if ((d.types || []).length) content.push({ type: 'text', text: '하자내용은 직원이 이미 골랐습니다: ' + d.types.join(', ') + ' — typ 에는 이것을 그대로 넣고 나머지만 판단하세요.' });
+                }
                 for (let k = 0; ; k++) { // 혼잡(429·529·5xx)·네트워크 오류는 2번까지 다시
                     try { return (await post({ system: RULES, schema: SCHEMA, content })).result; }
                     catch (e) { if ((!e.status || e.status === 429 || e.status >= 500) && k < 2) { await sleep(4000 * (k + 1)); continue; } throw e; }
@@ -11749,12 +11754,13 @@ body.light-mode .card.reference-info {
             }
 
             function apply(d, r, src, model) { // 결과 1건을 하자에 넣기 (🧠 버튼·집 PC 결과 불러오기 공용). 반환: 'ai'|'sticker'|'none'|'' (직원이 그 사이 고름)
-                if (!(fresh(d) || untouchedAI(d) || stickerLeft(d))) return '';
+                if (!(fresh(d) || untouchedAI(d) || stickerLeft(d) || partial(d))) return '';
+                const part = partial(d), sL = part && (d.locations || []).length > 0, sT = part && (d.types || []).length > 0; // 직원이 고른 칸은 그대로
                 const sk = stickerLeft(d) ? d._af : null;
                 const okL = sk && sk.loc === 'ok' && sk.pl.length, okT = sk && sk.typ === 'ok' && sk.pt.length;
-                const loc = okL ? sk.pl.slice() : ((r && r.loc) || []).filter((x, i, a) => LOCS.includes(x) && a.indexOf(x) === i).slice(0, 4);
-                const typ = okT ? sk.pt.slice() : ((r && r.typ) || []).filter((x, i, a) => TYPES.includes(x) && a.indexOf(x) === i).slice(0, 4);
-                if (!loc.length && !typ.length) return 'none';
+                const loc = sL ? d.locations.slice() : okL ? sk.pl.slice() : ((r && r.loc) || []).filter((x, i, a) => LOCS.includes(x) && a.indexOf(x) === i).slice(0, 4);
+                const typ = sT ? d.types.slice() : okT ? sk.pt.slice() : ((r && r.typ) || []).filter((x, i, a) => TYPES.includes(x) && a.indexOf(x) === i).slice(0, 4);
+                if (part ? !loc.length || !typ.length : !loc.length && !typ.length) return 'none';
                 const keepDetail = d.detailLocation && !(d._af && d.detailLocation === d._af.pd); // 직원이 쓴 상세위치는 유지
                 const oldDesc = d.description || ''; generateAutoDescription(d.id); // 지금 칸으로 만든 설명과 다르면 직원이 직접 쓴 설명 → 유지
                 const keepDesc = !!oldDesc && oldDesc !== (d.description || '') && !(d._af && oldDesc === d._af.ds); d.description = oldDesc;
@@ -11762,7 +11768,7 @@ body.light-mode .card.reference-info {
                 if (!keepDetail && r.detail) d.detailLocation = window.DL ? DL.norm(r.detail) : r.detail;
                 const st = src === 'sticker' ? 'ok' : 'check';
                 if (!keepDesc) generateAutoDescription(d.id);
-                d._af = { v: 2, src, m: src === 'sticker' ? '' : model, loc: okL ? 'ok' : st, typ: okT ? 'ok' : st, c: r.sure || '', why: String(r.why || '').slice(0, 200), pl: loc.slice(), pt: typ.slice(), pd: d.detailLocation || '', ds: d.description || '' };
+                d._af = { v: 2, src, m: src === 'sticker' ? '' : model, loc: okL || sL ? 'ok' : st, typ: okT || sT ? 'ok' : st, c: r.sure || '', why: String(r.why || '').slice(0, 200), pl: loc.slice(), pt: typ.slice(), pd: d.detailLocation || '', ds: d.description || '' };
                 saveWithDebounce();
                 return src;
             }
@@ -11773,7 +11779,7 @@ body.light-mode .card.reference-info {
                 if (isAppBusy()) { if (!afterAF) showToast('⏳ 다른 작업(저장·보고서 등)이 끝난 뒤 다시 눌러주세요', 'warning'); return; }
                 const project = getCurrentProject();
                 let targets = todo(project);
-                if (!targets.length) { if (!afterAF) showToast('분석할 하자가 없습니다 — 비어 있거나 자동 채우기·AI가 애매하게 남긴 하자(손대지 않은 것)만 분석합니다', 'info'); return; }
+                if (!targets.length) { if (!afterAF) showToast('분석할 하자가 없습니다 — 위치·하자내용 중 빈 칸이 있는 하자만 분석합니다', 'info'); return; }
                 if (!PA.URL) { showToast('🧠 사진 AI 서버 주소가 아직 없습니다 — 서버 배포 후 사용할 수 있습니다', 'warning'); return; }
                 let st0 = null;
                 for (let t = 0; t < 2 && !st0; t++) { // 비밀번호: 앱을 켤 때마다 한 번 (메모리에만, 저장 안 함)
@@ -11789,7 +11795,7 @@ body.light-mode .card.reference-info {
                 const left = Math.max(0, st0.cap - st0.used);
                 if (!left) { showToast(`🧠 이번 달 사진 AI 한도(${st0.cap}건)를 다 썼습니다`, 'warning'); return; }
                 const cut = targets.length > left ? targets.length - left : 0; if (cut) targets = targets.slice(0, left);
-                if (!confirm(`🧠 사진 AI 분석${afterAF ? ' — 자동 채우기 마무리' : ''}\n\n하자 ${targets.length}건${afterAF ? '(스티커로 확실히 못 정한 것)' : ''}을 AI가 사진으로 보고 위치·하자내용·상세위치를 채웁니다.${cut ? `\n· 이번 달 한도 때문에 ${cut}건은 빼고 합니다` : ''}\n· 직원이 고른 하자·쓴 설명은 건드리지 않습니다\n· 스티커로 확실한 칸은 그대로 둡니다\n· AI가 채운 칸은 '확인 필요'(노란 표시)로 남깁니다\n· 예상 요금 약 ${targets.length * PA.WON}원 · 이번 달 ${st0.used}/${st0.cap}건 사용\n\n진행할까요?`)) return;
+                if (!confirm(`🧠 사진 AI 분석${afterAF ? ' — 자동 채우기 마무리' : ''}\n\n하자 ${targets.length}건${afterAF ? '(스티커로 확실히 못 정한 것)' : ''}을 AI가 사진으로 보고 위치·하자내용·상세위치를 채웁니다.${cut ? `\n· 이번 달 한도 때문에 ${cut}건은 빼고 합니다` : ''}\n· 직원이 고른 칸·쓴 설명은 그대로 두고 빈 칸만 채웁니다\n· 스티커로 확실한 칸은 그대로 둡니다\n· AI가 채운 칸은 '확인 필요'(노란 표시)로 남깁니다\n· 예상 요금 약 ${targets.length * PA.WON}원 · 이번 달 ${st0.used}/${st0.cap}건 사용\n\n진행할까요?`)) return;
                 if (isAppBusy()) { showToast('⏳ 다른 작업(저장·보고서 등)이 끝난 뒤 다시 눌러주세요', 'warning'); return; }
                 let stamp = window._appBusySince = Date.now(); const list = document.getElementById('defectsList'), n = targets.length;
                 PA._busy = true; showLoading(); prog(0, n);
@@ -17583,7 +17589,7 @@ body.light-mode .card.reference-info {
     }
     
     // ✅ 패치 69: 새 배포 확인 — 이 화면의 판 번호(APP_BUILD) vs 사이트의 version.json(정식)·version-test.json(테스트)
-    const APP_BUILD = 'c70c7112bbe8'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
+    const APP_BUILD = 'a026362fd771'; // merge.js·build-test.js 가 내용 해시로 채움 (채워지지 않은 개발용 파일은 확인 안 함)
     (function() {
         const url = /index-unified-test\.html$/.test(location.pathname) ? 'version-test.json' : 'version.json';
         let busy = false;
